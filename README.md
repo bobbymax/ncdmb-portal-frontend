@@ -42,7 +42,15 @@ To get started with this framework:
 
 3. Customize the services, repositories, and middleware to your application’s needs.
 
-4. Run the application:
+4. Create your environment file, and copy the content of `.env.example` to your `.env` file.
+
+5. Replace the url with your backend url
+
+```bash
+REACT_API_ENDPOINT="http://your-backend-api.dev/api"
+```
+
+6. Run the application:
 
    ```bash
    npm run start
