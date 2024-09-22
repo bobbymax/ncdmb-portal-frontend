@@ -37,14 +37,15 @@ To get started with this framework:
 2. Install dependencies:
 
    ```bash
-    npm install
+   npm install
    ```
 
 3. Customize the services, repositories, and middleware to your application’s needs.
 
 4. Run the application:
+
    ```bash
-    npm run start
+   npm run start
    ```
 
 ## Example Usage
@@ -52,9 +53,9 @@ To get started with this framework:
 Here's an example of how to use a repository in the application:
 
 ```bash
-    // Example: Accessing StaffRepository
-    const repo = new StaffRepository();
-    const staffState = repo.getState("staff");
+// Example: Accessing StaffRepository
+const repo = new StaffRepository();
+const staffState = repo.getState("staff");
 ```
 
 ### Form Validator
@@ -62,13 +63,13 @@ Here's an example of how to use a repository in the application:
 The Validator class accepts three arguments: fillables, rules, and data. It validates form inputs based on dynamic rules defined within each repository.
 
 ```bash
-    const validator = new Validator(fillables, rules, formData);
+const validator = new Validator(fillables, rules, formData);
 
-    if (validator.fails()) {
-        console.log(validator.errors);
-    } else {
-        console.log('Validation Passed');
-    }
+if (validator.fails()) {
+    console.log(validator.errors);
+} else {
+    console.log('Validation Passed');
+}
 ```
 
 ### Folder Structure Breakdown
@@ -102,11 +103,11 @@ We’re looking for collaborators who can help make this project better! Here ar
 
 ### How to Contribute
 
-    1.	Fork the repository.
-    2.	Create your feature branch (git checkout -b feature/new-feature).
-    3.	Commit your changes (git commit -m 'Add some feature').
-    4.	Push to the branch (git push origin feature/new-feature).
-    5.	Open a pull request.
+1. Fork the repository.
+2. Create your feature branch (git checkout -b feature/new-feature).
+3. Commit your changes (git commit -m 'Add some feature').
+4. Push to the branch (git push origin feature/new-feature).
+5. Open a pull request.
 
 ## Feedback & Suggestions
 
