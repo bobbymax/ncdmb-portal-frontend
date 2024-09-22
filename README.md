@@ -73,6 +73,7 @@ if (validator.fails()) {
 ### Folder Structure Breakdown
 
 ```bash
+# This is the folder structure of the project
 src/
 │
 ├── app/
