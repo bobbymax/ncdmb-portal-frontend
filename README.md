@@ -31,20 +31,20 @@ To get started with this framework:
 1. Clone this repository:
 
    ```bash
-   `git clone https://github.com/storm-web-framework.git`
+   git clone https://github.com/storm-web-framework.git
    ```
 
 2. Install dependencies:
 
    ```bash
-   `npm install`
+    npm install
    ```
 
 3. Customize the services, repositories, and middleware to your application’s needs.
 
 4. Run the application:
    ```bash
-   `npm run start`
+    npm run start
    ```
 
 ## Example Usage
@@ -52,9 +52,9 @@ To get started with this framework:
 Here's an example of how to use a repository in the application:
 
 ```bash
-// Example: Accessing StaffRepository
-const repo = new StaffRepository();
-const staffState = repo.getState("staff");
+    // Example: Accessing StaffRepository
+    const repo = new StaffRepository();
+    const staffState = repo.getState("staff");
 ```
 
 ### Form Validator
@@ -62,12 +62,13 @@ const staffState = repo.getState("staff");
 The Validator class accepts three arguments: fillables, rules, and data. It validates form inputs based on dynamic rules defined within each repository.
 
 ```bash
-`const validator = new Validator(fillables, rules, formData);
-if (validator.fails()) {
-  console.log(validator.errors);
-} else {
-  console.log('Validation Passed');
-}`
+    const validator = new Validator(fillables, rules, formData);
+
+    if (validator.fails()) {
+        console.log(validator.errors);
+    } else {
+        console.log('Validation Passed');
+    }
 ```
 
 ### Folder Structure Breakdown
