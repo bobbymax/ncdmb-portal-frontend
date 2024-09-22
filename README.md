@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This repository contains a **TypeScript-Based Web Application Framework** designed to be **modular, scalable, and easily maintainable**. It leverages core architectural principles like **repositories, services, middlewares, guards, and a custom validator system** to ensure a clean and efficient codebase. The goal of this project is to provide a strong foundation for building robust applications while keeping the structure flexible for future enhancements.
+The **Storm** project repository is a **TypeScript-Based Web Application Framework** designed to be **modular, scalable, and easily maintainable**. It leverages core architectural principles like **repositories, services, middlewares, guards, and a custom validator system** to ensure a clean and efficient codebase. The goal of this project is to provide a strong foundation for building robust applications while keeping the structure flexible for future enhancements.
 
 ## Key Features
 
