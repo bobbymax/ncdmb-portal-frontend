@@ -1,25 +1,25 @@
-import { AuthService } from "@services/AuthService";
-
 export class AuthProvider {
-  private authService: AuthService;
+  private key = "authToken";
+  private secretKey = "n14!?<c[aA]3dc@r1!4mb2;:xSWvb";
 
-  constructor() {
-    this.authService = new AuthService();
-  }
+  public isAuthenticated = (): boolean => {
+    return !!localStorage.getItem(this.key);
+  };
 
-  public login(username: string, password: string) {
-    return this.authService.login(username, password);
-  }
+  public saveToken = (data: any): void => {
+    localStorage.setItem(this.key, JSON.stringify(data));
+  };
 
-  public logout() {
-    return this.authService.logout();
-  }
+  public getToken = (): string | null => {
+    const data = localStorage.getItem(this.key);
+    if (!data) {
+      return null;
+    }
+    return JSON.parse(data);
+  };
 
-  public isAuthenticated(): boolean {
-    return this.authService.isAuthenticated();
-  }
-
-  public getToken(): string | null {
-    return this.authService.getToken();
+  // Log out by removing the token
+  public logout(): void {
+    localStorage.removeItem(this.key);
   }
 }

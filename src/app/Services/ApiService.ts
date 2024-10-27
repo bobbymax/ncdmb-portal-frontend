@@ -1,27 +1,36 @@
 import axios, {
   AxiosInstance,
+  AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { ConfigProvider } from "@providers/ConfigProvider";
-import { AuthProvider } from "@providers/AuthProvider";
+// import { ConfigProvider } from "../Providers/ConfigProvider";
+import { AuthProvider } from "../Providers/AuthProvider";
 
 export class ApiService {
   private api: AxiosInstance;
   private auth: AuthProvider;
 
   constructor() {
-    const endpoint = ConfigProvider.get("api");
+    // const endpoint = ConfigProvider.get("api");
     this.auth = new AuthProvider();
 
     this.api = axios.create({
-      baseURL: endpoint,
-      timeout: 10000,
+      baseURL:
+        process.env.REACT_API_ENDPOINT ?? "https://api-manager.test/api/",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
     });
 
     if (this.auth.isAuthenticated()) {
       this.api.interceptors.request.use(
-        (config: InternalAxiosRequestConfig) => {
+        (
+          config: AxiosRequestConfig
+        ):
+          | InternalAxiosRequestConfig<any>
+          | Promise<InternalAxiosRequestConfig<any>> => {
           const token = this.auth.getToken();
 
           if (token) {
@@ -29,7 +38,9 @@ export class ApiService {
             config.headers.Authorization = `Bearer ${token}`;
           }
 
-          return config;
+          return config as
+            | InternalAxiosRequestConfig<any>
+            | Promise<InternalAxiosRequestConfig<any>>;
         }
       );
 

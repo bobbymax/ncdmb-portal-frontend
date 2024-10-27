@@ -1,11 +1,14 @@
 import { Navigate } from "react-router-dom";
-import { AuthMiddleware } from "@middlewares/AuthMiddleware";
+import React from "react";
+import { AuthProvider } from "../Providers/AuthProvider";
+import Protected from "resources/templates/Protected";
 
-export const AuthGuard = (next: Function) => {
-  try {
-    AuthMiddleware(next);
-  } catch (error) {
-    console.error("Access Denied", error);
-    <Navigate to="/login" replace />;
-  }
+export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+  const authProvider = new AuthProvider();
+
+  return authProvider.isAuthenticated() ? (
+    <Protected>{children}</Protected>
+  ) : (
+    <Navigate to="/auth/login" replace />
+  );
 };

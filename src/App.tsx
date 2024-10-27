@@ -1,5 +1,7 @@
+import Main from "./bootstrap";
+
 const App = () => {
-  return <div>Hello World</div>;
+  return <Main />;
 };
 
 export default App;
