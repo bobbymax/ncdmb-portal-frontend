@@ -22,10 +22,12 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
     "react-scripts": "5.0.1",
-    "react-toastify": "^10.0.5",
+    "react-toastify": "^10.0.6",
     "remixicon": "^4.4.0",
+    "sweetalert2": "^11.14.4",
     "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -52,6 +54,6 @@
     ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.7"
+    "@types/lodash": "^4.17.13"
   }
 }

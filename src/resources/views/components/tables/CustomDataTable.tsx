@@ -10,16 +10,28 @@ import TextInput from "../forms/TextInput";
 import Button from "../forms/Button";
 import TextInputWithIcon from "../forms/TextInputWithIcon";
 import TableButton from "./TableButton";
+import Alert from "app/Support/Alert";
+import { generateShortUniqueString } from "app/Support/Helpers";
 
 export interface ColumnData {
   label: string;
   accessor: string;
-  type: "text" | "currency" | "date" | "status" | "badge" | "field";
+  type: "text" | "currency" | "date" | "status" | "badge" | "field" | "bool";
   format?: string;
 }
 
 export interface ButtonsProp {
-  label: string;
+  label:
+    | "update"
+    | "destroy"
+    | "external"
+    | "block"
+    | "verify"
+    | "view"
+    | "schedule"
+    | "print"
+    | "manage"
+    | "payments";
   variant: "success" | "info" | "warning" | "danger" | "dark";
   icon?: string;
   conditions: ConditionalArray[];
@@ -28,19 +40,31 @@ export interface ButtonsProp {
 }
 
 export interface DataTableProps {
+  pageName: string;
   collection: Record<string, any>[];
   columns: ColumnData[];
-  manage: (raw: Raw, label: string) => void;
+  manage?: (raw: Raw, label: string) => void;
   buttons: ButtonsProp[];
   exportable?: boolean;
+  addData?: () => void;
+  tag: string;
+  exportBttn?: string;
+  bttnVaraint?: "success" | "info" | "warning" | "danger" | "dark";
+  onExportData?: (data: Record<string, any>[]) => void;
 }
 
 const CustomDataTable = ({
+  pageName,
   collection,
   columns,
   manage,
   buttons,
   exportable = false,
+  addData,
+  tag,
+  exportBttn,
+  bttnVaraint,
+  onExportData,
 }: DataTableProps) => {
   const [tableData, setTableData] = useState<Record<string, any>[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -53,14 +77,20 @@ const CustomDataTable = ({
     [columns, pageSize, collection]
   );
 
+  // Instantiate DataManager with initial data
+  // const dataManager = new TableDataManager(data, columns, pageSize);
+
   const exportData = () => {
-    // Alert.flash("Download Excel File", "info", "Perform this action").then(
-    //   (result) => {
-    //     if (result.isConfirmed) {
-    //       dataManager.export(data, generateUniqueString());
-    //     }
-    //   }
-    // );
+    Alert.flash("Download Excel File", "info", "Perform this action").then(
+      (result) => {
+        if (result.isConfirmed) {
+          manager.export(collection, generateShortUniqueString());
+          if (onExportData) {
+            onExportData(collection);
+          }
+        }
+      }
+    );
   };
 
   const generateButtons = (raw: Raw) => {
@@ -71,7 +101,7 @@ const CustomDataTable = ({
             key={i}
             raw={raw}
             button={bttn}
-            action={() => manage(raw, bttn.label)}
+            action={() => (manage ? manage(raw, bttn.label) : {})}
           />
         ))}
       </div>
@@ -81,7 +111,7 @@ const CustomDataTable = ({
   useEffect(() => {
     const updatedData = manager.paginate(page, filters, searchTerm);
     setTableData(updatedData);
-  }, [page, pageSize, filters, searchTerm]);
+  }, [page, pageSize, filters, searchTerm, collection]);
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -101,13 +131,13 @@ const CustomDataTable = ({
     <div className="table-container">
       <div className="table-header mb-4 flex between align">
         <h3 className="resource-header" style={{ fontWeight: 800 }}>
-          List of Users
+          List of {pageName}
         </h3>
         <Button
-          label="Add User"
+          label={tag}
           icon="ri-add-large-fill"
           variant="info"
-          handleClick={() => {}}
+          handleClick={addData}
         />
       </div>
       <div className="top-section mb-4 flex center-align space-between">
@@ -122,11 +152,11 @@ const CustomDataTable = ({
         </div>
         <div className="button-section">
           <Button
-            label="Export to Excel"
+            label={`${exportBttn ?? "Export to Excel"}`}
             icon="ri-file-excel-2-line"
-            variant="success"
+            variant={`${bttnVaraint ?? "success"}`}
             handleClick={() => exportData()}
-            isDisabled={collection?.length < 1}
+            isDisabled={collection?.length < 1 || !exportable}
           />
         </div>
       </div>
@@ -163,7 +193,9 @@ const CustomDataTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length + 1}>No Data Found!!!</td>
+              <td colSpan={columns.length + 1} className="text-danger">
+                No Data Found!!!
+              </td>
             </tr>
           )}
         </tbody>

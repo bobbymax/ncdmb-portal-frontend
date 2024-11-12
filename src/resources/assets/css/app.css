@@ -265,10 +265,24 @@ b {
   background-color: var(--color-secondary-alternate);
 }
 
-.top-icon {
+.top-icon,
+.logout-icon {
   font-size: 2.2rem;
   color: var(--color-white);
   cursor: pointer;
+}
+
+.logout-icon {
+  font-size: 1.5rem;
+  background-color: var(--color-bttn-danger);
+  padding: 6px 10px;
+  display: block;
+  border-radius: 50%;
+  text-align: center;
+}
+
+.logout-icon:hover {
+  background-color: var(--color-bttn-danger-variant);
 }
 
 .brand .title {
@@ -540,6 +554,14 @@ storm-bttn span {
   background-color: var(--color-bttn-danger-variant);
 }
 
+.storm-form-label {
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-size: 10px;
+  color: var(--color-ajacent);
+}
+
 /* Form TextInput Styles */
 .storm-form-control {
   background-color: var(--color-light);
@@ -654,4 +676,10 @@ storm-bttn span {
 .pagination-item.is-disabled {
   background-color: var(--color-border-lighter);
   color: var(--color-input-icon);
+}
+
+.custom-panel {
+  padding: 0.98rem 1.78rem;
+  background-color: var(--color-table-bg-lighter);
+  border-radius: 3px;
 }

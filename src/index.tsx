@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter as Router } from "react-router-dom";
+import { ContentContext } from "app/Context/ContentContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -10,9 +11,11 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <Router>
-      <App />
-    </Router>
+    <ContentContext>
+      <Router>
+        <App />
+      </Router>
+    </ContentContext>
   </React.StrictMode>
 );
 

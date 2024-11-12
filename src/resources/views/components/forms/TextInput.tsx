@@ -37,15 +37,16 @@ const TextInput: React.FC<TextInputProps> = ({
   ...attributes
 }) => {
   return (
-    <div className="storm-form-group">
+    <div className="storm-form-group flex column mb-3">
       {label && (
-        <label className="storm-form-label" htmlFor={name}>
+        <label className="storm-form-label mb-2" htmlFor={name}>
           {label}:
         </label>
       )}
       <input
         type={type}
         id={name}
+        name={name}
         value={value}
         onChange={onChange}
         className={`storm-form-control storm-form-${size}`}

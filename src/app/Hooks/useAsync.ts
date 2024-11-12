@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { ServerResponse } from "@services/RepositoryService";
-import { DefaultErrorHandler } from "@handlers/DefaultErrorHandler";
+import { ServerResponse } from "../Services/RepositoryService";
+import { DefaultErrorHandler } from "../Handlers/DefaultErrorHandler";
 
 export interface DefaultError {
   message: string;

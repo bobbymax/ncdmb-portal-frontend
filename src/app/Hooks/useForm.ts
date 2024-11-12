@@ -1,17 +1,22 @@
 import React, { useMemo, useState } from "react";
-import { BaseRepository, JsonResponse } from "@repositories/BaseRepository";
-import { useAsync } from "@hooks/useAsync";
-import { ServerResponse } from "@services/RepositoryService";
-import { Validator } from "@support/Validator";
+import {
+  BaseRepository,
+  JsonResponse,
+  ViewsProps,
+} from "../Repositories/BaseRepository";
+import { useAsync } from "../Hooks/useAsync";
+import { ServerResponse } from "../Services/RepositoryService";
+import { Validator } from "../Support/Validator";
 import { toast } from "react-toastify";
-import { DefaultErrorHandler } from "@handlers/DefaultErrorHandler";
+import { DefaultErrorHandler } from "../Handlers/DefaultErrorHandler";
+import Alert from "app/Support/Alert";
 
 // Define constants for action types to avoid hardcoding strings
 const ACTION_STORE = "store";
 const ACTION_UPDATE = "update";
 const ACTION_DESTROY = "destroy";
 
-type ActionType =
+export type ActionType =
   | typeof ACTION_STORE
   | typeof ACTION_UPDATE
   | typeof ACTION_DESTROY;
@@ -22,19 +27,27 @@ interface UseFormProps {
 }
 
 export const useForm = <T extends BaseRepository>(
-  Repository: new () => T,
+  Repository: new (url: string) => T,
+  view: ViewsProps,
   { onFormSubmit, handleValidationErrors }: UseFormProps
 ) => {
-  const repo = useMemo(() => new Repository(), [Repository]);
+  const repo = useMemo(
+    () => new Repository(view.server_url),
+    [Repository, view.server_url]
+  );
   const [state, setState] = useState<JsonResponse>(() => ({
     ...repo.getState(),
   }));
   const { loading, error, execute } = useAsync();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+
     setState((prevState) => ({
       ...prevState,
-      [e.target.name]: e.target.value,
+      [name]: !isNaN(Number(value)) && value !== "" ? Number(value) : value,
     }));
   };
 
@@ -71,7 +84,7 @@ export const useForm = <T extends BaseRepository>(
         if (response) {
           setState({ ...repo.getState() }); // Reset the state after successful submission
           onFormSubmit(response, action); // Callback with response and action type
-          toast.success(`Record was ${action}d successfully!`);
+          // toast.success(`Record was ${action}d successfully!`);
         }
       } catch (er) {
         const returnedError = er instanceof DefaultErrorHandler ? er : "Oops!!";
@@ -96,17 +109,27 @@ export const useForm = <T extends BaseRepository>(
     );
   };
 
-  const destroy = async () => {
-    try {
-      const response: ServerResponse = await execute(repo.destroy(state.id));
+  const destroy = () => {
+    Alert.flash(
+      "Are you Sure?",
+      "warning",
+      "You will not be able to reverse this!!"
+    ).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response: ServerResponse = await execute(
+            repo.destroy(state.id)
+          );
 
-      setState(repo.getState());
-      onFormSubmit(response, "destroy");
-      toast.success("Record deleted successfully!");
-    } catch (er) {
-      console.error(er);
-      toast.error("Failed to delete the record.");
-    }
+          setState(repo.getState());
+          onFormSubmit(response, "destroy");
+          toast.success("Record deleted successfully!");
+        } catch (er) {
+          console.error(er);
+          toast.error("Failed to delete the record.");
+        }
+      }
+    });
   };
 
   const fill = (data: JsonResponse) => {
@@ -115,6 +138,7 @@ export const useForm = <T extends BaseRepository>(
 
   return {
     state,
+    setState,
     handleChange,
     create,
     update,
@@ -122,5 +146,6 @@ export const useForm = <T extends BaseRepository>(
     fill,
     loading,
     error,
+    validate,
   };
 };

@@ -1,9 +1,10 @@
-import { BaseRepository, JsonResponse } from "@repositories/BaseRepository";
+import { BaseRepository, JsonResponse } from "../Repositories/BaseRepository";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface RestData {
+  url: string;
   shouldFetch?: boolean;
   hasParam?: boolean;
   customRoute?: string;
@@ -11,16 +12,21 @@ interface RestData {
 }
 
 export const useResourceActions = <T extends BaseRepository>(
-  Repository: new () => T,
-  { shouldFetch = false, hasParam = false, param = "" }: RestData
+  Repository: new (url: string) => T,
+  { url, shouldFetch = true, hasParam = false, param = "" }: RestData
 ) => {
   const params = useParams<{ [key: string]: string }>();
+  const navigate = useNavigate();
   const [collection, setCollection] = useState<JsonResponse[]>([]);
   const [raw, setRaw] = useState<JsonResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [resourceError, setResourceError] = useState<string | null>(null);
 
-  const repo = useMemo(() => new Repository(), [Repository]);
+  const repo = useMemo(() => new Repository(url), [Repository, url]);
+
+  const back = () => {
+    navigate(-1);
+  };
 
   const fetchCollection = useCallback(
     async (signal?: AbortSignal) => {
@@ -97,16 +103,28 @@ export const useResourceActions = <T extends BaseRepository>(
   }, [fetchCollection, shouldFetch]);
 
   useEffect(() => {
-    if (hasParam && params[0]) {
+    if (hasParam && params) {
       const controller = new AbortController();
       const { signal } = controller;
 
-      const value = param ? params[param] : params.id;
-      fetchRawServerRecord(value as string, signal);
+      const value = param !== "" ? params[param] : params.id;
+      if (value) {
+        fetchRawServerRecord(value as string, signal);
+      }
 
       return () => controller.abort();
     }
   }, [hasParam, fetchRawServerRecord, param, params]);
 
-  return { collection, raw, updateCollection, resourceError, loading };
+  return {
+    back,
+    redirectTo: navigate,
+    collection,
+    raw,
+    updateCollection,
+    resourceError,
+    loading,
+    columns: repo.columns,
+    buttons: repo.actions,
+  };
 };

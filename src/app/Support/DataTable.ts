@@ -1,4 +1,5 @@
-import { ColumnData } from "@views/components/tables/CustomDataTable";
+import { ColumnData } from "../../resources/views/components/tables/CustomDataTable";
+import Upload from "./Upload";
 
 interface Filters {
   [key: string]: any;
@@ -67,4 +68,7 @@ export default class DataTable {
   };
 
   //   Export Data Method Here
+  export(data: Record<string, any>[], name: string) {
+    return Upload.export(data, name);
+  }
 }

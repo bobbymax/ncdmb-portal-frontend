@@ -1,6 +1,6 @@
-import { AxiosResponse } from "axios";
-import { ApiService } from "@services/ApiService";
-import { JsonResponse } from "@repositories/BaseRepository";
+import { AxiosError, AxiosResponse } from "axios";
+import { ApiService } from "./ApiService";
+import { JsonResponse } from "../Repositories/BaseRepository";
 
 export interface ServerResponse {
   code?: number;
@@ -11,8 +11,13 @@ export interface ServerResponse {
 
 interface IRepository {
   collection: () => Promise<ServerResponse>;
+  customCollection: (url: string) => Promise<ServerResponse>;
   show: (param: string | number) => Promise<ServerResponse>;
   store: (body: Record<string, any>) => Promise<ServerResponse>;
+  customStore: (
+    url: string,
+    body: Record<string, any>
+  ) => Promise<ServerResponse>;
   update: (
     param: string | number,
     data: Record<string, any>
@@ -21,13 +26,17 @@ interface IRepository {
 }
 
 export abstract class RepositoryService implements IRepository {
-  private api: ApiService;
+  protected api: ApiService;
   protected url: string;
 
   constructor(url: string) {
     this.api = new ApiService();
     this.url = url;
   }
+
+  isServerErrorResponse = (data: any): data is { message: string } => {
+    return data && typeof data.message === "string";
+  };
 
   async collection(): Promise<ServerResponse> {
     try {
@@ -37,11 +46,39 @@ export abstract class RepositoryService implements IRepository {
       const code = response.status;
       return { code, ...response.data };
     } catch (error) {
-      console.error("Collection cannot be found: ", error);
+      const err = error as AxiosError;
+      console.error("Collection cannot be found: ", err.message);
+      // Use type guard here
+      const errorMessage = this.isServerErrorResponse(err.response?.data)
+        ? err.response?.data.message
+        : "Collection cannot be found";
+
       return {
-        code: 500,
+        code: err.response?.status || 500,
         data: [],
-        message: "Collection cannot be found",
+        message: errorMessage || "An unexpected error occurred",
+        status: "error",
+      };
+    }
+  }
+
+  async customCollection(url: string): Promise<ServerResponse> {
+    try {
+      const response: AxiosResponse<ServerResponse> = await this.api.get(url);
+      const code = response.status;
+      return { code, ...response.data };
+    } catch (error) {
+      const err = error as AxiosError;
+      console.error("Collection cannot be found: ", err.message);
+      // Use type guard here
+      const errorMessage = this.isServerErrorResponse(err.response?.data)
+        ? err.response?.data.message
+        : "Collection cannot be found";
+
+      return {
+        code: err.response?.status || 500,
+        data: [],
+        message: errorMessage || "An unexpected error occurred",
         status: "error",
       };
     }
@@ -73,6 +110,28 @@ export abstract class RepositoryService implements IRepository {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.post(
         this.url,
+        body
+      );
+      const code = response.status;
+      return { code, ...response.data };
+    } catch (error) {
+      console.error("This record was not created", error);
+      return {
+        code: 500,
+        data: { id: 0 },
+        message: "This record was not created",
+        status: "error",
+      };
+    }
+  }
+
+  async customStore(
+    url: string,
+    body: Record<string, any>
+  ): Promise<ServerResponse> {
+    try {
+      const response: AxiosResponse<ServerResponse> = await this.api.post(
+        url,
         body
       );
       const code = response.status;

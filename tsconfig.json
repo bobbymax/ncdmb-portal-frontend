@@ -1,19 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": "./src",
-    "paths": {
-      "@repositories/*": ["app/Repositories/*"],
-      "@services/*": ["app/Services/*"],
-      "@guards/*": ["app/Guards/*"],
-      "@handlers/*": ["app/Handlers/*"],
-      "@hooks/*": ["app/Hooks/*"],
-      "@middlewares/*": ["app/Middlewares/*"],
-      "@providers/*": ["app/Providers/*"],
-      "@support/*": ["app/Support/*"],
-      "@interfaces/*": ["app/Interfaces/*"],
-      "@views/*": ["resources/views/*"],
-      "@assets/*": ["resources/assets/*"]
-    },
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,

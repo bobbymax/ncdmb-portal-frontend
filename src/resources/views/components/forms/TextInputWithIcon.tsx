@@ -38,6 +38,7 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
           className={`storm-form-control storm-form-${size} storm-control-with-icon`}
           placeholder={placeholder}
           disabled={isDisabled}
+          name={name}
           min={min}
           max={max}
           style={{

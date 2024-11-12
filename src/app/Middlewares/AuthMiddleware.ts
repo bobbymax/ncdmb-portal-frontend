@@ -1,4 +1,4 @@
-import { AuthProvider } from "@providers/AuthProvider";
+import { AuthProvider } from "../Providers/AuthProvider";
 
 export const AuthMiddleware = (next: Function) => {
   const authProvider = new AuthProvider();

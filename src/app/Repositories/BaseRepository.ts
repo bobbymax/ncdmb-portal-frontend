@@ -1,77 +1,62 @@
-import { RepositoryService } from "@services/RepositoryService";
-
-interface BaseResponse {
+import { RepositoryService } from "../Services/RepositoryService";
+import {
+  ButtonsProp,
+  ColumnData,
+} from "../../resources/views/components/tables/CustomDataTable";
+import { AxiosResponse } from "axios";
+export interface BaseResponse {
   id: number;
 }
-
+export interface DependencyProps {
+  url: string;
+  name: string;
+}
+// Define the ApiResponse interface if needed
+interface ApiResponse {
+  data: {
+    data: any; // Replace `any` with actual expected data type if available
+  };
+}
+export interface ViewsProps {
+  title: string;
+  server_url: string;
+  component: string;
+  frontend_path: string;
+  type: "index" | "form-page" | "dashboard" | "lock-page" | "page" | "external";
+  mode: "store" | "update" | "list";
+  tag?: string;
+  action?: string;
+  index_path?: string;
+  post_server_url?: string;
+}
 export type JsonResponse = BaseResponse & Record<string, any>;
-
-interface RepositoryTableColumns {
-  accessor: string;
-  display: string;
-  type: "text" | "currency" | "date" | "status" | "badge" | "field";
-}
-
-type ConditionalArray = [keyof JsonResponse, string | number, string | number];
-
-interface TableBttnProps {
-  action:
-    | "update"
-    | "destroy"
-    | "external"
-    | "block"
-    | "guarantors"
-    | "view"
-    | "schedule"
-    | "print";
-  label?: string;
-  icon?: string;
-  isDisabled: boolean;
-  variant?: "success" | "info" | "warning" | "danger" | "dark";
-  conditions: ConditionalArray[];
-  terms: "and" | "or";
-}
-
 export abstract class BaseRepository extends RepositoryService {
   // This is the path for the frontend route of the repository
-  protected path: string = "";
+  public abstract path: string;
   public abstract fillables: Array<keyof JsonResponse>;
   public abstract rules: { [key: string]: string };
-
-  constructor(url: string, path: string) {
-    super(url);
-    this.path = path;
-  }
+  public abstract views: ViewsProps[];
 
   // This is the repository initialState
-  protected state: JsonResponse = {
-    id: 0,
-  };
+  protected abstract state: JsonResponse;
+  public abstract columns: ColumnData[];
+  public abstract actions: ButtonsProp[];
+  public abstract component: string;
 
-  public columns: RepositoryTableColumns[] = [];
-  public actions: TableBttnProps[] = [
-    {
-      action: "update",
-      label: "Manage",
-      icon: "create",
-      variant: "dark",
-      isDisabled: false,
-      conditions: [],
-      terms: "and",
-    },
-  ];
+  public abstract fromJson(data: JsonResponse): JsonResponse;
+  public abstract associatedResources: DependencyProps[];
 
-  abstract fromJson(data: JsonResponse): JsonResponse;
-
-  getPath = (): string => {
+  public getPath = (): string => {
     return this.path;
   };
 
-  getUrl = (): string => {
+  public getUrl = (): string => {
     return this.url;
   };
 
-  formatDataOnSubmit = (data: Record<string, any>): Record<string, any> => {
+  public formatDataOnSubmit = (
+    data: Record<string, any>
+  ): Record<string, any> => {
     const result: Record<string, any> = {};
 
     this.fillables.forEach((key) => {
@@ -83,7 +68,26 @@ export abstract class BaseRepository extends RepositoryService {
     return result;
   };
 
-  getState(): JsonResponse {
+  public getState(): JsonResponse {
     return this.state;
   }
+
+  public dependencies = async (): Promise<JsonResponse> => {
+    if (this.associatedResources.length < 1) {
+      return Promise.resolve({} as JsonResponse);
+    }
+
+    const requests: Promise<AxiosResponse<ApiResponse>>[] =
+      this.associatedResources.map((item) =>
+        this.api.get<ApiResponse>(item.url)
+      );
+
+    const responses = await Promise.all(requests);
+    const collection = responses.map((res) => res.data.data);
+
+    return collection.reduce((acc, resSet, i) => {
+      acc[this.associatedResources[i].name] = resSet;
+      return acc;
+    }, {} as JsonResponse);
+  };
 }

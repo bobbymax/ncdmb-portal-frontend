@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export class Validator {
   private fillables: string[];
   private rules: { [key: string]: string };
@@ -58,6 +60,10 @@ export class Validator {
         this.errors.push(`${field} is required`);
       }
 
+      if (rule === "array" && !this.isValidArray(value)) {
+        this.errors.push(`${field} must be an array`);
+      }
+
       if (rule.startsWith("min:") && !this.isMinValid(value, rule)) {
         const minLength = rule.split(":")[1];
         this.errors.push(`${field} must be at least ${minLength} characters`);
@@ -94,5 +100,9 @@ export class Validator {
   private isEmailValid(value: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(value);
+  }
+
+  private isValidArray(value: any): boolean {
+    return _.isArray(value);
   }
 }
