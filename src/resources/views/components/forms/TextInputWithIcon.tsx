@@ -29,7 +29,7 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
         </label>
       )}
       <div className="with-icon">
-        <i className={`${icon} icon-item`} />
+        <i className={`ri-${icon}-line special-icon`} />
         <input
           type={type}
           id={name}

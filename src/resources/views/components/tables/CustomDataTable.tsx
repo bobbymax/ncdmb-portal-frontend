@@ -160,46 +160,48 @@ const CustomDataTable = ({
           />
         </div>
       </div>
-      <table className="data-table">
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th key={col.accessor}>
-                <span>{col.label}</span>
-                <TextInput
-                  placeholder={`Filter ${col.label}`}
-                  onChange={(e) =>
-                    handleFilterChange(col.accessor, e.target.value)
-                  }
-                  size="sm"
-                />
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {tableData.length > 0 ? (
-            tableData.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {columns.map((col) => (
-                  <td key={col.accessor}>{row[col.accessor] ?? "N/A"}</td>
-                ))}
-                {manage !== undefined && (
-                  <td style={{ maxWidth: "10%", width: "10%" }}>
-                    {generateButtons(row)}
-                  </td>
-                )}
-              </tr>
-            ))
-          ) : (
+      <div style={{ overflowX: "auto" }}>
+        <table className="data-table">
+          <thead>
             <tr>
-              <td colSpan={columns.length + 1} className="text-danger">
-                No Data Found!!!
-              </td>
+              {columns.map((col) => (
+                <th key={col.accessor}>
+                  <span>{col.label}</span>
+                  <TextInput
+                    placeholder={`Filter ${col.label}`}
+                    onChange={(e) =>
+                      handleFilterChange(col.accessor, e.target.value)
+                    }
+                    size="sm"
+                  />
+                </th>
+              ))}
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {tableData.length > 0 ? (
+              tableData.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  {columns.map((col) => (
+                    <td key={col.accessor}>{row[col.accessor] ?? "N/A"}</td>
+                  ))}
+                  {manage !== undefined && (
+                    <td style={{ maxWidth: "10%", width: "10%" }}>
+                      {generateButtons(row)}
+                    </td>
+                  )}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length + 1} className="text-danger">
+                  No Data Found!!!
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
       <Pagination
         totalRecords={collection.length}
         pageSize={pageSize}

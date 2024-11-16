@@ -18,14 +18,18 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<boolean> {
     try {
-      const response: AxiosResponse = await this.api.post("login", {
-        username,
-        password,
-      });
+      await this.api.createSession().then(async () => {
+        const response: AxiosResponse = await this.api.post("login", {
+          username,
+          password,
+        });
 
-      const { data } = response.data;
-      delete data?.message;
-      this.provider.saveToken(data);
+        console.log(response);
+
+        const { data } = response.data;
+        delete data?.message;
+        this.provider.saveToken(data);
+      });
       return true;
     } catch (error) {
       console.error("Login Failed: ", error);

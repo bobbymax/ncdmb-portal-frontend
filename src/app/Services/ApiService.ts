@@ -16,12 +16,12 @@ export class ApiService {
     this.auth = new AuthProvider();
 
     this.api = axios.create({
-      baseURL:
-        process.env.REACT_API_ENDPOINT ?? "https://api-manager.test/api/",
+      baseURL: process.env.REACT_API_ENDPOINT ?? "https://portal.test/",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      withCredentials: true,
     });
 
     if (this.auth.isAuthenticated()) {
@@ -53,28 +53,32 @@ export class ApiService {
     }
   }
 
+  async createSession() {
+    return await this.api.get("/sanctum/csrf-cookie");
+  }
+
   async get<T>(
     url: string,
     params?: Record<string, any>
   ): Promise<AxiosResponse<T>> {
-    return this.api.get<T>(url, { params });
+    return this.api.get<T>(`api/${url}`, { params });
   }
 
   async post<T>(
     url: string,
     data: Record<string, any>
   ): Promise<AxiosResponse<T>> {
-    return this.api.post<T>(url, data);
+    return this.api.post<T>(`api/${url}`, data);
   }
 
   async put<T>(
     url: string,
     data: Record<string, any>
   ): Promise<AxiosResponse<T>> {
-    return this.api.put<T>(url, data);
+    return this.api.put<T>(`api/${url}`, data);
   }
 
   async delete<T>(url: string): Promise<AxiosResponse<T>> {
-    return this.api.delete<T>(url);
+    return this.api.delete<T>(`api/${url}`);
   }
 }

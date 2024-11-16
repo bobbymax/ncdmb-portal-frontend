@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { AuthProvider } from "app/Providers/AuthProvider";
-import MenuProvider from "app/Providers/MenuProvider";
+// import MenuProvider from "app/Providers/MenuProvider";
 import { ModuleResponseData } from "app/Repositories/ModuleRepository";
 import { RoleResponseData } from "app/Repositories/RoleRepository";
 import { UserResponseData } from "app/Repositories/UserRepository";
@@ -38,15 +38,13 @@ export const ContentContext = ({ children }: ProtectedProps) => {
 
   useEffect(() => {
     if (authenticatedUser) {
-      const getNavigation = async () => {
-        const response = await MenuProvider.navigation();
-
-        if (response.status === 200) {
-          setNavigation(response.data?.data);
-        }
-      };
-
-      getNavigation();
+      // const getNavigation = async () => {
+      //   const response = await MenuProvider.navigation();
+      //   if (response.status === 200) {
+      //     setNavigation(response.data?.data);
+      //   }
+      // };
+      // getNavigation();
     }
   }, [authenticatedUser]);
 

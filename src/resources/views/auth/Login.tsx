@@ -30,7 +30,7 @@ const Login = () => {
     <>
       <div className="custom-card">
         <div className="mb-4 flex column gap-md">
-          <CompanyLogo color="primary" />
+          <CompanyLogo color="primary" text />
           <div className="mb-4"></div>
           <h3 className="resource-header mb-4" style={{ fontWeight: 800 }}>
             Welcome

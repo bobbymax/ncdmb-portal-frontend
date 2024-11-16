@@ -3,25 +3,32 @@ import logo from "../../../assets/images/logo.png";
 
 interface LogoProps {
   color: "primary" | "secondary";
+  text: boolean;
 }
 
-const CompanyLogo = ({ color }: LogoProps) => {
+const CompanyLogo = ({ color, text = false }: LogoProps) => {
   return (
-    <div className="brand flex align gap-lg">
+    <div className="brand flex align gap-sm">
       <Link to="/">
         <img
           src={logo}
           style={{
-            width: 78,
+            width: 60,
           }}
           alt="The Logo of the Company"
         />
       </Link>
-      <h1 className={`title ${color}`}>
-        Nigerian Content Development
-        <br /> &amp; Monitoring Board
-        <span style={{ fontSize: 30 }}>.</span>
-      </h1>
+      {text && (
+        <h1
+          className={`title ${color}`}
+          style={{
+            flexGrow: 1,
+          }}
+        >
+          Nigerian Content <br />
+          Development &amp; Monitoring Board
+        </h1>
+      )}
     </div>
   );
 };
