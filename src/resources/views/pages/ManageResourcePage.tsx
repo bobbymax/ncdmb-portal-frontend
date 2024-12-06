@@ -11,12 +11,10 @@ import { toast } from "react-toastify";
 
 const ManageResourcePage = ({
   Repository,
-  RepositoryInstance,
   view,
   Component,
 }: PageProps<BaseRepository>) => {
-  const { raw, redirectTo } = useResourceActions(Repository, {
-    url: view.server_url,
+  const { raw, redirectTo, back } = useResourceActions(Repository, view, {
     shouldFetch: false,
     hasParam: true,
   });
@@ -27,13 +25,16 @@ const ManageResourcePage = ({
     redirectTo(view.index_path ?? "/");
   };
 
-  const handleValidationErrors = (errors: string[]) => {};
+  const handleValidationErrors = (errors: string[]) => {
+    setErrors(errors);
+  };
 
   const {
     state,
     setState,
     validate,
     handleChange,
+    handleReactSelect,
     create,
     update,
     destroy,
@@ -46,27 +47,30 @@ const ManageResourcePage = ({
   });
   const [dependencies, setDependencies] = useState({});
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
+  const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
     const isValidated = () => {
-      const { success } = validate(state);
+      const { success, errors } = validate(state);
       setIsDisabled(success);
-      // console.log(errors);
+      handleValidationErrors(errors);
+
+      console.log(errors);
     };
 
     isValidated();
   }, [state]);
 
   useEffect(() => {
-    if (RepositoryInstance.associatedResources.length > 0) {
+    if (Repository.associatedResources.length > 0) {
       const getDependencies = async () => {
-        const response = await RepositoryInstance.dependencies();
+        const response = await Repository.dependencies();
         setDependencies(response);
       };
 
       getDependencies();
     }
-  }, [RepositoryInstance.associatedResources]);
+  }, [Repository.associatedResources]);
 
   useEffect(() => {
     if (view.mode === "update" && raw) {
@@ -75,18 +79,25 @@ const ManageResourcePage = ({
   }, [view.mode, raw]);
 
   return (
-    <div className="container">
+    <div className="container-fluid">
       <div className="custom-card">
-        <div className="custom-card-header mb-4">
-          <h4
+        <div className="custom-card-header flex align between mb-5">
+          <h1
             style={{
-              textTransform: "uppercase",
-              fontWeight: 800,
-              letterSpacing: 1.5,
+              fontWeight: 400,
+              letterSpacing: 0.7,
             }}
           >
             {view.title}
-          </h4>
+          </h1>
+          <Button
+            label="Go Back"
+            variant="danger"
+            rounded
+            handleClick={back}
+            icon="ri-arrow-left-line"
+            isDisabled={loading}
+          />
         </div>
         <form onSubmit={view.mode === "update" ? update : create}>
           <div className="row">
@@ -94,8 +105,10 @@ const ManageResourcePage = ({
               state={state}
               setState={setState}
               handleChange={handleChange}
+              handleReactSelect={handleReactSelect}
               loading={loading}
               error={error}
+              validationErrors={errors}
               dependencies={dependencies}
               mode={view.mode}
             />

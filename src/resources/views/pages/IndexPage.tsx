@@ -8,13 +8,14 @@ import { PageProps } from "bootstrap";
 const IndexPage = ({
   Repository,
   view,
-  RepositoryInstance,
   Component,
 }: PageProps<BaseRepository>) => {
   const navigate = useNavigate();
-  const { collection, columns, buttons } = useResourceActions(Repository, {
-    url: view.server_url,
-  });
+  const { collection, columns, buttons } = useResourceActions(
+    Repository,
+    view,
+    {}
+  );
 
   const onManage = (raw: Raw, label: string) => {
     // console.log(raw, label);
@@ -39,7 +40,7 @@ const IndexPage = ({
         <div className="col-md-12">
           <CustomDataTable
             tag={view?.tag ?? ""}
-            pageName={view.component}
+            pageName={view.title}
             collection={collection}
             columns={columns}
             buttons={buttons}

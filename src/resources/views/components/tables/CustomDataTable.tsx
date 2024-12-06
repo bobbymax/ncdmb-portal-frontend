@@ -130,9 +130,12 @@ const CustomDataTable = ({
   return (
     <div className="table-container">
       <div className="table-header mb-4 flex between align">
-        <h3 className="resource-header" style={{ fontWeight: 800 }}>
-          List of {pageName}
-        </h3>
+        <h1
+          className="resource-header"
+          style={{ fontWeight: 500, letterSpacing: 1 }}
+        >
+          {pageName}
+        </h1>
         <Button
           label={tag}
           icon="ri-add-large-fill"
@@ -173,6 +176,7 @@ const CustomDataTable = ({
                       handleFilterChange(col.accessor, e.target.value)
                     }
                     size="sm"
+                    width={85}
                   />
                 </th>
               ))}

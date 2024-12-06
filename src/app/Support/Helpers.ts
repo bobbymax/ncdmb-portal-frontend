@@ -1,3 +1,4 @@
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { Validator } from "../Support/Validator";
 
 export const validate = (
@@ -14,6 +15,23 @@ export const validate = (
   }
 
   return { success: true, errors: [] };
+};
+
+export const formatOptions = (
+  data: Record<string, any>[],
+  value: string,
+  label: string
+): DataOptionsProps[] => {
+  if (data.length < 1) {
+    return [];
+  }
+
+  const response: DataOptionsProps[] = data.map((row) => ({
+    value: row[value],
+    label: row[label],
+  }));
+
+  return response;
 };
 
 export const generateUniqueString = (length: number = 43): string => {

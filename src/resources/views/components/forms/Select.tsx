@@ -6,6 +6,8 @@ export interface SelectInputProps {
   size?: "sm" | "md" | "lg" | "xl";
   onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
   defaultValue: string | number;
+  defaultText?: string;
+  defaultCheckDisabled?: boolean;
   name?: string;
   isDisabled?: boolean;
   valueKey: string;
@@ -19,11 +21,13 @@ const Select: React.FC<SelectInputProps> = ({
   size = "lg",
   onChange,
   defaultValue,
+  defaultText,
   name,
   isDisabled,
   valueKey,
   labelKey,
   options = [],
+  defaultCheckDisabled = false,
   ...attributes
 }) => {
   return (
@@ -40,8 +44,11 @@ const Select: React.FC<SelectInputProps> = ({
         onChange={onChange}
         className="form-select form-select-lg"
         id={name}
+        {...attributes}
       >
-        <option value={defaultValue}>Select {label}</option>
+        <option value={defaultValue} disabled={defaultCheckDisabled}>
+          {defaultText ?? `Select ${label}`}
+        </option>
         {options.map((opt, i) => (
           <option
             key={i}

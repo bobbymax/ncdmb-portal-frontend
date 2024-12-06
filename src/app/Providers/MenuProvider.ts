@@ -1,16 +1,22 @@
-import { ApiService } from "app/Services/ApiService";
-import { AxiosResponse } from "axios";
+import { AuthPageResponseData } from "app/Repositories/Page/data";
 
 export default class MenuProvider {
-  private api: ApiService;
-  private url: string = "modules";
+  applications = (pages: AuthPageResponseData[]): AuthPageResponseData[] => {
+    return pages.filter((page) => page.type === "app");
+  };
 
-  constructor() {
-    this.api = new ApiService();
-  }
+  getRequestedPage = (
+    path: string,
+    pages: AuthPageResponseData[]
+  ): AuthPageResponseData | undefined => {
+    const appPath = path.split("/")[1];
+    return pages.find((page) => page.path === `/${appPath}`);
+  };
 
-  static navigation = async (): Promise<AxiosResponse> => {
-    const instance = new this();
-    return instance.api.get(instance.url);
+  children = (
+    parent_id: number,
+    pages: AuthPageResponseData[]
+  ): AuthPageResponseData[] => {
+    return pages.filter((page) => page.parent_id === parent_id);
   };
 }

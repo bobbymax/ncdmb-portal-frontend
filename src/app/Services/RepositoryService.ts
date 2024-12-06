@@ -1,5 +1,5 @@
 import { AxiosError, AxiosResponse } from "axios";
-import { ApiService } from "./ApiService";
+import { ApiService, NetworkStatus } from "./ApiService";
 import { JsonResponse } from "../Repositories/BaseRepository";
 
 export interface ServerResponse {
@@ -10,59 +10,33 @@ export interface ServerResponse {
 }
 
 interface IRepository {
-  collection: () => Promise<ServerResponse>;
-  customCollection: (url: string) => Promise<ServerResponse>;
-  show: (param: string | number) => Promise<ServerResponse>;
-  store: (body: Record<string, any>) => Promise<ServerResponse>;
-  customStore: (
-    url: string,
-    body: Record<string, any>
-  ) => Promise<ServerResponse>;
+  collection: (url: string) => Promise<ServerResponse>;
+  show: (url: string, param: string | number) => Promise<ServerResponse>;
+  store: (url: string, body: Record<string, any>) => Promise<ServerResponse>;
   update: (
+    url: string,
     param: string | number,
     data: Record<string, any>
   ) => Promise<ServerResponse>;
-  destroy: (param: string | number) => Promise<ServerResponse>;
+  destroy: (url: string, param: string | number) => Promise<ServerResponse>;
 }
 
 export abstract class RepositoryService implements IRepository {
   protected api: ApiService;
-  protected url: string;
 
-  constructor(url: string) {
+  constructor() {
     this.api = new ApiService();
-    this.url = url;
   }
 
   isServerErrorResponse = (data: any): data is { message: string } => {
     return data && typeof data.message === "string";
   };
 
-  async collection(): Promise<ServerResponse> {
-    try {
-      const response: AxiosResponse<ServerResponse> = await this.api.get(
-        this.url
-      );
-      const code = response.status;
-      return { code, ...response.data };
-    } catch (error) {
-      const err = error as AxiosError;
-      console.error("Collection cannot be found: ", err.message);
-      // Use type guard here
-      const errorMessage = this.isServerErrorResponse(err.response?.data)
-        ? err.response?.data.message
-        : "Collection cannot be found";
+  checkNetworkStatus = (callback: (status: NetworkStatus) => void) => {
+    this.api.onNetworkStatus(callback);
+  };
 
-      return {
-        code: err.response?.status || 500,
-        data: [],
-        message: errorMessage || "An unexpected error occurred",
-        status: "error",
-      };
-    }
-  }
-
-  async customCollection(url: string): Promise<ServerResponse> {
+  async collection(url: string): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.get(url);
       const code = response.status;
@@ -84,10 +58,10 @@ export abstract class RepositoryService implements IRepository {
     }
   }
 
-  async show(param: string | number): Promise<ServerResponse> {
+  async show(url: string, param: string | number): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.get(
-        `${this.url}/${param}`
+        `${url}/${param}`
       );
 
       const code = response.status;
@@ -106,29 +80,7 @@ export abstract class RepositoryService implements IRepository {
     }
   }
 
-  async store(body: Record<string, any>): Promise<ServerResponse> {
-    try {
-      const response: AxiosResponse<ServerResponse> = await this.api.post(
-        this.url,
-        body
-      );
-      const code = response.status;
-      return { code, ...response.data };
-    } catch (error) {
-      console.error("This record was not created", error);
-      return {
-        code: 500,
-        data: { id: 0 },
-        message: "This record was not created",
-        status: "error",
-      };
-    }
-  }
-
-  async customStore(
-    url: string,
-    body: Record<string, any>
-  ): Promise<ServerResponse> {
+  async store(url: string, body: Record<string, any>): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.post(
         url,
@@ -148,12 +100,13 @@ export abstract class RepositoryService implements IRepository {
   }
 
   async update(
+    url: string,
     param: string | number,
     body: Record<string, any>
   ): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.put(
-        `${this.url}/${param}`,
+        `${url}/${param}`,
         body
       );
       const code = response.status;
@@ -169,10 +122,10 @@ export abstract class RepositoryService implements IRepository {
     }
   }
 
-  async destroy(param: string | number): Promise<ServerResponse> {
+  async destroy(url: string, param: string | number): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.delete(
-        `${this.url}/${param}`
+        `${url}/${param}`
       );
 
       const code = response.status;

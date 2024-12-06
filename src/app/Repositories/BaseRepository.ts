@@ -17,12 +17,20 @@ interface ApiResponse {
     data: any; // Replace `any` with actual expected data type if available
   };
 }
+
+export interface ConfigProp<T> {
+  fillables: Array<keyof T>;
+  associatedResources: DependencyProps[];
+  state: T;
+  actions: ButtonsProp[];
+}
+
 export interface ViewsProps {
   title: string;
   server_url: string;
   component: string;
   frontend_path: string;
-  type: "index" | "form-page" | "dashboard" | "lock-page" | "page" | "external";
+  type: "index" | "form" | "dashboard" | "lock-page" | "page" | "external";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;
@@ -32,7 +40,6 @@ export interface ViewsProps {
 export type JsonResponse = BaseResponse & Record<string, any>;
 export abstract class BaseRepository extends RepositoryService {
   // This is the path for the frontend route of the repository
-  public abstract path: string;
   public abstract fillables: Array<keyof JsonResponse>;
   public abstract rules: { [key: string]: string };
   public abstract views: ViewsProps[];
@@ -41,18 +48,9 @@ export abstract class BaseRepository extends RepositoryService {
   protected abstract state: JsonResponse;
   public abstract columns: ColumnData[];
   public abstract actions: ButtonsProp[];
-  public abstract component: string;
 
   public abstract fromJson(data: JsonResponse): JsonResponse;
   public abstract associatedResources: DependencyProps[];
-
-  public getPath = (): string => {
-    return this.path;
-  };
-
-  public getUrl = (): string => {
-    return this.url;
-  };
 
   public formatDataOnSubmit = (
     data: Record<string, any>

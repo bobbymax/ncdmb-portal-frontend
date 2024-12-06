@@ -1,189 +1,67 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ReactNode, useEffect, useState } from "react";
 import "../assets/css/app.css";
-import avatar from "../assets/images/avatar.png";
-import moment from "moment";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import CompanyLogo from "../../resources/views/components/pages/CompanyLogo";
-import { useStateContext } from "app/Context/ContentContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TextInputWithIcon from "resources/views/components/forms/TextInputWithIcon";
+import CircularMenu from "resources/views/components/menu/CircularMenu";
+import { useStateContext } from "app/Context/ContentContext";
+import { useAuth } from "app/Context/AuthContext";
+import Aside from "resources/views/components/partials/Aside";
 
 export interface ProtectedProps {
   children: ReactNode;
 }
 
 const Protected = ({ children }: ProtectedProps) => {
-  const { navigation } = useStateContext();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { apps, navigation } = useStateContext();
+  const { logout } = useAuth();
 
-  const [search, setSearch] = useState("");
-  const [isToggled, setIsToggled] = useState(false);
-  const [isMenuToggled, setIsMenuToggled] = useState(false);
+  const [dashboard, setDashboard] = useState<string>("");
+  const [activePage, setActivePage] = useState<string>("");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth/login");
+  };
 
   useEffect(() => {
-    if (isToggled && isMenuToggled) {
-      setIsMenuToggled(false);
+    if (pathname !== "") {
+      const pageName = pathname.split("/");
+      const appPath = pageName[1];
+      const pagePath = pageName.length > 2 ? `/${appPath}/${pageName[2]}` : "";
+      setDashboard(`/${appPath}`);
+      setActivePage(pagePath !== "" ? pagePath : `/${appPath}`);
     }
-  }, [isMenuToggled, isToggled]);
-
-  useEffect(() => {
-    window.addEventListener("resize", () => {
-      const range = window.innerWidth > 800 && window.innerWidth < 1280;
-
-      if (range && !isToggled) {
-        setIsMenuToggled(true);
-      } else if (!range && isMenuToggled) {
-        setIsMenuToggled(false);
-      }
-    });
-
-    return () => {
-      window.removeEventListener("resize", () => {
-        setIsMenuToggled(false);
-      });
-    };
-  }, [isMenuToggled, isToggled]);
+  }, [pathname]);
 
   return (
     <>
-      <div id="wrapper">
-        <aside
-          className={`sidebar-container ${
-            isMenuToggled ? "sidebar-close" : ""
-          }`}
-        >
-          <div className="sidebar">
-            {/* Logo Area */}
-            <div className="logo-area">
-              <CompanyLogo color="secondary" text={!isMenuToggled} />
-            </div>
-
-            <nav id="navigation-bar">
-              <ul>
-                <li>
-                  <Link to="/" className="active">
-                    <i className="ri-dashboard-horizontal-line" />
-                    <span>Dashboard</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/users">
-                    <i className="ri-government-line" />
-                    <span>Budget</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/users">
-                    <i className="ri-store-3-line" />
-                    <span>Inventory</span>
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    className="dropdown-btn"
-                    onClick={() => setIsToggled(!isToggled)}
-                  >
-                    <i className="ri-bus-2-line" />
-                    <span>Fleets</span>
-                    <i
-                      className={`ri-arrow-down-s-line big-screen ${
-                        isToggled ? "rotate" : ""
-                      }`}
-                    />
-                    <div className="dot"></div>
-                  </button>
-                  <ul className={`sub-menu ${isToggled ? "show" : ""}`}>
-                    <div>
-                      <li>
-                        <Link to="#">Work</Link>
-                      </li>
-                      <li>
-                        <Link to="#">Document</Link>
-                      </li>
-                      <li>
-                        <Link to="#">Project</Link>
-                      </li>
-                      <li>
-                        <Link to="#">Plaster</Link>
-                      </li>
-                      <li>
-                        <Link to="#">Hommer</Link>
-                      </li>
-                      <li>
-                        <Link to="#">Divinity</Link>
-                      </li>
-                    </div>
-                  </ul>
-                </li>
-                <li>
-                  <Link to="/users">
-                    <i className="ri-store-3-line" />
-                    <span>Inventory</span>
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </aside>
+      <div id="main-wrapper">
+        <Aside
+          navigation={navigation}
+          dashboard={dashboard}
+          handleLogout={handleLogout}
+          activePath={activePage}
+        />
         <main id="content">
-          <header className="main-header">
-            <div className="main-header__inner flex align between gap-xxl">
-              <div className="main-header__left">
-                <i
-                  className={`ri-menu-3-line ${isMenuToggled ? "rotate" : ""}`}
-                  id="menu-toggle-bttn"
-                  onClick={() => {
-                    if (isToggled) {
-                      setIsToggled(false);
-                    }
-                    setIsMenuToggled(!isMenuToggled);
-                  }}
-                />
+          <header id="portal-header">
+            <div className="portal-header__inner">
+              <div id="company-logo">
+                <CompanyLogo color="primary" text />
               </div>
-              <div className="main-header__right gap-xxl">
-                <div style={{ flexGrow: 1, width: "100%" }}>
-                  <TextInputWithIcon
-                    icon="search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search Here"
-                    width={100}
-                  />
+              <div id="profile-area">
+                <div className="app-dropdown">
+                  <i className="ri-apps-line" />
                 </div>
-                <div className="right__icons">
-                  <i className="ri-notification-line" />
-                  <i className="ri-settings-2-line" />
-                  <div className="profile-badge flex align gap-md">
-                    <i className="ri-user-line" />
-                    <div
-                      className="user-name flex column"
-                      style={{
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: 400,
-                          letterSpacing: 1,
-                          fontSize: 19,
-                        }}
-                      >
-                        Ekaro, Adiah
-                      </span>
-                      <small
-                        style={{
-                          textTransform: "uppercase",
-                          fontSize: 9,
-                          letterSpacing: 4,
-                        }}
-                      >
-                        Administrator
-                      </small>
-                    </div>
-                  </div>
-                  <i className="ri-logout-box-r-line logout-box" />
+                <i className="ri-notification-2-line" />
+                <i className="ri-mail-line" />
+                <div className="profile-area__inner">
+                  <h2>Ekaro Bobby</h2>
+                  <small>Administrator</small>
                 </div>
               </div>
             </div>
@@ -192,6 +70,10 @@ const Protected = ({ children }: ProtectedProps) => {
             <div className="row">
               <div className="container-fluid">{children}</div>
             </div>
+          </div>
+          {/* Menu Section */}
+          <div id="circular-menu-container">
+            <CircularMenu lists={apps} />
           </div>
         </main>
       </div>

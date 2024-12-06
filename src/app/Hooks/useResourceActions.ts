@@ -1,10 +1,13 @@
-import { BaseRepository, JsonResponse } from "../Repositories/BaseRepository";
+import {
+  BaseRepository,
+  JsonResponse,
+  ViewsProps,
+} from "../Repositories/BaseRepository";
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 interface RestData {
-  url: string;
   shouldFetch?: boolean;
   hasParam?: boolean;
   customRoute?: string;
@@ -12,8 +15,9 @@ interface RestData {
 }
 
 export const useResourceActions = <T extends BaseRepository>(
-  Repository: new (url: string) => T,
-  { url, shouldFetch = true, hasParam = false, param = "" }: RestData
+  Repository: T,
+  View: ViewsProps,
+  { shouldFetch = true, hasParam = false, param = "" }: RestData
 ) => {
   const params = useParams<{ [key: string]: string }>();
   const navigate = useNavigate();
@@ -22,7 +26,7 @@ export const useResourceActions = <T extends BaseRepository>(
   const [loading, setLoading] = useState<boolean>(false);
   const [resourceError, setResourceError] = useState<string | null>(null);
 
-  const repo = useMemo(() => new Repository(url), [Repository, url]);
+  const repo = useMemo(() => Repository, [Repository]);
 
   const back = () => {
     navigate(-1);
@@ -33,7 +37,7 @@ export const useResourceActions = <T extends BaseRepository>(
       setLoading(true);
       setResourceError(null);
       try {
-        const { data } = await repo.collection();
+        const { data } = await repo.collection(View.server_url);
         setCollection(Array.isArray(data) ? data : [data]);
       } catch (err: unknown) {
         handleError(err, signal);
@@ -41,7 +45,7 @@ export const useResourceActions = <T extends BaseRepository>(
         setLoading(false);
       }
     },
-    [repo]
+    [View.server_url, repo]
   );
 
   const fetchRawServerRecord = useCallback(
@@ -49,7 +53,7 @@ export const useResourceActions = <T extends BaseRepository>(
       setLoading(true);
       setResourceError(null);
       try {
-        const { data } = await repo.show(value);
+        const { data } = await repo.show(View.server_url, value);
         setRaw(Array.isArray(data) ? null : _.isObject(data) ? data : null);
       } catch (err: unknown) {
         handleError(err, signal);
@@ -57,7 +61,7 @@ export const useResourceActions = <T extends BaseRepository>(
         setLoading(false);
       }
     },
-    [repo]
+    [View.server_url, repo]
   );
 
   const handleError = (err: unknown, signal?: AbortSignal) => {

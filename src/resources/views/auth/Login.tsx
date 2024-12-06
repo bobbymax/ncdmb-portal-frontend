@@ -2,11 +2,15 @@ import { FormEvent, useState } from "react";
 import TextInputWithIcon from "../components/forms/TextInputWithIcon";
 import Button from "../components/forms/Button";
 import CompanyLogo from "../components/pages/CompanyLogo";
-import { AuthService } from "../../../app/Services/AuthService";
 import { useNavigate } from "react-router-dom";
+import { useStateContext } from "app/Context/ContentContext";
+import { AuthState, useAuth } from "app/Context/AuthContext";
+import { ApiService } from "app/Services/ApiService";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { setPages } = useStateContext();
+  const { login } = useAuth();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -14,12 +18,24 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const authService = new AuthService();
+    const apiService = new ApiService();
 
     try {
-      const response = await authService.login(username, password);
-      if (response) {
-        navigate("/");
+      const response: AuthState = await login(username, password);
+      apiService.initializeAfterLogin();
+
+      if (response && response.staff) {
+        const { pages = [] } = response.staff;
+        const defaultPage = pages.find(
+          (app) =>
+            app.type === "app" &&
+            response.staff !== null && // Ensure response.staff is not null
+            response.staff.default_page_id === app.id
+        );
+
+        setPages(pages);
+        navigate(`${defaultPage?.path ?? "/"}`);
+      } else {
       }
     } catch (error) {
       console.error(error);

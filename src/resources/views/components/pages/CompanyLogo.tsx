@@ -8,7 +8,7 @@ interface LogoProps {
 
 const CompanyLogo = ({ color, text = false }: LogoProps) => {
   return (
-    <div className="brand flex align gap-sm">
+    <div className="brand flex align gap-md">
       <Link to="/">
         <img
           src={logo}
@@ -19,15 +19,18 @@ const CompanyLogo = ({ color, text = false }: LogoProps) => {
         />
       </Link>
       {text && (
-        <h1
-          className={`title ${color}`}
-          style={{
-            flexGrow: 1,
-          }}
-        >
-          Nigerian Content <br />
-          Development &amp; Monitoring Board
-        </h1>
+        <div className="flex column">
+          <h1
+            className={`title ${color}`}
+            style={{
+              flexGrow: 1,
+            }}
+          >
+            Nigerian Content <br />
+            Development &amp; Monitoring Board
+          </h1>
+          <small className="small-text">Enterprise Staff Portal</small>
+        </div>
       )}
     </div>
   );

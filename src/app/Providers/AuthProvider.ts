@@ -1,4 +1,5 @@
-import { UserResponseData } from "../Repositories/UserRepository";
+import { AuthState } from "app/Context/AuthContext";
+import { UserResponseData } from "app/Repositories/User/data";
 
 export class AuthProvider {
   private key = "authToken";
@@ -7,20 +8,25 @@ export class AuthProvider {
     return !!localStorage.getItem(this.key);
   };
 
-  public saveToken = (data: any): void => {
+  public saveToken = async (data: AuthState): Promise<void> => {
     localStorage.setItem(this.key, JSON.stringify(data));
   };
 
   private getStorageData = (): {
     token: string;
     staff: UserResponseData;
+    refresh_token: string;
   } | null => {
     const data = localStorage.getItem(this.key);
     if (!data) {
       return null;
     }
 
-    const parsed: { token: string; staff: UserResponseData } = JSON.parse(data);
+    const parsed: {
+      token: string;
+      staff: UserResponseData;
+      refresh_token: string;
+    } = JSON.parse(data);
     return parsed;
   };
 
@@ -30,6 +36,10 @@ export class AuthProvider {
 
   public getToken = (): string | null => {
     return this.getStorageData()?.token as string;
+  };
+
+  public getRefreshToken = (): string | null => {
+    return this.getStorageData()?.refresh_token as string;
   };
 
   // Log out by removing the token

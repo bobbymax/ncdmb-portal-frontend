@@ -21,6 +21,7 @@ export interface TextInputProps {
   isDisabled?: boolean;
   min?: string | number;
   max?: string | number;
+  width?: number;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -34,6 +35,7 @@ const TextInput: React.FC<TextInputProps> = ({
   isDisabled = false,
   min,
   max,
+  width = 100,
   ...attributes
 }) => {
   return (
@@ -54,6 +56,7 @@ const TextInput: React.FC<TextInputProps> = ({
         disabled={isDisabled}
         min={min}
         max={max}
+        style={{ width: `${width}%` }}
         {...attributes}
       />
     </div>

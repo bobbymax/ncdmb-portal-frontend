@@ -13,29 +13,37 @@ import {
 } from "app/Repositories/BaseRepository";
 import ResourceRawPage from "resources/views/pages/ResourceRawPage";
 import ManageResourcePage from "resources/views/pages/ManageResourcePage";
-import ExternalIndexPage from "resources/views/pages/ExternalIndexPage";
+import { AuthProvider } from "app/Context/AuthContext";
+import { ActionMeta } from "react-select";
 
-export interface FormPageComponentProps {
-  state: JsonResponse;
-  setState?: Dispatch<SetStateAction<JsonResponse>>;
+export interface FormPageComponentProps<T = JsonResponse> {
+  state: T;
+  setState?: Dispatch<SetStateAction<T>>;
   handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => void;
+  handleReactSelect: (
+    newValue: unknown,
+    actionMeta: ActionMeta<unknown>,
+    setStateCallback: (value: unknown) => void
   ) => void;
   error: string | null;
+  validationErrors?: string[];
   loading: boolean;
   dependencies: object;
   mode: string;
 }
 
 export interface PageProps<T extends BaseRepository> {
-  Repository: new (url: string) => T;
-  RepositoryInstance: T;
+  Repository: T;
   view: ViewsProps;
   Component: React.ComponentType<FormPageComponentProps>;
 }
 
 const renderRoute = <T extends BaseRepository>(
-  repo: { name: new (url: string) => T; instance: T },
+  repo: T,
   view: ViewsProps,
   j: number
 ): JSX.Element => {
@@ -44,24 +52,21 @@ const renderRoute = <T extends BaseRepository>(
   );
 
   const componentProps: PageProps<T> = {
-    Repository: repo.name,
-    RepositoryInstance: repo.instance,
+    Repository: repo,
     view,
     Component,
   };
 
   return (
     <Route
-      key={`${repo.name}-${j}`}
+      key={`${view.title}-${j}`}
       path={view.frontend_path}
       element={
         <AuthGuard>
           {view.type === "index" ? (
             <IndexPage {...componentProps} />
-          ) : view.type === "form-page" ? (
+          ) : view.type === "form" ? (
             <ManageResourcePage {...componentProps} />
-          ) : view.type === "external" ? (
-            <ExternalIndexPage {...componentProps} />
           ) : (
             <ResourceRawPage {...componentProps} />
           )}
@@ -73,32 +78,34 @@ const renderRoute = <T extends BaseRepository>(
 
 const Main = () => {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <Routes>
-        {repositories.map((repo) =>
-          repo.instance.views.map((view, j) => {
-            return renderRoute(repo, view, j);
-          })
-        )}
+    <AuthProvider>
+      <Suspense fallback={<p>Loading...</p>}>
+        <Routes>
+          {repositories.map((repo) =>
+            repo.views.map((view, j) => {
+              return renderRoute(repo, view, j);
+            })
+          )}
 
-        <Route
-          element={
-            <AuthGuard>
-              <Dashboard />
-            </AuthGuard>
-          }
-          path="/"
-        />
-        <Route
-          element={
-            <Guest>
-              <Login />
-            </Guest>
-          }
-          path="/auth/login"
-        />
-      </Routes>
-    </Suspense>
+          <Route
+            element={
+              <AuthGuard>
+                <Dashboard />
+              </AuthGuard>
+            }
+            path="/:id"
+          />
+          <Route
+            element={
+              <Guest>
+                <Login />
+              </Guest>
+            }
+            path="/auth/login"
+          />
+        </Routes>
+      </Suspense>
+    </AuthProvider>
   );
 };
 

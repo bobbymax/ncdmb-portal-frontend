@@ -10,6 +10,8 @@ import { Validator } from "../Support/Validator";
 import { toast } from "react-toastify";
 import { DefaultErrorHandler } from "../Handlers/DefaultErrorHandler";
 import Alert from "app/Support/Alert";
+import { useStateContext } from "app/Context/ContentContext";
+import { ActionMeta } from "react-select";
 
 // Define constants for action types to avoid hardcoding strings
 const ACTION_STORE = "store";
@@ -27,21 +29,21 @@ interface UseFormProps {
 }
 
 export const useForm = <T extends BaseRepository>(
-  Repository: new (url: string) => T,
+  Repository: T,
   view: ViewsProps,
   { onFormSubmit, handleValidationErrors }: UseFormProps
 ) => {
-  const repo = useMemo(
-    () => new Repository(view.server_url),
-    [Repository, view.server_url]
-  );
+  const repo = useMemo(() => Repository, [Repository]);
   const [state, setState] = useState<JsonResponse>(() => ({
     ...repo.getState(),
   }));
   const { loading, error, execute } = useAsync();
+  const { setIsLoading } = useStateContext();
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -49,6 +51,18 @@ export const useForm = <T extends BaseRepository>(
       ...prevState,
       [name]: !isNaN(Number(value)) && value !== "" ? Number(value) : value,
     }));
+  };
+
+  const handleReactSelect = (
+    newValue: unknown,
+    actionMeta: ActionMeta<unknown>,
+    setStateCallback: (value: unknown) => void
+  ) => {
+    if (Array.isArray(newValue)) {
+      setStateCallback(newValue);
+    } else if (typeof newValue === "object" && newValue !== null) {
+      setStateCallback(newValue);
+    }
   };
 
   const validate = (
@@ -66,7 +80,10 @@ export const useForm = <T extends BaseRepository>(
     return { success: true, errors: [] };
   };
 
-  // Extract the form submission logic for reuse (DRY principle)
+  // const updateNetworkStatus = (status: { type: string; message: string }) => {
+  //   setNetworkStatus(status.message);
+  // };
+
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>,
     action: ActionType,
@@ -79,17 +96,19 @@ export const useForm = <T extends BaseRepository>(
 
     if (success) {
       try {
+        setIsLoading(true);
         const response: ServerResponse = await execute(submitFn());
 
         if (response) {
-          setState({ ...repo.getState() }); // Reset the state after successful submission
-          onFormSubmit(response, action); // Callback with response and action type
-          // toast.success(`Record was ${action}d successfully!`);
+          setState({ ...repo.getState() });
+          onFormSubmit(response, action);
         }
       } catch (er) {
         const returnedError = er instanceof DefaultErrorHandler ? er : "Oops!!";
         console.error("Submission failed:", returnedError); // Add more detailed error handling if necessary
         toast.error("An error occurred during submission.");
+      } finally {
+        setIsLoading(false);
       }
     } else if (handleValidationErrors) {
       handleValidationErrors(errors); // Handle validation errors via a callback
@@ -99,13 +118,13 @@ export const useForm = <T extends BaseRepository>(
 
   const create = async (e: React.FormEvent<HTMLFormElement>) => {
     handleSubmit(e, ACTION_STORE, () =>
-      repo.store(repo.formatDataOnSubmit(state))
+      repo.store(view.server_url, repo.formatDataOnSubmit(state))
     );
   };
 
   const update = async (e: React.FormEvent<HTMLFormElement>) => {
     handleSubmit(e, ACTION_UPDATE, () =>
-      repo.update(state.id, repo.formatDataOnSubmit(state))
+      repo.update(view.server_url, state.id, repo.formatDataOnSubmit(state))
     );
   };
 
@@ -118,7 +137,7 @@ export const useForm = <T extends BaseRepository>(
       if (result.isConfirmed) {
         try {
           const response: ServerResponse = await execute(
-            repo.destroy(state.id)
+            repo.destroy(view.server_url, state.id)
           );
 
           setState(repo.getState());
@@ -140,6 +159,7 @@ export const useForm = <T extends BaseRepository>(
     state,
     setState,
     handleChange,
+    handleReactSelect,
     create,
     update,
     destroy,

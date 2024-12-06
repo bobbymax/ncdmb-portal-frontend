@@ -1,0 +1,1 @@
+export const workflowStageRules: { [key: string]: string } = {};

@@ -1,0 +1,35 @@
+import { ViewsProps } from "../BaseRepository";
+
+export const {{camelCase name}}Views: ViewsProps[] = [
+    {
+        title: "List of {{name}}s",
+        server_url: "{{url}}",
+        component: "{{name}}s",
+        frontend_path: "{{path}}",
+        type: "index",
+        tag: "Add {{name}}",
+        mode: "list",
+    },
+    {
+        title: "Create {{name}}",
+        server_url: "{{url}}",
+        component: "{{name}}",
+        frontend_path: "{{path}}/create",
+        type: "form",
+        tag: "",
+        mode: "store",
+        action: "Add {{name}}",
+        index_path: "{{path}}",
+    },
+    {
+        title: "Manage {{name}}",
+        server_url: "{{url}}",
+        component: "{{name}}",
+        frontend_path: "{{path}}/:id/manage",
+        type: "form",
+        tag: "",
+        mode: "update",
+        action: "Update Record",
+        index_path: "{{path}}",
+    },
+];

@@ -1,0 +1,29 @@
+import {
+    ColumnData,
+    ButtonsProp,
+} from "resources/views/components/tables/CustomDataTable";
+import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import { {{name}}ResponseData } from "./data";
+import { {{camelCase name}}Rules } from "./rules";
+import { {{camelCase name}}Views } from "./views";
+import { {{camelCase name}}Columns } from "./columns";
+import { {{camelCase name}}Config } from "./config";
+
+export default class {{name}}Repository extends BaseRepository {
+    public fillables: Array<keyof {{name}}ResponseData> = {{camelCase name}}Config.fillables;
+    public rules: { [key: string]: string } = {{camelCase name}}Rules;
+    public views: ViewsProps[] = {{camelCase name}}Views;
+    protected state: {{name}}ResponseData = {{camelCase name}}Config.state;
+    public columns: ColumnData[] = {{camelCase name}}Columns;
+    public actions: ButtonsProp[] = {{camelCase name}}Config.actions;
+    public fromJson(data: {{name}}ResponseData): {{name}}ResponseData {
+        return {
+            id: data.id ?? 0,
+            created_at: data.created_at ?? "",
+            updated_at: data.updated_at ?? "",
+        };
+    }
+    public associatedResources: DependencyProps[] =
+    {{camelCase name}}Config.associatedResources;
+}
+

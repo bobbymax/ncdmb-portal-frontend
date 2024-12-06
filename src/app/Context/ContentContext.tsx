@@ -1,64 +1,52 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { AuthProvider } from "app/Providers/AuthProvider";
-// import MenuProvider from "app/Providers/MenuProvider";
-import { ModuleResponseData } from "app/Repositories/ModuleRepository";
-import { RoleResponseData } from "app/Repositories/RoleRepository";
-import { UserResponseData } from "app/Repositories/UserRepository";
-import { createContext, useContext, useEffect, useState } from "react";
+import { AuthPageResponseData } from "app/Repositories/Page/data";
+import { UserResponseData } from "app/Repositories/User/data";
+import { createContext, useContext, useState } from "react";
 import { ProtectedProps } from "resources/templates/Protected";
 
 interface StateContextType {
-  navigation: ModuleResponseData[];
-  setNavigation: React.Dispatch<React.SetStateAction<ModuleResponseData[]>>;
-  roles: RoleResponseData[];
-  setRoles: React.Dispatch<React.SetStateAction<RoleResponseData[]>>;
+  apps: AuthPageResponseData[];
+  setApps: React.Dispatch<React.SetStateAction<AuthPageResponseData[]>>;
+  navigation: AuthPageResponseData[];
+  setNavigation: React.Dispatch<React.SetStateAction<AuthPageResponseData[]>>;
+  pages: AuthPageResponseData[];
+  setPages: React.Dispatch<React.SetStateAction<AuthPageResponseData[]>>;
   permissions: string[];
   setPermissions: React.Dispatch<React.SetStateAction<string[]>>;
   authenticatedUser: UserResponseData | null;
   setAuthenticatedUser: React.Dispatch<
     React.SetStateAction<UserResponseData | null>
   >;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
 export const ContentContext = ({ children }: ProtectedProps) => {
-  const authProvider = new AuthProvider();
-  const [roles, setRoles] = useState<RoleResponseData[]>([]);
-  const [navigation, setNavigation] = useState<ModuleResponseData[]>([]);
+  const [apps, setApps] = useState<AuthPageResponseData[]>([]);
+  const [navigation, setNavigation] = useState<AuthPageResponseData[]>([]);
+  const [pages, setPages] = useState<AuthPageResponseData[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [authenticatedUser, setAuthenticatedUser] =
     useState<UserResponseData | null>(null);
-
-  useEffect(() => {
-    if (authProvider.isAuthenticated()) {
-      setAuthenticatedUser(authProvider.getAuthenticatedUser());
-    }
-  }, []);
-
-  useEffect(() => {
-    if (authenticatedUser) {
-      // const getNavigation = async () => {
-      //   const response = await MenuProvider.navigation();
-      //   if (response.status === 200) {
-      //     setNavigation(response.data?.data);
-      //   }
-      // };
-      // getNavigation();
-    }
-  }, [authenticatedUser]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (
     <StateContext.Provider
       value={{
+        apps,
+        setApps,
         navigation,
         setNavigation,
-        roles,
-        setRoles,
+        pages,
+        setPages,
         permissions,
         setPermissions,
         authenticatedUser,
         setAuthenticatedUser,
+        isLoading,
+        setIsLoading,
       }}
     >
       {children}
