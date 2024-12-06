@@ -1,28 +1,25 @@
 import { DocumentRequirementResponseData } from "app/Repositories/DocumentRequirement/data";
 import { FormPageComponentProps } from "bootstrap";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import TextInput from "../components/forms/TextInput";
 
-interface DependencyProps {
-    //
-}
-
-const DocumentRequirement: React.FC<FormPageComponentProps<DocumentRequirementResponseData>> = ({
-    state,
-    handleChange,
-    dependencies,
-}) => {
-
-    useEffect(() => {
-        if (dependencies) {
-            //
-        }
-    }, [dependencies]);
-
-    return (
-        <>
-            <div className="col-md-12"></div>
-        </>
-    );
+const DocumentRequirement: React.FC<
+  FormPageComponentProps<DocumentRequirementResponseData>
+> = ({ state, handleChange, loading }) => {
+  return (
+    <>
+      <div className="col-md-12 mb-4">
+        <TextInput
+          label="Name"
+          name="name"
+          value={state.name}
+          onChange={handleChange}
+          isDisabled={loading}
+          placeholder="Enter Document Requirement Name"
+        />
+      </div>
+    </>
+  );
 };
 
 export default DocumentRequirement;
