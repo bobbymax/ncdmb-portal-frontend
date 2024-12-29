@@ -4,7 +4,7 @@ interface ButtonProps {
   label?: string | number;
   variant?: "success" | "info" | "warning" | "danger" | "dark";
   type?: "submit" | "button";
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   icon?: string;
   fontSize?: number;
   isDisabled?: boolean;

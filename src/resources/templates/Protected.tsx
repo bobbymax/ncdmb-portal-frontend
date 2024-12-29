@@ -9,6 +9,8 @@ import CircularMenu from "resources/views/components/menu/CircularMenu";
 import { useStateContext } from "app/Context/ContentContext";
 import { useAuth } from "app/Context/AuthContext";
 import Aside from "resources/views/components/partials/Aside";
+import { ModalProvider } from "app/Context/ModalContext";
+import ModalPage from "resources/views/pages/ModalPage";
 
 export interface ProtectedProps {
   children: ReactNode;
@@ -39,7 +41,7 @@ const Protected = ({ children }: ProtectedProps) => {
   }, [pathname]);
 
   return (
-    <>
+    <ModalProvider>
       <div id="main-wrapper">
         <Aside
           navigation={navigation}
@@ -67,8 +69,8 @@ const Protected = ({ children }: ProtectedProps) => {
             </div>
           </header>
           <div className="main-content">
-            <div className="row">
-              <div className="container-fluid">{children}</div>
+            <div className="container-fluid">
+              <div className="row">{children}</div>
             </div>
           </div>
           {/* Menu Section */}
@@ -77,8 +79,9 @@ const Protected = ({ children }: ProtectedProps) => {
           </div>
         </main>
       </div>
+      <ModalPage />
       <ToastContainer />
-    </>
+    </ModalProvider>
   );
 };
 

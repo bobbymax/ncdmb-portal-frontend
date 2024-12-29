@@ -24,6 +24,8 @@ export default class DocumentRequirementRepository extends BaseRepository {
     return {
       id: data.id ?? 0,
       name: data.name ?? "",
+      description: data.description ?? "",
+      priority: data.priority ?? "low",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

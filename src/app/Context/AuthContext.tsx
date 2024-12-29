@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import { ApiService } from "app/Services/ApiService";
-import { AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { AxiosResponse } from "axios";
 import { UserResponseData } from "app/Repositories/User/data";
 
 export interface AuthState {

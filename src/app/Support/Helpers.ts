@@ -1,5 +1,6 @@
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { Validator } from "../Support/Validator";
+import moment from "moment";
 
 export const validate = (
   fillables: string[],
@@ -17,6 +18,18 @@ export const validate = (
   return { success: true, errors: [] };
 };
 
+export const formatCurrency = (
+  amount: number,
+  currency: "NGN" | "USD" | "GBP" = "NGN",
+  locale: string = "en-NG"
+) => {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
 export const formatOptions = (
   data: Record<string, any>[],
   value: string,
@@ -32,6 +45,21 @@ export const formatOptions = (
   }));
 
   return response;
+};
+
+export const generateRandomNumbers = (
+  count: number,
+  min: number,
+  max: number
+) => {
+  // 1: Create a `Set` object
+  let uniqueNumbers = new Set();
+  while (uniqueNumbers.size < count) {
+    // 2: Generate each random number
+    uniqueNumbers.add(Math.floor(Math.random() * (max - min + 1)) + min);
+  }
+  // 3: Immediately insert them numbers into the Set...
+  return Array.from(uniqueNumbers);
 };
 
 export const generateUniqueString = (length: number = 43): string => {
@@ -53,4 +81,19 @@ export const generateShortUniqueString = (length: number = 8): string => {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+};
+
+export const getEarliestAndLatestDates = (
+  dates: string[]
+): { earliest: string; latest: string } => {
+  if (dates.length === 0) {
+    return { earliest: "", latest: "" };
+  }
+
+  // Convert strings to Moment objects and find the min and max dates
+  const momentDates = dates.map((date) => moment(date, "YYYY-MM-DD"));
+  const earliest = moment.min(momentDates).format("YYYY-MM-DD");
+  const latest = moment.max(momentDates).format("YYYY-MM-DD");
+
+  return { earliest, latest };
 };

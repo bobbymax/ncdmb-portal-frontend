@@ -6,9 +6,7 @@ import {
 } from "axios";
 import { AuthProvider } from "../Providers/AuthProvider";
 import EventEmitter from "eventemitter3";
-import { AuthState } from "app/Context/AuthContext";
 import accessPoint from ".";
-
 export type NetworkStatus = {
   message: string;
   type: "good" | "poor";
@@ -39,6 +37,8 @@ export class ApiService {
 
     this.api.interceptors.request.use((config) => {
       config.headers = config.headers || {};
+      if (config.data instanceof FormData)
+        config.headers["Content-Type"] = "multipart/form-data";
       if (token) config.headers.Authorization = `Bearer ${token}`;
       config.onUploadProgress = this.handleUploadProgress.bind(this);
       return config as InternalAxiosRequestConfig<any>;
@@ -76,13 +76,16 @@ export class ApiService {
   }
 
   private async refreshAuthToken(): Promise<string | null> {
+    const refreshHashToken = this.auth.getRefreshToken();
     if (!this.tokenPromise) {
       this.tokenPromise = this.api
-        .post<{ data: AuthState }>("api/auth/refresh", {
-          refresh_token: this.auth.getRefreshToken(),
+        .post("api/auth/refresh", {
+          refresh_token: refreshHashToken,
         })
         .then((response) => {
-          const { token, refresh_token, staff } = response.data.data;
+          console.log(response);
+
+          const { token, refresh_token, staff } = response.data;
           this.auth.saveToken({ token, refresh_token, staff });
           return token;
         })
@@ -199,19 +202,33 @@ export class ApiService {
 
   async post<T>(
     url: string,
-    data: Record<string, any>
+    data: Record<string, any> | FormData
   ): Promise<AxiosResponse<T>> {
-    return this.api.post<T>(`api/${url}`, data);
+    return this.api.post<T>(`api/${url}`, data, {
+      headers: {
+        "Content-Type": this.getDataFormat(data),
+      },
+    });
   }
 
   async put<T>(
     url: string,
-    data: Record<string, any>
+    data: Record<string, any> | FormData
   ): Promise<AxiosResponse<T>> {
-    return this.api.put<T>(`api/${url}`, data);
+    return this.api.put<T>(`api/${url}`, data, {
+      headers: {
+        "Content-Type": this.getDataFormat(data),
+      },
+    });
   }
 
   async delete<T>(url: string): Promise<AxiosResponse<T>> {
     return this.api.delete<T>(`api/${url}`);
+  }
+
+  private getDataFormat(data: Record<string, any> | FormData): string {
+    return data instanceof FormData
+      ? "multipart-form-data"
+      : "application/json";
   }
 }

@@ -1,0 +1,100 @@
+@import url("https://fonts.googleapis.com/css2?family=Dosis:wght@200..800&display=swap");
+
+/* Base styling */
+.heartbeat-container {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 25px;
+}
+
+.heartbeat {
+  width: 35px;
+  height: 35px;
+  background-color: var(--color-tetiary);
+  border-radius: 50%;
+  animation: heartbeat 2s infinite;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+/* Keyframes for the heartbeat effect */
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.2);
+  }
+}
+
+.manage-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.claim-description {
+  font-weight: 200;
+  letter-spacing: 1px;
+  text-align: justify;
+  line-height: 1.2;
+}
+
+.expense-child {
+  background-color: var(--color-white);
+  padding: var(--card-padding-lg);
+  margin-bottom: 15px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  /* height: 100%; */
+
+  .title {
+    font-weight: 300;
+    letter-spacing: 1.2px;
+    color: var(--color-border-variant);
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  i.expense-icon {
+    display: inline-block;
+    padding: 4px 7px;
+    background-color: var(--color-border-lighter);
+    border: 1px solid var(--color-border);
+    margin-bottom: 10px;
+    border-radius: 2px;
+    font-size: 16px;
+  }
+
+  small {
+    display: block;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-bttn-danger-variant);
+  }
+
+  h3 {
+    letter-spacing: 1px;
+    /* margin-top: 15px; */
+    color: var(--color-ajacent);
+    font-family: "Dosis", serif;
+    font-size: 28px;
+    margin: 14px 0;
+  }
+}
+
+/* .expense-child:last-child {
+  margin-bottom: 0 !important;
+} */

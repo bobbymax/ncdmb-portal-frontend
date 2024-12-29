@@ -22,6 +22,9 @@ export default class WorkflowRepository extends BaseRepository {
       id: data.id ?? 0,
       name: data.name ?? "",
       description: data.description ?? "",
+      document_type_id: data.document_type_id ?? 0,
+      type: data.type ?? "serialize",
+      stages: data.stages ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

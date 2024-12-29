@@ -18,6 +18,25 @@ interface ApiResponse {
   };
 }
 
+export type ModalResponseData<D = JsonResponse> = {
+  data: D;
+  action: "store" | "update" | "delete";
+  message: string;
+};
+
+export interface PageModalProps<T extends BaseRepository, D = JsonResponse> {
+  title: string;
+  close: () => void;
+  show: boolean;
+  size?: "sm" | "md" | "lg";
+  data: D | null;
+  isUpdating: boolean;
+  submit: (response: ModalResponseData) => void;
+  manage: (data: D) => void;
+  destroy: (rawId: number) => void;
+  Repo: T;
+}
+
 export interface ConfigProp<T> {
   fillables: Array<keyof T>;
   associatedResources: DependencyProps[];
@@ -30,12 +49,20 @@ export interface ViewsProps {
   server_url: string;
   component: string;
   frontend_path: string;
-  type: "index" | "form" | "dashboard" | "lock-page" | "page" | "external";
+  type:
+    | "index"
+    | "form"
+    | "dashboard"
+    | "lock-page"
+    | "page"
+    | "external"
+    | "card";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;
   index_path?: string;
   post_server_url?: string;
+  pointer?: string;
 }
 export type JsonResponse = BaseResponse & Record<string, any>;
 export abstract class BaseRepository extends RepositoryService {
@@ -54,7 +81,7 @@ export abstract class BaseRepository extends RepositoryService {
 
   public formatDataOnSubmit = (
     data: Record<string, any>
-  ): Record<string, any> => {
+  ): FormData | Record<string, any> => {
     const result: Record<string, any> = {};
 
     this.fillables.forEach((key) => {

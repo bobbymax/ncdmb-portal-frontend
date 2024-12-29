@@ -4,6 +4,16 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import ExpenseRepository from "app/Repositories/Expense/ExpenseRepository";
+import TripCategoryRepository from "app/Repositories/TripCategory/TripCategoryRepository";
+import RemunerationRepository from "app/Repositories/Remuneration/RemunerationRepository";
+import AllowanceRepository from "app/Repositories/Allowance/AllowanceRepository";
+import CityRepository from "app/Repositories/City/CityRepository";
+import TripRepository from "app/Repositories/Trip/TripRepository";
+import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
+import DocumentActionRepository from "app/Repositories/DocumentAction/DocumentActionRepository";
+import DocumentCategoryRepository from "app/Repositories/DocumentCategory/DocumentCategoryRepository";
+import DocumentTypeRepository from "app/Repositories/DocumentType/DocumentTypeRepository";
 import DocumentRequirementRepository from "app/Repositories/DocumentRequirement/DocumentRequirementRepository";
 import WorkflowStageRepository from "app/Repositories/WorkflowStage/WorkflowStageRepository";
 import GradeLevelRepository from "app/Repositories/GradeLevel/GradeLevelRepository";
@@ -17,10 +27,20 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
-new DocumentRequirementRepository(),
-new WorkflowStageRepository(),
-new GradeLevelRepository(),
-new GroupRepository(),
+new ExpenseRepository(),
+new TripCategoryRepository(),
+new RemunerationRepository(),
+new AllowanceRepository(),
+new CityRepository(),
+new TripRepository(),
+new ClaimRepository(),
+new DocumentActionRepository(),
+new DocumentCategoryRepository(),
+  new DocumentTypeRepository(),
+  new DocumentRequirementRepository(),
+  new WorkflowStageRepository(),
+  new GradeLevelRepository(),
+  new GroupRepository(),
   new WorkflowRepository(),
   new UserRepository(),
   new PageRepository(),

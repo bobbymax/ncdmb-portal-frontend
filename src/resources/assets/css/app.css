@@ -3,6 +3,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 /* @import url("https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap"); */
 @import "remixicon/fonts/remixicon.css";
+@import "custom-animations.css";
+@import "modal.css";
 
 :root {
   --color-primary: #5bba6f;
@@ -107,7 +109,7 @@ body {
   font-style: normal;
   /* user-select: none; */
   color: var(--color-primary-coresponding);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 14px;
 }
 
@@ -620,8 +622,10 @@ b {
 }
 
 .main-content {
-  padding: 0.98rem 1.24rem;
-  overflow-y: auto !important;
+  padding: 1.48rem 1.24rem;
+  display: block;
+  /* overflow-y: auto !important; */
+  /* height: 100vh; */
 }
 
 .main-header__inner .main-header__left i,
@@ -652,6 +656,231 @@ b {
   justify-content: space-between;
   align-items: center;
   flex-grow: 1;
+}
+
+.expenditure__analysis {
+  background-color: #f6f6f6;
+  height: 370px;
+  max-height: 370px;
+  padding: 1.32rem;
+  border: 1px solid var(--color-border);
+  position: relative;
+  border-radius: 4px;
+  overflow: auto;
+}
+
+.expense__container,
+.expenditure__analysis {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: var(--flex-gap-m);
+  /* justify-content: center; */
+}
+
+.expenditure__analysis.files_uploaded p {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.exp__analysis__item {
+  display: flex;
+  align-items: center;
+  gap: var(--flex-gap-m);
+  i {
+    font-size: 3rem;
+    font-weight: 300;
+  }
+}
+
+.expense__item {
+  background-color: var(--color-white);
+  padding: var(--card-padding-lg);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  box-shadow: 6px 4px 7px -2px rgba(0, 0, 0, 0.2);
+
+  .title {
+    font-weight: 300;
+    letter-spacing: 1.2px;
+    color: var(--color-border-variant);
+    text-transform: uppercase;
+    /* margin-bottom: 7px; */
+  }
+
+  i.expense-icon {
+    display: inline-block;
+    padding: 4px 7px;
+    background-color: var(--color-border-lighter);
+    border: 1px solid var(--color-border);
+    margin-bottom: 10px;
+    border-radius: 2px;
+    font-size: 16px;
+  }
+
+  small {
+    display: block;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--color-bttn-danger-variant);
+    margin-bottom: 9px;
+  }
+
+  h3 {
+    letter-spacing: 1px;
+    /* margin-top: 15px; */
+    color: var(--color-ajacent);
+    font-family: "Dosis", serif;
+    font-size: 28px;
+    margin: 4px 0;
+  }
+}
+
+.payment-component-parts {
+  margin: 18px 0;
+  p {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--color-bttn-info);
+    font-weight: 500;
+  }
+  h2 {
+    font-family: "Dosis", serif;
+    font-size: 45px;
+    letter-spacing: 1px;
+  }
+}
+
+.wallet {
+  height: 345px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-wallet {
+  width: 160px;
+  height: 160px;
+}
+
+.claim-expenses-title {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 14px;
+  color: var(--color-bttn-success);
+}
+
+.card-page-component {
+  height: 100vh;
+}
+
+.claim-categories {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 65%;
+  max-height: 100%;
+  gap: var(--flex-gap-m);
+
+  .category-links {
+    flex: 1;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    color: var(--color-bttn-warning);
+    font-size: 2.2rem;
+    text-wrap: wrap;
+    padding: 4rem;
+    border-radius: 6px;
+    background-image: url("../images/cat-bg.avif");
+    background-color: #ececec;
+    background-blend-mode: soft-light;
+    width: 30%;
+    height: 45%;
+    position: relative;
+    overflow: hidden;
+    transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    i {
+      font-size: 3.2rem;
+      font-weight: lighter;
+      margin-bottom: 12px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--color-ajacent);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    small {
+      color: var(--color-primary-coresponding);
+      display: block;
+      text-transform: uppercase;
+      font-size: 0.88rem;
+      letter-spacing: 1px;
+    }
+
+    .cover {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0;
+      background-color: var(--color-bttn-success);
+      opacity: 0.3;
+      z-index: 1;
+      border-radius: 0;
+      animation: none;
+    }
+
+    &:hover {
+      flex: 2;
+    }
+
+    &:not(:hover) {
+      flex: 1;
+    }
+
+    &:hover .cover {
+      animation: bounce-up 400ms cubic-bezier(1, 3.13, 0.61, 0.42) forwards;
+    }
+
+    &:hover p,
+    &:hover small {
+      color: var(--color-dark);
+    }
+  }
+}
+
+/* Keyframes for Animation */
+@keyframes bounce-up {
+  0% {
+    height: 0;
+  }
+  60% {
+    height: 100%; /* Grows to half the parent's height */
+  }
+  85% {
+    height: 98%; /* Overshoots slightly for bounce effect */
+  }
+  100% {
+    height: 100%; /* Settles back at half the parent's height */
+  }
+}
+
+.card-page-header h1 {
+  font-size: 4rem;
+  font-weight: 300;
+  color: var(--color-ajacent);
 }
 
 .none {
@@ -814,6 +1043,30 @@ b {
   padding: var(--card-padding-lg);
 }
 
+.storm-select {
+  transition: all 300ms ease;
+}
+
+.storm-select-sm {
+  padding: var(--card-padding-sm);
+  font-size: 14px;
+}
+
+.storm-select-md {
+  padding: var(--card-padding-md);
+  font-size: 14px;
+}
+
+.storm-select-lg {
+  padding: var(--card-padding-lg);
+  font-size: 14px;
+}
+
+.storm-select-xl {
+  padding: var(--card-padding-xl);
+  font-size: 16px;
+}
+
 .profile-info .profile-name {
   font-size: 1.28rem;
   text-transform: uppercase;
@@ -874,8 +1127,96 @@ b {
   border-radius: 3px;
   box-shadow: 0 1px 5px -1px rgba(0, 0, 0, 0.2);
   animation: slideUpFadeIn 600ms ease-out forwards;
-  max-width: 100%;
-  /* overflow-x: scroll; */
+  /* max-width: 100%; */
+}
+
+.claims-card {
+  /* border-top: 3px solid var(--color-ajacent); */
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  background-image: url("../images/flight.jpg");
+  background-repeat: no-repeat;
+  background-blend-mode: soft-light;
+  background-color: var(--color-border-lighter);
+  background-size: cover;
+  background-origin: border-box;
+  background-position: center;
+
+  .claims-card-header {
+    h2 {
+      font-weight: 500;
+      color: var(--color-bttn-success);
+      /* letter-spacing: 0.1px; */
+      line-height: 1.2;
+      margin-top: 12px;
+      word-wrap: break-word;
+    }
+
+    small {
+      display: inline-block;
+      background-color: var(--color-bttn-dark-variant);
+      color: var(--color-white);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 0.28rem 0.65rem;
+      /* border: 1px solid var(--color-navbar-border); */
+      border-radius: 3px;
+      margin-top: 11px;
+    }
+
+    small.date_created {
+      font-weight: 400;
+      letter-spacing: 1px;
+      font-size: 8px;
+      font-style: italic;
+      text-transform: uppercase;
+    }
+
+    p {
+      letter-spacing: 2px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    p.status-badge {
+      background-color: darkorange;
+      font-size: 9px;
+      padding: 0.25rem 0.68rem;
+      color: var(--color-white);
+      border-radius: 2px;
+    }
+  }
+
+  .claims-card-body {
+    small.title {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 8px;
+      font-weight: 600;
+      color: var(--color-white);
+      display: inline-block;
+      background-color: var(--color-bttn-success);
+      padding: 1.6px 7px;
+      border: 1px solid var(--color-border);
+      border-radius: 3px;
+    }
+    p.amount {
+      letter-spacing: 0.78px;
+      font-weight: 600;
+      font-size: 24px;
+      color: grey;
+      margin-top: 5px;
+    }
+    .duration {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-tetiary-conresponding);
+    }
+  }
 }
 
 @keyframes slideUpFadeIn {
@@ -936,11 +1277,13 @@ b {
   border-radius: 3px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 10px;
-  /* box-shadow: 0 0.3px 1px 0.2px rgba(0, 0, 0, 0.1); */
-  background-image: linear-gradient(to top right, white, transparent);
-  background-blend-mode: soft-light;
-  border: 1px solid var(--color-border);
+  font-size: 12px;
+  box-shadow: 0 0.5px 2px 0.7px rgba(0, 0, 0, 0.1);
+  /* background-image: linear-gradient(to top right, white, transparent); */
+  /* background-blend-mode: soft-light; */
+  /* border: 1px solid var(--color-border); */
+  font-weight: 500 !important;
+  letter-spacing: 1.5px;
 }
 
 storm-bttn span {
@@ -950,6 +1293,11 @@ storm-bttn span {
 .storm-bttn:disabled {
   background-color: var(--color-border);
   color: var(--color-border-variant);
+}
+
+.storm-bttn-xs {
+  padding: 0.38rem 0.88rem;
+  font-size: 9px;
 }
 
 .storm-bttn-sm {
@@ -1031,7 +1379,7 @@ storm-bttn span {
   background-color: var(--color-light);
   border: 1px solid var(--color-border-lighter);
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: 400;
   /* box-shadow: 0 0.5px 0.5px 0.5px rgba(0, 0, 0, 0.3); */
 }
 

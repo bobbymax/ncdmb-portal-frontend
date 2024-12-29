@@ -3,11 +3,13 @@ import { DocumentRequirementResponseData } from "./data";
 
 export const documentRequirementConfig: ConfigProp<DocumentRequirementResponseData> =
   {
-    fillables: ["name"],
-    associatedResources: [],
+    fillables: ["name", "description", "priority"],
+    associatedResources: [{ name: "workflowStages", url: "workflowStages" }],
     state: {
       id: 0,
       name: "",
+      description: "",
+      priority: "low",
     },
     actions: [
       {

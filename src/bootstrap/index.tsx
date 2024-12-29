@@ -15,6 +15,15 @@ import ResourceRawPage from "resources/views/pages/ResourceRawPage";
 import ManageResourcePage from "resources/views/pages/ManageResourcePage";
 import { AuthProvider } from "app/Context/AuthContext";
 import { ActionMeta } from "react-select";
+import CardPage from "resources/views/pages/CardPage";
+
+export interface CardPageComponentPropos<T = JsonResponse, D = BaseRepository> {
+  collection: T[];
+  Repository: D;
+  onManageRawData: (raw: T, label: string) => void;
+  View: ViewsProps;
+  // columns:
+}
 
 export interface FormPageComponentProps<T = JsonResponse> {
   state: T;
@@ -40,6 +49,7 @@ export interface PageProps<T extends BaseRepository> {
   Repository: T;
   view: ViewsProps;
   Component: React.ComponentType<FormPageComponentProps>;
+  CardPageComponent: React.ComponentType<CardPageComponentPropos>;
 }
 
 const renderRoute = <T extends BaseRepository>(
@@ -55,6 +65,7 @@ const renderRoute = <T extends BaseRepository>(
     Repository: repo,
     view,
     Component,
+    CardPageComponent: Component,
   };
 
   return (
@@ -67,6 +78,8 @@ const renderRoute = <T extends BaseRepository>(
             <IndexPage {...componentProps} />
           ) : view.type === "form" ? (
             <ManageResourcePage {...componentProps} />
+          ) : view.type === "card" ? (
+            <CardPage {...componentProps} />
           ) : (
             <ResourceRawPage {...componentProps} />
           )}

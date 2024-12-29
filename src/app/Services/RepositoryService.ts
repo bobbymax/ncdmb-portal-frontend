@@ -80,7 +80,10 @@ export abstract class RepositoryService implements IRepository {
     }
   }
 
-  async store(url: string, body: Record<string, any>): Promise<ServerResponse> {
+  async store(
+    url: string,
+    body: Record<string, any> | FormData
+  ): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.post(
         url,
@@ -102,7 +105,7 @@ export abstract class RepositoryService implements IRepository {
   async update(
     url: string,
     param: string | number,
-    body: Record<string, any>
+    body: Record<string, any> | FormData
   ): Promise<ServerResponse> {
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.put(

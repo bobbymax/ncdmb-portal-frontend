@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useMemo, useState } from "react";
 import {
   BaseRepository,
   JsonResponse,
@@ -37,6 +38,7 @@ export const useForm = <T extends BaseRepository>(
   const [state, setState] = useState<JsonResponse>(() => ({
     ...repo.getState(),
   }));
+  const [dependencies, setDependencies] = useState<object>({});
   const { loading, error, execute } = useAsync();
   const { setIsLoading } = useStateContext();
 
@@ -155,6 +157,21 @@ export const useForm = <T extends BaseRepository>(
     setState(repo.fromJson(data));
   };
 
+  useEffect(() => {
+    if (Repository.associatedResources.length > 0) {
+      const getDependencies = async () => {
+        try {
+          const response = await Repository.dependencies();
+          setDependencies(response);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      getDependencies();
+    }
+  }, [Repository.associatedResources]);
+
   return {
     state,
     setState,
@@ -165,6 +182,7 @@ export const useForm = <T extends BaseRepository>(
     destroy,
     fill,
     loading,
+    dependencies,
     error,
     validate,
   };

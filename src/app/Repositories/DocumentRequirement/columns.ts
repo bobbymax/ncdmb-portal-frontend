@@ -6,4 +6,9 @@ export const documentRequirementColumns: ColumnData[] = [
     accessor: "name",
     type: "text",
   },
+  {
+    label: "Priority",
+    accessor: "priority",
+    type: "text",
+  },
 ];

@@ -38,6 +38,7 @@ const ManageResourcePage = ({
     create,
     update,
     destroy,
+    dependencies,
     fill,
     loading,
     error,
@@ -45,7 +46,7 @@ const ManageResourcePage = ({
     onFormSubmit,
     handleValidationErrors,
   });
-  const [dependencies, setDependencies] = useState({});
+
   const [isDisabled, setIsDisabled] = useState<boolean>(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -55,22 +56,11 @@ const ManageResourcePage = ({
       setIsDisabled(success);
       handleValidationErrors(errors);
 
-      console.log(errors);
+      // console.log(errors);
     };
 
     isValidated();
   }, [state]);
-
-  useEffect(() => {
-    if (Repository.associatedResources.length > 0) {
-      const getDependencies = async () => {
-        const response = await Repository.dependencies();
-        setDependencies(response);
-      };
-
-      getDependencies();
-    }
-  }, [Repository.associatedResources]);
 
   useEffect(() => {
     if (view.mode === "update" && raw) {
@@ -81,7 +71,7 @@ const ManageResourcePage = ({
   return (
     <div className="container-fluid">
       <div className="custom-card">
-        <div className="custom-card-header flex align between mb-5">
+        <div className="custom-card-header flex align between mb-3">
           <h1
             style={{
               fontWeight: 400,

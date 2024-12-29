@@ -18,7 +18,7 @@ export interface SelectInputProps {
 const Select: React.FC<SelectInputProps> = ({
   label,
   value,
-  size = "lg",
+  size = "md",
   onChange,
   defaultValue,
   defaultText,
@@ -42,8 +42,9 @@ const Select: React.FC<SelectInputProps> = ({
         name={name}
         value={value}
         onChange={onChange}
-        className="form-select form-select-lg"
+        className={`form-select storm-select storm-select-${size}`}
         id={name}
+        disabled={isDisabled}
         {...attributes}
       >
         <option value={defaultValue} disabled={defaultCheckDisabled}>

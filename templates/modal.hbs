@@ -1,0 +1,53 @@
+import { useStateContext } from "app/Context/ContentContext";
+import { ModalValueProps, useModal } from "app/Context/ModalContext";
+import { {{name}}ResponseData } from "app/Repositories/{{name}}/data";
+import React, { FormEvent, useEffect } from "react";
+
+const {{name}}: React.FC<ModalValueProps> = ({
+    data,
+    isUpdating,
+    dependencies,
+    onSubmit,
+}) => {
+    const { getModalState, updateModalState } = useModal();
+    const { isLoading } = useStateContext();
+    const identifier = {{identifier}};
+    const state: {{name}}ResponseData = getModalState(identifier);
+
+    const handleFormSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        onSubmit(state, isUpdating ? "update" : "store");
+    };
+    
+    const handleInputChange = (
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
+    ) => {
+        const { name, value } = e.target;
+        updateModalState(identifier, { [name]: value });
+    };
+    
+    useEffect(() => {
+        if (data) {
+            const raw = data as ExpenseResponseData;
+            updateModalState(identifier, raw);
+        }
+    }, [data, updateModalState]);
+    
+    useEffect(() => {
+        if (dependencies) {
+            const [] = dependencies;
+        }
+    }, [dependencies]);
+
+        return (
+            <form onSubmit={handleFormSubmit}>
+                <div className="row">
+                    {/* Modal Form Components Here */}
+                </div>
+            </form>
+        );
+    };
+
+export default {{name}};

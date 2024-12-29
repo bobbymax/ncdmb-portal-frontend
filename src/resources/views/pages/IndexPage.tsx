@@ -18,8 +18,6 @@ const IndexPage = ({
   );
 
   const onManage = (raw: Raw, label: string) => {
-    // console.log(raw, label);
-
     switch (label) {
       case "destroy":
         break;
@@ -35,21 +33,17 @@ const IndexPage = ({
   };
 
   return (
-    <>
-      <div className="row">
-        <div className="col-md-12">
-          <CustomDataTable
-            tag={view?.tag ?? ""}
-            pageName={view.title}
-            collection={collection}
-            columns={columns}
-            buttons={buttons}
-            manage={onManage}
-            addData={() => navigate(`${view.frontend_path}/create`)}
-          />
-        </div>
-      </div>
-    </>
+    <div className="col-md-12 mb-5">
+      <CustomDataTable
+        tag={view?.tag ?? ""}
+        pageName={view.title}
+        collection={collection}
+        columns={columns}
+        buttons={buttons}
+        manage={onManage}
+        addData={() => navigate(`${view.frontend_path}/create`)}
+      />
+    </div>
   );
 };
 

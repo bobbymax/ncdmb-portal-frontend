@@ -9,9 +9,11 @@ export const userConfig: ConfigProp<UserResponseData> = {
     name: "",
     email: "",
     staff_no: "",
+    grade_level_id: 0,
     roles: [],
     default_page_id: 0,
     pages: [],
+    remunerations: [],
   },
   actions: [
     {

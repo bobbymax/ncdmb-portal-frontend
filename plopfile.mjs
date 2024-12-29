@@ -7,6 +7,28 @@ export default function (plop) {
     const camelCase = text.charAt(0).toLowerCase() + text.slice(1);
     return camelCase;
   });
+  plop.setGenerator("modal", {
+    description: "Create a new modal",
+    prompts: [
+      {
+        type: "input",
+        name: "name",
+        message: "What is the name of the modal?",
+      },
+      {
+        type: "input",
+        name: "identifier",
+        message: "What is the identifier of the modal?",
+      },
+    ],
+    actions: [
+      {
+        type: "add",
+        path: "src/resources/views/crud/modals/{{name}}Modal.tsx",
+        templateFile: "templates/modal.hbs",
+      },
+    ],
+  });
   plop.setGenerator("resource", {
     description: "Generate Repository resources",
     prompts: [

@@ -13,7 +13,7 @@ export interface TextInputProps {
     | "date"
     | "datetime"
     | "time";
-  value?: number | string | undefined;
+  value?: number | string | undefined | any;
   size?: "sm" | "md" | "lg" | "xl";
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
@@ -22,6 +22,8 @@ export interface TextInputProps {
   min?: string | number;
   max?: string | number;
   width?: number;
+  isMulti?: boolean;
+  accept?: string;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -36,6 +38,8 @@ const TextInput: React.FC<TextInputProps> = ({
   min,
   max,
   width = 100,
+  isMulti = false,
+  accept,
   ...attributes
 }) => {
   return (
@@ -54,9 +58,11 @@ const TextInput: React.FC<TextInputProps> = ({
         className={`storm-form-control storm-form-${size}`}
         placeholder={placeholder}
         disabled={isDisabled}
+        multiple={isMulti}
         min={min}
         max={max}
         style={{ width: `${width}%` }}
+        accept={accept}
         {...attributes}
       />
     </div>
