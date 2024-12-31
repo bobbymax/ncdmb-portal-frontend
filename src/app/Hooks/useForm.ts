@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BaseRepository,
   JsonResponse,
@@ -42,18 +42,22 @@ export const useForm = <T extends BaseRepository>(
   const { loading, error, execute } = useAsync();
   const { setIsLoading } = useStateContext();
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value } = e.target;
+  // Handle changes for form inputs
+  const handleChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >
+    ) => {
+      const { name, value } = e.target;
 
-    setState((prevState) => ({
-      ...prevState,
-      [name]: !isNaN(Number(value)) && value !== "" ? Number(value) : value,
-    }));
-  };
+      setState((prevState) => ({
+        ...prevState,
+        [name]: !isNaN(Number(value)) && value !== "" ? Number(value) : value,
+      }));
+    },
+    []
+  );
 
   const handleReactSelect = (
     newValue: unknown,
@@ -67,70 +71,124 @@ export const useForm = <T extends BaseRepository>(
     }
   };
 
-  const validate = (
-    data: Record<string, any>
-  ): { success: boolean; errors: string[] } => {
-    if (Object.keys(repo.rules).length > 0 && repo.fillables.length > 0) {
-      const validator = new Validator(repo.fillables, repo.rules, data);
-      validator.validate();
+  // Validation logic
+  const validate = useCallback(
+    (
+      data: Record<string, any> | FormData
+    ): { success: boolean; errors: string[] } => {
+      if (data instanceof FormData) {
+        const requiredFields = repo.fillables.filter(
+          (field) => !data.has(field)
+        );
 
-      if (validator.fails()) {
-        return { success: false, errors: validator.getErrors() };
+        // console.log(requiredFields);
+
+        if (requiredFields.length > 0) {
+          return {
+            success: false,
+            errors: requiredFields.map((field) => `${field} is required.`),
+          };
+        }
+
+        return { success: true, errors: [] };
       }
-    }
 
-    return { success: true, errors: [] };
-  };
+      if (Object.keys(repo.rules).length > 0 && repo.fillables.length > 0) {
+        const validator = new Validator(repo.fillables, repo.rules, data);
+        validator.validate();
+
+        if (validator.fails()) {
+          return { success: false, errors: validator.getErrors() };
+        }
+      }
+
+      return { success: true, errors: [] };
+    },
+    [repo.fillables, repo.rules]
+  );
 
   // const updateNetworkStatus = (status: { type: string; message: string }) => {
   //   setNetworkStatus(status.message);
   // };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-    action: ActionType,
-    submitFn: () => Promise<ServerResponse>
-  ) => {
-    e.preventDefault();
+  // Submission handler with error handling
+  const handleSubmit = useCallback(
+    async (
+      e: React.FormEvent<HTMLFormElement>,
+      action: ActionType,
+      submitFn: () => Promise<ServerResponse>
+    ) => {
+      e.preventDefault();
 
-    const data = repo.formatDataOnSubmit(state);
-    const { success, errors } = validate(data);
+      // const data = repo.formatDataOnSubmit(state);
+      const { success, errors } = validate(state);
 
-    if (success) {
-      try {
-        setIsLoading(true);
-        const response: ServerResponse = await execute(submitFn());
+      if (success) {
+        try {
+          setIsLoading(true);
+          const response: ServerResponse = await execute(submitFn());
 
-        if (response) {
-          setState({ ...repo.getState() });
-          onFormSubmit(response, action);
+          if (response) {
+            setState({ ...repo.getState() });
+            onFormSubmit(response, action);
+          }
+        } catch (er) {
+          if (er instanceof DefaultErrorHandler) {
+            toast.error(er.message || "An error occurred during submission.");
+          } else if (er instanceof Error) {
+            toast.error(er.message);
+          } else {
+            toast.error("An unexpected error occurred.");
+          }
+        } finally {
+          setIsLoading(false);
         }
-      } catch (er) {
-        const returnedError = er instanceof DefaultErrorHandler ? er : "Oops!!";
-        console.error("Submission failed:", returnedError); // Add more detailed error handling if necessary
-        toast.error("An error occurred during submission.");
-      } finally {
-        setIsLoading(false);
+      } else if (handleValidationErrors) {
+        handleValidationErrors(errors);
+        toast.error("Validation failed. Please correct the errors.");
       }
-    } else if (handleValidationErrors) {
-      handleValidationErrors(errors); // Handle validation errors via a callback
-      toast.error("Validation failed. Please correct the errors.");
-    }
-  };
+    },
+    [
+      state,
+      repo,
+      execute,
+      setIsLoading,
+      onFormSubmit,
+      handleValidationErrors,
+      validate,
+    ]
+  );
 
-  const create = async (e: React.FormEvent<HTMLFormElement>) => {
-    handleSubmit(e, ACTION_STORE, () =>
-      repo.store(view.server_url, repo.formatDataOnSubmit(state))
-    );
-  };
+  // Create record
+  const create = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      handleSubmit(e, ACTION_STORE, () =>
+        repo.store(view.server_url, repo.formatDataOnSubmit(state))
+      );
+    },
+    [state, repo, view.server_url, handleSubmit]
+  );
 
-  const update = async (e: React.FormEvent<HTMLFormElement>) => {
-    handleSubmit(e, ACTION_UPDATE, () =>
-      repo.update(view.server_url, state.id, repo.formatDataOnSubmit(state))
-    );
-  };
+  // Update record
+  const update = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      // const data = repo.formatDataOnSubmit(state);
 
-  const destroy = () => {
+      // if (data instanceof FormData) {
+      //   for (let pair of data.entries()) {
+      //     console.log(pair[0], pair[1]);
+      //   }
+      // }
+
+      handleSubmit(e, ACTION_UPDATE, () =>
+        repo.update(view.server_url, state.id, repo.formatDataOnSubmit(state))
+      );
+    },
+    [state, repo, view.server_url, handleSubmit]
+  );
+
+  // Destroy record
+  const destroy = useCallback(() => {
     Alert.flash(
       "Are you Sure?",
       "warning",
@@ -146,31 +204,41 @@ export const useForm = <T extends BaseRepository>(
           onFormSubmit(response, "destroy");
           toast.success("Record deleted successfully!");
         } catch (er) {
-          console.error(er);
-          toast.error("Failed to delete the record.");
+          if (er instanceof Error) {
+            toast.error(er.message);
+          } else {
+            toast.error("Failed to delete the record.");
+          }
         }
+      } else if (result.isDismissed) {
+        toast.info("Deletion canceled.");
       }
     });
-  };
+  }, [repo, view.server_url, state.id, execute, onFormSubmit]);
 
-  const fill = (data: JsonResponse) => {
-    setState(repo.fromJson(data));
-  };
+  // Fill form state with existing data
+  const fill = useCallback(
+    (data: JsonResponse) => {
+      setState(repo.fromJson(data));
+    },
+    [repo]
+  );
 
+  // Fetch dependencies
   useEffect(() => {
-    if (Repository.associatedResources.length > 0) {
-      const getDependencies = async () => {
-        try {
-          const response = await Repository.dependencies();
-          setDependencies(response);
-        } catch (error) {
-          console.error(error);
-        }
-      };
+    const getDependencies = async () => {
+      try {
+        const response = await Repository.dependencies();
+        setDependencies(response);
+      } catch (error) {
+        console.error("Error fetching dependencies:", error);
+      }
+    };
 
+    if (Repository.associatedResources.length > 0) {
       getDependencies();
     }
-  }, [Repository.associatedResources]);
+  }, [Repository]);
 
   return {
     state,

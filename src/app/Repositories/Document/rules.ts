@@ -1,0 +1,1 @@
+export const documentRules: { [key: string]: string } = {};

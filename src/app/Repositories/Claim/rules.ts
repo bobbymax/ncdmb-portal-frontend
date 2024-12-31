@@ -1,7 +1,10 @@
 export const claimRules: { [key: string]: string } = {
   total_amount_spent: "required",
-  total_amount_approved: "required",
-  total_amount_retired: "required",
+  expenses: "required|array",
+  supporting_documents: "required|array",
   type: "required|string",
-  trips: "required|array",
+  sponsoring_department_id: "required|integer",
+  title: "required|string",
+  start_date: "required|string",
+  end_date: "required|string",
 };

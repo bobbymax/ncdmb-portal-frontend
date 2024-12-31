@@ -18,12 +18,15 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     "document_type_id",
     "supporting_documents",
     "code",
+    "deletedExpenses",
+    "deletedUploads",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
     { name: "cities", url: "cities" },
     { name: "departments", url: "departments" },
     { name: "documentTypes", url: "documentTypes" },
+    { name: "documentCategories", url: "documentCategories" },
     { name: "workflows", url: "workflows" },
     { name: "tripCategories", url: "tripCategories" },
   ],
@@ -46,6 +49,9 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     filename: "",
     trips: [],
     expenses: [],
+    uploads: [],
+    deletedExpenses: [],
+    deletedUploads: [],
   },
   actions: [
     {

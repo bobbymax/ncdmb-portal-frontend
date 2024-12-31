@@ -89,7 +89,10 @@ const ManageResourcePage = ({
             isDisabled={loading}
           />
         </div>
-        <form onSubmit={view.mode === "update" ? update : create}>
+        <form
+          onSubmit={view.mode === "update" ? update : create}
+          encType="multipart/form-data"
+        >
           <div className="row">
             <Component
               state={state}

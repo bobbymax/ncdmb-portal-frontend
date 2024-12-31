@@ -20,7 +20,7 @@ import CardPage from "resources/views/pages/CardPage";
 export interface CardPageComponentPropos<T = JsonResponse, D = BaseRepository> {
   collection: T[];
   Repository: D;
-  onManageRawData: (raw: T, label: string) => void;
+  onManageRawData: (raw: T, label: string, url?: string) => void;
   View: ViewsProps;
   // columns:
 }

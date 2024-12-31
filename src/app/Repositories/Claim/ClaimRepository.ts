@@ -18,23 +18,25 @@ export default class ClaimRepository extends BaseRepository {
   public actions: ButtonsProp[] = claimConfig.actions;
   public formatDataOnSubmit = (data: Record<string, any>): FormData => {
     const result = new FormData();
+
     this.fillables.forEach((key) => {
       if (key in data) {
         const value = data[key];
-        // Check if the value is a File (e.g., an image)
+
         if (value instanceof File) {
+          // Single file
           result.append(key, value);
-        } else if (
-          Array.isArray(value) &&
-          value.every((item) => item instanceof File)
-        ) {
-          // Handle multiple files if necessary
-          value.forEach((file, index) => {
-            result.append(`${key}[${index}]`, file);
-          });
+        } else if (Array.isArray(value)) {
+          if (value.every((item) => item instanceof File)) {
+            // Array of files
+            value.forEach((file) => result.append(`${key}[]`, file));
+          } else {
+            // Non-file array
+            result.append(key, JSON.stringify(value));
+          }
         } else {
-          // Add non-file values
-          result.append(key, value);
+          // Append an empty string for null or undefined values (optional)
+          result.append(key, value?.toString());
         }
       }
     });
@@ -48,7 +50,7 @@ export default class ClaimRepository extends BaseRepository {
       sponsoring_department_id: data.sponsoring_department_id,
       department_id: data.department_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
-      document_category_id: data.document_category_id,
+      document_category_id: data.document_category_id ?? 0,
       code: data.code ?? "",
       title: data.title ?? "",
       total_amount_spent: data.total_amount_spent ?? 0,
@@ -60,8 +62,12 @@ export default class ClaimRepository extends BaseRepository {
       trips: data.trips ?? [],
       supporting_documents: data.supporting_documents ?? [],
       expenses: data.expenses ?? [],
+      document: data.document ?? null,
+      uploads: data.uploads ?? [],
       start_date: data.start_date ?? "",
       end_date: data.end_date ?? "",
+      deletedExpenses: data.deletedExpenses ?? [],
+      deletedUploads: data.deletedUploads ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

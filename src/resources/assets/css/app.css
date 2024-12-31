@@ -669,6 +669,88 @@ b {
   overflow: auto;
 }
 
+.doc__title {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-bttn-info);
+  margin-top: 8px;
+}
+
+.claim-container {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-wrap: wrap;
+  gap: var(--flex-gap-xl);
+  /* word-break: break-all; */
+}
+
+.uploaded__documents {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--flex-gap-xl);
+  margin-top: 25px;
+  word-break: break-all;
+  flex-wrap: wrap;
+
+  .uploaded__document__item {
+    /* max-width: 8%; */
+    width: 160px;
+    height: 120px;
+    position: relative;
+    /* border: 1px solid var(--color-border); */
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: var(--card-padding-lg);
+    border-radius: 5px;
+    background-color: var(--color-bttn-dark-variant);
+    overflow: hidden;
+
+    .uploaded__document__item__icon {
+      max-width: 26%;
+
+      filter: invert(85%);
+    }
+
+    p {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 12px;
+      color: var(--color-white);
+    }
+
+    .icon__close {
+      position: absolute;
+      top: 8%; /* Move 50% down */
+      left: 76%; /* Move 50% right */
+      /* transform: translate(-50%, -50%); */
+      background-color: var(--color-bttn-danger);
+      height: 28px;
+      width: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* border: 1px solid var(--color-border); */
+      cursor: pointer;
+
+      i {
+        color: var(--color-white);
+        font-size: 16px;
+      }
+
+      &:hover {
+        background-color: var(--color-bttn-danger-variant);
+      }
+    }
+  }
+}
+
 .expense__container,
 .expenditure__analysis {
   display: flex;
@@ -1142,35 +1224,44 @@ b {
   background-size: cover;
   background-origin: border-box;
   background-position: center;
+  width: 295px;
+  height: 310px;
+  text-wrap: wrap;
+
+  small.date_created {
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-size: 10px;
+    /* font-style: italic; */
+    text-transform: uppercase;
+    color: var(--color-bttn-danger);
+    margin: 16px 0 0 0;
+    display: block;
+    text-align: right;
+  }
 
   .claims-card-header {
     h2 {
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 1.9rem;
       color: var(--color-bttn-success);
       /* letter-spacing: 0.1px; */
-      line-height: 1.2;
-      margin-top: 12px;
+      line-height: 1.1;
+      margin-top: 9px;
       word-wrap: break-word;
+      margin-bottom: 21px;
     }
 
     small {
       display: inline-block;
-      background-color: var(--color-bttn-dark-variant);
+      /* background-color: var(--color-bttn-dark-variant); */
       color: var(--color-white);
       font-size: 10px;
       font-weight: 600;
-      padding: 0.28rem 0.65rem;
+      /* padding: 0.28rem 0.65rem; */
       /* border: 1px solid var(--color-navbar-border); */
       border-radius: 3px;
-      margin-top: 11px;
-    }
-
-    small.date_created {
-      font-weight: 400;
-      letter-spacing: 1px;
-      font-size: 8px;
-      font-style: italic;
-      text-transform: uppercase;
+      /* margin-top: 11px; */
     }
 
     p {
@@ -1192,27 +1283,27 @@ b {
   .claims-card-body {
     small.title {
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       font-size: 8px;
-      font-weight: 600;
-      color: var(--color-white);
+      font-weight: 700;
+      color: var(--color-bttn-danger);
       display: inline-block;
-      background-color: var(--color-bttn-success);
+      /* background-color: var(--color-bttn-success); */
       padding: 1.6px 7px;
-      border: 1px solid var(--color-border);
+      /* border: 1px solid var(--color-border); */
       border-radius: 3px;
     }
     p.amount {
       letter-spacing: 0.78px;
       font-weight: 600;
-      font-size: 24px;
+      font-size: 32px;
       color: grey;
-      margin-top: 5px;
+      font-family: "Dosis", serif;
     }
     .duration {
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 500;
       color: var(--color-tetiary-conresponding);
     }
@@ -1364,6 +1455,10 @@ storm-bttn span {
 
 .storm-bttn-danger:hover {
   background-color: var(--color-bttn-danger-variant);
+}
+
+.storm-bttn-full {
+  width: 100%;
 }
 
 .storm-form-label {

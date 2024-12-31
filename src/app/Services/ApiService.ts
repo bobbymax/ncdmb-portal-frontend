@@ -215,11 +215,19 @@ export class ApiService {
     url: string,
     data: Record<string, any> | FormData
   ): Promise<AxiosResponse<T>> {
-    return this.api.put<T>(`api/${url}`, data, {
-      headers: {
-        "Content-Type": this.getDataFormat(data),
-      },
-    });
+    if (data instanceof FormData) {
+      if (!data.has("_method")) {
+        data.append("_method", "PUT");
+      }
+
+      return this.api.post<T>(`api/${url}`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    }
+
+    return this.api.put<T>(`api/${url}`, data);
   }
 
   async delete<T>(url: string): Promise<AxiosResponse<T>> {

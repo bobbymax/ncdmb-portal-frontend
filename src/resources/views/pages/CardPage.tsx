@@ -17,11 +17,17 @@ const CardPage = ({
     ? `${view.frontend_path}/${view.pointer}`
     : `${view.frontend_path}/create`;
 
-  const onManage = (raw: Raw, label: string) => {
-    // console.log(raw, label);
-
+  const onManage = (raw: Raw, label: string, url?: string) => {
     switch (label) {
       case "destroy":
+        break;
+
+      case "print":
+        console.log("printing...");
+        break;
+
+      case "track":
+        console.log("tracking...");
         break;
 
       case "payments":
@@ -29,7 +35,8 @@ const CardPage = ({
         break;
 
       default:
-        navigate(`${view.frontend_path}/${raw.id}/manage`);
+        const path = url ? url : `${view.frontend_path}/${raw.id}/manage`;
+        navigate(path);
         break;
     }
   };

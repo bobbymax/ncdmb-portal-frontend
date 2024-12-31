@@ -1,4 +1,5 @@
 import { BaseResponse } from "../BaseRepository";
+import { DocumentResponseData, UploadResponseData } from "../Document/data";
 import { ExpenseResponseData } from "../Expense/data";
 import { TripResponseData } from "../Trip/data";
 
@@ -29,7 +30,11 @@ export interface ClaimResponseData extends BaseResponse {
   trips?: TripResponseData[];
   expenses: ExpenseResponseData[];
   supporting_documents: File[];
+  document?: DocumentResponseData | null;
+  uploads?: UploadResponseData[];
   filename?: string;
+  deletedExpenses?: ExpenseResponseData[];
+  deletedUploads?: UploadResponseData[];
   created_at?: string;
   updated_at?: string;
 }

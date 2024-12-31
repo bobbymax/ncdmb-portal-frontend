@@ -70,7 +70,7 @@ export class TripExpenseGenerator {
     }
 
     this.addIntracityExpenses(expenses);
-    this.addAccommodationExpenses(expenses, startDate, endDate);
+    this.addAccommodationExpenses(expenses, startDate, this.trip.return_date);
 
     return expenses;
   }
@@ -153,7 +153,7 @@ export class TripExpenseGenerator {
         this.addExpenseForAllowance({
           expenses,
           allowance,
-          endDate,
+          startDate: endDate,
           description,
           type: "road",
         });
@@ -193,7 +193,7 @@ export class TripExpenseGenerator {
 
       if (allowance) {
         const remuneration = this.getRemuneration(allowance.id);
-        const numOfDays = this.calculateNumOfDays(startDate, endDate);
+        const numOfDays = this.calculateNumOfDays(startDate, endDate) + 1;
         const description = `Per Diem for ${numOfDays} nights at ${
           remuneration ? formatCurrency(remuneration.amount) : ""
         } per night!`;
@@ -257,7 +257,6 @@ export class TripExpenseGenerator {
           remuneration.amount
         ),
         description,
-        type,
       });
     }
   }

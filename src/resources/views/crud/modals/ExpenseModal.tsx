@@ -99,7 +99,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
             ...state,
             remuneration_id: remuneration.id,
             unit_price: remuneration.amount,
-            description: allowance.name,
+            description: state.description ?? allowance.name,
             total_amount_spent: total_spent,
           });
         }
@@ -127,6 +127,9 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
   useEffect(() => {
     if (data) {
       const raw = data as ExpenseResponseData;
+
+      console.log(raw);
+
       updateModalState(identifier, raw);
     }
   }, [data]);
@@ -140,8 +143,6 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
       setRemunerations(remunerations);
     }
   }, [dependencies]);
-
-  console.log(period);
 
   return (
     <form onSubmit={handleFormSubmit}>
@@ -195,6 +196,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
             name="end_date"
             value={state.end_date}
             onChange={handleInputChange}
+            min={state.start_date}
             isDisabled={isLoading}
           />
         </div>

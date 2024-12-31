@@ -37,11 +37,11 @@ export const claimViews: ViewsProps[] = [
     title: "Manage Claim",
     server_url: "claims",
     component: "Claim",
-    frontend_path: "/staff-services/claims/:id/manage",
+    frontend_path: "/staff-services/claims/:categoryId/:id/manage",
     type: "form",
     tag: "",
     mode: "update",
-    action: "Update Record",
+    action: "Update Claim",
     index_path: "/staff-services/claims",
   },
 ];

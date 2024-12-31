@@ -11,7 +11,6 @@ import TripRepository from "app/Repositories/Trip/TripRepository";
 import { TripCategoryResponseData } from "app/Repositories/TripCategory/data";
 import { getEarliestAndLatestDates } from "app/Support/Helpers";
 import { TripExpenseGenerator } from "app/Support/TripExpenseGenerator";
-import exp from "constants";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 
@@ -60,10 +59,15 @@ export const useClaimComponents = () => {
     setExpenses([...analysis.init(), ...expenses]);
   };
 
+  const loadExpensesOnUpdate = (data: ExpenseResponseData[]) => {
+    setExpenses(data);
+  };
+
   const updateExpenses = (
     response: ExpenseResponseData,
     mode: "store" | "update" | "destroy"
   ) => {
+    delete response.type;
     switch (mode) {
       case "update":
         setExpenses(
@@ -137,6 +141,7 @@ export const useClaimComponents = () => {
     generateTrip,
     updateExpenses,
     getNumOfDays,
+    loadExpensesOnUpdate,
     earliestDate,
     latestDate,
     totalMoneySpent,

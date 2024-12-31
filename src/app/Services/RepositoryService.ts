@@ -113,6 +113,8 @@ export abstract class RepositoryService implements IRepository {
         body
       );
       const code = response.status;
+      // console.log(response);
+
       return { code, ...response.data };
     } catch (error) {
       console.error("This Record was not found on our database!!", error);

@@ -14,7 +14,6 @@ import { CityResponseData } from "app/Repositories/City/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { useParams } from "react-router-dom";
-import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { ActionMeta } from "react-select";
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import { DocumentRequirementResponseData } from "app/Repositories/DocumentRequirement/data";
@@ -25,6 +24,10 @@ import { useClaimComponents } from "app/Hooks/useClaimComponents";
 import ExpenseModal from "./modals/ExpenseModal";
 import { ExpenseResponseData } from "app/Repositories/Expense/data";
 import Alert from "app/Support/Alert";
+import _ from "lodash";
+import { UploadResponseData } from "app/Repositories/Document/data";
+import filePath from "../../assets/images/file.webp";
+import { toast } from "react-toastify";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
@@ -48,6 +51,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     generateTrip,
     updateExpenses,
     getDuration,
+    loadExpensesOnUpdate,
     allowances,
     remunerations,
     cities,
@@ -63,7 +67,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
   const [category, setCategory] = useState<
     DocumentCategoryResponseData | undefined
   >();
-  const [stage, setStage] = useState<WorkflowStageResponseData | undefined>();
   const [requiredDocs, setRequiredDocs] = useState<
     DocumentRequirementResponseData[]
   >([]);
@@ -75,13 +78,19 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
   const [period, setPeriod] = useState<{ value: string }[]>([]);
 
-  const handleDepartmentChange = (
-    newValue: unknown,
-    actionMeta: ActionMeta<unknown>
-  ) => {
-    const value = newValue as DataOptionsProps;
-    setSelectedDepartment(value);
-  };
+  const handleDepartmentChange = useCallback(
+    (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+      const value = newValue as DataOptionsProps;
+      setSelectedDepartment(value);
+      if (setState) {
+        setState((prev) => ({
+          ...prev,
+          sponsoring_department_id: value.value,
+        }));
+      }
+    },
+    [setState]
+  );
 
   const handleDoc = (type: string) => {
     const docType = type.split("/");
@@ -94,12 +103,12 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       if (e.target.files) {
         const files = Array.from(e.target.files);
 
-        console.log(files);
+        const newFiles = [...files, ...state.supporting_documents];
 
         if (setState) {
           setState((prev) => ({
             ...prev,
-            supporting_documents: files,
+            supporting_documents: _.uniqWith(newFiles, _.isEqual),
           }));
         }
       } else {
@@ -108,25 +117,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     },
     [setState]
   );
-
-  let classIcon: string;
-  const handleIcon = (
-    type: "flight-takeoff" | "flight-land" | "road" | "per-diem" | "wallet"
-  ) => {
-    if (type === "flight-takeoff") {
-      classIcon = "ri-flight-takeoff-line";
-    } else if (type === "flight-land") {
-      classIcon = "ri-flight-land-line";
-    } else if (type === "per-diem") {
-      classIcon = "ri-hotel-bed-line";
-    } else if (type === "road") {
-      classIcon = "ri-roadster-line";
-    } else {
-      classIcon = "ri-wallet-line";
-    }
-
-    return classIcon;
-  };
 
   const onSubmit = (
     response: object,
@@ -144,6 +134,13 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
         if (result.isConfirmed) {
           const expenseResponse = response as ExpenseResponseData;
           updateExpenses(expenseResponse, mode);
+          if (setState) {
+            const prevArr = state.deletedExpenses ?? [];
+            setState((prev) => ({
+              ...prev,
+              deletedExpenses: [expenseResponse, ...prevArr],
+            }));
+          }
         }
       });
     } else {
@@ -153,6 +150,29 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
     closeModal();
   };
+
+  const onFileDelete = (file: UploadResponseData) => {
+    Alert.flash(
+      "Are you Sure?",
+      "warning",
+      "Confirm you want to delete this file from this folder?"
+    ).then((result) => {
+      if (result.isConfirmed) {
+        if (setState) {
+          const prevUploads = state.deletedUploads ?? [];
+          setState((prev) => ({
+            ...prev,
+            uploads: prev.uploads?.filter((upload) => upload.id !== file.id),
+            deletedUploads: [file, ...prevUploads],
+          }));
+        }
+
+        toast.success("File has been deleted successfully!!");
+      }
+    });
+  };
+
+  // console.log(mode);
 
   useEffect(() => {
     const duration: { value: string }[] = [
@@ -202,7 +222,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
         );
 
         const firstStage = workflow?.stages?.find((stage) => stage.order === 1);
-        setStage(firstStage);
         setRequiredDocs((firstStage && firstStage.documentsRequired) ?? []);
 
         setState({
@@ -216,7 +235,28 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     }
   }, [dependencies, setState, params]);
 
-  // console.log(totalMoneySpent);
+  // console.log(state.deletedExpenses, state.deletedUploads);
+
+  useEffect(() => {
+    if (
+      mode === "update" &&
+      state.sponsoring_department_id > 0 &&
+      departments.length > 0
+    ) {
+      loadExpensesOnUpdate(state.expenses);
+
+      const dept = departments.find(
+        (department) =>
+          Number(department.value) === Number(state.sponsoring_department_id)
+      );
+
+      // console.log(state.uploads);
+
+      if (dept) {
+        setSelectedDepartment(dept);
+      }
+    }
+  }, [mode, state.sponsoring_department_id, state.expenses, departments]);
 
   return (
     <>
@@ -227,6 +267,29 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           this document: <b>{requiredDocs.map((doc) => doc.name).join(", ")}</b>
         </p>
       </div>
+      {mode === "update" && (
+        <div className="col-md-8 mb-4">
+          <h4 className="doc__title" style={{ textAlign: "right" }}>
+            Uploaded Documents
+          </h4>
+          <div className="uploaded__documents">
+            {state.uploads?.map((upload, i) => (
+              <div key={i} className="uploaded__document__item">
+                <div className="uploaded__document__item__icon">
+                  <img src={filePath} alt="file icon" />
+                </div>
+                <div
+                  className="icon__close"
+                  onClick={() => onFileDelete(upload)}
+                >
+                  <i className="ri-close-line" />
+                </div>
+                <p>{upload.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="col-md-12 mb-5">
         <div className="flex align gap-md">
           {category && category?.label === "trips" && (
@@ -336,11 +399,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
             {expenses.length > 0 ? (
               expenses.map((expense, i) => (
                 <div key={i} className="expense__item">
-                  <i
-                    className={`expense-icon ${handleIcon(
-                      expense?.type ?? "flight-takeoff"
-                    )}`}
-                  />
+                  <i className={`expense-icon ri-wallet-line`} />
                   <p className="title">{expense.description}</p>
                   <small>
                     Duration:{" "}
