@@ -1,11 +1,11 @@
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import DocumentCategoryRepository from "app/Repositories/DocumentCategory/DocumentCategoryRepository";
-import { CardPageComponentPropos } from "bootstrap";
+import { CardPageComponentProps } from "bootstrap";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const ClaimCategories: React.FC<
-  CardPageComponentPropos<
+  CardPageComponentProps<
     DocumentCategoryResponseData,
     DocumentCategoryRepository
   >

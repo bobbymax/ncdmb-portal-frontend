@@ -172,14 +172,6 @@ export const useForm = <T extends BaseRepository>(
   // Update record
   const update = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
-      // const data = repo.formatDataOnSubmit(state);
-
-      // if (data instanceof FormData) {
-      //   for (let pair of data.entries()) {
-      //     console.log(pair[0], pair[1]);
-      //   }
-      // }
-
       handleSubmit(e, ACTION_UPDATE, () =>
         repo.update(view.server_url, state.id, repo.formatDataOnSubmit(state))
       );

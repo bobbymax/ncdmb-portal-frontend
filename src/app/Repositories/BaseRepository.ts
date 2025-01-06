@@ -44,6 +44,19 @@ export interface ConfigProp<T> {
   actions: ButtonsProp[];
 }
 
+export interface TabOptionProps {
+  title: string;
+  component: string;
+  icon: string;
+  variant: string;
+  endpoint: string;
+  status: string;
+  hasFile: boolean;
+  appendSignature: boolean;
+  isDefault: boolean;
+  path?: string;
+}
+
 export interface ViewsProps {
   title: string;
   server_url: string;
@@ -63,6 +76,8 @@ export interface ViewsProps {
   index_path?: string;
   post_server_url?: string;
   pointer?: string;
+  documentControl?: string[];
+  tabs?: TabOptionProps[];
 }
 export type JsonResponse = BaseResponse & Record<string, any>;
 export abstract class BaseRepository extends RepositoryService {

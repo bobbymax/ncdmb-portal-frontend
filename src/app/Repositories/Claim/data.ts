@@ -15,6 +15,7 @@ export interface ClaimResponseData extends BaseResponse {
   total_amount_approved: number;
   total_amount_retired: number;
   sponsoring_department_id: number;
+  department_name?: string;
   type: "claim" | "retirement";
   start_date: string;
   end_date: string;

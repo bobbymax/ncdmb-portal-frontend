@@ -61,6 +61,7 @@ export default class ClaimRepository extends BaseRepository {
       retired: data.retired ?? false,
       trips: data.trips ?? [],
       supporting_documents: data.supporting_documents ?? [],
+      department_name: data.department_name ?? "",
       expenses: data.expenses ?? [],
       document: data.document ?? null,
       uploads: data.uploads ?? [],

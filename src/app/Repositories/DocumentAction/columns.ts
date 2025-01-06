@@ -7,6 +7,11 @@ export const documentActionColumns: ColumnData[] = [
     type: "text",
   },
   {
+    label: "Category",
+    accessor: "stage_category",
+    type: "text",
+  },
+  {
     label: "Button Text",
     accessor: "button_text",
     type: "text",

@@ -74,8 +74,10 @@ const ManageResourcePage = ({
         <div className="custom-card-header flex align between mb-3">
           <h1
             style={{
-              fontWeight: 400,
+              fontWeight: 500,
               letterSpacing: 0.7,
+              textTransform: "uppercase",
+              color: "#4c934c",
             }}
           >
             {view.title}
@@ -111,13 +113,14 @@ const ManageResourcePage = ({
                   type="submit"
                   label={view?.action}
                   icon="ri-function-add-fill"
-                  isDisabled={!isDisabled}
+                  isDisabled={!isDisabled || loading}
                 />
                 {view.mode === "update" && (
                   <Button
                     label="Destory"
                     icon="ri-delete-bin-5-line"
                     handleClick={() => destroy()}
+                    isDisabled={loading}
                     variant="danger"
                   />
                 )}

@@ -4,6 +4,8 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import ProgressTrackerRepository from "app/Repositories/ProgressTracker/ProgressTrackerRepository";
+import StageCategoryRepository from "app/Repositories/StageCategory/StageCategoryRepository";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import ExpenseRepository from "app/Repositories/Expense/ExpenseRepository";
 import TripCategoryRepository from "app/Repositories/TripCategory/TripCategoryRepository";
@@ -28,6 +30,8 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+new ProgressTrackerRepository(),
+new StageCategoryRepository(),
 new DocumentRepository(),
 new ExpenseRepository(),
 new TripCategoryRepository(),

@@ -1,13 +1,28 @@
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { FormPageComponentProps } from "bootstrap";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Textarea from "../components/forms/Textarea";
 import TextInput from "../components/forms/TextInput";
 import Select from "../components/forms/Select";
+import { StageCategoryResponseData } from "app/Repositories/StageCategory/data";
+
+interface DependencyProps {
+  stageCategories: StageCategoryResponseData[];
+}
 
 const DocumentAction: React.FC<
   FormPageComponentProps<DocumentActionResponseData>
-> = ({ state, handleChange, loading }) => {
+> = ({ state, handleChange, loading, dependencies }) => {
+  const [categories, setCategories] = useState<StageCategoryResponseData[]>([]);
+
+  useEffect(() => {
+    if (dependencies) {
+      const { stageCategories = [] } = dependencies as DependencyProps;
+
+      setCategories(stageCategories);
+    }
+  }, [dependencies]);
+
   return (
     <>
       <div className="col-md-4 mb-3">
@@ -32,32 +47,26 @@ const DocumentAction: React.FC<
       </div>
       <div className="col-md-4 mb-3">
         <TextInput
-          label="Server URL"
-          name="url"
-          value={state.url}
-          onChange={handleChange}
-          isDisabled={loading}
-          placeholder="Enter Button Server Url"
-        />
-      </div>
-      <div className="col-md-3 mb-3">
-        <TextInput
-          label="Frontend Path"
-          name="frontend_path"
-          value={state.frontend_path}
-          onChange={handleChange}
-          isDisabled={loading}
-          placeholder="Enter Button Frontend Path"
-        />
-      </div>
-      <div className="col-md-3 mb-3">
-        <TextInput
           label="Button Icon"
           name="icon"
           value={state.icon}
           onChange={handleChange}
           isDisabled={loading}
           placeholder="Enter Button Icon"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Workflow Stage Category"
+          name="workflow_stage_category_id"
+          value={state.workflow_stage_category_id}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="id"
+          labelKey="name"
+          options={categories}
+          defaultValue=""
+          defaultCheckDisabled
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -89,6 +98,26 @@ const DocumentAction: React.FC<
           onChange={handleChange}
           isDisabled={loading}
           placeholder="Enter Button Status"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Progress Status"
+          name="process_status"
+          value={state.process_status}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "next", label: "Next Stage" },
+            { value: "stall", label: "Stall Process" },
+            { value: "goto", label: "Go to Stage" },
+            { value: "end", label: "End Process" },
+            { value: "complete", label: "Close Process" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
         />
       </div>
       <div className="col-md-12 mb-3">

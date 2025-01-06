@@ -2,10 +2,21 @@ import { ConfigProp } from "../BaseRepository";
 import { AuthPageResponseData } from "./data";
 
 export const pageConfig: ConfigProp<AuthPageResponseData> = {
-  fillables: ["icon", "name", "parent_id", "path", "type", "roles"],
+  fillables: [
+    "icon",
+    "name",
+    "parent_id",
+    "path",
+    "type",
+    "roles",
+    "workflow_id",
+    "document_type_id",
+  ],
   associatedResources: [
     { name: "pages", url: "pages" },
     { name: "roles", url: "roles" },
+    { name: "workflows", url: "workflows" },
+    { name: "documentTypes", url: "documentTypes" },
   ],
   state: {
     id: 0,
@@ -15,9 +26,13 @@ export const pageConfig: ConfigProp<AuthPageResponseData> = {
     label: "",
     type: "index",
     parent_id: 0,
+    workflow_id: 0,
+    document_type_id: 0,
     roles: [],
     is_default: false,
     is_menu: false,
+    workflow: null,
+    documentType: null,
   },
   actions: [
     {

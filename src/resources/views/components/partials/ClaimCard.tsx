@@ -2,7 +2,8 @@ import React from "react";
 import AnimatedButton from "../forms/AnimatedButton";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import moment from "moment";
-import { formatCurrency } from "app/Support/Helpers";
+import { formatCurrency, formatUrl } from "app/Support/Helpers";
+import { ButtonsProp } from "../tables/CustomDataTable";
 
 export type ClaimActionTypes = "manage" | "track" | "print";
 
@@ -10,12 +11,14 @@ interface ClaimCardProps<T = Partial<ClaimResponseData>> {
   claim: T;
   grid?: number;
   mb?: number;
-  onManage: (data: T, action: ClaimActionTypes, url?: string) => void;
+  onManage: (data: T, action: string, url?: string) => void;
+  actions: ButtonsProp[];
 }
 
 const ClaimCard = ({
   claim,
   onManage,
+  actions,
   grid = 4,
   mb = 2,
 }: ClaimCardProps<ClaimResponseData>) => {
@@ -46,6 +49,14 @@ const ClaimCard = ({
       duration,
       period: `${start.format("ll")} - ${end.format("ll")}`,
     };
+  };
+
+  const generateUrl = (path: string, params?: string | number[]) => {
+    if (path === "") {
+      return "";
+    }
+    const [key, value] = params || [];
+    return formatUrl(path, key, value);
   };
 
   return (
@@ -85,39 +96,25 @@ const ClaimCard = ({
         <div className="heartbeat-container">
           {/* <div className="heartbeat"></div> */}
           <div className="manage-button">
-            <AnimatedButton
-              label="Manage"
-              handleClick={() =>
-                onManage(
-                  claim,
-                  "manage",
-                  `/staff-services/claims/${document_category_id}/${id}/manage`
-                )
-              }
-              size="xs"
-              animation="fadeInLeft"
-              flag="faster"
-              speedup
-              variant="danger"
-              icon="ri-settings-line"
-            />
-            <AnimatedButton
-              label="Track"
-              handleClick={() => onManage(claim, "track")}
-              size="xs"
-              flag="fast"
-              animation="fadeInLeft"
-              speedup
-              icon="ri-pushpin-line"
-            />
-            <AnimatedButton
-              label="Print"
-              handleClick={() => onManage(claim, "print")}
-              animation="fadeInLeft"
-              size="xs"
-              variant="success"
-              icon="ri-printer-line"
-            />
+            {actions.map((bttn, i) => (
+              <AnimatedButton
+                key={i}
+                label={bttn.display ?? ""}
+                handleClick={() =>
+                  onManage(
+                    claim,
+                    bttn.label,
+                    generateUrl(bttn.url ?? "", [document_category_id, id])
+                  )
+                }
+                size="xs"
+                flag="fast"
+                animation="fadeInLeft"
+                variant={bttn.variant}
+                speedup
+                icon={bttn.icon}
+              />
+            ))}
           </div>
         </div>
         <small className="date_created">

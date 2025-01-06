@@ -8,10 +8,14 @@ import { RoleResponseData } from "app/Repositories/Role/data";
 import { ActionMeta } from "react-select";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
+import { WorkflowResponseData } from "app/Repositories/Workflow/data";
+import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 
 interface DependencyProps {
   pages: AuthPageResponseData[];
   roles: RoleResponseData[];
+  workflows: WorkflowResponseData[];
+  documentTypes: DocumentTypeResponseData[];
 }
 
 const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
@@ -28,6 +32,8 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
   >([]);
   const [roles, setRoles] = useState<RoleResponseData[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<DataOptionsProps[]>([]);
+  const [workflows, setWorkflows] = useState<DataOptionsProps[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DataOptionsProps[]>([]);
 
   const handleRolesChange = (
     newValue: unknown,
@@ -41,7 +47,12 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
 
   useEffect(() => {
     if (dependencies) {
-      const { pages = [], roles = [] } = dependencies as DependencyProps;
+      const {
+        pages = [],
+        roles = [],
+        workflows = [],
+        documentTypes = [],
+      } = dependencies as DependencyProps;
 
       const options = pages
         .filter((page) => page.type === "app")
@@ -51,6 +62,14 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
         }));
       setPages([{ value: 0, label: "None" }, ...options]);
       setRoles(roles);
+      setWorkflows([
+        { value: 0, label: "None" },
+        ...formatOptions(workflows, "id", "name"),
+      ]);
+      setDocumentTypes([
+        { value: 0, label: "None" },
+        ...formatOptions(documentTypes, "id", "name"),
+      ]);
     }
   }, [dependencies]);
 
@@ -138,7 +157,33 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           defaultCheckDisabled
         />
       </div>
-      <div className="col-md-12 mb-3">
+      <div className="col-md-4 mb-3">
+        <Select
+          label="Workflow"
+          value={state.workflow_id}
+          name="workflow_id"
+          onChange={handleChange}
+          options={workflows}
+          valueKey="value"
+          labelKey="label"
+          defaultValue={0}
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-4 mb-3">
+        <Select
+          label="Document Type"
+          value={state.document_type_id}
+          name="document_type_id"
+          onChange={handleChange}
+          options={documentTypes}
+          valueKey="value"
+          labelKey="label"
+          defaultValue={0}
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-4 mb-3">
         <MultiSelect
           label="Roles"
           options={formatOptions(roles, "id", "name")}

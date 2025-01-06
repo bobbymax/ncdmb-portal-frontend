@@ -8,6 +8,7 @@ import { documentCategoryRules } from "./rules";
 import { documentCategoryViews } from "./views";
 import { documentCategoryColumns } from "./columns";
 import { documentCategoryConfig } from "./config";
+import { formatOptions } from "app/Support/Helpers";
 
 export default class DocumentCategoryRepository extends BaseRepository {
   public fillables: Array<keyof DocumentCategoryResponseData> =
@@ -23,10 +24,14 @@ export default class DocumentCategoryRepository extends BaseRepository {
     return {
       id: data.id ?? 0,
       document_type_id: data.document_type_id ?? 0,
+      workflow_id: data.workflow_id ?? 0,
       name: data.name ?? "",
       label: data.label ?? "",
       icon: data.icon ?? "",
       description: data.description ?? "",
+      requirements: data.requirements ?? [],
+      selectedRequirements:
+        formatOptions(data.requirements ?? [], "id", "name") ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

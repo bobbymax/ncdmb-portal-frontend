@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import { FormPageComponentProps } from "bootstrap";
@@ -11,9 +12,7 @@ import { formatCurrency, formatOptions } from "app/Support/Helpers";
 import { DepartmentResponseData } from "app/Repositories/Department/data";
 import TextInput from "../components/forms/TextInput";
 import { CityResponseData } from "app/Repositories/City/data";
-import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
-import { WorkflowResponseData } from "app/Repositories/Workflow/data";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { ActionMeta } from "react-select";
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import { DocumentRequirementResponseData } from "app/Repositories/DocumentRequirement/data";
@@ -28,13 +27,13 @@ import _ from "lodash";
 import { UploadResponseData } from "app/Repositories/Document/data";
 import filePath from "../../assets/images/file.webp";
 import { toast } from "react-toastify";
+import Textarea from "../components/forms/Textarea";
+import { useStateContext } from "app/Context/ContentContext";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
   departments: DepartmentResponseData[];
   cities: CityResponseData[];
-  documentTypes: DocumentTypeResponseData[];
-  workflows: WorkflowResponseData[];
   tripCategories: TripCategoryResponseData[];
 }
 
@@ -63,6 +62,9 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     totalMoneySpent,
   } = useClaimComponents();
   const params = useParams();
+  const { pages } = useStateContext();
+  const { pathname } = useLocation();
+
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
   const [category, setCategory] = useState<
     DocumentCategoryResponseData | undefined
@@ -194,46 +196,44 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
   }, [earliestDate, latestDate, setState, expenses, totalMoneySpent]);
 
   useEffect(() => {
-    if (dependencies) {
-      const {
-        departments = [],
-        workflows = [],
-        documentTypes = [],
-        tripCategories = [],
-      } = dependencies as DependencyProps;
+    if (dependencies && pathname !== "" && pages.length > 0) {
+      const { departments = [], tripCategories = [] } =
+        dependencies as DependencyProps;
 
+      const pathArr = pathname.split("/");
+      const path = `/${pathArr[1]}/${pathArr[2]}`;
+      // Set Trip Categories
       setTripCategories(tripCategories);
-      const docType: DocumentTypeResponseData | undefined =
-        documentTypes && documentTypes.find((doc) => doc.label === "claim");
+      // Find Current Page
+      const page = pages.find((pg) => pg.path === path);
 
-      if (docType && setState && params) {
+      if (!page) {
+        console.error("Page must be found");
+      }
+
+      const categories = page?.documentType?.categories;
+
+      if (categories) {
         const { categoryId } = params;
 
         const catId = categoryId ? parseInt(categoryId) : 0;
         const category =
-          catId > 0
-            ? docType.categories.find((cat) => cat.id === catId)
-            : undefined;
+          catId > 0 ? categories.find((cat) => cat.id === catId) : undefined;
 
         setCategory(category);
 
-        const workflow = workflows.find(
-          (flow) => flow.document_type_id === docType.id
-        );
-
-        const firstStage = workflow?.stages?.find((stage) => stage.order === 1);
-        setRequiredDocs((firstStage && firstStage.documentsRequired) ?? []);
-
-        setState({
-          ...state,
-          document_category_id: category?.id ?? 0,
-          document_type_id: docType.id,
-          workflow_id: workflow?.id,
-        });
+        if (setState) {
+          setState({
+            ...state,
+            document_category_id: category?.id ?? 0,
+            document_type_id: page.document_type_id,
+            workflow_id: page.workflow_id,
+          });
+        }
       }
       setDepartments(formatOptions(departments, "id", "abv"));
     }
-  }, [dependencies, setState, params]);
+  }, [dependencies, setState, params, pages, pathname]);
 
   // console.log(state.deletedExpenses, state.deletedUploads);
 
@@ -250,8 +250,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           Number(department.value) === Number(state.sponsoring_department_id)
       );
 
-      // console.log(state.uploads);
-
       if (dept) {
         setSelectedDepartment(dept);
       }
@@ -262,9 +260,8 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     <>
       <div className="col-md-4 mb-4">
         <p className="claim-description">
-          This is the expense analysis document that handles all expense claims.
-          The following documents are required to ensure a smooth transition on
-          this document: <b>{requiredDocs.map((doc) => doc.name).join(", ")}</b>
+          Documents to be checked at this stage are:{" "}
+          <b>{requiredDocs.map((doc) => doc.name).join(", ")}</b>
         </p>
       </div>
       {mode === "update" && (
@@ -337,27 +334,18 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
       <div className="col-md-12">
         <div className="row">
-          <div className="col-md-3 mb-3">
-            <MultiSelect
-              label="Sponsoring Department"
-              options={departments}
-              value={selectedDepartment}
-              onChange={handleDepartmentChange}
-              placeholder="Sponsor"
-              isSearchable
-              isDisabled={loading}
-            />
-          </div>
-          <div className="col-md-9 mb-3">
-            <TextInput
+          <div className="col-md-12 mb-3">
+            <Textarea
               label="Purpose for this Claim"
               value={state.title}
               name="title"
               onChange={handleChange}
               placeholder="Enter purpose for this claim"
+              rows={3}
             />
           </div>
-          <div className="col-md-4 mb-3">
+
+          <div className="col-md-6 mb-3">
             <TextInput
               label="Start Date"
               type="date"
@@ -367,7 +355,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
               isDisabled
             />
           </div>
-          <div className="col-md-4 mb-3">
+          <div className="col-md-6 mb-3">
             <TextInput
               label="End Date"
               type="date"
@@ -377,7 +365,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
               isDisabled
             />
           </div>
-          <div className="col-md-4 mb-3">
+          <div className="col-md-8 mb-3">
             <TextInput
               label="Upload Supporting Documents"
               type="file"
@@ -387,6 +375,17 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
               isDisabled={loading}
               accept=".jpeg,.jpg,.pdf,.png"
               isMulti
+            />
+          </div>
+          <div className="col-md-4 mb-3">
+            <MultiSelect
+              label="Sponsoring Department"
+              options={departments}
+              value={selectedDepartment}
+              onChange={handleDepartmentChange}
+              placeholder="Sponsor"
+              isSearchable
+              isDisabled={loading}
             />
           </div>
         </div>

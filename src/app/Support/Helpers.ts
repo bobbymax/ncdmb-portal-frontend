@@ -1,6 +1,7 @@
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { Validator } from "../Support/Validator";
 import moment from "moment";
+import { sprintf } from "sprintf-js";
 
 export const validate = (
   fillables: string[],
@@ -16,6 +17,34 @@ export const validate = (
   }
 
   return { success: true, errors: [] };
+};
+
+export const formatUrl = (
+  urlTemplate: string,
+  ...params: (string | number)[]
+): string => {
+  if (urlTemplate === "") {
+    return "";
+  }
+
+  // Check if the URL contains placeholders (%d, %s, etc.)
+  const placeholderRegex = /%[ds]/g;
+  const matches = urlTemplate.match(placeholderRegex);
+
+  if (!matches) {
+    // No placeholders, return the URL as-is
+    return urlTemplate;
+  }
+
+  // Ensure the number of placeholders matches the provided parameters
+  if (matches.length > params.length) {
+    throw new Error(
+      `Insufficient parameters for URL template: Expected ${matches.length}, but got ${params.length}`
+    );
+  }
+
+  // Format the URL using sprintf
+  return sprintf(urlTemplate, ...params);
 };
 
 export const formatCurrency = (
@@ -35,7 +64,7 @@ export const formatOptions = (
   value: string,
   label: string
 ): DataOptionsProps[] => {
-  if (data.length < 1) {
+  if (!Array.isArray(data) || data.length < 1) {
     return [];
   }
 

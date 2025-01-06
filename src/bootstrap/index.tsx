@@ -16,13 +16,30 @@ import ManageResourcePage from "resources/views/pages/ManageResourcePage";
 import { AuthProvider } from "app/Context/AuthContext";
 import { ActionMeta } from "react-select";
 import CardPage from "resources/views/pages/CardPage";
+import ViewResourcePage from "resources/views/pages/ViewResourcePage";
+export interface ActionBttnProps {
+  variant: string;
+  name: string;
+  label: string;
+  icon: string;
+  component: string;
+}
 
-export interface CardPageComponentPropos<T = JsonResponse, D = BaseRepository> {
+export interface CardPageComponentProps<T = JsonResponse, D = BaseRepository> {
   collection: T[];
   Repository: D;
   onManageRawData: (raw: T, label: string, url?: string) => void;
   View: ViewsProps;
   // columns:
+}
+
+export interface ViewPageComponentProps<T = JsonResponse, D = BaseRepository> {
+  data: T;
+  Repository: D;
+  View: ViewsProps;
+  dependencies: object;
+  onDocumentUpdate: (state: T, action: string) => void;
+  loading: boolean;
 }
 
 export interface FormPageComponentProps<T = JsonResponse> {
@@ -49,7 +66,8 @@ export interface PageProps<T extends BaseRepository> {
   Repository: T;
   view: ViewsProps;
   Component: React.ComponentType<FormPageComponentProps>;
-  CardPageComponent: React.ComponentType<CardPageComponentPropos>;
+  CardPageComponent: React.ComponentType<CardPageComponentProps>;
+  ViewPageComponent: React.ComponentType<ViewPageComponentProps>;
 }
 
 const renderRoute = <T extends BaseRepository>(
@@ -66,6 +84,7 @@ const renderRoute = <T extends BaseRepository>(
     view,
     Component,
     CardPageComponent: Component,
+    ViewPageComponent: Component,
   };
 
   return (
@@ -80,6 +99,8 @@ const renderRoute = <T extends BaseRepository>(
             <ManageResourcePage {...componentProps} />
           ) : view.type === "card" ? (
             <CardPage {...componentProps} />
+          ) : view.type === "page" ? (
+            <ViewResourcePage {...componentProps} />
           ) : (
             <ResourceRawPage {...componentProps} />
           )}

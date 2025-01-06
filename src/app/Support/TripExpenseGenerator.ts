@@ -190,13 +190,13 @@ export class TripExpenseGenerator {
   ): void {
     if (this.category?.accommodation_type === "non-residence") {
       const allowance = this.getAllowance(this.trip.per_diem_category_id);
-
       if (allowance) {
         const remuneration = this.getRemuneration(allowance.id);
         const numOfDays = this.calculateNumOfDays(startDate, endDate) + 1;
         const description = `Per Diem for ${numOfDays} nights at ${
           remuneration ? formatCurrency(remuneration.amount) : ""
         } per night!`;
+
         this.addExpenseForAllowance({
           expenses,
           allowance,

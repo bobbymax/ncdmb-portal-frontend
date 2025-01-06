@@ -7,6 +7,11 @@ export const pageColumns: ColumnData[] = [
     type: "text",
   },
   {
+    label: "Workflow",
+    accessor: "workflow_name",
+    type: "text",
+  },
+  {
     label: "Parent",
     accessor: "parent",
     type: "text",

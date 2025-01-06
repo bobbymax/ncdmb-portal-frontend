@@ -31,12 +31,15 @@ export interface ButtonsProp {
     | "schedule"
     | "print"
     | "manage"
-    | "payments";
+    | "payments"
+    | "track"
+    | "deactivate";
   variant: "success" | "info" | "warning" | "danger" | "dark";
   icon?: string;
   conditions: ConditionalArray[];
   operator: "and" | "or";
   display?: string;
+  url?: string;
 }
 
 export interface DataTableProps {

@@ -4,12 +4,16 @@ import { DocumentActionResponseData } from "../DocumentAction/data";
 import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
 
 export interface WorkflowStageResponseData extends BaseResponse {
-  workflow_id: number;
   group_id: number;
+  workflow_stage_category_id: number;
+  assistant_group_id: number;
   department_id: number;
   name: string;
-  order: number;
   actions: DocumentActionResponseData[];
+  fallback_stage_id: number;
+  flag: "passed" | "failed" | "stalled";
+  alert_recipients: number;
+  supporting_documents_verified: boolean;
   selectedActions?: DataOptionsProps[];
   documentsRequired?: DocumentRequirementResponseData[];
   selectedDocumentsRequired?: DataOptionsProps[];
