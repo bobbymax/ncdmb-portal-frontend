@@ -1,21 +1,29 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
-import { ActionType, useForm } from "app/Hooks/useForm";
+import React, {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useForm } from "app/Hooks/useForm";
 import { useResourceActions } from "app/Hooks/useResourceActions";
 import {
   BaseRepository,
   JsonResponse,
+  TabOptionProps,
   ViewsProps,
 } from "app/Repositories/BaseRepository";
-import { ActionBttnProps, PageProps } from "bootstrap";
-import { ServerResponse } from "app/Services/RepositoryService";
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { PageProps } from "bootstrap";
 import { toast } from "react-toastify";
 import Button from "../components/forms/Button";
-import { Raw } from "app/Support/DataTable";
+import useWorkflow from "app/Hooks/useWorkflow";
+import { DocumentResponseData } from "app/Repositories/Document/data";
+import { WorkflowResponseData } from "app/Repositories/Workflow/data";
+import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 
 interface TabAction {
-  action: ActionBttnProps;
+  action: TabOptionProps;
   toggleTab: (value: string) => void;
   isActive: boolean;
 }
@@ -28,17 +36,15 @@ export interface DocumentControlStateProps<
   data: T;
   loading: boolean;
   view: ViewsProps;
-  onPeformAction?: (id: number, data: T) => void;
-  dependencies: object;
+  onPerformAction?: (id: number, data: T) => void;
+  dependencies: Record<string, unknown>;
+  tab: TabOptionProps;
+  document: DocumentResponseData;
+  workflow: WorkflowResponseData | null;
 }
 
-const Tab = ({ action, toggleTab, isActive = false }: TabAction) => {
-  // Watch this method for any form of misbehaving (Suspicious)
-  // I decided to extract the values from the object in assumption
-  // That the ${action} object must strictly contains the deconstructed keys
-  // the fallback will be to add ${action.} to the keys and it will return to normal
-
-  const { variant, label, icon, name } = action;
+const Tab = React.memo(({ action, toggleTab, isActive = false }: TabAction) => {
+  const { variant, label, icon, title } = action;
 
   return (
     <li
@@ -46,43 +52,32 @@ const Tab = ({ action, toggleTab, isActive = false }: TabAction) => {
       onClick={() => toggleTab(label)}
     >
       <i className={icon} />
-      <p>{name}</p>
+      <p>{title}</p>
     </li>
   );
-};
+});
 
 const renderDocumentDetail = <T, D>(
-  Repo: D,
-  data: T,
-  view: ViewsProps,
-  loading: boolean,
-  performAction: (id: number, data: T) => void,
-  dependencies: object,
-  suffix: string,
-  idx: number
+  props: DocumentControlStateProps<T, D> & { component: string; idx: number }
 ): JSX.Element => {
-  const detail = view.documentControl?.find((control) =>
-    control.includes(suffix)
-  );
+  const { component, idx, ...controlProps } = props;
+  const sanitizedComponent =
+    component.replace(/[^a-zA-Z0-9]/g, "") || "FallbackComponent";
 
-  const DocumentControlComponent = lazy(
-    () => import(`../crud/control/details/${detail ?? "FallbackComponent"}`)
-  );
+  try {
+    const DocumentControlComponent = lazy(
+      () => import(`../crud/tabs/${sanitizedComponent}`)
+    );
 
-  const controlProps: DocumentControlStateProps<T, D> = {
-    Repo,
-    data,
-    view,
-    loading,
-    onPeformAction: performAction,
-    dependencies,
-  };
-
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DocumentControlComponent key={idx} {...controlProps} />
-    </Suspense>
-  );
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <DocumentControlComponent key={sanitizedComponent} {...controlProps} />
+      </Suspense>
+    );
+  } catch (error) {
+    console.error(`Error loading component: ${sanitizedComponent}`, error);
+    return <div>Error loading component: {sanitizedComponent}</div>;
+  }
 };
 
 const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
@@ -91,115 +86,56 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
     hasParam: true,
   });
 
-  const onFormSubmit = (response: ServerResponse, action: ActionType) => {
-    toast.success(response.message);
-    redirectTo(view.index_path ?? "/");
-  };
+  const document = useMemo(() => raw?.document as DocumentResponseData, [raw]);
+  const { workflow, currentStage } = useWorkflow(document);
 
-  const handleValidationErrors = (errors: string[]) => {
-    setErrors(errors);
-  };
-
-  const { state, dependencies, fill, loading } = useForm(Repository, view, {
-    onFormSubmit,
-    handleValidationErrors,
-  });
+  // console.log(currentStage);
 
   const [errors, setErrors] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("details");
-  const [actionComponent, setActionComponent] = useState<
-    ActionBttnProps | undefined
-  >();
+  const [activeTab, setActiveTab] = useState<string>("summary");
+  const [trackers, setTrackers] = useState<ProgressTrackerResponseData[]>([]);
 
-  const actionBttns: ActionBttnProps[] = [
-    {
-      variant: "info",
-      name: "Details",
-      label: "details",
-      icon: "ri-list-view",
-      component: "Details",
+  const { state, dependencies, fill, loading } = useForm(Repository, view, {
+    onFormSubmit: (response) => {
+      toast.success(response.message);
+      redirectTo(view.index_path ?? "/");
     },
-    {
-      variant: "dark",
-      name: "Tracking",
-      label: "tracking",
-      icon: "ri-phone-find-line",
-      component: "Tracking",
-    },
-    {
-      variant: "success",
-      name: "Updates",
-      label: "updates",
-      icon: "ri-loop-right-line",
-      component: "Updates",
-    },
-    {
-      variant: "danger",
-      name: "Recall",
-      label: "recall",
-      icon: "ri-git-pull-request-line",
-      component: "Recall",
-    },
-    {
-      variant: "warning",
-      name: "Sing Document",
-      label: "sign",
-      icon: "ri-sketching",
-      component: "SignDocument",
-    },
-    {
-      variant: "secondary",
-      name: "Print",
-      label: "print",
-      icon: "ri-printer-line",
-      component: "Print",
-    },
-  ];
+    handleValidationErrors: setErrors,
+  });
 
-  const handleTabToggle = (value: string) => {
-    setActiveTab((prev) => (prev !== value ? value : "details"));
-  };
+  const actionBttns = useMemo(() => view.tabs ?? [], [view.tabs]);
+  const activeActionComponent = useMemo(
+    () => actionBttns.find((tab) => tab.label === activeTab),
+    [actionBttns, activeTab]
+  );
 
-  const handlePerformAction = (id: number, raw: JsonResponse) => {
-    console.log("Performing action with data:", raw);
-  };
+  const handleTabToggle = useCallback(
+    (value: string) => {
+      if (value !== activeTab) setActiveTab(value);
+    },
+    [activeTab]
+  );
 
-  const handleDocumentUpdate = (raw: Raw, action: string) => {
-    switch (action) {
-      case "store":
-        toast.info("Document stored.");
-        break;
-      default:
-        console.log("Unhandled action:", action);
-        break;
-    }
-  };
-
-  // Effects
   useEffect(() => {
     if (view.mode === "update" && raw) fill(raw);
   }, [view.mode, raw, fill]);
 
   useEffect(() => {
-    setActionComponent(
-      actionBttns.find((action) => action.label === activeTab)
-    );
-  }, [activeTab]);
+    if (workflow?.trackers) {
+      setTrackers(workflow.trackers);
+    }
+  }, [workflow]);
+
+  if (loading) {
+    return <div className="loading-indicator">Loading resources...</div>;
+  }
 
   return (
     <div className="container-fluid">
       <div className="row">
         <div className="col-md-12 mb-3">
           <div className="view-page-header">
-            <h1
-              style={{
-                fontWeight: 500,
-                letterSpacing: 0.7,
-                color: "#4c934c",
-              }}
-            >
-              {view.title}
-            </h1>
+            <h1 className="view-title">{view.title}</h1>
             <Button
               label="Go Back"
               variant="danger"
@@ -212,13 +148,14 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
         </div>
         <div className="col-md-12 mb-3">
           <div className="row">
-            <div className="col-md-9">
+            {/* Tabs and Main Content */}
+            <div className="col-md-9 mb-3">
               <div className="custom-card document-activities">
                 <nav className="tab-navigation mb-4">
                   <ul>
-                    {actionBttns.map((action, i) => (
+                    {actionBttns.map((action) => (
                       <Tab
-                        key={i}
+                        key={action.label}
                         action={action}
                         toggleTab={handleTabToggle}
                         isActive={activeTab === action.label}
@@ -226,19 +163,68 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
                     ))}
                   </ul>
                 </nav>
-
                 <div className="tab__body__content">
-                  {actionComponent &&
-                    renderDocumentDetail(
-                      Repository,
-                      state,
+                  {activeActionComponent &&
+                    renderDocumentDetail({
+                      tab: activeActionComponent,
+                      Repo: Repository,
+                      data: state,
                       view,
                       loading,
-                      handlePerformAction,
-                      dependencies,
-                      actionComponent.component,
-                      actionBttns.indexOf(actionComponent)
-                    )}
+                      onPerformAction: () => {},
+                      dependencies: dependencies as Record<string, unknown>,
+                      component: activeActionComponent.component,
+                      idx: actionBttns.indexOf(activeActionComponent),
+                      document,
+                      workflow,
+                    })}
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Content */}
+            <div className="col-md-3 mb-3">
+              <div className="custom-card document-sidebar">
+                <div className="small__title mb-3">Tracking</div>
+                <div className="progress__tracking__container">
+                  {trackers.map((progress) => (
+                    <div
+                      className={`tracker__item ${
+                        !currentStage ||
+                        (currentStage && progress.order > currentStage?.order)
+                          ? "saturated"
+                          : ""
+                      }`}
+                      key={progress.id}
+                    >
+                      {progress.id === currentStage?.id ? (
+                        <div className="heartbeat-container">
+                          <div className="heartbeat" />
+                        </div>
+                      ) : (
+                        <div className="tracker__circle__container">
+                          <div className="tracker__circle" />
+                        </div>
+                      )}
+                      <div className="tracking__details">
+                        <small>
+                          <span className="progress__type">
+                            {progress.stage?.stage_category?.name}
+                          </span>
+                          {progress.id === currentStage?.id && (
+                            <span className="current__stage">current</span>
+                          )}
+                        </small>
+                        <div className="tracker__header">
+                          <img
+                            src={`https://portal.test/${progress.stage?.stage_category?.icon_path}`}
+                            alt="Logo Process"
+                          />
+                          <h3>{progress.stage?.name}</h3>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

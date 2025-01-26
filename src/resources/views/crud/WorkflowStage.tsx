@@ -8,16 +8,18 @@ import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
 import { ActionMeta } from "react-select";
 import TextInput from "../components/forms/TextInput";
-import { DocumentRequirementResponseData } from "app/Repositories/DocumentRequirement/data";
 import { StageCategoryResponseData } from "app/Repositories/StageCategory/data";
+import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
+import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import Select from "../components/forms/Select";
 
 interface DependencyProps {
   departments: DepartmentResponseData[];
   groups: GroupResponseData[];
   stageCategories: StageCategoryResponseData[];
-  documentRequirements: DocumentRequirementResponseData[];
   workflowStages: WorkflowStageResponseData[];
+  documentTypes: DocumentTypeResponseData[];
+  documentCategories: DocumentCategoryResponseData[];
 }
 
 const WorkflowStage: React.FC<
@@ -36,47 +38,19 @@ const WorkflowStage: React.FC<
   >([]);
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
-  const [workflowStages, setWorkflowStages] = useState<DataOptionsProps[]>([]);
-  const [documentRequired, setDocumentRequired] = useState<
-    DocumentRequirementResponseData[]
-  >([]);
-  const [documentActions, setDocumentActions] = useState<DataOptionsProps[]>(
-    []
-  );
-
-  const [selectedArrayOptions, setSelectedArrayOptions] = useState<{
-    selectedDocumentsRequired: DataOptionsProps[];
-    recipients: DataOptionsProps[];
-    selectedActions: DataOptionsProps[];
-  }>({
-    selectedDocumentsRequired: [],
-    recipients: [],
-    selectedActions: [],
-  });
 
   const [selectedOptions, setSelectedOptions] = useState<{
     workflow_stage_category: DataOptionsProps | null;
     group: DataOptionsProps | null;
     department: DataOptionsProps | null;
-    assistant_group: DataOptionsProps | null;
-    fallback_stage: DataOptionsProps | null;
   }>({
     workflow_stage_category: null,
     group: null,
     department: null,
-    assistant_group: null,
-    fallback_stage: null,
   });
 
   const handleSelectionChange = useCallback(
-    (
-        key:
-          | "workflow_stage_category"
-          | "group"
-          | "department"
-          | "assistant_group"
-          | "fallback_stage"
-      ) =>
+    (key: "workflow_stage_category" | "group" | "department") =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
         handleReactSelect(newValue, actionMeta, (value) => {
           const updatedValue = value as DataOptionsProps;
@@ -92,44 +66,12 @@ const WorkflowStage: React.FC<
     [handleReactSelect, setState]
   );
 
-  const handleSelectionArrayChange = useCallback(
-    (key: "selectedDocumentsRequired" | "recipients" | "selectedActions") =>
-      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
-        handleReactSelect(newValue, actionMeta, (value) => {
-          const updatedValue = value as DataOptionsProps[];
-          setSelectedArrayOptions((prev) => ({ ...prev, [key]: updatedValue }));
-          if (setState) {
-            setState({
-              ...state,
-              [key]: updatedValue,
-            });
-          }
-        });
-      },
-    [handleReactSelect, setState]
-  );
-
-  useEffect(() => {
-    if (state.workflow_stage_category_id > 0) {
-      const stage = stageCategories.find(
-        (stage) => stage.id === Number(state.workflow_stage_category_id)
-      );
-
-      if (stage) {
-        const actions = stage.actions;
-        setDocumentActions(formatOptions(actions, "id", "name"));
-      }
-    }
-  }, [state.workflow_stage_category_id]);
-
   useEffect(() => {
     if (dependencies) {
       const {
         stageCategories = [],
         departments = [],
         groups = [],
-        documentRequirements = [],
-        workflowStages = [],
       } = dependencies as DependencyProps;
 
       const listOfDepartments = formatOptions(departments, "id", "abv");
@@ -141,12 +83,7 @@ const WorkflowStage: React.FC<
         ...listOfDepartments,
       ]);
       setGroups(formatOptions(groups, "id", "name"));
-      setDocumentRequired(documentRequirements);
       // setWorkflowStageCategories(stageCategories);
-      setWorkflowStages([
-        { value: 0, label: "None" },
-        ...formatOptions(workflowStages, "id", "name"),
-      ]);
     }
   }, [dependencies]);
 
@@ -156,31 +93,16 @@ const WorkflowStage: React.FC<
       state.group_id > 0 &&
       stageCategories.length > 0 &&
       departments.length > 0 &&
-      groups.length > 0 &&
-      workflowStages.length > 0
+      groups.length > 0
     ) {
       const department = departments.find(
         (dept) => dept.value === state.department_id
       );
+
       const group = groups.find((group) => group.value === state.group_id);
-      const assistant_group = groups.find(
-        (group) => group.value === state.assistant_group_id
-      );
       const stageCategory = stageCategories.find(
         (cat) => cat.id === state.workflow_stage_category_id
       );
-
-      const fallBackStage = workflowStages.find(
-        (stage) => stage.value === state.fallback_stage_id
-      );
-
-      const requirements = formatOptions(
-        state.documentsRequired ?? [],
-        "id",
-        "name"
-      );
-
-      const selectedActions = formatOptions(state.actions, "id", "name");
 
       const single: DataOptionsProps = {
         value: stageCategory?.id,
@@ -191,27 +113,9 @@ const WorkflowStage: React.FC<
         workflow_stage_category: single ?? null,
         department: department ?? null,
         group: group ?? null,
-        assistant_group: assistant_group ?? null,
-        fallback_stage: fallBackStage ?? null,
       });
-
-      setSelectedArrayOptions({
-        selectedDocumentsRequired: state.selectedDocumentsRequired ?? [],
-        recipients: formatOptions(state.recipients, "id", "name") ?? [],
-        selectedActions: state.selectedActions ?? [],
-      });
-
-      // setActions(state.actions);
-
-      if (setState) {
-        setState({
-          ...state,
-          selectedActions,
-          selectedDocumentsRequired: requirements,
-        });
-      }
     }
-  }, [mode, stageCategories, groups, departments, workflowStages]);
+  }, [mode, stageCategories, groups, departments]);
 
   const renderMultiSelect = (
     label: string,
@@ -269,63 +173,75 @@ const WorkflowStage: React.FC<
           placeholder="Enter Process Stage Name"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-4">
         <Select
-          label="Alert Email Recipients"
-          name="alert_recipients"
-          value={state.alert_recipients}
-          onChange={handleChange}
-          options={[
-            { value: 0, label: "No" },
-            { value: 1, label: "Yes" },
-          ]}
+          label="Status"
+          name="status"
+          defaultValue=""
+          defaultCheckDisabled
           valueKey="value"
           labelKey="label"
-          defaultValue={999}
-          defaultCheckDisabled
+          value={state.status}
+          onChange={handleChange}
+          options={[
+            { value: "passed", label: "Passed" },
+            { value: "failed", label: "Failed" },
+            { value: "attend", label: "Attend" },
+            { value: "appeal", label: "Appeal" },
+            { value: "stalled", label: "Stalled" },
+            { value: "cancelled", label: "Cancelled" },
+            { value: "complete", label: "Complete" },
+          ]}
         />
       </div>
-      {renderMultiSelect(
-        "Document Actions",
-        documentActions,
-        selectedArrayOptions.selectedActions,
-        handleSelectionArrayChange("selectedActions"),
-        "Action",
-        true,
-        6
-      )}
-
-      {renderMultiSelect(
-        "Document's Required",
-        formatOptions(documentRequired, "id", "name"),
-        selectedArrayOptions.selectedDocumentsRequired,
-        handleSelectionArrayChange("selectedDocumentsRequired"),
-        "Required Documents",
-        true,
-        6
-      )}
-      {renderMultiSelect(
-        "Fallback Stage",
-        workflowStages,
-        selectedOptions.fallback_stage,
-        handleSelectionChange("fallback_stage"),
-        "Fallback Workflow Stage"
-      )}
-      {renderMultiSelect(
-        "Assistant",
-        groups,
-        selectedOptions.assistant_group,
-        handleSelectionChange("assistant_group"),
-        "Assistant"
-      )}
-      {renderMultiSelect(
-        "Email Notification Recipients",
-        groups,
-        selectedArrayOptions.recipients,
-        handleSelectionArrayChange("recipients"),
-        "Recipients",
-        true
-      )}
+      <div className="col-md-4">
+        <Select
+          label="Can Appeal"
+          name="can_appeal"
+          defaultValue={999}
+          defaultCheckDisabled
+          valueKey="value"
+          labelKey="label"
+          value={state.can_appeal}
+          onChange={handleChange}
+          options={[
+            { value: 1, label: "Yes" },
+            { value: 0, label: "No" },
+          ]}
+        />
+      </div>
+      <div className="col-md-4">
+        <Select
+          label="Append Signature"
+          name="append_signature"
+          defaultValue={999}
+          defaultCheckDisabled
+          valueKey="value"
+          labelKey="label"
+          value={state.append_signature}
+          onChange={handleChange}
+          options={[
+            { value: 1, label: "Yes" },
+            { value: 0, label: "No" },
+          ]}
+        />
+      </div>
+      <div className="col-md-4">
+        <Select
+          label="Should Upload Document"
+          name="should_upload"
+          defaultValue={999}
+          defaultCheckDisabled
+          valueKey="value"
+          labelKey="label"
+          value={state.should_upload}
+          onChange={handleChange}
+          options={[
+            { value: 1, label: "Yes" },
+            { value: 0, label: "No" },
+          ]}
+        />
+      </div>
     </>
   );
 };

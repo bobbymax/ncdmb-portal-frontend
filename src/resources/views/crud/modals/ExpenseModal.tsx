@@ -16,6 +16,7 @@ import TextInput from "resources/views/components/forms/TextInput";
 const A_TYPES = {
   OTHER_STATES: "interstate-shuttle",
   YENAGOA_OTHER_STATES: "yenagoa-to-other-locations",
+  OTHER_EXPENSES: "other-expenses",
 };
 
 const ExpenseModal: React.FC<ModalValueProps> = ({
@@ -44,7 +45,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
       ? state
       : {
           ...state,
-          identifier: generateUniqueString(12),
+          identifier: generateUniqueString(32),
         };
     onSubmit(response, isUpdating ? "update" : "store");
   };
@@ -90,6 +91,9 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
           ) {
             setHasDistanceCovered(true);
             total_spent = state.total_distance_covered * 150;
+          } else if (allowance.label === A_TYPES.OTHER_EXPENSES) {
+            total_spent = 0;
+            setHasDistanceCovered(false);
           } else {
             total_spent = remuneration.amount;
             setHasDistanceCovered(false);
@@ -127,9 +131,6 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
   useEffect(() => {
     if (data) {
       const raw = data as ExpenseResponseData;
-
-      console.log(raw);
-
       updateModalState(identifier, raw);
     }
   }, [data]);
@@ -226,7 +227,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
             name="total_amount_spent"
             value={state.total_amount_spent}
             onChange={handleInputChange}
-            isDisabled
+            isDisabled={hasDistanceCovered}
             placeholder="Total Amount Spent"
           />
         </div>

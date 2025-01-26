@@ -22,15 +22,17 @@ export default class DocumentActionRepository extends BaseRepository {
   ): DocumentActionResponseData {
     return {
       id: data.id ?? 0,
-      workflow_stage_category_id: data.workflow_stage_category_id ?? 0,
       name: data.name ?? "",
       label: data.label ?? "",
       description: data.description ?? "",
       button_text: data.button_text ?? "",
-      process_status: data.process_status ?? "next",
+      action_status: data.action_status ?? "passed",
       icon: data.icon ?? "",
       variant: data.variant ?? "",
-      status: data.status ?? "",
+      state: data.state ?? "conditional",
+      mode: data.mode ?? "store",
+      component: data.component ?? "",
+      has_update: data.has_update ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

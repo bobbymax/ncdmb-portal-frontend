@@ -29,6 +29,10 @@ import filePath from "../../assets/images/file.webp";
 import { toast } from "react-toastify";
 import Textarea from "../components/forms/Textarea";
 import { useStateContext } from "app/Context/ContentContext";
+import imageIcon from "../../assets/images/image-icon.png";
+import pdfIcon from "../../assets/images/pdf-icon.webp";
+import Dropzone from "../components/forms/Dropzone";
+import moment from "moment";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
@@ -66,6 +70,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
   const { pathname } = useLocation();
 
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
+  const [uploads, setUploads] = useState<File[]>([]);
   const [category, setCategory] = useState<
     DocumentCategoryResponseData | undefined
   >();
@@ -120,8 +125,10 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     [setState]
   );
 
+  // console.log(state);
+
   const onSubmit = (
-    response: object,
+    response: object | string,
     mode: "store" | "update" | "destroy" | "generate"
   ) => {
     if (mode === "generate") {
@@ -153,6 +160,17 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     closeModal();
   };
 
+  const durationFormat = () => {
+    if (state.start_date === "" || state.end_date === "") {
+      return "The date period for this claim has not been set!";
+    }
+
+    const start = moment(state.start_date);
+    const end = moment(state.end_date);
+
+    return `${start.format("ll")} - ${end.format("ll")}`;
+  };
+
   const onFileDelete = (file: UploadResponseData) => {
     Alert.flash(
       "Are you Sure?",
@@ -174,7 +192,14 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     });
   };
 
-  // console.log(mode);
+  useEffect(() => {
+    if (uploads.length > 0 && setState) {
+      setState((prev) => ({
+        ...prev,
+        supporting_documents: _.uniqWith(uploads, _.isEqual),
+      }));
+    }
+  }, [uploads, setState]);
 
   useEffect(() => {
     const duration: { value: string }[] = [
@@ -235,8 +260,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     }
   }, [dependencies, setState, params, pages, pathname]);
 
-  // console.log(state.deletedExpenses, state.deletedUploads);
-
   useEffect(() => {
     if (
       mode === "update" &&
@@ -264,29 +287,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           <b>{requiredDocs.map((doc) => doc.name).join(", ")}</b>
         </p>
       </div>
-      {mode === "update" && (
-        <div className="col-md-8 mb-4">
-          <h4 className="doc__title" style={{ textAlign: "right" }}>
-            Uploaded Documents
-          </h4>
-          <div className="uploaded__documents">
-            {state.uploads?.map((upload, i) => (
-              <div key={i} className="uploaded__document__item">
-                <div className="uploaded__document__item__icon">
-                  <img src={filePath} alt="file icon" />
-                </div>
-                <div
-                  className="icon__close"
-                  onClick={() => onFileDelete(upload)}
-                >
-                  <i className="ri-close-line" />
-                </div>
-                <p>{upload.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       <div className="col-md-12 mb-5">
         <div className="flex align gap-md">
           {category && category?.label === "trips" && (
@@ -325,14 +325,14 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
                 expenseRepo.getState()
               )
             }
-            variant="danger"
+            variant="success"
             size="sm"
             icon="ri-wallet-line"
           />
         </div>
       </div>
 
-      <div className="col-md-12">
+      <div className="col-md-4 mb-4">
         <div className="row">
           <div className="col-md-12 mb-3">
             <Textarea
@@ -345,39 +345,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
             />
           </div>
 
-          <div className="col-md-6 mb-3">
-            <TextInput
-              label="Start Date"
-              type="date"
-              value={state.start_date}
-              name="start_date"
-              onChange={handleChange}
-              isDisabled
-            />
-          </div>
-          <div className="col-md-6 mb-3">
-            <TextInput
-              label="End Date"
-              type="date"
-              value={state.end_date}
-              name="end_date"
-              onChange={handleChange}
-              isDisabled
-            />
-          </div>
-          <div className="col-md-8 mb-3">
-            <TextInput
-              label="Upload Supporting Documents"
-              type="file"
-              name="supporting_documents"
-              value={state.filename}
-              onChange={handleFileUpload}
-              isDisabled={loading}
-              accept=".jpeg,.jpg,.pdf,.png"
-              isMulti
-            />
-          </div>
-          <div className="col-md-4 mb-3">
+          <div className="col-md-12 mb-3">
             <MultiSelect
               label="Sponsoring Department"
               options={departments}
@@ -388,22 +356,59 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
               isDisabled={loading}
             />
           </div>
+
+          <div className="col-md-12 mb-4">
+            <Dropzone
+              label="Upload Supporting Documents"
+              files={uploads}
+              setFiles={setUploads}
+            />
+          </div>
+
+          <div className="col-md-12 mb-4">
+            <div className="payment-component-parts">
+              <p className="mb-2">Trip Duration:</p>
+              <span
+                style={{
+                  textTransform: "uppercase",
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                  fontWeight: 600,
+                  color: state.start_date === "" ? "red" : "#555",
+                }}
+              >
+                {durationFormat()}
+              </span>
+            </div>
+            <div className="payment-component-parts">
+              <p>Total Amount Spent:</p>
+              <h2>{formatCurrency(totalMoneySpent)}</h2>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="col-md-4 mb-4">
         <h4 className="mb-2 claim-expenses-title">Expense Analysis</h4>
-        <div className="expenditure__analysis">
+        <div
+          className={`expenditure__analysis ${
+            expenses.length < 1 ? "is_empty" : ""
+          }`}
+        >
           <div className="expense__container">
             {expenses.length > 0 ? (
               expenses.map((expense, i) => (
                 <div key={i} className="expense__item">
-                  <i className={`expense-icon ri-wallet-line`} />
-                  <p className="title">{expense.description}</p>
-                  <small>
-                    Duration:{" "}
-                    {getDuration(expense.start_date, expense.end_date)}
-                  </small>
+                  <div className="top--ly">
+                    <i className={`expense-icon ri-wallet-line`} />
+                    <div>
+                      <p className="title">{expense.description}</p>
+                      <small style={{ textAlign: "right" }}>
+                        Duration:{" "}
+                        {getDuration(expense.start_date, expense.end_date)}
+                      </small>
+                    </div>
+                  </div>
                   <h3>{formatCurrency(expense.total_amount_spent)}</h3>
                   <div className="flex align end gap-sm">
                     <Button
@@ -448,18 +453,23 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           </div>
         </div>
       </div>
+
+      {/* Supporting Documents Section */}
       <div className="col-md-4 mb-4">
         <h4 className="mb-2 claim-expenses-title">Supporting Documents</h4>
-        <div className="expenditure__analysis files_uploaded">
+        <div
+          className={`expenditure__analysis files_uploaded ${
+            state.supporting_documents.length < 1 ? "is_empty" : ""
+          } mb-4`}
+        >
           {state.supporting_documents.length > 0 ? (
             state.supporting_documents.map((document, index) => (
               <div key={index} className="exp__analysis__item">
-                <i
-                  className={`${
-                    handleDoc(document.type) === "image"
-                      ? "ri-file-image-line"
-                      : "ri-file-pdf-2-line"
-                  }`}
+                <img
+                  src={
+                    handleDoc(document.type) === "image" ? imageIcon : pdfIcon
+                  }
+                  alt="uploaded files"
                 />
                 <p>{document.name}</p>
               </div>
@@ -468,13 +478,28 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
             <p>No file or files have been uploaded yet</p>
           )}
         </div>
-      </div>
-      <div className="col-md-4 mb-4">
-        <h4 className="mb-2 claim-expenses-title">Claim Payment Status</h4>
-        <div className="payment-component-parts">
-          <p>Total Amount Spent:</p>
-          <h2>{formatCurrency(totalMoneySpent)}</h2>
-        </div>
+
+        {mode === "update" && (
+          <div className="col-md-8 mb-4">
+            <h4 className="claim-expenses-title">Uploaded Documents</h4>
+            <div className="uploaded__documents">
+              {state.uploads?.map((upload, i) => (
+                <div key={i} className="uploaded__document__item">
+                  <div className="uploaded__document__item__icon">
+                    <img src={filePath} alt="file icon" />
+                  </div>
+                  <div
+                    className="icon__close"
+                    onClick={() => onFileDelete(upload)}
+                  >
+                    <i className="ri-close-line" />
+                  </div>
+                  <p>{upload.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

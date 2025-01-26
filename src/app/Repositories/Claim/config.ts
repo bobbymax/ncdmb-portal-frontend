@@ -20,6 +20,8 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     "code",
     "deletedExpenses",
     "deletedUploads",
+    "claimant_signature",
+    "approval_signature",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -53,6 +55,9 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     uploads: [],
     deletedExpenses: [],
     deletedUploads: [],
+    owner: null,
+    approval_signature: "",
+    claimant_signature: "",
   },
   actions: [
     {
@@ -62,7 +67,7 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
       conditions: [],
       operator: "and",
       display: "Manage",
-      url: "/staff-services/claims/%d/%d/manage",
+      url: "/hub/claims/%d/%d/manage",
     },
     {
       label: "view",
@@ -71,7 +76,7 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
       conditions: [],
       operator: "and",
       display: "View",
-      url: "/staff-services/claims/%d/%d/view",
+      url: "/hub/claims/%d/%d/view",
     },
   ],
 };

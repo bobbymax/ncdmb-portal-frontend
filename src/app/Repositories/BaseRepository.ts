@@ -46,6 +46,7 @@ export interface ConfigProp<T> {
 
 export interface TabOptionProps {
   title: string;
+  label: string;
   component: string;
   icon: string;
   variant: string;
@@ -69,7 +70,8 @@ export interface ViewsProps {
     | "lock-page"
     | "page"
     | "external"
-    | "card";
+    | "card"
+    | "docket";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;
@@ -111,6 +113,34 @@ export abstract class BaseRepository extends RepositoryService {
   public getState(): JsonResponse {
     return this.state;
   }
+
+  public getFiles = async (filePaths: string[]): Promise<File[]> => {
+    if (filePaths.length < 1) {
+      return Promise.resolve([] as File[]);
+    }
+
+    const fileUrls: (File | null)[] = await Promise.all(
+      filePaths.map(async (path, idx) => {
+        try {
+          const response = await this.fetchFile(path);
+
+          if (!response || !response.blob || !response.type) {
+            return null;
+          }
+
+          // Create a Blob and generate a URL for it
+          const fileName = path.split("/").pop() || `file-${idx}`;
+          return new File([response.blob], fileName, { type: response.type });
+        } catch (error) {
+          console.error("Error fetching file:", error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out nulls (failed fetches) before returning
+    return fileUrls.filter((file): file is File => file !== null);
+  };
 
   public dependencies = async (): Promise<JsonResponse> => {
     if (this.associatedResources.length < 1) {

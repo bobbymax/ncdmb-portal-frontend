@@ -193,18 +193,27 @@ export class ApiService {
     return await this.api.get("/sanctum/csrf-cookie");
   }
 
+  async fetcher<T>(
+    url: string,
+    params?: Record<string, any>
+  ): Promise<AxiosResponse<T>> {
+    return this.api.get<T>(`/api${url}`, {
+      responseType: "blob",
+    });
+  }
+
   async get<T>(
     url: string,
     params?: Record<string, any>
   ): Promise<AxiosResponse<T>> {
-    return this.api.get<T>(`api/${url}`, { params });
+    return this.api.get<T>(`/api/${url}`, params);
   }
 
   async post<T>(
     url: string,
     data: Record<string, any> | FormData
   ): Promise<AxiosResponse<T>> {
-    return this.api.post<T>(`api/${url}`, data, {
+    return this.api.post<T>(`/api/${url}`, data, {
       headers: {
         "Content-Type": this.getDataFormat(data),
       },
@@ -220,18 +229,18 @@ export class ApiService {
         data.append("_method", "PUT");
       }
 
-      return this.api.post<T>(`api/${url}`, data, {
+      return this.api.post<T>(`/api/${url}`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
     }
 
-    return this.api.put<T>(`api/${url}`, data);
+    return this.api.put<T>(`/api/${url}`, data);
   }
 
   async delete<T>(url: string): Promise<AxiosResponse<T>> {
-    return this.api.delete<T>(`api/${url}`);
+    return this.api.delete<T>(`/api/${url}`);
   }
 
   private getDataFormat(data: Record<string, any> | FormData): string {

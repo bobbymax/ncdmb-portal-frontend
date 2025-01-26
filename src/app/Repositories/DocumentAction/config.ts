@@ -3,29 +3,31 @@ import { DocumentActionResponseData } from "./data";
 
 export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
   fillables: [
-    "workflow_stage_category_id",
     "name",
     "button_text",
     "description",
-    "process_status",
     "icon",
     "variant",
-    "status",
+    "action_status",
+    "state",
+    "mode",
+    "has_update",
+    "component",
   ],
-  associatedResources: [
-    { name: "stageCategories", url: "workflowStageCategories" },
-  ],
+  associatedResources: [],
   state: {
     id: 0,
-    workflow_stage_category_id: 0,
     name: "",
     label: "",
     button_text: "",
-    process_status: "next",
+    action_status: "passed",
     icon: "",
     variant: "primary",
-    status: "",
+    state: "conditional",
+    mode: "store",
     description: "",
+    has_update: 0,
+    component: "",
   },
   actions: [
     {

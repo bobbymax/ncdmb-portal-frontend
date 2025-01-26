@@ -6,14 +6,14 @@ type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers
 };
 
-export interface ModalValueProps {
+export interface ModalValueProps<T = JsonResponse> {
   title: string;
-  data?: object | null;
+  data?: T;
   isUpdating: boolean;
   count?: number;
   currentId?: number;
   onSubmit: (
-    raw: object,
+    raw: object | string,
     mode: "store" | "update" | "destroy" | "generate"
   ) => void;
   dependencies?: any[][];

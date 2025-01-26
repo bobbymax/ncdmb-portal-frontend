@@ -3,6 +3,12 @@ import { DocumentResponseData, UploadResponseData } from "../Document/data";
 import { ExpenseResponseData } from "../Expense/data";
 import { TripResponseData } from "../Trip/data";
 
+type ClaimOwnerProps = {
+  staff_no: string;
+  grade_level: string;
+  name: string;
+};
+
 export interface ClaimResponseData extends BaseResponse {
   user_id?: number;
   department_id?: number;
@@ -19,23 +25,19 @@ export interface ClaimResponseData extends BaseResponse {
   type: "claim" | "retirement";
   start_date: string;
   end_date: string;
-  status?:
-    | "pending"
-    | "registered"
-    | "raised"
-    | "batched"
-    | "queried"
-    | "paid"
-    | "draft";
+  status?: string;
   retired?: boolean;
   trips?: TripResponseData[];
   expenses: ExpenseResponseData[];
+  owner: ClaimOwnerProps | null;
   supporting_documents: File[];
   document?: DocumentResponseData | null;
   uploads?: UploadResponseData[];
   filename?: string;
   deletedExpenses?: ExpenseResponseData[];
   deletedUploads?: UploadResponseData[];
+  claimant_signature: string;
+  approval_signature: string;
   created_at?: string;
   updated_at?: string;
 }

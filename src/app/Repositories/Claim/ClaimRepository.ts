@@ -8,6 +8,20 @@ import { claimRules } from "./rules";
 import { claimViews } from "./views";
 import { claimColumns } from "./columns";
 import { claimConfig } from "./config";
+import { ExpenseResponseData } from "../Expense/data";
+import { AllowanceResponseData } from "../Allowance/data";
+
+export interface AddExpenseForAllowance {
+  expenses: ExpenseResponseData[];
+  allowance: AllowanceResponseData;
+  startDate?: string;
+  description: string;
+  numOfDays?: number;
+  endDate?: string;
+  type: "flight-takeoff" | "flight-land" | "road" | "per-diem" | "wallet";
+  distance_covered?: number;
+  useDistance?: boolean;
+}
 
 export default class ClaimRepository extends BaseRepository {
   public fillables: Array<keyof ClaimResponseData> = claimConfig.fillables;
@@ -59,6 +73,7 @@ export default class ClaimRepository extends BaseRepository {
       type: data.type ?? "claim",
       status: data.status ?? "pending",
       retired: data.retired ?? false,
+      owner: data.owner ?? null,
       trips: data.trips ?? [],
       supporting_documents: data.supporting_documents ?? [],
       department_name: data.department_name ?? "",
@@ -69,6 +84,8 @@ export default class ClaimRepository extends BaseRepository {
       end_date: data.end_date ?? "",
       deletedExpenses: data.deletedExpenses ?? [],
       deletedUploads: data.deletedUploads ?? [],
+      claimant_signature: data.claimant_signature ?? "",
+      approval_signature: data.approval_signature ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

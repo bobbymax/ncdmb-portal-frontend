@@ -27,7 +27,7 @@ const ClaimCategories: React.FC<
       <div className="claim-categories">
         {categories.map((cat, i) => (
           <Link
-            to={`/staff-services/claims/${cat.id}/create`}
+            to={`/hub/claims/${cat.id}/create`}
             key={i}
             className="custom-card category-links"
           >

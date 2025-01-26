@@ -15,6 +15,7 @@ import RemunerationRepository from "app/Repositories/Remuneration/RemunerationRe
 import { Raw } from "app/Support/DataTable";
 import { CityResponseData } from "app/Repositories/City/data";
 import { ActionMeta } from "react-select";
+import { JsonResponse } from "app/Repositories/BaseRepository";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
@@ -63,7 +64,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
   const remunerationRepo = new RemunerationRepository();
 
   const onSubmit = (
-    response: object,
+    response: object | string,
     mode: "store" | "update" | "destroy" | "generate"
   ) => {
     const raw = response as ResponseSubmitData;
@@ -86,7 +87,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
 
   // console.log(state);
 
-  const onManageRaw = (raw: Raw) => {
+  const onManageRaw = (raw: JsonResponse) => {
     console.log(raw);
     openModal(
       RemunerationModal,

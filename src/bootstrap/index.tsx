@@ -17,6 +17,8 @@ import { AuthProvider } from "app/Context/AuthContext";
 import { ActionMeta } from "react-select";
 import CardPage from "resources/views/pages/CardPage";
 import ViewResourcePage from "resources/views/pages/ViewResourcePage";
+import DocumentRepository from "app/Repositories/Document/DocumentRepository";
+import FileDocket from "resources/views/pages/FileDocket";
 export interface ActionBttnProps {
   variant: string;
   name: string;
@@ -40,6 +42,19 @@ export interface ViewPageComponentProps<T = JsonResponse, D = BaseRepository> {
   dependencies: object;
   onDocumentUpdate: (state: T, action: string) => void;
   loading: boolean;
+}
+
+export interface FileDocketComponentProps<
+  D = JsonResponse,
+  T = BaseRepository
+> {
+  data: D;
+  Repository: T;
+  View: ViewsProps;
+  dependencies: object;
+  onDocumentUpdate: (state: T, action: string) => void;
+  loading: boolean;
+  analysis?: Record<string, unknown>;
 }
 
 export interface FormPageComponentProps<T = JsonResponse> {
@@ -68,6 +83,7 @@ export interface PageProps<T extends BaseRepository> {
   Component: React.ComponentType<FormPageComponentProps>;
   CardPageComponent: React.ComponentType<CardPageComponentProps>;
   ViewPageComponent: React.ComponentType<ViewPageComponentProps>;
+  FileDocketComponent: React.ComponentType<FileDocketComponentProps>;
 }
 
 const renderRoute = <T extends BaseRepository>(
@@ -85,6 +101,7 @@ const renderRoute = <T extends BaseRepository>(
     Component,
     CardPageComponent: Component,
     ViewPageComponent: Component,
+    FileDocketComponent: Component,
   };
 
   return (
@@ -101,6 +118,8 @@ const renderRoute = <T extends BaseRepository>(
             <CardPage {...componentProps} />
           ) : view.type === "page" ? (
             <ViewResourcePage {...componentProps} />
+          ) : view.type === "docket" ? (
+            <FileDocket {...componentProps} />
           ) : (
             <ResourceRawPage {...componentProps} />
           )}

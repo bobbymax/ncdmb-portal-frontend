@@ -57,20 +57,6 @@ const DocumentAction: React.FC<
       </div>
       <div className="col-md-3 mb-3">
         <Select
-          label="Workflow Stage Category"
-          name="workflow_stage_category_id"
-          value={state.workflow_stage_category_id}
-          onChange={handleChange}
-          isDisabled={loading}
-          valueKey="id"
-          labelKey="name"
-          options={categories}
-          defaultValue=""
-          defaultCheckDisabled
-        />
-      </div>
-      <div className="col-md-3 mb-3">
-        <Select
           label="Button Variant"
           name="variant"
           value={state.variant}
@@ -91,38 +77,92 @@ const DocumentAction: React.FC<
         />
       </div>
       <div className="col-md-3 mb-3">
-        <TextInput
-          label="Button Status"
-          name="status"
-          value={state.status}
-          onChange={handleChange}
-          isDisabled={loading}
-          placeholder="Enter Button Status"
-        />
-      </div>
-      <div className="col-md-3 mb-3">
         <Select
-          label="Progress Status"
-          name="process_status"
-          value={state.process_status}
+          label="Action Status"
+          name="action_status"
+          value={state.action_status}
           onChange={handleChange}
           isDisabled={loading}
           valueKey="value"
           labelKey="label"
           options={[
-            { value: "next", label: "Next Stage" },
-            { value: "stall", label: "Stall Process" },
-            { value: "goto", label: "Go to Stage" },
-            { value: "end", label: "End Process" },
-            { value: "complete", label: "Close Process" },
+            { value: "passed", label: "Pass" },
+            { value: "failed", label: "Reject" },
+            { value: "attend", label: "Needs Attention" },
+            { value: "appeal", label: "Appeal" },
+            { value: "stalled", label: "Stall" },
+            { value: "cancelled", label: "Cancel Process" },
+            { value: "complete", label: "Complete" },
           ]}
           defaultValue=""
           defaultCheckDisabled
         />
       </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="State"
+          name="state"
+          value={state.state}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "conditional", label: "Conditional" },
+            { value: "fixed", label: "Fixed" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Mode"
+          name="mode"
+          value={state.mode}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "store", label: "Store" },
+            { value: "update", label: "Update" },
+            { value: "destroy", label: "Destroy" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-4 mb-3">
+        <Select
+          label="Update Draft"
+          name="has_update"
+          value={state.has_update}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: 0, label: "No" },
+            { value: 1, label: "Yes" },
+          ]}
+          defaultValue={999}
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-8 mb-3">
+        <TextInput
+          label="Action Component"
+          name="component"
+          value={state.component}
+          onChange={handleChange}
+          isDisabled={loading}
+          placeholder="Enter Action Component"
+        />
+      </div>
       <div className="col-md-12 mb-3">
         <Textarea
-          label="Description"
+          label="Message"
           name="description"
           value={state.description}
           onChange={handleChange}

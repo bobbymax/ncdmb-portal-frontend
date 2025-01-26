@@ -4,15 +4,15 @@
 .heartbeat-container {
   position: relative;
   display: flex;
-  justify-content: flex-start;
-  /* align-items: center; */
+  justify-content: center;
+  align-items: center;
   flex-direction: column;
   gap: 25px;
 }
 
 .heartbeat {
-  width: 35px;
-  height: 35px;
+  width: 18px;
+  height: 18px;
   background-color: var(--color-tetiary);
   border-radius: 50%;
   animation: heartbeat 2s infinite;

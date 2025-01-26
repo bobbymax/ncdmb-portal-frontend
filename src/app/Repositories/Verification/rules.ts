@@ -1,0 +1,1 @@
+export const verificationRules: { [key: string]: string } = {};

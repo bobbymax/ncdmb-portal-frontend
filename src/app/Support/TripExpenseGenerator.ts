@@ -5,16 +5,7 @@ import { TripCategoryResponseData } from "app/Repositories/TripCategory/data";
 import moment from "moment";
 import { formatCurrency, generateUniqueString } from "./Helpers";
 import { ExpenseResponseData } from "app/Repositories/Expense/data";
-
-interface AddExpenseForAllowance {
-  expenses: ExpenseResponseData[];
-  allowance: AllowanceResponseData;
-  startDate?: string;
-  description: string;
-  numOfDays?: number;
-  endDate?: string;
-  type: "flight-takeoff" | "flight-land" | "road" | "per-diem" | "wallet";
-}
+import { AddExpenseForAllowance } from "app/Repositories/Claim/ClaimRepository";
 
 const ALLOWANCE_TYPES = {
   AIRPORT_SHUTTLE: "airport-shuttle-from-town",
@@ -82,16 +73,13 @@ export class TripExpenseGenerator {
   ): void {
     const airportId: number = Number(this.trip.airport_id);
 
-    const sameAllowance = this.getAllowanceByStates(
+    const transit = this.getAllowanceByStates(
       this.trip.departure_city_id,
       airportId
     ); // same allowance
 
     let allowance =
-      this.trip.departure_city_id !== airportId ||
-      sameAllowance?.label === ALLOWANCE_TYPES.YENAGOA_AIRPORT
-        ? this.getAllowanceByStates(this.trip.departure_city_id, airportId)
-        : this.getAllowance(ALLOWANCE_TYPES.AIRPORT_SHUTTLE);
+      transit ?? this.getAllowance(ALLOWANCE_TYPES.AIRPORT_SHUTTLE);
 
     if (allowance) {
       this.addExpenseForAllowance({
@@ -135,7 +123,7 @@ export class TripExpenseGenerator {
     startDate: string,
     endDate: string
   ): void {
-    const allowance = this.getAllowanceByStates(
+    let allowance = this.getAllowanceByStates(
       this.trip.departure_city_id,
       this.trip.destination_city_id
     );
@@ -157,6 +145,42 @@ export class TripExpenseGenerator {
           description,
           type: "road",
         });
+      }
+    } else {
+      const distance = this.trip.distance;
+
+      allowance = this.getAllowance(ALLOWANCE_TYPES.OTHER_LOCATIONS);
+
+      if (allowance) {
+        const description = `${
+          allowance.name
+        }: Distance covered is ${distance}km at ${formatCurrency(150)} per km`;
+        this.addExpenseForAllowance({
+          expenses,
+          allowance,
+          startDate,
+          description,
+          type: "road",
+          distance_covered: 150 * distance,
+          useDistance: true,
+        });
+
+        if (this.trip.route === "return") {
+          const description = `${
+            allowance.name
+          }: Distance covered is ${distance}km at ${formatCurrency(
+            150
+          )} per km (Return)`;
+          this.addExpenseForAllowance({
+            expenses,
+            allowance,
+            startDate: endDate,
+            description,
+            type: "road",
+            distance_covered: 150 * distance,
+            useDistance: true,
+          });
+        }
       }
     }
   }
@@ -237,26 +261,29 @@ export class TripExpenseGenerator {
     numOfDays = 1,
     endDate = startDate,
     type = "flight-takeoff",
+    distance_covered,
+    useDistance = false,
   }: AddExpenseForAllowance): void {
     const remuneration = this.getRemuneration(allowance.id);
 
     if (remuneration) {
+      console.log(useDistance ? remuneration.amount : "nothing");
       expenses.push({
         id: 0,
-        identifier: generateUniqueString(12),
+        identifier: generateUniqueString(32),
         parent_id: allowance.parent_id,
         allowance_id: allowance.id,
         remuneration_id: remuneration.id,
         start_date: startDate ?? "",
         end_date: endDate ?? "",
         no_of_days: numOfDays,
-        total_distance_covered: this.distance_covered,
+        total_distance_covered: distance_covered ?? 0,
         unit_price: Number(remuneration.amount),
-        total_amount_spent: this.calculateTotalAmount(
-          numOfDays,
-          remuneration.amount
-        ),
+        total_amount_spent: useDistance
+          ? distance_covered ?? 0
+          : this.calculateTotalAmount(numOfDays, remuneration.amount),
         description,
+        status: "pending",
       });
     }
   }

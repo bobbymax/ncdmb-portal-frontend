@@ -2,6 +2,9 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { Validator } from "../Support/Validator";
 import moment from "moment";
 import { sprintf } from "sprintf-js";
+import { toWords } from "number-to-words";
+import { PDFDocument } from "pdf-lib";
+import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 
 export const validate = (
   fillables: string[],
@@ -56,6 +59,17 @@ export const formatCurrency = (
     style: "currency",
     currency,
     minimumFractionDigits: 0,
+  }).format(amount);
+};
+
+export const formatAmountNoCurrency = (
+  amount: number,
+  locale: string = "en-US"
+): string => {
+  return new Intl.NumberFormat(locale, {
+    style: "decimal",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 
@@ -125,4 +139,97 @@ export const getEarliestAndLatestDates = (
   const latest = moment.max(momentDates).format("YYYY-MM-DD");
 
   return { earliest, latest };
+};
+
+export const formatDateToPeriodString = (
+  start_date: string,
+  end_date: string
+) => {
+  if (start_date === "" || end_date === "") {
+    return "The date period for this claim has not been set!";
+  }
+
+  const start = moment(start_date);
+  const end = moment(end_date);
+
+  return `${start.format("ll")} - ${end.format("ll")}`;
+};
+
+const addAndToWords = (words: string): string => {
+  const parts = words.split(" ");
+  const indexOfHundred = parts.lastIndexOf("hundred");
+
+  if (indexOfHundred !== -1 && parts.length > indexOfHundred + 1) {
+    // Insert "and" after "hundred"
+    parts.splice(indexOfHundred + 1, 0, "and");
+  }
+
+  return parts.join(" ");
+};
+
+export const covertToWords = (amount: number): string => {
+  const [whole, fraction] = amount.toFixed(2).split(".");
+  const wholeWords = addAndToWords(toWords(parseInt(whole, 10)));
+  let result = `${wholeWords} Naira`;
+
+  if (parseInt(fraction, 10) > 0) {
+    const fractionWords = toWords(parseInt(fraction, 10));
+    result += ` ${fractionWords} Kobo`;
+  }
+
+  result += " Only!";
+
+  return result.replace(/^\w/, (c) => c.toUpperCase());
+};
+
+export const fetchFilesFromUrls = async (
+  filePaths: string[]
+): Promise<File[]> => {
+  const files: (File | null)[] = await Promise.all(
+    filePaths.map(async (path, index) => {
+      try {
+        const response = await fetch(path);
+
+        // Check for successful fetch
+        if (!response.ok) {
+          console.error(
+            `Error fetching file from ${path}: ${response.statusText}`
+          );
+          return null; // Skip this file
+        }
+
+        const blob = await response.blob();
+
+        // Extract filename from path or generate a default one
+        const fileName = path.split("/").pop() || `file-${index}`;
+        const fileType = blob.type || "application/octet-stream"; // Default MIME type
+
+        // Return the constructed File object
+        return new File([blob], fileName, { type: fileType });
+      } catch (error) {
+        console.error(`Failed to fetch file from ${path}: ${error}`);
+        return null; // Skip this file
+      }
+    })
+  );
+
+  // Filter out nulls (failed fetches) before returning
+  return files.filter((file): file is File => file !== null);
+};
+
+export const arrayToFileList = (files: File[]): FileList => {
+  const dataTransfer = new DataTransfer();
+  files.forEach((file) => dataTransfer.items.add(file));
+  return dataTransfer.files;
+};
+
+export const handleProgressFlow = (
+  draftCount: number = 0,
+  trackers: ProgressTrackerResponseData[]
+): number => {
+  if (draftCount < 1 || trackers.length < 1) {
+    return 0;
+  }
+
+  return Math.round((draftCount * 100) / trackers.length);
 };

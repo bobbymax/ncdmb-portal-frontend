@@ -3,25 +3,31 @@ import { ProgressTrackerResponseData } from "./data";
 
 export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
   fillables: [
-    "date_completed",
-    "is_closed",
     "order",
-    "status",
     "workflow_id",
     "workflow_stage_id",
+    "document_type_id",
+    "fallback_to_stage_id",
+    "return_to_stage_id",
   ],
   associatedResources: [
     { name: "workflows", url: "workflows" },
     { name: "stages", url: "workflowStages" },
+    { name: "documentTypes", url: "documentTypes" },
+    { name: "documentActions", url: "documentActions" },
+    { name: "mailingLists", url: "mailingLists" },
   ],
   state: {
     id: 0,
     workflow_id: 0,
     workflow_stage_id: 0,
+    document_type_id: 0,
+    fallback_to_stage_id: 0,
+    return_to_stage_id: 0,
     order: 0,
-    date_completed: "",
-    status: "pending",
-    is_closed: 0,
+    stage: null,
+    trackerActions: [],
+    trackerRecipients: [],
   },
   actions: [
     {

@@ -10,6 +10,7 @@ export interface ServerResponse {
 }
 
 interface IRepository {
+  fetchFile: (path: string) => Promise<any>;
   collection: (url: string) => Promise<ServerResponse>;
   show: (url: string, param: string | number) => Promise<ServerResponse>;
   store: (url: string, body: Record<string, any>) => Promise<ServerResponse>;
@@ -35,6 +36,25 @@ export abstract class RepositoryService implements IRepository {
   checkNetworkStatus = (callback: (status: NetworkStatus) => void) => {
     this.api.onNetworkStatus(callback);
   };
+
+  async fetchFile(path: string): Promise<any> {
+    try {
+      const response = await this.api.fetcher(path);
+
+      return {
+        blob: response.data,
+        type: response.headers["content-type"] || "application/octet-stream",
+      };
+    } catch (error) {
+      const err = error as AxiosError;
+      console.error("File cannot be found: ", err.message);
+      const errorMessage = this.isServerErrorResponse(err.response?.data)
+        ? err.response?.data.message
+        : "File cannot be found";
+
+      return errorMessage;
+    }
+  }
 
   async collection(url: string): Promise<ServerResponse> {
     try {

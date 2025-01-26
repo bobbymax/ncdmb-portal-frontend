@@ -1,0 +1,1 @@
+export const documentDraftRules: { [key: string]: string } = {};
