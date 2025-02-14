@@ -10,13 +10,11 @@ import { formatOptions } from "app/Support/Helpers";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { MailingListResponseData } from "app/Repositories/MailingList/data";
-import Button from "../components/forms/Button";
 import Alert from "app/Support/Alert";
 import StageCapsule from "../components/capsules/StageCapsule";
 import FlowchartCapsules from "../components/capsules/FlowchartCapsules";
 import { useModal } from "app/Context/ModalContext";
 import TrackerModal from "./modals/TrackerModal";
-
 interface DependencyProps {
   workflows: WorkflowResponseData[];
   stages: WorkflowStageResponseData[];
@@ -24,7 +22,6 @@ interface DependencyProps {
   documentActions: DocumentActionResponseData[];
   mailingLists: MailingListResponseData[];
 }
-
 export interface ServerTrackersRequestProps
   extends Partial<WorkflowStageResponseData> {
   id: number;
@@ -41,14 +38,7 @@ export interface ServerTrackersRequestProps
 
 const ProgressTracker: React.FC<
   FormPageComponentProps<ProgressTrackerResponseData>
-> = ({
-  state,
-  handleChange,
-  handleReactSelect,
-  dependencies,
-  setState,
-  loading,
-}) => {
+> = ({ state, handleReactSelect, dependencies, setState, loading }) => {
   const { openModal, closeModal } = useModal();
   const [workflows, setWorkflows] = useState<DataOptionsProps[]>([]);
   const [stages, setStages] = useState<WorkflowStageResponseData[]>([]);
@@ -72,20 +62,18 @@ const ProgressTracker: React.FC<
           const updatedValue = value as DataOptionsProps;
           setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
           if (setState) {
-            setState({
-              ...state,
+            setState((prev) => ({
+              ...prev,
               [`${key}_id`]: updatedValue?.value ?? 0,
-            });
+            }));
           }
         });
       },
     [handleReactSelect, setState]
   );
 
-  const handleFlowchartBoard = (
-    stage: WorkflowStageResponseData,
-    position: number = 1
-  ) => {
+  const handleFlowchartBoard = (stage: WorkflowStageResponseData) => {
+    const position = processes.length + 1;
     const process: ServerTrackersRequestProps = {
       id: processes.length + 1,
       workflow_stage_id: stage.id,
@@ -107,10 +95,14 @@ const ProgressTracker: React.FC<
       "You are adding this stage to the flowchart!!"
     ).then((result) => {
       if (result.isConfirmed) {
-        setProcesses([process, ...processes]);
+        setProcesses((prev) =>
+          [...prev, process].sort((a, b) => a.order - b.order)
+        );
       }
     });
   };
+
+  // console.log(processes);
 
   const onSubmit = (
     response: object | string,
@@ -118,6 +110,16 @@ const ProgressTracker: React.FC<
   ) => {
     if (mode === "update") {
       const trackerResponse = response as ServerTrackersRequestProps;
+
+      setProcesses(
+        processes.map((process) => {
+          if (process.id === trackerResponse.id) {
+            return trackerResponse;
+          }
+
+          return process;
+        })
+      );
     } else if (mode === "destroy") {
       Alert.flash(
         "Are you Sure?",
@@ -125,6 +127,7 @@ const ProgressTracker: React.FC<
         "You will not be able to reverse this!!"
       ).then(async (result) => {
         if (result.isConfirmed) {
+          console.log(response);
         }
       });
     }
@@ -133,6 +136,30 @@ const ProgressTracker: React.FC<
   };
 
   // Manages the Tracker Modal
+  const move = (
+    process: ServerTrackersRequestProps,
+    currentPosition: number,
+    action: "up" | "down"
+  ) => {
+    if (action === "up" && currentPosition <= 1) return;
+    if (action === "down" && currentPosition >= processes.length) return;
+
+    const newPosition =
+      action === "up" ? currentPosition - 1 : currentPosition + 1;
+    const affectedProcess = processes.find((p) => p.order === newPosition);
+    if (!affectedProcess) return;
+
+    const updatedProcesses = processes.map((p) =>
+      p.id === process.id
+        ? { ...p, order: newPosition }
+        : p.id === affectedProcess.id
+        ? { ...p, order: currentPosition }
+        : p
+    );
+
+    setProcesses(updatedProcesses.sort((a, b) => a.order - b.order));
+  };
+
   const manage = (process: ServerTrackersRequestProps) => {
     openModal(TrackerModal, "tracker", {
       title: `Manage ${process.name} Tracker`,
@@ -161,6 +188,15 @@ const ProgressTracker: React.FC<
     }
   }, [dependencies]);
 
+  useEffect(() => {
+    if (setState && processes.length > 0) {
+      setState((prev) => ({
+        ...prev,
+        stages: processes,
+      }));
+    }
+  }, [processes, setState]);
+
   const renderMultiSelect = (
     label: string,
     options: DataOptionsProps[],
@@ -182,8 +218,6 @@ const ProgressTracker: React.FC<
     </div>
   );
 
-  // console.log(processes);
-
   return (
     <>
       {renderMultiSelect(
@@ -197,7 +231,7 @@ const ProgressTracker: React.FC<
 
       <div className="tracker__container">
         <div className="row">
-          <div className="col-md-8">
+          <div className="col-md-6">
             <div className="workflow_stages_section">
               <div className="row">
                 {stages.map((stage) => (
@@ -213,17 +247,18 @@ const ProgressTracker: React.FC<
               </div>
             </div>
           </div>
-          <div className="col-md-4">
+          <div className="col-md-6">
             <div className="workflow_section custom-card">
               <div className="workflow_section_header mb-4">
-                <small>Workflow Name:</small>
+                <small>Workflow:</small>
                 <h3>{selectedOptions.workflow?.label ?? "Not Set"}</h3>
               </div>
 
               <FlowchartCapsules
                 processes={processes}
                 manageCapsule={manage}
-                move={() => {}}
+                move={move}
+                stages={stages}
               />
             </div>
           </div>

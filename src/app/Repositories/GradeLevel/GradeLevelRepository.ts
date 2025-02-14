@@ -20,9 +20,11 @@ export default class GradeLevelRepository extends BaseRepository {
   public fromJson(data: GradeLevelResponseData): GradeLevelResponseData {
     return {
       id: data.id ?? 0,
+      carder_id: data.carder_id ?? 0,
       name: data.name ?? "",
       key: data.key ?? "",
       type: data.type ?? "board",
+      carder: data.carder ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

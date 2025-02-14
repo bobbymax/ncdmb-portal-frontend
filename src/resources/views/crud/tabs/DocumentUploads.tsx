@@ -8,7 +8,6 @@ const DocumentUploads: React.FC<
 > = ({ data, tab, Repo, loading, view }) => {
   const { mergedPdfUrl } = useFileActions({
     Repo,
-    View: view,
     uploads: data.uploads ?? [],
     tab,
   });

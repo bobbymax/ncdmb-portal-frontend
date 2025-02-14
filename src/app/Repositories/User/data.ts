@@ -1,17 +1,35 @@
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
-import { AuthPageResponseData } from "../Page/data";
-import { RemunerationResponseData } from "../Remuneration/data";
-// import { RoleResponseData } from "../RoleRepository";
+import { RoleResponseData } from "../Role/data";
 
 export interface UserResponseData extends BaseResponse {
-  name: string;
+  staff_no: string;
+  firstname: string;
+  middlename: string;
+  surname: string;
+  role_id: number;
+  grade_level_id: number;
+  department_id: number;
+  default_page_id: number;
+  location_id: number;
+  avatar: string;
+  gender: "male" | "female";
+  date_joined: string;
+  job_title: string;
+  is_admin: number;
+  blocked: number;
+  type: "permanent" | "contract" | "adhoc" | "secondment" | "support" | "admin";
+  status:
+    | "available"
+    | "official-assignment"
+    | "training"
+    | "leave"
+    | "study"
+    | "secondment"
+    | "other";
   email: string;
   password?: string;
-  staff_no: string;
   is_logged_in?: boolean;
-  grade_level_id: number;
-  roles?: object[];
-  pages: AuthPageResponseData[];
-  default_page_id: number;
-  remunerations: RemunerationResponseData[];
+  role: RoleResponseData | null;
+  groups: DataOptionsProps[];
 }

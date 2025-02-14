@@ -2,7 +2,7 @@ import React from "react";
 
 interface ButtonProps {
   label?: string | number;
-  variant?: "success" | "info" | "warning" | "danger" | "dark";
+  variant?: "primary" | "success" | "info" | "warning" | "danger" | "dark";
   type?: "submit" | "button";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   icon?: string;

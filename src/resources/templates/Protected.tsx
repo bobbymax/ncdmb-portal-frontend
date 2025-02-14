@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ReactNode, useEffect, useState } from "react";
 import "../assets/css/app.css";
 import { useLocation, useNavigate } from "react-router-dom";

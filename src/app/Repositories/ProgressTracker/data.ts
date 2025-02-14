@@ -3,6 +3,7 @@ import { BaseResponse } from "../BaseRepository";
 import { DocumentActionResponseData } from "../DocumentAction/data";
 import { MailingListResponseData } from "../MailingList/data";
 import { WorkflowStageResponseData } from "../WorkflowStage/data";
+import { ServerTrackersRequestProps } from "resources/views/crud/ProgressTracker";
 
 export interface ProgressTrackerResponseData extends BaseResponse {
   workflow_id: number;
@@ -13,6 +14,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
   stage: WorkflowStageResponseData | null;
   trackerActions: DocumentActionResponseData[];
   trackerRecipients: MailingListResponseData[];
+  stages: ServerTrackersRequestProps[];
   workflow_stage_name?: string;
   order: number;
   created_at?: string;

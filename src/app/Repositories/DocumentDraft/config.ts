@@ -21,6 +21,7 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
   state: {
     id: 0,
     document_id: 0,
+    document_type_id: 0,
     group_id: 0,
     progress_tracker_id: 0,
     created_by_user_id: 0,
@@ -33,6 +34,8 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     digital_signature_path: "",
     signature: "",
     status: "",
+    template: null,
+    draftable: null,
   },
   actions: [
     {

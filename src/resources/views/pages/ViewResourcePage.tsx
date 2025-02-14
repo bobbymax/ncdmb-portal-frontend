@@ -17,12 +17,9 @@ import {
 import { PageProps } from "bootstrap";
 import { toast } from "react-toastify";
 import Button from "../components/forms/Button";
-import useWorkflow from "app/Hooks/useWorkflow";
-import { DocumentResponseData } from "app/Repositories/Document/data";
-import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 
-interface TabAction {
+export interface TabAction {
   action: TabOptionProps;
   toggleTab: (value: string) => void;
   isActive: boolean;
@@ -39,8 +36,6 @@ export interface DocumentControlStateProps<
   onPerformAction?: (id: number, data: T) => void;
   dependencies: Record<string, unknown>;
   tab: TabOptionProps;
-  document: DocumentResponseData;
-  workflow: WorkflowResponseData | null;
 }
 
 const Tab = React.memo(({ action, toggleTab, isActive = false }: TabAction) => {
@@ -86,14 +81,9 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
     hasParam: true,
   });
 
-  const document = useMemo(() => raw?.document as DocumentResponseData, [raw]);
-  const { workflow, currentStage } = useWorkflow(document);
-
-  // console.log(currentStage);
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [errors, setErrors] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("summary");
-  const [trackers, setTrackers] = useState<ProgressTrackerResponseData[]>([]);
 
   const { state, dependencies, fill, loading } = useForm(Repository, view, {
     onFormSubmit: (response) => {
@@ -119,12 +109,6 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
   useEffect(() => {
     if (view.mode === "update" && raw) fill(raw);
   }, [view.mode, raw, fill]);
-
-  useEffect(() => {
-    if (workflow?.trackers) {
-      setTrackers(workflow.trackers);
-    }
-  }, [workflow]);
 
   if (loading) {
     return <div className="loading-indicator">Loading resources...</div>;
@@ -175,8 +159,6 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
                       dependencies: dependencies as Record<string, unknown>,
                       component: activeActionComponent.component,
                       idx: actionBttns.indexOf(activeActionComponent),
-                      document,
-                      workflow,
                     })}
                 </div>
               </div>
@@ -187,17 +169,18 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
               <div className="custom-card document-sidebar">
                 <div className="small__title mb-3">Tracking</div>
                 <div className="progress__tracking__container">
-                  {trackers.map((progress) => (
+                  {/* {trackers.map((progress) => (
                     <div
                       className={`tracker__item ${
-                        !currentStage ||
-                        (currentStage && progress.order > currentStage?.order)
+                        !currentTracker ||
+                        (currentTracker &&
+                          progress.order > currentTracker?.order)
                           ? "saturated"
                           : ""
                       }`}
                       key={progress.id}
                     >
-                      {progress.id === currentStage?.id ? (
+                      {progress.id === currentTracker?.id ? (
                         <div className="heartbeat-container">
                           <div className="heartbeat" />
                         </div>
@@ -211,7 +194,7 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
                           <span className="progress__type">
                             {progress.stage?.stage_category?.name}
                           </span>
-                          {progress.id === currentStage?.id && (
+                          {progress.id === currentTracker?.id && (
                             <span className="current__stage">current</span>
                           )}
                         </small>
@@ -224,7 +207,7 @@ const ViewResourcePage = ({ Repository, view }: PageProps<BaseRepository>) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </div>

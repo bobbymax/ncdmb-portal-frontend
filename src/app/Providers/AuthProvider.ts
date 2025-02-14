@@ -1,5 +1,4 @@
-import { AuthState } from "app/Context/AuthContext";
-import { UserResponseData } from "app/Repositories/User/data";
+import { AuthState, AuthUserResponseData } from "app/Context/AuthContext";
 
 export class AuthProvider {
   private key = "authToken";
@@ -14,7 +13,7 @@ export class AuthProvider {
 
   private getStorageData = (): {
     token: string;
-    staff: UserResponseData;
+    staff: AuthUserResponseData;
     refresh_token: string;
   } | null => {
     const data = localStorage.getItem(this.key);
@@ -24,14 +23,14 @@ export class AuthProvider {
 
     const parsed: {
       token: string;
-      staff: UserResponseData;
+      staff: AuthUserResponseData;
       refresh_token: string;
     } = JSON.parse(data);
     return parsed;
   };
 
-  public getAuthenticatedUser = (): UserResponseData | null => {
-    return this.getStorageData()?.staff as UserResponseData;
+  public getAuthenticatedUser = (): AuthUserResponseData | null => {
+    return this.getStorageData()?.staff as AuthUserResponseData;
   };
 
   public getToken = (): string | null => {

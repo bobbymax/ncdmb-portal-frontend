@@ -21,6 +21,7 @@ export default class DocumentDraftRepository extends BaseRepository {
     return {
       id: data.id ?? 0,
       document_id: data.document_id ?? 0,
+      document_type_id: data.document_type_id ?? 0,
       group_id: data.group_id ?? 0,
       progress_tracker_id: data.progress_tracker_id ?? 0,
       created_by_user_id: data.created_by_user_id ?? 0,
@@ -33,6 +34,8 @@ export default class DocumentDraftRepository extends BaseRepository {
       digital_signature_path: data.digital_signature_path ?? "",
       signature: data.signature ?? "",
       status: data.status ?? "",
+      template: data.template ?? null,
+      draftable: data.draftable ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

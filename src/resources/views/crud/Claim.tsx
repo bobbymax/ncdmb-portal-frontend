@@ -10,7 +10,6 @@ import { AllowanceResponseData } from "app/Repositories/Allowance/data";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatCurrency, formatOptions } from "app/Support/Helpers";
 import { DepartmentResponseData } from "app/Repositories/Department/data";
-import TextInput from "../components/forms/TextInput";
 import { CityResponseData } from "app/Repositories/City/data";
 import { useLocation, useParams } from "react-router-dom";
 import { ActionMeta } from "react-select";
@@ -101,7 +100,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
   const handleDoc = (type: string) => {
     const docType = type.split("/");
-
     return docType[0];
   };
 
@@ -124,8 +122,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     },
     [setState]
   );
-
-  // console.log(state);
 
   const onSubmit = (
     response: object | string,
@@ -220,6 +216,8 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     }
   }, [earliestDate, latestDate, setState, expenses, totalMoneySpent]);
 
+  // console.log(dependencies, pathname, pages);
+
   useEffect(() => {
     if (dependencies && pathname !== "" && pages.length > 0) {
       const { departments = [], tripCategories = [] } =
@@ -241,9 +239,11 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       if (categories) {
         const { categoryId } = params;
 
-        const catId = categoryId ? parseInt(categoryId) : 0;
+        const catLabel = categoryId ?? "";
         const category =
-          catId > 0 ? categories.find((cat) => cat.id === catId) : undefined;
+          catLabel !== ""
+            ? categories.find((cat) => cat.label === catLabel)
+            : undefined;
 
         setCategory(category);
 
@@ -259,6 +259,8 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       setDepartments(formatOptions(departments, "id", "abv"));
     }
   }, [dependencies, setState, params, pages, pathname]);
+
+  // console.log(category);
 
   useEffect(() => {
     if (

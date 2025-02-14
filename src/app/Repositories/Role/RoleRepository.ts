@@ -22,6 +22,7 @@ export default class RoleRepository extends BaseRepository {
       name: data.name ?? "",
       department_id: data.department_id ?? 0,
       slots: data.slots ?? 0,
+      access_level: data.access_level ?? "basic",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

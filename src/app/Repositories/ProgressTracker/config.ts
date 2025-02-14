@@ -2,14 +2,7 @@ import { ConfigProp } from "../BaseRepository";
 import { ProgressTrackerResponseData } from "./data";
 
 export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
-  fillables: [
-    "order",
-    "workflow_id",
-    "workflow_stage_id",
-    "document_type_id",
-    "fallback_to_stage_id",
-    "return_to_stage_id",
-  ],
+  fillables: ["workflow_id", "stages"],
   associatedResources: [
     { name: "workflows", url: "workflows" },
     { name: "stages", url: "workflowStages" },
@@ -28,6 +21,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     stage: null,
     trackerActions: [],
     trackerRecipients: [],
+    stages: [],
   },
   actions: [
     {

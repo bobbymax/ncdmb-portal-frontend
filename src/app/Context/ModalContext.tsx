@@ -14,7 +14,8 @@ export interface ModalValueProps<T = JsonResponse> {
   currentId?: number;
   onSubmit: (
     raw: object | string,
-    mode: "store" | "update" | "destroy" | "generate"
+    mode: "store" | "update" | "destroy" | "generate",
+    column?: string
   ) => void;
   dependencies?: any[][];
 }

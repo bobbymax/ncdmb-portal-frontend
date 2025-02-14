@@ -16,9 +16,14 @@ const ClaimCategories: React.FC<
 
   useEffect(() => {
     if (collection.length > 0) {
-      const claimCategories =
-        collection.filter((cat) => cat?.document_type === "Claim") ?? [];
-      setCategories(claimCategories);
+      const claimCategories = collection.filter(
+        (cat) => cat?.document_type === "claim"
+      );
+
+      // Prevent unnecessary state updates
+      if (JSON.stringify(claimCategories) !== JSON.stringify(categories)) {
+        setCategories(claimCategories);
+      }
     }
   }, [collection]);
 
@@ -27,7 +32,7 @@ const ClaimCategories: React.FC<
       <div className="claim-categories">
         {categories.map((cat, i) => (
           <Link
-            to={`/hub/claims/${cat.id}/create`}
+            to={`/hub/claims/${cat.label}/create`}
             key={i}
             className="custom-card category-links"
           >

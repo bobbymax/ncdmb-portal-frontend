@@ -33,7 +33,7 @@ const Role: React.FC<FormPageComponentProps<RoleResponseData>> = ({
 
   return (
     <>
-      <div className="col-md-12 mb-3">
+      <div className="col-md-3 mb-3">
         <Select
           label="Department"
           value={state.department_id}
@@ -44,9 +44,10 @@ const Role: React.FC<FormPageComponentProps<RoleResponseData>> = ({
           labelKey="label"
           defaultValue={0}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
-      <div className="col-md-9 mb-3">
+      <div className="col-md-4 mb-3">
         <TextInput
           label="Name"
           value={state.name}
@@ -55,13 +56,34 @@ const Role: React.FC<FormPageComponentProps<RoleResponseData>> = ({
           placeholder="Enter Role Name"
         />
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-md-2 mb-3">
         <TextInput
           label="Slots"
           type="number"
           value={state.slots}
           name="slots"
           onChange={handleChange}
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Access Level"
+          value={state.access_level}
+          name="access_level"
+          onChange={handleChange}
+          options={[
+            { value: "system", label: "System" },
+            { value: "basic", label: "Basic" },
+            { value: "operative", label: "Operative" },
+            { value: "control", label: "Control" },
+            { value: "command", label: "Command" },
+            { value: "sovereign", label: "Sovereign" },
+          ]}
+          valueKey="value"
+          labelKey="label"
+          defaultValue=""
+          defaultCheckDisabled
+          size="sm"
         />
       </div>
     </>

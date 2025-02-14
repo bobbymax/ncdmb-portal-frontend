@@ -2,7 +2,7 @@ import { ViewsProps } from "../BaseRepository";
 
 export const documentActionViews: ViewsProps[] = [
   {
-    title: "List of Actions",
+    title: "List of Board Actions",
     server_url: "documentActions",
     component: "DocumentActions",
     frontend_path: "/specifications/document-actions",
@@ -11,7 +11,7 @@ export const documentActionViews: ViewsProps[] = [
     mode: "list",
   },
   {
-    title: "Create Action",
+    title: "Create Board Action",
     server_url: "documentActions",
     component: "DocumentAction",
     frontend_path: "/specifications/document-actions/create",
@@ -22,7 +22,7 @@ export const documentActionViews: ViewsProps[] = [
     index_path: "/specifications/document-actions",
   },
   {
-    title: "Manage Action",
+    title: "Manage Board Action",
     server_url: "documentActions",
     component: "DocumentAction",
     frontend_path: "/specifications/document-actions/:id/manage",

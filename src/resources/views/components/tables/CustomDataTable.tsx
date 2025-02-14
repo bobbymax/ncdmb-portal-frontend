@@ -44,7 +44,7 @@ export interface ButtonsProp {
 
 export interface DataTableProps {
   pageName: string;
-  collection: Record<string, any>[];
+  collection: Record<string, unknown>[];
   columns: ColumnData[];
   manage?: (raw: Raw, label: string) => void;
   buttons: ButtonsProp[];
@@ -53,7 +53,7 @@ export interface DataTableProps {
   tag: string;
   exportBttn?: string;
   bttnVaraint?: "success" | "info" | "warning" | "danger" | "dark";
-  onExportData?: (data: Record<string, any>[]) => void;
+  onExportData?: (data: Record<string, unknown>[]) => void;
 }
 
 const CustomDataTable = ({
@@ -69,10 +69,10 @@ const CustomDataTable = ({
   bttnVaraint,
   onExportData,
 }: DataTableProps) => {
-  const [tableData, setTableData] = useState<Record<string, any>[]>([]);
+  const [tableData, setTableData] = useState<Record<string, unknown>[]>([]);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
-  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [filters, setFilters] = useState<Record<string, unknown>>({});
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const manager = useMemo(
@@ -125,7 +125,7 @@ const CustomDataTable = ({
     setPage(newPage);
   };
 
-  const handleFilterChange = (column: string, value: any) => {
+  const handleFilterChange = (column: string, value: unknown) => {
     setFilters((prevFilters) => ({ ...prevFilters, [column]: value }));
     setPage(1); // Reset to the first page on filter change
   };
@@ -163,6 +163,7 @@ const CustomDataTable = ({
             variant={`${bttnVaraint ?? "success"}`}
             handleClick={() => exportData()}
             isDisabled={collection?.length < 1 || !exportable}
+            size="sm"
           />
         </div>
       </div>
@@ -190,7 +191,9 @@ const CustomDataTable = ({
               tableData.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {columns.map((col) => (
-                    <td key={col.accessor}>{row[col.accessor] ?? "N/A"}</td>
+                    <td key={col.accessor}>
+                      {(row[col.accessor] as string) ?? "N/A"}
+                    </td>
                   ))}
                   {manage !== undefined && (
                     <td style={{ maxWidth: "10%", width: "10%" }}>

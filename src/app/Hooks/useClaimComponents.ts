@@ -15,7 +15,7 @@ import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 
 export const useClaimComponents = () => {
-  const { authState } = useAuth();
+  const { staff } = useAuth();
 
   const claimRepo = useMemo(() => new ClaimRepository(), []);
   const tripRepo = useMemo(() => new TripRepository(), []);
@@ -94,8 +94,7 @@ export const useClaimComponents = () => {
   };
 
   useEffect(() => {
-    if (authState) {
-      const { staff } = authState;
+    if (staff) {
       const getDependencies = async () => {
         try {
           const response = await claimRepo.dependencies();
@@ -113,7 +112,7 @@ export const useClaimComponents = () => {
       setRemunerations(staff?.remunerations ?? []);
       setGradeLevelId(staff?.grade_level_id ?? 0);
     }
-  }, [authState]);
+  }, [staff]);
 
   useEffect(() => {
     const { earliest } = getEarliestAndLatestDates(

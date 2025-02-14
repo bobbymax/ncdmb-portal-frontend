@@ -22,6 +22,8 @@ export default class DocumentTypeRepository extends BaseRepository {
       id: data.id ?? 0,
       name: data.name ?? "",
       label: data.label ?? "",
+      file_template_id: data.file_template_id ?? 0,
+      template: data.template ?? null,
       workflow: data.workflow ?? null,
       categories: data.categories ?? [],
       description: data.description ?? "",

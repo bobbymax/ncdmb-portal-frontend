@@ -1,5 +1,5 @@
 import { AxiosError, AxiosResponse } from "axios";
-import { ApiService, NetworkStatus } from "./ApiService";
+import { ApiService } from "./ApiService";
 import { JsonResponse } from "../Repositories/BaseRepository";
 
 export interface ServerResponse {
@@ -31,10 +31,6 @@ export abstract class RepositoryService implements IRepository {
 
   isServerErrorResponse = (data: any): data is { message: string } => {
     return data && typeof data.message === "string";
-  };
-
-  checkNetworkStatus = (callback: (status: NetworkStatus) => void) => {
-    this.api.onNetworkStatus(callback);
   };
 
   async fetchFile(path: string): Promise<any> {
@@ -127,6 +123,8 @@ export abstract class RepositoryService implements IRepository {
     param: string | number,
     body: Record<string, any> | FormData
   ): Promise<ServerResponse> {
+    console.log(typeof body);
+
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.put(
         `${url}/${param}`,

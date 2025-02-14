@@ -1,6 +1,7 @@
 import { BaseResponse } from "../BaseRepository";
 
 export interface DocumentActionResponseData extends BaseResponse {
+  carder_id: number;
   name: string;
   label: string;
   button_text: string;

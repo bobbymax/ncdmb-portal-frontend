@@ -33,8 +33,6 @@ const City: React.FC<FormPageComponentProps<CityResponseData>> = ({
     }
   }, [dependencies]);
 
-  console.log(allowances);
-
   return (
     <>
       <div className="col-md-4">

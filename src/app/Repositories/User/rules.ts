@@ -1,5 +1,15 @@
 export const userRules: { [key: string]: string } = {
-  name: "required|string",
+  firstname: "required|string",
+  middlename: "required|string",
+  surname: "required|string",
   email: "required|email",
+  department_id: "required|integer",
+  grade_level_id: "required|integer",
+  location_id: "required|integer",
+  role_id: "required|integer",
   staff_no: "required|string",
+  gender: "required|string",
+  date_joined: "required|string",
+  status: "required|string",
+  type: "required|string",
 };

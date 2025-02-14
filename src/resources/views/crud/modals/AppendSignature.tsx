@@ -1,10 +1,12 @@
 import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
 import { JsonResponse } from "app/Repositories/BaseRepository";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import Button from "resources/views/components/forms/Button";
 import TextInput from "resources/views/components/forms/TextInput";
+
+type SignatureDependencyProps = [column: string[]];
 
 const AppendSignature: React.FC<ModalValueProps<JsonResponse>> = ({
   title,
@@ -21,6 +23,7 @@ const AppendSignature: React.FC<ModalValueProps<JsonResponse>> = ({
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [clearedImage, setClearedImage] = useState<string | null>(null); // Temporarily store cleared image
   const signaturePadRef = useRef<SignatureCanvas | null>(null);
+  const [column, setColumn] = useState<string>("");
 
   const handleClear = () => {
     if (uploadedImage) {
@@ -56,9 +59,17 @@ const AppendSignature: React.FC<ModalValueProps<JsonResponse>> = ({
     const signatureData = uploadedImage || signaturePadRef.current?.toDataURL();
     if (signatureData) {
       setUploadedImage(null);
-      onSubmit(signatureData, "generate");
+      onSubmit(signatureData, "generate", column);
     }
   };
+
+  useEffect(() => {
+    if (dependencies) {
+      const [column = []] = dependencies as SignatureDependencyProps;
+      setColumn(column[0]);
+    }
+  }, [dependencies]);
+
   return (
     <>
       <div className="signature__pad__outter">

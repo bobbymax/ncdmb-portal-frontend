@@ -31,6 +31,7 @@ export default class ProgressTrackerRepository extends BaseRepository {
       trackerActions: data.trackerActions ?? [],
       trackerRecipients: data.trackerRecipients ?? [],
       order: data.order ?? 0,
+      stages: data.stages ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

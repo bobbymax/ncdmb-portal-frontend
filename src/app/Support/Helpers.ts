@@ -22,6 +22,11 @@ export const validate = (
   return { success: true, errors: [] };
 };
 
+export const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
 export const formatUrl = (
   urlTemplate: string,
   ...params: (string | number)[]
@@ -96,7 +101,7 @@ export const generateRandomNumbers = (
   max: number
 ) => {
   // 1: Create a `Set` object
-  let uniqueNumbers = new Set();
+  const uniqueNumbers = new Set();
   while (uniqueNumbers.size < count) {
     // 2: Generate each random number
     uniqueNumbers.add(Math.floor(Math.random() * (max - min + 1)) + min);

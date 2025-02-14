@@ -1,7 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
-import React, { FormEvent, useCallback, useEffect, useState } from "react";
+import React, {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ServerTrackersRequestProps } from "../ProgressTracker";
 import MultiSelect, {
   DataOptionsProps,
@@ -52,36 +58,33 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   });
 
   const handleMultiSelectChange = useCallback(
-    (key: "actions" | "recipients") =>
-      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
-        const updatedValue = newValue as DataOptionsProps[];
+    (key: "actions" | "recipients") => (newValue: unknown) => {
+      const updatedValue = newValue as DataOptionsProps[];
 
-        setMultipleSelections({
-          ...multipleSelections,
-          [key]: updatedValue,
-        });
+      setMultipleSelections((prev) => ({
+        ...prev,
+        [key]: updatedValue,
+      }));
 
-        updateModalState(identifier, { [key]: updatedValue ?? [] });
-      },
-    [updateModalState]
+      updateModalState(identifier, { [key]: updatedValue });
+    },
+    [multipleSelections, updateModalState]
   );
 
-  const handleSelectionChange = useCallback(
+  const handleSelectionChange =
     (key: "document_type" | "fallback_to_stage" | "return_to_stage") =>
-      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
-        const updatedValue = newValue as DataOptionsProps;
+    (newValue: unknown) => {
+      const updatedValue = newValue as DataOptionsProps;
 
-        setSelectedSingleOptions({
-          ...selectedSingleOptions,
-          [key]: updatedValue,
-        });
+      setSelectedSingleOptions((prev) => ({
+        ...prev,
+        [key]: updatedValue,
+      }));
 
-        updateModalState(identifier, {
-          [`${key}_id`]: updatedValue?.value ?? 0,
-        });
-      },
-    [updateModalState]
-  );
+      updateModalState(identifier, {
+        [`${key}_id`]: updatedValue?.value ?? 0,
+      });
+    };
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -89,11 +92,44 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   };
 
   useEffect(() => {
-    if (data) {
-      const raw = data as ServerTrackersRequestProps;
-      updateModalState(identifier, raw);
-    }
-  }, [data]);
+    if (!data || stages.length === 0 || docTypes.length === 0) return;
+
+    const raw = data as ServerTrackersRequestProps;
+    updateModalState(identifier, raw);
+
+    setSelectedSingleOptions((prev) => ({
+      ...prev,
+      document_type:
+        docTypes.find((doc) => doc.value === raw.document_type_id) ?? null,
+      fallback_to_stage: stages.find(
+        (stage) => stage.id === raw.fallback_to_stage_id
+      )
+        ? {
+            value: raw.fallback_to_stage_id,
+            label:
+              stages.find((stage) => stage.id === raw.fallback_to_stage_id)
+                ?.name || "Unknown",
+          }
+        : { value: 0, label: "None" },
+      return_to_stage: stages.find(
+        (stage) => stage.id === raw.return_to_stage_id
+      )
+        ? {
+            value: raw.return_to_stage_id,
+            label:
+              stages.find((stage) => stage.id === raw.return_to_stage_id)
+                ?.name || "Unknown",
+          }
+        : { value: 0, label: "None" },
+    }));
+
+    // Update multiple selections
+    setMultipleSelections((prev) => ({
+      ...prev,
+      actions: raw.actions,
+      recipients: raw.recipients,
+    }));
+  }, [data, stages, docTypes]);
 
   useEffect(() => {
     if (dependencies) {
@@ -106,6 +142,11 @@ const TrackerModal: React.FC<ModalValueProps> = ({
       setRecipients(recipients);
     }
   }, [dependencies]);
+
+  const formattedStages = useMemo(
+    () => [{ value: 0, label: "None" }, ...formatOptions(stages, "id", "name")],
+    [stages]
+  );
 
   const renderMultiSelect = (
     label: string,
@@ -143,11 +184,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         )}
         {renderMultiSelect(
           "Fallback Stages",
-          formatOptions(
-            stages.filter((stage) => stage.status !== "passed"),
-            "id",
-            "name"
-          ),
+          formattedStages,
           selectedSingleOptions.fallback_to_stage,
           handleSelectionChange("fallback_to_stage"),
           "Fallback Stage",
@@ -155,7 +192,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         )}
         {renderMultiSelect(
           "Return to Stages",
-          formatOptions(stages, "id", "name"),
+          formattedStages,
           selectedSingleOptions.return_to_stage,
           handleSelectionChange("return_to_stage"),
           "Return to Stage",
@@ -187,9 +224,9 @@ const TrackerModal: React.FC<ModalValueProps> = ({
             variant="success"
             size="sm"
             isDisabled={
-              state.actions?.length < 1 ||
-              state.recipients?.length < 1 ||
-              state.document_type_id < 1
+              !state ||
+              state.actions?.length === 0 ||
+              state.recipients?.length === 0
             }
           />
         </div>

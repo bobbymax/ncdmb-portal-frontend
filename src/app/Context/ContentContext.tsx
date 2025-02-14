@@ -1,8 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { AuthPageResponseData } from "app/Repositories/Page/data";
-import { UserResponseData } from "app/Repositories/User/data";
 import { createContext, useContext, useState } from "react";
 import { ProtectedProps } from "resources/templates/Protected";
+import { AuthState, AuthUserResponseData } from "./AuthContext";
+import { GroupResponseData } from "app/Repositories/Group/data";
+import { RoleResponseData } from "app/Repositories/Role/data";
+import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 
 interface StateContextType {
   apps: AuthPageResponseData[];
@@ -11,12 +14,18 @@ interface StateContextType {
   setNavigation: React.Dispatch<React.SetStateAction<AuthPageResponseData[]>>;
   pages: AuthPageResponseData[];
   setPages: React.Dispatch<React.SetStateAction<AuthPageResponseData[]>>;
+  groups: GroupResponseData[];
+  setGroups: React.Dispatch<React.SetStateAction<GroupResponseData[]>>;
+  remunerations: RemunerationResponseData[];
+  setRemunerations: React.Dispatch<
+    React.SetStateAction<RemunerationResponseData[]>
+  >;
+  role: RoleResponseData | null;
+  setRole: React.Dispatch<React.SetStateAction<RoleResponseData | null>>;
   permissions: string[];
   setPermissions: React.Dispatch<React.SetStateAction<string[]>>;
-  authenticatedUser: UserResponseData | null;
-  setAuthenticatedUser: React.Dispatch<
-    React.SetStateAction<UserResponseData | null>
-  >;
+  authenticatedUser: AuthState | null;
+  setAuthenticatedUser: React.Dispatch<React.SetStateAction<AuthState | null>>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -27,9 +36,18 @@ export const ContentContext = ({ children }: ProtectedProps) => {
   const [apps, setApps] = useState<AuthPageResponseData[]>([]);
   const [navigation, setNavigation] = useState<AuthPageResponseData[]>([]);
   const [pages, setPages] = useState<AuthPageResponseData[]>([]);
+  const [groups, setGroups] = useState<GroupResponseData[]>([]);
+  const [remunerations, setRemunerations] = useState<
+    RemunerationResponseData[]
+  >([]);
+  const [role, setRole] = useState<RoleResponseData | null>(null);
+
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [authenticatedUser, setAuthenticatedUser] =
-    useState<UserResponseData | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState<AuthState | null>({
+    staff: null,
+    refresh_token: null,
+    token: null,
+  });
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (
@@ -41,6 +59,12 @@ export const ContentContext = ({ children }: ProtectedProps) => {
         setNavigation,
         pages,
         setPages,
+        groups,
+        setGroups,
+        remunerations,
+        setRemunerations,
+        role,
+        setRole,
         permissions,
         setPermissions,
         authenticatedUser,

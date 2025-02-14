@@ -9,14 +9,12 @@ import { useEffect, useState } from "react";
 
 interface FileActionProps<T extends BaseRepository> {
   Repo: T;
-  View: ViewsProps;
   uploads: UploadResponseData[];
   tab?: TabOptionProps;
 }
 
 const useFileActions = ({
   Repo,
-  View,
   uploads,
   tab,
 }: FileActionProps<BaseRepository>) => {

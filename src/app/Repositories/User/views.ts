@@ -2,7 +2,7 @@ import { ViewsProps } from "../BaseRepository";
 
 export const userViews: ViewsProps[] = [
   {
-    title: "Users List",
+    title: "Staff List",
     server_url: "users",
     component: "Users",
     frontend_path: "/admin-centre/employees",

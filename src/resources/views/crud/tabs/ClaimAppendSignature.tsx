@@ -28,6 +28,7 @@ const ClaimAppendSignature: React.FC<
     toast.success(response.message);
   };
 
+  // mutating the global state
   const { setState } = useForm(Repo, view, { onFormSubmit });
 
   const onSubmit = (

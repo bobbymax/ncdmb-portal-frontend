@@ -2,11 +2,11 @@ import { ViewsProps } from "../BaseRepository";
 
 export const progressTrackerViews: ViewsProps[] = [
   {
-    title: "List of Progress Trackers",
-    server_url: "progressTrackers",
+    title: "Workflow Trackers",
+    server_url: "workflows",
     component: "ProgressTrackers",
     frontend_path: "/admin-centre/progress-trackers",
-    type: "index",
+    type: "card",
     tag: "Add Tracker",
     mode: "list",
   },

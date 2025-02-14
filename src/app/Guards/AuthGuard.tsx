@@ -1,14 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Navigate, useLocation } from "react-router-dom";
 import React, { useEffect } from "react";
-import { AuthProvider } from "../Providers/AuthProvider";
 import Protected from "resources/templates/Protected";
 import { useStateContext } from "app/Context/ContentContext";
 import MenuProvider from "app/Providers/MenuProvider";
+import { useAuth } from "app/Context/AuthContext";
 
 export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
   const { pages, setApps, setNavigation } = useStateContext();
-  const authProvider = new AuthProvider();
+
   const menuProvider = new MenuProvider();
   const { pathname } = useLocation();
 
@@ -25,7 +26,7 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     }
   }, [pages, pathname]);
 
-  return authProvider.isAuthenticated() ? (
+  return isAuthenticated ? (
     <Protected>{children}</Protected>
   ) : (
     <Navigate to="/auth/login" replace />

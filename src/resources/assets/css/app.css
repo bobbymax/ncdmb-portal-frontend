@@ -2127,6 +2127,18 @@ storm-bttn span {
 }
 
 /* Document Files Design */
+.action__box {
+  background-color: var(--color-border);
+  padding: var(--card-padding-lg);
+  justify-content: flex-end;
+  margin-bottom: 35px;
+  background-color: var(--color-border);
+  background-image: radial-gradient(
+    rgba(227, 227, 227, 0.5) 1.5px,
+    transparent 0
+  );
+  background-size: 4px 4px;
+}
 
 .file__card {
   border-radius: 6px;
@@ -2220,42 +2232,42 @@ storm-bttn span {
   padding-top: 20px;
 }
 
-.canvas__container .top__layer {
+.top__layer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
 }
 
-.canvas__container .top__layer .brand__identity {
+.top__layer .brand__identity {
   display: flex;
   align-items: center;
   gap: var(--flex-gap-m);
   justify-content: flex-start;
 }
 
-.canvas__container .top__layer .brand__identity img {
-  width: 100px;
+.top__layer .brand__identity img {
+  width: 90px;
 }
 
-.canvas__container .top__layer .brand__identity .brand__name h1 {
+.top__layer .brand__identity .brand__name h1 {
   line-height: 1;
   margin-bottom: 5px;
   color: var(--color-ajacent);
 }
 
-.canvas__container .top__layer .claim__identity {
+.top__layer .claim__identity {
   display: flex;
   align-items: center;
   flex-direction: column;
   gap: var(--flex-gap-s);
 }
 
-.canvas__container .top__layer .claim__identity img {
+.top__layer .claim__identity img {
   width: 65px;
 }
 
-.canvas__container .rest__layer {
+.rest__layer {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2265,11 +2277,11 @@ storm-bttn span {
   width: 100%;
 }
 
-.canvas__container .rest__layer .title__section {
+.rest__layer .title__section {
   line-height: 0.5;
 }
 
-.canvas__container .rest__layer .total__expense_section {
+.rest__layer .total__expense_section {
   margin-top: 15px;
   margin-bottom: 15px;
   width: 100%;
@@ -2282,7 +2294,7 @@ storm-bttn span {
   margin-bottom: 21px;
 }
 
-.canvas__container .rest__layer .total__expense_section .signatures__section {
+.rest__layer .total__expense_section .signatures__section {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2301,7 +2313,7 @@ storm-bttn span {
   text-align: end;
 }
 
-.canvas__container .rest__layer .print__expense__wrapper {
+.rest__layer .print__expense__wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -2373,12 +2385,79 @@ storm-bttn span {
   /* font-family: "Dosis", sans-serif; */
 }
 
+.custom-table {
+  width: 100%;
+}
+
+.custom-table th {
+  padding: var(--card-padding-sm);
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  font-size: 1rem;
+}
+
+.custom-table tbody {
+  border: 1px solid var(--color-border);
+}
+
+.custom-table td {
+  padding: var(--card-padding-md);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.custom-table .amount {
+  text-align: right;
+}
+
+.custom-table tr:nth-child(even) {
+  background-color: var(--color-border-lighter);
+}
+
 /* Docket Design */
-.docket__container {
-  .docket__header {
-    border-radius: 8px;
-    overflow: hidden;
-  }
+.docket__header {
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 9px 12px;
+}
+
+.file__tab__content {
+  padding: 10px;
+  /* border: 1px solid var(--color-border-lighter); */
+  /* box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.28); */
+}
+
+.document__analysis small {
+  letter-spacing: 3px;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.document__analysis h1 {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 21px;
+  letter-spacing: 2px;
+  color: var(--color-ajacent);
+}
+
+.document__type {
+  padding: 5px 10px;
+  background-color: darkorange;
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.desk__office {
+  border-radius: 6px;
+  overflow: auto;
+  height: 720px;
 }
 
 /* Drag and Drop Board */
@@ -2389,26 +2468,34 @@ storm-bttn span {
   background-size: 13px 13px;
   margin-bottom: 25px;
   border-radius: 6px;
-  overflow: auto;
+  overflow: hidden;
   padding: 20px;
+  position: relative;
 }
 
 .tracker__container .workflow_section {
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: auto;
-  height: 570px;
+  height: 565px;
+  position: fixed;
+  width: 47.3%;
 }
 
-.tracker__container .workflow_section .workflow_section_header small {
-  font-size: 10px;
+.tracker__container .workflow_section .workflow_section_header small,
+.branches small {
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   color: var(--color-adjacent-alternate);
 }
 
 .tracker__container .workflow_section .workflow_section_header h3 {
-  font-size: 2.5rem;
+  font-size: 1.3rem;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: var(--color-ajacent);
 }
 
 .tracker__container .workflow_section .flowchart .flowchart__container {
@@ -2424,7 +2511,6 @@ storm-bttn span {
   .flowchart__body__canvas {
   font-size: 13px;
   color: var(--color-white);
-  width: 100%;
 }
 
 .tracker__container
@@ -2433,10 +2519,47 @@ storm-bttn span {
   .flowchart__container
   .flowchart__body__canvas
   .flowchart__canvas__item {
-  margin-bottom: 20px;
   overflow: hidden;
-  padding: 21px 19px;
+  padding: 14px;
+}
+
+.items__split {
+  /* width: 100%; */
+  justify-content: space-between;
+}
+
+.branches {
+  padding: var(--card-padding-md);
   border-radius: 3px;
+}
+
+.branches p {
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.branches.fallback__state {
+  background-color: var(--color-bttn-danger);
+}
+
+.branches.returnto_state {
+  background-color: var(--color-primary-coresponding);
+}
+
+.branches small {
+  line-height: 0;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.passed__state {
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+}
+
+.passed__state i {
+  font-size: 1rem;
 }
 
 .tracker__container
@@ -2448,7 +2571,7 @@ storm-bttn span {
   .div__plate__mid
   small {
   display: block;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .tracker__container
@@ -2474,12 +2597,21 @@ storm-bttn span {
   color: var(--color-white);
 }
 
+.bttn__area {
+  padding: 14px;
+}
+
+.tracker__container,
+.workflow_stages_section {
+  overflow: auto;
+}
+
 .workflow_stage_item {
   /* padding: var(--card-padding-md); */
   background-color: var(--color-white);
   border-radius: 4px;
-  overflow: hidden;
-  height: 300px;
+  /* overflow: hidden; */
+  /* height: 300px; */
   border: 1px solid var(--color-border);
 }
 
@@ -2487,13 +2619,9 @@ storm-bttn span {
   padding: var(--card-padding-md);
 }
 
-.workflow_stage_item .workflow_stage_header_item .stage__left {
-  justify-content: center;
-}
-
 .workflow_stage_item .workflow_stage_header_item img {
-  width: 25px;
-  height: 25px;
+  width: 18px;
+  height: 18px;
   background-blend-mode: multiply;
 }
 
@@ -2516,13 +2644,13 @@ storm-bttn span {
   align-items: center;
 }
 
-.workflow_stage_item .workflow_stage_middle_item .sec__group p.little-badge {
+p.little-badge {
   display: inline-block;
-  padding: 3px 12px;
+  padding: 2px 6px;
   border-radius: 3px;
   text-align: center;
   color: var(--color-white);
-  font-size: 11px;
+  font-size: 8px !important;
   margin-top: 8px;
   letter-spacing: 1.5px;
   /* border: 1px solid var(--color-border); */
@@ -2532,6 +2660,10 @@ storm-bttn span {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 2px;
+}
+
+.workflow_stage_footer {
+  padding: var(--card-padding-md);
 }
 
 .passed {
@@ -2560,6 +2692,11 @@ storm-bttn span {
 
 .complete {
   background-color: var(--color-bttn-success);
+}
+
+.workflow__card {
+  overflow: hidden;
+  border-radius: 4px;
 }
 
 @media (max-width: 800px) {

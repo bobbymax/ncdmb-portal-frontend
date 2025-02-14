@@ -5,21 +5,26 @@ import Textarea from "../components/forms/Textarea";
 import TextInput from "../components/forms/TextInput";
 import Select from "../components/forms/Select";
 import { StageCategoryResponseData } from "app/Repositories/StageCategory/data";
+import { CarderResponseData } from "app/Repositories/Carder/data";
 
 interface DependencyProps {
   stageCategories: StageCategoryResponseData[];
+  carders: CarderResponseData[];
 }
 
 const DocumentAction: React.FC<
   FormPageComponentProps<DocumentActionResponseData>
 > = ({ state, handleChange, loading, dependencies }) => {
   const [categories, setCategories] = useState<StageCategoryResponseData[]>([]);
+  const [carders, setCarders] = useState<CarderResponseData[]>([]);
 
   useEffect(() => {
     if (dependencies) {
-      const { stageCategories = [] } = dependencies as DependencyProps;
+      const { stageCategories = [], carders = [] } =
+        dependencies as DependencyProps;
 
       setCategories(stageCategories);
+      setCarders(carders);
     }
   }, [dependencies]);
 
@@ -150,7 +155,21 @@ const DocumentAction: React.FC<
           defaultCheckDisabled
         />
       </div>
-      <div className="col-md-8 mb-3">
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Access Level"
+          name="carder_id"
+          value={state.carder_id}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="id"
+          labelKey="name"
+          options={carders}
+          defaultValue={0}
+          defaultCheckDisabled
+        />
+      </div>
+      <div className="col-md-5 mb-3">
         <TextInput
           label="Action Component"
           name="component"

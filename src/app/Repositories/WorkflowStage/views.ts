@@ -2,12 +2,12 @@ import { ViewsProps } from "../BaseRepository";
 
 export const workflowStageViews: ViewsProps[] = [
   {
-    title: "List of Process Flows",
+    title: "List of Workflow Stages",
     server_url: "workflowStages",
     component: "WorkflowStages",
     frontend_path: "/admin-centre/stages",
     type: "index",
-    tag: "Add Process",
+    tag: "Add Stage",
     mode: "list",
   },
   {
@@ -18,7 +18,7 @@ export const workflowStageViews: ViewsProps[] = [
     type: "form",
     tag: "",
     mode: "store",
-    action: "Add Process",
+    action: "Add Stage",
     index_path: "/admin-centre/stages",
   },
   {
@@ -29,7 +29,7 @@ export const workflowStageViews: ViewsProps[] = [
     type: "form",
     tag: "",
     mode: "update",
-    action: "Update Record",
+    action: "Update Stage",
     index_path: "/admin-centre/stages",
   },
 ];

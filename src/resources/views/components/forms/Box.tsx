@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/role-has-required-aria-props */
 import React, { ChangeEvent } from "react";
 
 export interface CheckboxProps {

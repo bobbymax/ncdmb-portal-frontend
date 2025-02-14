@@ -33,8 +33,10 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     is_archived: 0,
     drafts: [],
     document_template: "",
+    document_type: null,
     workflow: null,
     owner: null,
+    documentable: undefined,
   },
   actions: [
     {

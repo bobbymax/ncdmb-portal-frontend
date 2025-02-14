@@ -1,5 +1,6 @@
 import { BaseResponse } from "../BaseRepository";
 import { DocumentDraftResponseData } from "../DocumentDraft/data";
+import { DocumentTypeResponseData } from "../DocumentType/data";
 import { WorkflowResponseData } from "../Workflow/data";
 
 export interface UploadResponseData extends BaseResponse {
@@ -42,11 +43,13 @@ export interface DocumentResponseData extends BaseResponse {
   description: string;
   file_path: string;
   document_template: string;
+  documentable: unknown;
   status: "pending" | "approved" | "rejected";
   drafts: DocumentDraftResponseData[];
   workflow: WorkflowResponseData | null;
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
+  document_type: DocumentTypeResponseData | null;
   is_archived: number;
   created_at?: string;
   updated_at?: string;

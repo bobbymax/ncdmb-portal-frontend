@@ -1,25 +1,63 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { ApiService } from "app/Services/ApiService";
-import { AxiosResponse } from "axios";
-import { UserResponseData } from "app/Repositories/User/data";
+import axios, { AxiosResponse } from "axios";
+import { RoleResponseData } from "app/Repositories/Role/data";
+import { AuthPageResponseData } from "app/Repositories/Page/data";
+import { GroupResponseData } from "app/Repositories/Group/data";
+import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
+import { useStateContext } from "./ContentContext";
+import accessPoint from "app/Services";
+import { getLoggedInUser } from "app/init";
+
+export type AuthUserResponseData = {
+  id: number;
+  name: string;
+  staff_no: string;
+  grade_level_id: number;
+  department_id: number;
+  location_id: number;
+  avatar: string;
+  email: string;
+  password?: string;
+  is_logged_in?: boolean;
+  role: RoleResponseData | null;
+  pages: AuthPageResponseData[];
+  groups: GroupResponseData[];
+  default_page_id: number;
+  remunerations: RemunerationResponseData[];
+};
 
 export interface AuthState {
-  staff: UserResponseData | null;
-  refresh_token: string | null;
-  token: string | null;
+  staff: AuthUserResponseData | null;
+  refresh_token?: string | null;
+  token?: string | null;
+}
+
+interface ErrorBlock {
+  response: {
+    data: {
+      message: string;
+    };
+  };
 }
 
 interface AuthContextType {
+  staff: AuthUserResponseData | undefined;
+  setStaff: Dispatch<SetStateAction<AuthUserResponseData | undefined>>;
   authState: AuthState;
-  login: (username: string, password: string) => Promise<AuthState>;
+  isAuthenticated: boolean;
+  setIsAuthenticated: Dispatch<SetStateAction<boolean>>;
   logout: () => void;
-  refreshToken: () => Promise<AuthState | undefined>;
-  updateAuthenticatedUser: (user: UserResponseData) => void;
+  updateAuthenticatedUser: (user: AuthUserResponseData) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const AUTH_TOKEN_KEY = "authToken";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -29,87 +67,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     refresh_token: null,
     token: null,
   });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [staff, setStaff] = useState<AuthUserResponseData | undefined>();
 
   const apiService = new ApiService();
 
-  useEffect(() => {
-    const storedData = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (storedData) {
-      try {
-        const parsedData: AuthState = JSON.parse(storedData);
-        if (parsedData?.staff && parsedData?.token) {
-          setAuthState(parsedData);
-        }
-      } catch (error) {
-        console.error("Failed to parse stored auth token", error);
-      }
-    }
-  }, []);
-
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<AuthState> => {
+  const fetchUser = async () => {
     try {
-      const response: AxiosResponse<{ data: AuthState }> =
-        await apiService.post("login", {
-          username,
-          password,
-        });
-      const data = response.data.data;
-      if (data && data.token) {
-        setAuthState(data);
-        localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(data));
+      const response: AxiosResponse<{ data: AuthUserResponseData | null }> =
+        await getLoggedInUser();
+      if (response && response.data.data) {
+        setStaff(response.data.data);
       }
 
-      return data as AuthState;
+      // console.log(response);
     } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
+      setIsAuthenticated(false);
     }
   };
 
-  const logout = () => {
-    apiService.post("logout", {}); // Optionally inform backend
-    setAuthState({ staff: null, refresh_token: null, token: null });
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  };
-
-  const refreshToken = async () => {
-    const storedData = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (storedData) {
-      const parsedData: AuthState = JSON.parse(storedData);
-      const response = await apiService.post("api/auth/refresh", {
-        refresh_token: parsedData.refresh_token,
-      });
-      const data = response.data;
-      if (data) {
-        setAuthState(data as AuthState);
-        localStorage.setItem(AUTH_TOKEN_KEY, JSON.stringify(data));
-      }
-
-      return data as AuthState;
+  // Logout Function
+  const logout = async () => {
+    try {
+      await apiService.post("logout", {});
+      setAuthState({ staff: null, token: null, refresh_token: null });
+      setStaff(undefined);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
 
-  const updateAuthenticatedUser = (staff: UserResponseData) => {
+  const updateAuthenticatedUser = (staff: AuthUserResponseData) => {
     setAuthState((prevState) => ({
       ...prevState,
       staff,
     }));
-    localStorage.setItem(
-      AUTH_TOKEN_KEY,
-      JSON.stringify({ ...authState, staff })
-    );
   };
+
+  // reference here
+  useEffect(() => {
+    if (isAuthenticated) {
+      const interval = setInterval(() => {
+        fetchUser();
+      }, 5 * 60 * 1000); // 5 minutes in milliseconds
+
+      return () => clearInterval(interval); // Cleanup interval on unmount
+    }
+  }, [isAuthenticated]);
 
   return (
     <AuthContext.Provider
       value={{
+        staff,
+        setStaff,
         authState,
-        login,
+        isAuthenticated,
+        setIsAuthenticated,
         logout,
-        refreshToken,
         updateAuthenticatedUser,
       }}
     >

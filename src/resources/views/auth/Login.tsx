@@ -4,41 +4,56 @@ import Button from "../components/forms/Button";
 import CompanyLogo from "../components/pages/CompanyLogo";
 import { useNavigate } from "react-router-dom";
 import { useStateContext } from "app/Context/ContentContext";
-import { AuthState, useAuth } from "app/Context/AuthContext";
-import { ApiService } from "app/Services/ApiService";
+import { getLoggedInUser, loginStaff } from "app/init";
+import { AxiosResponse } from "axios";
+import { AuthUserResponseData, useAuth } from "app/Context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setPages } = useStateContext();
-  const { login } = useAuth();
+  const { setIsAuthenticated, setStaff } = useAuth();
+  const { setPages, setRole, setApps, setGroups, setRemunerations } =
+    useStateContext();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    const apiService = new ApiService();
-
     try {
-      const response: AuthState = await login(username, password);
-      apiService.initializeAfterLogin();
+      await loginStaff({ username, password });
+      const staff: AxiosResponse<{ data: AuthUserResponseData }> =
+        await getLoggedInUser();
 
-      if (response && response.staff) {
-        const { pages = [] } = response.staff;
+      console.log(staff.data.data);
+
+      if (staff) {
+        const {
+          pages = [],
+          role = null,
+          groups = [],
+          remunerations = [],
+        } = staff.data.data;
+
+        setApps(pages.filter((page) => page.type === "app"));
+        setPages(pages);
+        setRole(role);
+        setGroups(groups);
+        setRemunerations(remunerations);
+        setIsAuthenticated(true);
+        setStaff(staff.data.data);
+
         const defaultPage = pages.find(
-          (app) =>
-            app.type === "app" &&
-            response.staff !== null && // Ensure response.staff is not null
-            response.staff.default_page_id === app.id
+          (page) => page.id === staff.data.data.default_page_id
         );
 
-        setPages(pages);
-        navigate(`${defaultPage?.path ?? "/"}`);
-      } else {
+        if (defaultPage) {
+          navigate(defaultPage.path);
+        } else {
+          console.log("Default Page not found");
+        }
       }
     } catch (error) {
-      console.error(error);
+      console.log(error);
     }
   };
 

@@ -4,6 +4,7 @@ import {
   ColumnData,
 } from "../../resources/views/components/tables/CustomDataTable";
 import { AxiosResponse } from "axios";
+import { DocumentableData } from "app/Hooks/useWorkflow";
 export interface BaseResponse {
   id: number;
 }
@@ -104,6 +105,38 @@ export abstract class BaseRepository extends RepositoryService {
     this.fillables.forEach((key) => {
       if (key in data) {
         result[key] = data[key];
+      }
+    });
+
+    return result;
+  };
+
+  public prepareServerData = (data: Record<string, any>): FormData | null => {
+    if (!data) {
+      return null;
+    }
+
+    const result = new FormData();
+
+    this.fillables.forEach((key) => {
+      if (key in data) {
+        const value = data[key];
+
+        if (value instanceof File) {
+          // Single file
+          result.append(key, value);
+        } else if (Array.isArray(value)) {
+          if (value.every((item) => item instanceof File)) {
+            // Array of files
+            value.forEach((file) => result.append(`${key}[]`, file));
+          } else {
+            // Non-file array
+            result.append(key, JSON.stringify(value));
+          }
+        } else {
+          // Append an empty string for null or undefined values (optional)
+          result.append(key, value?.toString() || "");
+        }
       }
     });
 

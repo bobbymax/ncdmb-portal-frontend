@@ -166,7 +166,7 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           options={workflows}
           valueKey="value"
           labelKey="label"
-          defaultValue={0}
+          defaultValue={999}
           defaultCheckDisabled
         />
       </div>
@@ -179,7 +179,7 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           options={documentTypes}
           valueKey="value"
           labelKey="label"
-          defaultValue={0}
+          defaultValue={999}
           defaultCheckDisabled
         />
       </div>

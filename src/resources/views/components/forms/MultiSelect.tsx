@@ -43,6 +43,21 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         isSearchable={isSearchable}
         isMulti={isMulti}
         isDisabled={isDisabled}
+        classNamePrefix="react-select"
+        theme={(theme) => ({
+          ...theme,
+          colors: {
+            ...theme.colors,
+            primary: "#3fa34d",
+            primary25: "#f5f9e9",
+          },
+        })}
+        styles={{
+          control: (baseStyles, state) => ({
+            ...baseStyles,
+            width: state.options ? "100%" : "0%",
+          }),
+        }}
       />
     </div>
   );

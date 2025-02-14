@@ -31,8 +31,8 @@ export default class DataTable {
   }
 
   paginate = (page: number, filters: object, searchTerm: string | null) => {
-    let filteredData = this.applyFilters(this.data, filters);
-    let searchData = this.applySearch(filteredData, searchTerm);
+    const filteredData = this.applyFilters(this.data, filters);
+    const searchData = this.applySearch(filteredData, searchTerm);
     return this.getPaginatedData(searchData, page);
   };
 

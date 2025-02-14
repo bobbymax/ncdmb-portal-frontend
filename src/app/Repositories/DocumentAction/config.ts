@@ -3,6 +3,7 @@ import { DocumentActionResponseData } from "./data";
 
 export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
   fillables: [
+    "carder_id",
     "name",
     "button_text",
     "description",
@@ -14,9 +15,15 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     "has_update",
     "component",
   ],
-  associatedResources: [],
+  associatedResources: [
+    {
+      name: "carders",
+      url: "carders",
+    },
+  ],
   state: {
     id: 0,
+    carder_id: 0,
     name: "",
     label: "",
     button_text: "",

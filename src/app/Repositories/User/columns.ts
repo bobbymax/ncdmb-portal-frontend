@@ -2,8 +2,13 @@ import { ColumnData } from "resources/views/components/tables/CustomDataTable";
 
 export const userColumns: ColumnData[] = [
   {
-    label: "Name",
-    accessor: "name",
+    label: "Firstname",
+    accessor: "firstname",
+    type: "text",
+  },
+  {
+    label: "Surname",
+    accessor: "surname",
     type: "text",
   },
   {

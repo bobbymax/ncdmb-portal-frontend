@@ -31,7 +31,6 @@ export interface ClaimResponseData extends BaseResponse {
   expenses: ExpenseResponseData[];
   owner: ClaimOwnerProps | null;
   supporting_documents: File[];
-  document?: DocumentResponseData | null;
   uploads?: UploadResponseData[];
   filename?: string;
   deletedExpenses?: ExpenseResponseData[];

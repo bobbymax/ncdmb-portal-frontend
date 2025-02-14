@@ -134,7 +134,7 @@ const DocumentCategory: React.FC<
 
       <div className="col-md-6 mb-3">
         <MultiSelect
-          label="Roles"
+          label="Supporting Documents Required"
           options={formatOptions(documentRequirements, "id", "name")}
           value={selectedRequirements}
           onChange={handleRequirementsChange}

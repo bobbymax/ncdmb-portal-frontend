@@ -22,6 +22,7 @@ export default class DocumentActionRepository extends BaseRepository {
   ): DocumentActionResponseData {
     return {
       id: data.id ?? 0,
+      carder_id: data.carder_id ?? 0,
       name: data.name ?? "",
       label: data.label ?? "",
       description: data.description ?? "",

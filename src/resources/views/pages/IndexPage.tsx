@@ -17,6 +17,8 @@ const IndexPage = ({
     {}
   );
 
+  // console.log(collection);
+
   const onManage = (raw: Raw, label: string) => {
     switch (label) {
       case "destroy":
