@@ -7,6 +7,7 @@ import { useStateContext } from "app/Context/ContentContext";
 import { getLoggedInUser, loginStaff } from "app/init";
 import { AxiosResponse } from "axios";
 import { AuthUserResponseData, useAuth } from "app/Context/AuthContext";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,6 +28,13 @@ const Login = () => {
       console.log(staff.data.data);
 
       if (staff) {
+        // Save user ID in cookies
+        Cookies.set("user_id", staff?.data?.data?.id?.toString(), {
+          expires: 7,
+          secure: true,
+          sameSite: "Strict",
+        });
+
         const {
           pages = [],
           role = null,

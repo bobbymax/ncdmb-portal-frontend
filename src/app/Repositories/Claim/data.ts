@@ -10,11 +10,12 @@ type ClaimOwnerProps = {
 };
 
 export interface ClaimResponseData extends BaseResponse {
-  user_id?: number;
+  user_id: number;
   department_id?: number;
   workflow_id?: number;
   document_category_id: number;
   document_type_id: number;
+  authorising_staff_id: number;
   code?: string;
   title: string;
   total_amount_spent: number;
@@ -35,6 +36,13 @@ export interface ClaimResponseData extends BaseResponse {
   filename?: string;
   deletedExpenses?: ExpenseResponseData[];
   deletedUploads?: UploadResponseData[];
+  authorising_officer?: {
+    id: number;
+    name: string;
+    staff_no: string | number;
+    grade_level: string;
+    email: string;
+  } | null;
   claimant_signature: string;
   approval_signature: string;
   created_at?: string;

@@ -9,4 +9,6 @@ export const documentActionRules: { [key: string]: string } = {
   state: "required|string",
   component: "string",
   mode: "required|string",
+  draft_status: "required|string",
+  resource_type: "required|string",
 };

@@ -6,7 +6,7 @@ import React from "react";
 const ProgressTrackers: React.FC<
   CardPageComponentProps<WorkflowResponseData, WorkflowRepository>
 > = ({ Repository, collection, onManageRawData, View }) => {
-  console.log(collection);
+  // console.log(collection);
 
   return (
     <div className="row">

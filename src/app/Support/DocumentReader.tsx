@@ -8,9 +8,17 @@ export const mergePDFs = async (fileUrls: string[]): Promise<Blob> => {
     const existingPdfBytes = await fetch(fileUrl).then((res) =>
       res.arrayBuffer()
     );
-    const pdf = await PDFDocument.load(existingPdfBytes);
-    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    copiedPages.forEach((page) => mergedPdf.addPage(page));
+
+    try {
+      const pdf = await PDFDocument.load(existingPdfBytes, {
+        ignoreEncryption: true,
+      });
+
+      const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+      copiedPages.forEach((page) => mergedPdf.addPage(page));
+    } catch (error) {
+      continue;
+    }
   }
 
   const mergedPdfBytes = await mergedPdf.save();
@@ -27,7 +35,7 @@ export const addSignatureToPDF = async (
   signatureDataUrl: string,
   pageIndex: number = 0
 ): Promise<Blob> => {
-  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
   const signatureImageBytes = await fetch(signatureDataUrl).then((res) =>
     res.arrayBuffer()
   );

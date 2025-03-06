@@ -1,6 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
+import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
+import { ServerTrackerData } from "app/Repositories/ProgressTracker/data";
+import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import React, {
   FormEvent,
   useCallback,
@@ -8,20 +10,17 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { ServerTrackersRequestProps } from "../ProgressTracker";
+import { ActionMeta } from "react-select";
+import Button from "resources/views/components/forms/Button";
 import MultiSelect, {
   DataOptionsProps,
 } from "resources/views/components/forms/MultiSelect";
-import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
-import { formatOptions } from "app/Support/Helpers";
-import { ActionMeta } from "react-select";
-import Button from "resources/views/components/forms/Button";
 
-type ModalDependenciesProps = [
-  stages: WorkflowStageResponseData[],
+type DependencyProps = [
+  departments: DataOptionsProps[],
   documentTypes: DataOptionsProps[],
-  actions: DataOptionsProps[],
-  recipients: DataOptionsProps[]
+  carders: DataOptionsProps[],
+  stages: WorkflowStageResponseData[]
 ];
 
 const TrackerModal: React.FC<ModalValueProps> = ({
@@ -33,131 +32,110 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   const { getModalState, updateModalState } = useModal();
   const { isLoading } = useStateContext();
   const identifier = "tracker";
-  const state: ServerTrackersRequestProps = getModalState(identifier);
+  const state: ServerTrackerData = getModalState(identifier);
 
-  const [stages, setStages] = useState<WorkflowStageResponseData[]>([]);
-  const [actions, setActions] = useState<DataOptionsProps[]>([]);
-  const [docTypes, setDocTypes] = useState<DataOptionsProps[]>([]);
-  const [recipients, setRecipients] = useState<DataOptionsProps[]>([]);
-  const [selectedSingleOptions, setSelectedSingleOptions] = useState<{
+  // Extract dependencies safely
+  const [departments, documentTypes, carders, stages] = useMemo(() => {
+    return dependencies ? (dependencies as DependencyProps) : [[], [], [], []];
+  }, [dependencies]);
+
+  const [groups, setGroups] = useState<DataOptionsProps[]>([]);
+  const [accessibleActions, setAccessibleActions] = useState<
+    DataOptionsProps[]
+  >([]);
+  const [distribution, setDistribution] = useState<DataOptionsProps[]>([]);
+
+  const [selectedOptions, setSelectedOptions] = useState<{
+    group: DataOptionsProps | null;
+    department: DataOptionsProps | null;
     document_type: DataOptionsProps | null;
-    fallback_to_stage: DataOptionsProps | null;
-    return_to_stage: DataOptionsProps | null;
-  }>({
-    document_type: null,
-    fallback_to_stage: null,
-    return_to_stage: null,
-  });
-
-  const [multipleSelections, setMultipleSelections] = useState<{
+    carder: DataOptionsProps | null;
     actions: DataOptionsProps[];
     recipients: DataOptionsProps[];
   }>({
+    group: null,
+    department: null,
+    document_type: null,
+    carder: null,
     actions: [],
     recipients: [],
   });
 
-  const handleMultiSelectChange = useCallback(
-    (key: "actions" | "recipients") => (newValue: unknown) => {
-      const updatedValue = newValue as DataOptionsProps[];
+  /**
+   * Handle selection changes for various fields
+   */
+  const handleSelectionChange = useCallback(
+    (key: keyof typeof selectedOptions) =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        const updatedValue = Array.isArray(newValue)
+          ? (newValue as DataOptionsProps[])
+          : (newValue as DataOptionsProps);
 
-      setMultipleSelections((prev) => ({
-        ...prev,
-        [key]: updatedValue,
-      }));
+        // Update modal state dynamically
+        updateModalState(
+          identifier,
+          Array.isArray(updatedValue)
+            ? { [key]: updatedValue }
+            : { [`${key}_id`]: updatedValue.value }
+        );
 
-      updateModalState(identifier, { [key]: updatedValue });
-    },
-    [multipleSelections, updateModalState]
+        setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
+      },
+    [updateModalState, identifier]
   );
 
-  const handleSelectionChange =
-    (key: "document_type" | "fallback_to_stage" | "return_to_stage") =>
-    (newValue: unknown) => {
-      const updatedValue = newValue as DataOptionsProps;
-
-      setSelectedSingleOptions((prev) => ({
-        ...prev,
-        [key]: updatedValue,
-      }));
-
-      updateModalState(identifier, {
-        [`${key}_id`]: updatedValue?.value ?? 0,
-      });
-    };
-
-  const handleFormSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit(state, isUpdating ? "update" : "store");
+    onSubmit(state, "update");
   };
 
+  /**
+   * Sync `data` from props into modal state
+   */
   useEffect(() => {
-    if (!data || stages.length === 0 || docTypes.length === 0) return;
-
-    const raw = data as ServerTrackersRequestProps;
-    updateModalState(identifier, raw);
-
-    setSelectedSingleOptions((prev) => ({
-      ...prev,
-      document_type:
-        docTypes.find((doc) => doc.value === raw.document_type_id) ?? null,
-      fallback_to_stage: stages.find(
-        (stage) => stage.id === raw.fallback_to_stage_id
-      )
-        ? {
-            value: raw.fallback_to_stage_id,
-            label:
-              stages.find((stage) => stage.id === raw.fallback_to_stage_id)
-                ?.name || "Unknown",
-          }
-        : { value: 0, label: "None" },
-      return_to_stage: stages.find(
-        (stage) => stage.id === raw.return_to_stage_id
-      )
-        ? {
-            value: raw.return_to_stage_id,
-            label:
-              stages.find((stage) => stage.id === raw.return_to_stage_id)
-                ?.name || "Unknown",
-          }
-        : { value: 0, label: "None" },
-    }));
-
-    // Update multiple selections
-    setMultipleSelections((prev) => ({
-      ...prev,
-      actions: raw.actions,
-      recipients: raw.recipients,
-    }));
-  }, [data, stages, docTypes]);
-
-  useEffect(() => {
-    if (dependencies) {
-      const [stages = [], documentTypes = [], actions = [], recipients = []] =
-        dependencies as ModalDependenciesProps;
-
-      setStages(stages);
-      setDocTypes(documentTypes);
-      setActions(actions);
-      setRecipients(recipients);
+    if (data && groups.length > 0) {
+      const raw = data as ServerTrackerData;
+      updateModalState(identifier, raw);
+      setSelectedOptions((prev) => ({
+        ...prev,
+        group: groups.find((grp) => grp.value === raw.group_id) ?? null,
+        department:
+          departments.find((dept) => dept.value === raw.department_id) ?? null,
+        document_type:
+          documentTypes.find(
+            (docType) => docType.value === raw.document_type_id
+          ) ?? null,
+        carder:
+          carders.find((carder) => carder.value === raw.carder_id) ?? null,
+        actions: raw.actions ?? [],
+        recipients: raw.recipients ?? [],
+      }));
     }
-  }, [dependencies]);
+  }, [data, groups]);
 
-  const formattedStages = useMemo(
-    () => [{ value: 0, label: "None" }, ...formatOptions(stages, "id", "name")],
-    [stages]
-  );
+  /**
+   * Update form state when dependencies change
+   */
+  useEffect(() => {
+    if (stages.length > 0) {
+      const currentStage = stages[0]; // Default to the first stage
+      setGroups(currentStage.groups ?? []);
+      setAccessibleActions(currentStage.actions ?? []);
+      setDistribution(currentStage.recipients ?? []);
+    }
+  }, [stages]);
 
   const renderMultiSelect = (
     label: string,
     options: DataOptionsProps[],
-    value: DataOptionsProps | DataOptionsProps[] | null,
+    value: DataOptionsProps[] | DataOptionsProps | null,
     onChange: (newValue: unknown, actionMeta: ActionMeta<unknown>) => void,
     placeholder: string,
+    isDisabled: boolean = false,
     grid: number = 4,
     isMulti: boolean = false
   ) => (
-    <div className={`col-md-${grid} mb-3`}>
+    <div className={`col-md-${grid} mb-2`}>
       <MultiSelect
         label={label}
         options={options}
@@ -165,69 +143,70 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         onChange={onChange}
         placeholder={placeholder}
         isSearchable
-        isDisabled={isLoading}
+        isDisabled={isDisabled}
         isMulti={isMulti}
       />
     </div>
   );
 
   return (
-    <form onSubmit={handleFormSubmit}>
+    <form onSubmit={handleSubmit}>
       <div className="row">
         {renderMultiSelect(
+          "Groups",
+          groups,
+          selectedOptions.group,
+          handleSelectionChange("group"),
+          "Group"
+        )}
+        {renderMultiSelect(
+          "Departments",
+          departments,
+          selectedOptions.department,
+          handleSelectionChange("department"),
+          "Department"
+        )}
+        {renderMultiSelect(
           "Document Types",
-          docTypes,
-          selectedSingleOptions.document_type,
+          documentTypes,
+          selectedOptions.document_type,
           handleSelectionChange("document_type"),
-          "Document Type",
-          4
+          "Document Type"
         )}
         {renderMultiSelect(
-          "Fallback Stages",
-          formattedStages,
-          selectedSingleOptions.fallback_to_stage,
-          handleSelectionChange("fallback_to_stage"),
-          "Fallback Stage",
-          4
-        )}
-        {renderMultiSelect(
-          "Return to Stages",
-          formattedStages,
-          selectedSingleOptions.return_to_stage,
-          handleSelectionChange("return_to_stage"),
-          "Return to Stage",
-          4
-        )}
-        {renderMultiSelect(
+          "Can Perform Actions",
+          accessibleActions,
+          selectedOptions.actions,
+          handleSelectionChange("actions"),
           "Actions",
-          actions,
-          multipleSelections.actions,
-          handleMultiSelectChange("actions"),
-          "Stage Actions",
+          false,
           6,
           true
         )}
         {renderMultiSelect(
-          "Mailing List",
-          recipients,
-          multipleSelections.recipients,
-          handleMultiSelectChange("recipients"),
-          "Stage Recipients",
+          "Distribution List",
+          distribution,
+          selectedOptions.recipients,
+          handleSelectionChange("recipients"),
+          "Recipients",
+          false,
           6,
           true
+        )}
+        {renderMultiSelect(
+          "Access Level",
+          carders,
+          selectedOptions.carder,
+          handleSelectionChange("carder"),
+          "Carder"
         )}
         <div className="col-md-12">
           <Button
             label="Update Tracker"
-            icon="ri-list-settings-line"
+            icon="ri-save-2-line"
             type="submit"
-            variant="success"
+            variant="dark"
             size="sm"
-            isDisabled={
-              !state ||
-              state.actions?.length === 0 ||
-              state.recipients?.length === 0
-            }
           />
         </div>
       </div>

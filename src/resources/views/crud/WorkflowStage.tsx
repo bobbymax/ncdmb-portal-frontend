@@ -9,17 +9,17 @@ import { formatOptions } from "app/Support/Helpers";
 import { ActionMeta } from "react-select";
 import TextInput from "../components/forms/TextInput";
 import { StageCategoryResponseData } from "app/Repositories/StageCategory/data";
-import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
-import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import Select from "../components/forms/Select";
+import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
+import { MailingListResponseData } from "app/Repositories/MailingList/data";
 
 interface DependencyProps {
   departments: DepartmentResponseData[];
   groups: GroupResponseData[];
   stageCategories: StageCategoryResponseData[];
-  workflowStages: WorkflowStageResponseData[];
-  documentTypes: DocumentTypeResponseData[];
-  documentCategories: DocumentCategoryResponseData[];
+  stages: WorkflowStageResponseData[];
+  actions: DocumentActionResponseData[];
+  recipients: MailingListResponseData[];
 }
 
 const WorkflowStage: React.FC<
@@ -38,19 +38,49 @@ const WorkflowStage: React.FC<
   >([]);
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
+  const [actions, setActions] = useState<DataOptionsProps[]>([]);
+  const [recipients, setRecipients] = useState<DataOptionsProps[]>([]);
+  const [stages, setStages] = useState<DataOptionsProps[]>([]);
+
+  const [multipleSelections, setMultipleSelections] = useState<{
+    groups: DataOptionsProps[];
+    actions: DataOptionsProps[];
+    recipients: DataOptionsProps[];
+  }>({
+    groups: [],
+    actions: [],
+    recipients: [],
+  });
 
   const [selectedOptions, setSelectedOptions] = useState<{
     workflow_stage_category: DataOptionsProps | null;
-    group: DataOptionsProps | null;
+    fallback_stage: DataOptionsProps | null;
     department: DataOptionsProps | null;
   }>({
     workflow_stage_category: null,
-    group: null,
+    fallback_stage: null,
     department: null,
   });
 
+  const handleMultipleSelectionChange = useCallback(
+    (key: "groups" | "actions" | "recipients") =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        handleReactSelect(newValue, actionMeta, (value) => {
+          const updatedValue = value as DataOptionsProps[];
+          setMultipleSelections((prev) => ({ ...prev, [key]: updatedValue }));
+          if (setState) {
+            setState({
+              ...state,
+              [key]: updatedValue,
+            });
+          }
+        });
+      },
+    [handleReactSelect, setState]
+  );
+
   const handleSelectionChange = useCallback(
-    (key: "workflow_stage_category" | "group" | "department") =>
+    (key: "workflow_stage_category" | "fallback_stage" | "department") =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
         handleReactSelect(newValue, actionMeta, (value) => {
           const updatedValue = value as DataOptionsProps;
@@ -72,11 +102,22 @@ const WorkflowStage: React.FC<
         stageCategories = [],
         departments = [],
         groups = [],
+        actions = [],
+        recipients = [],
+        stages = [],
       } = dependencies as DependencyProps;
 
       const listOfDepartments = formatOptions(departments, "id", "abv");
 
+      console.log(stages);
+
       setStageCategories(stageCategories);
+      setActions(formatOptions(actions, "id", "name"));
+      setRecipients(formatOptions(recipients, "id", "name"));
+      setStages([
+        { label: "None", value: 0 },
+        ...formatOptions(stages, "id", "name"),
+      ]);
 
       setDepartments([
         { value: 0, label: "Originating Department" },
@@ -90,16 +131,20 @@ const WorkflowStage: React.FC<
   useEffect(() => {
     if (
       mode === "update" &&
-      state.group_id > 0 &&
       stageCategories.length > 0 &&
       departments.length > 0 &&
-      groups.length > 0
+      groups.length > 0 &&
+      stages.length > 0 &&
+      actions.length > 0 &&
+      recipients.length > 0
     ) {
       const department = departments.find(
         (dept) => dept.value === state.department_id
       );
 
-      const group = groups.find((group) => group.value === state.group_id);
+      const fallback = stages.find(
+        (stage) => stage.value === state.fallback_stage_id
+      );
       const stageCategory = stageCategories.find(
         (cat) => cat.id === state.workflow_stage_category_id
       );
@@ -112,10 +157,16 @@ const WorkflowStage: React.FC<
       setSelectedOptions({
         workflow_stage_category: single ?? null,
         department: department ?? null,
-        group: group ?? null,
+        fallback_stage: fallback ?? null,
+      });
+
+      setMultipleSelections({
+        groups: state.groups ?? [],
+        actions: state.actions ?? [],
+        recipients: state.recipients ?? [],
       });
     }
-  }, [mode, stageCategories, groups, departments]);
+  }, [mode, stageCategories, groups, departments, stages, actions, recipients]);
 
   const renderMultiSelect = (
     label: string,
@@ -157,14 +208,14 @@ const WorkflowStage: React.FC<
         "Department"
       )}
       {renderMultiSelect(
-        "Groups",
-        groups,
-        selectedOptions.group,
-        handleSelectionChange("group"),
-        "Group"
+        "Workflow Stages",
+        stages,
+        selectedOptions.fallback_stage,
+        handleSelectionChange("fallback_stage"),
+        "Fallback Stage"
       )}
 
-      <div className="col-md-8 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Name"
           name="name"
@@ -173,28 +224,25 @@ const WorkflowStage: React.FC<
           placeholder="Enter Process Stage Name"
         />
       </div>
-      <div className="col-md-4">
+      <div className="col-md-3">
         <Select
-          label="Status"
-          name="status"
+          label="Access Category"
+          name="category"
           defaultValue=""
           defaultCheckDisabled
           valueKey="value"
           labelKey="label"
-          value={state.status}
+          value={state.category}
           onChange={handleChange}
           options={[
-            { value: "passed", label: "Passed" },
-            { value: "failed", label: "Failed" },
-            { value: "attend", label: "Attend" },
-            { value: "appeal", label: "Appeal" },
-            { value: "stalled", label: "Stalled" },
-            { value: "cancelled", label: "Cancelled" },
-            { value: "complete", label: "Complete" },
+            { value: "staff", label: "Staff" },
+            { value: "third-party", label: "Third Party" },
+            { value: "system", label: "System" },
           ]}
+          size="sm"
         />
       </div>
-      <div className="col-md-4">
+      <div className="col-md-3">
         <Select
           label="Can Appeal"
           name="can_appeal"
@@ -208,9 +256,10 @@ const WorkflowStage: React.FC<
             { value: 1, label: "Yes" },
             { value: 0, label: "No" },
           ]}
+          size="sm"
         />
       </div>
-      <div className="col-md-4">
+      <div className="col-md-3">
         <Select
           label="Append Signature"
           name="append_signature"
@@ -224,24 +273,33 @@ const WorkflowStage: React.FC<
             { value: 1, label: "Yes" },
             { value: 0, label: "No" },
           ]}
+          size="sm"
         />
       </div>
-      <div className="col-md-4">
-        <Select
-          label="Should Upload Document"
-          name="should_upload"
-          defaultValue={999}
-          defaultCheckDisabled
-          valueKey="value"
-          labelKey="label"
-          value={state.should_upload}
-          onChange={handleChange}
-          options={[
-            { value: 1, label: "Yes" },
-            { value: 0, label: "No" },
-          ]}
-        />
-      </div>
+      {renderMultiSelect(
+        "Access Groups",
+        groups,
+        multipleSelections.groups,
+        handleMultipleSelectionChange("groups"),
+        "Access groups",
+        true
+      )}
+      {renderMultiSelect(
+        "Can Perform Actions",
+        actions,
+        multipleSelections.actions,
+        handleMultipleSelectionChange("actions"),
+        "Actions",
+        true
+      )}
+      {renderMultiSelect(
+        "Mail Distribution",
+        recipients,
+        multipleSelections.recipients,
+        handleMultipleSelectionChange("recipients"),
+        "Recipients",
+        true
+      )}
     </>
   );
 };

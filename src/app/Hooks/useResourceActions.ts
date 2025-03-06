@@ -95,6 +95,10 @@ export const useResourceActions = <T extends BaseRepository>(
     []
   );
 
+  const refreshRaw = (data: JsonResponse) => {
+    setRaw(data);
+  };
+
   useEffect(() => {
     if (shouldFetch) {
       const controller = new AbortController();
@@ -128,6 +132,7 @@ export const useResourceActions = <T extends BaseRepository>(
     updateCollection,
     resourceError,
     loading,
+    refreshRaw,
     columns: repo.columns,
     buttons: repo.actions,
   };

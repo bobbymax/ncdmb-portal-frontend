@@ -1,6 +1,6 @@
 import React from "react";
 
-interface ButtonProps {
+export interface ButtonProps {
   label?: string | number;
   variant?: "primary" | "success" | "info" | "warning" | "danger" | "dark";
   type?: "submit" | "button";
@@ -13,6 +13,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   rounded?: boolean;
   handleClick?: (value: string | number | object | []) => void;
+  iconSize?: "lg" | "nm";
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -28,6 +29,7 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   rounded = false,
   handleClick = undefined,
+  iconSize = "nm",
 }) => {
   return (
     <div className="bttn-group flex align gap-md">
@@ -39,7 +41,13 @@ const Button: React.FC<ButtonProps> = ({
         onClick={handleClick}
         disabled={isDisabled}
       >
-        {place === "left" && icon && <i className={icon} />}
+        {place === "left" && icon && (
+          <i
+            className={`${icon} ${
+              iconSize && iconSize === "lg" ? "bttn__icon" : ""
+            }`}
+          />
+        )}
         {label && <span>{label}</span>}
         {place === "right" && icon && <i className={icon} />}
       </button>

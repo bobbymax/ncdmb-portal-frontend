@@ -24,6 +24,7 @@ export default class RemunerationRepository extends BaseRepository {
       grade_level_id: data.grade_level_id ?? 0,
       amount: data.amount ?? 0,
       is_active: data.is_active ?? 0,
+      currency: data.currency ?? "NGN",
       start_date: data.start_date ?? "",
       expiration_date: data.expiration_date ?? "",
       created_at: data.created_at ?? "",

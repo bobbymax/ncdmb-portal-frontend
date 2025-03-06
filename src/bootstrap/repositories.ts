@@ -4,6 +4,12 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import ExpenditureRepository from "app/Repositories/Expenditure/ExpenditureRepository";
+import BudgetCodeRepository from "app/Repositories/BudgetCode/BudgetCodeRepository";
+import FundRepository from "app/Repositories/Fund/FundRepository";
+import SubBudgetHeadRepository from "app/Repositories/SubBudgetHead/SubBudgetHeadRepository";
+import BudgetHeadRepository from "app/Repositories/BudgetHead/BudgetHeadRepository";
+import DocumentUpdateRepository from "app/Repositories/DocumentUpdate/DocumentUpdateRepository";
 import LocationRepository from "app/Repositories/Location/LocationRepository";
 import CarderRepository from "app/Repositories/Carder/CarderRepository";
 import FileTemplateRepository from "app/Repositories/FileTemplate/FileTemplateRepository";
@@ -37,25 +43,31 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
-new LocationRepository(),
-new CarderRepository(),
-new FileTemplateRepository(),
-new MailingListRepository(),
-new FolderRepository(),
-new VerificationRepository(),
-new DocumentDraftRepository(),
-new ProgressTrackerRepository(),
-new StageCategoryRepository(),
-new DocumentRepository(),
-new ExpenseRepository(),
-new TripCategoryRepository(),
-new RemunerationRepository(),
-new AllowanceRepository(),
-new CityRepository(),
-new TripRepository(),
-new ClaimRepository(),
-new DocumentActionRepository(),
-new DocumentCategoryRepository(),
+new ExpenditureRepository(),
+new BudgetCodeRepository(),
+new FundRepository(),
+new SubBudgetHeadRepository(),
+new BudgetHeadRepository(),
+  new DocumentUpdateRepository(),
+  new LocationRepository(),
+  new CarderRepository(),
+  new FileTemplateRepository(),
+  new MailingListRepository(),
+  new FolderRepository(),
+  new VerificationRepository(),
+  new DocumentDraftRepository(),
+  new ProgressTrackerRepository(),
+  new StageCategoryRepository(),
+  new DocumentRepository(),
+  new ExpenseRepository(),
+  new TripCategoryRepository(),
+  new RemunerationRepository(),
+  new AllowanceRepository(),
+  new CityRepository(),
+  new TripRepository(),
+  new ClaimRepository(),
+  new DocumentActionRepository(),
+  new DocumentCategoryRepository(),
   new DocumentTypeRepository(),
   new DocumentRequirementRepository(),
   new WorkflowStageRepository(),
@@ -67,5 +79,69 @@ new DocumentCategoryRepository(),
   new RoleRepository(),
   new DepartmentRepository(),
 ];
+
+// 🔹 Extracts `DocumentCategory` from `App\\Models\\DocumentCategory`
+const extractModelName = (modelPath: string): string => {
+  return modelPath.split("\\").pop() || modelPath; // Get last part of namespace
+};
+
+// 🔹 Converts `ClaimRepository` → `claim` and `DocumentCategoryRepository` → `document_category`
+const toSnakeCase = (str: string): string =>
+  str
+    .replace(/([a-z])([A-Z])/g, "$1_$2") // Add underscores between camelCase
+    .replace(/Repository$/, "") // Remove "Repository" suffix
+    .toLowerCase(); // Convert to lowercase
+
+// 🔹 Converts `document_category` → `DocumentCategory` (for folder imports)
+const toFolderName = (str: string): string =>
+  str
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join("");
+
+// 🔹 Converts `DocumentCategory` → `documentcategory`
+const toServiceName = (str: string): string =>
+  str.replace(/_/g, "").toLowerCase();
+
+// 🔹 Handles either `camelCase` or `snake_case`
+const normalizeRepoName = (name: string): string =>
+  name.toLowerCase().replace(/_/g, "");
+
+// 🔹 Generate Repository Map (Key: snake_case repo name, Value: Repository Instance)
+const repoMap: Record<string, BaseRepository> = Object.fromEntries(
+  repositories.map((repo) => [toSnakeCase(repo.constructor.name), repo])
+);
+
+// 🔹 Dynamic Repository Resolver
+export const repo = (name: string): BaseRepository => {
+  const normalized = normalizeRepoName(name);
+  const repoInstance = Object.entries(repoMap).find(
+    ([key]) => normalizeRepoName(key) === normalized
+  )?.[1];
+
+  if (!repoInstance) {
+    // throw new Error(`Repository '${name}' not found.`);
+    return repo("document_update");
+  }
+  return repoInstance;
+};
+
+// 🔹 Dynamic Response Data Resolver (Handles CamelCase Folder Names)
+export const response = async (name: string): Promise<any> => {
+  try {
+    const folderName = toFolderName(name); // Convert `document_category` → `DocumentCategory`
+    const module = await import(`app/Repositories/${folderName}/data`);
+    return module.default || module;
+  } catch (error) {
+    console.error(`Response data for '${name}' not found.`);
+    return null;
+  }
+};
+
+// 🔹 Dynamic Service Name Resolver (Supports Full Model Path)
+export const service = (modelPath: string): string => {
+  const modelName = extractModelName(modelPath); // Extracts `DocumentCategory`
+  return toServiceName(toSnakeCase(modelName)); // Converts to `documentcategory`
+};
 
 export default repositories;

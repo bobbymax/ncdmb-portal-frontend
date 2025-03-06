@@ -64,6 +64,7 @@ export default class ClaimRepository extends BaseRepository {
       sponsoring_department_id: data.sponsoring_department_id,
       department_id: data.department_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
+      authorising_staff_id: data.authorising_staff_id ?? 0,
       document_category_id: data.document_category_id ?? 0,
       code: data.code ?? "",
       title: data.title ?? "",
@@ -85,6 +86,7 @@ export default class ClaimRepository extends BaseRepository {
       deletedUploads: data.deletedUploads ?? [],
       claimant_signature: data.claimant_signature ?? "",
       approval_signature: data.approval_signature ?? "",
+      authorising_officer: data.authorising_officer ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

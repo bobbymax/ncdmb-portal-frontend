@@ -1,5 +1,7 @@
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
 import { StageCategoryResponseData } from "../StageCategory/data";
+import { DocumentActionResponseData } from "../DocumentAction/data";
 
 export interface WorkflowStageGroupProps {
   id: number;
@@ -8,23 +10,18 @@ export interface WorkflowStageGroupProps {
 }
 
 export interface WorkflowStageResponseData extends BaseResponse {
-  group_id: number;
   workflow_stage_category_id: number;
+  fallback_stage_id: number;
   department_id: number;
   name: string;
-  stage_category: StageCategoryResponseData | null;
-  group: WorkflowStageGroupProps | null;
-  status:
-    | "passed"
-    | "failed"
-    | "attend"
-    | "appeal"
-    | "stalled"
-    | "cancelled"
-    | "complete";
   can_appeal: number;
   append_signature: number;
-  should_upload: number;
+  category: "staff" | "third-party" | "system";
+  stage_category: StageCategoryResponseData | null;
+  groups: DataOptionsProps[];
+  recipients: DataOptionsProps[];
+  actions: DataOptionsProps[];
+  document_actions: DocumentActionResponseData[];
   created_at?: string;
   updated_at?: string;
 }

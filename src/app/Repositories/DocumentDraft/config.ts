@@ -16,6 +16,8 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     "digital_signature_path",
     "signature",
     "status",
+    "type",
+    "resource_type",
   ],
   associatedResources: [],
   state: {
@@ -36,6 +38,9 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     status: "",
     template: null,
     draftable: null,
+    type: "paper",
+    resource_type: "",
+    ref: "",
   },
   actions: [
     {

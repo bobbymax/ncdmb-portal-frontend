@@ -56,6 +56,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           control: (baseStyles, state) => ({
             ...baseStyles,
             width: state.options ? "100%" : "0%",
+            zIndex: 1000,
           }),
         }}
       />

@@ -5,6 +5,60 @@ import { sprintf } from "sprintf-js";
 import { toWords } from "number-to-words";
 import { PDFDocument } from "pdf-lib";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
+import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
+import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
+import { TabOptionProps } from "app/Repositories/BaseRepository";
+
+export const accessibleTabs: TabOptionProps[] = [
+  {
+    title: "Pages",
+    label: "pages",
+    component: "FilePagesTab",
+    icon: "ri-file-copy-2-line",
+    variant: "success",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: true,
+    isDefault: true,
+    status: "draft",
+  },
+  {
+    title: "Supporting Documents",
+    label: "supporting-documents",
+    component: "MediaFilesTab",
+    icon: "ri-folder-line",
+    variant: "dark",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: true,
+    isDefault: false,
+    status: "draft",
+  },
+  {
+    title: "Updates",
+    label: "updates",
+    component: "FileUpdateTab",
+    icon: "ri-booklet-line",
+    variant: "info",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: false,
+    isDefault: false,
+    status: "draft",
+  },
+  {
+    title: "Terminate Process",
+    label: "terminate",
+    component: "TerminateProcessTab",
+    icon: "ri-file-shred-line",
+    variant: "danger",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: false,
+    isDefault: false,
+    status: "draft",
+  },
+];
 
 export const validate = (
   fillables: string[],
@@ -20,6 +74,21 @@ export const validate = (
   }
 
   return { success: true, errors: [] };
+};
+
+// Proper function to format number correctly
+export // Function to format numbers with commas and allow decimals
+const formatNumber = (value: string) => {
+  // Ensure only numbers and a single decimal point are allowed
+  const [integerPartRaw, decimalPart] = value.split(".");
+
+  // Format the integer part with commas
+  const integerPart = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  // If there’s a decimal part, retain it
+  return decimalPart !== undefined
+    ? `${integerPart}.${decimalPart}`
+    : integerPart;
 };
 
 export const getCookie = (name: string): string | null => {
@@ -93,6 +162,39 @@ export const formatOptions = (
   }));
 
   return response;
+};
+
+export const checkSignaturePosition = (
+  position: number,
+  node: ProgressTrackerResponseData | null,
+  drafts: DocumentDraftResponseData[],
+  draftId: number,
+  stage: WorkflowStageResponseData | null
+) => {
+  if (position < 1 || draftId < 1 || drafts.length < 1 || !stage || !node) {
+    return false;
+  }
+
+  const thisDraft = drafts.find(
+    (draft) =>
+      draft.progress_tracker_id === node.id &&
+      draft.current_workflow_stage_id === stage.id
+  );
+
+  if (!thisDraft || stage.append_signature !== 1) return false;
+
+  return node.order === position;
+};
+
+export const options = (
+  data: Record<string, any>[],
+  column: string
+): DataOptionsProps[] => {
+  if (!Array.isArray(data) || data.length < 1) {
+    return [];
+  }
+
+  return formatOptions(data, "id", column);
 };
 
 export const generateRandomNumbers = (

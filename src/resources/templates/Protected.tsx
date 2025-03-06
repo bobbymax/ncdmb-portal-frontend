@@ -19,7 +19,7 @@ const Protected = ({ children }: ProtectedProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { apps, navigation } = useStateContext();
-  const { logout } = useAuth();
+  const { logout, staff } = useAuth();
 
   const [dashboard, setDashboard] = useState<string>("");
   const [activePage, setActivePage] = useState<string>("");
@@ -61,8 +61,8 @@ const Protected = ({ children }: ProtectedProps) => {
                 <i className="ri-notification-2-line" />
                 <i className="ri-mail-line" />
                 <div className="profile-area__inner">
-                  <h2>Ekaro Bobby</h2>
-                  <small>Administrator</small>
+                  <h2>{staff?.name}</h2>
+                  <small>{staff?.role?.name}</small>
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ export interface RemunerationResponseData extends BaseResponse {
   is_active: number;
   start_date: string;
   expiration_date: string;
+  currency: "NGN" | "EUR" | "USD" | "GBP";
   created_at?: string;
   updated_at?: string;
 }

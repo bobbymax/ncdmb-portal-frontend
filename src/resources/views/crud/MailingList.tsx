@@ -61,8 +61,13 @@ const MailingList: React.FC<
         ...formatOptions(departments, "id", "abv"),
       ];
 
+      const newGroups = [
+        { value: 0, label: "Owner" },
+        ...formatOptions(groups, "id", "name"),
+      ];
+
       setDepartments(newDepts);
-      setGroups(formatOptions(groups, "id", "name"));
+      setGroups(newGroups);
     }
   }, [dependencies]);
 

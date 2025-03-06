@@ -18,6 +18,7 @@ export interface ModalValueProps<T = JsonResponse> {
     column?: string
   ) => void;
   dependencies?: any[][];
+  template?: string;
 }
 
 interface ManageModalProps {

@@ -1,39 +1,31 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
+import {
+  ProgressTrackerResponseData,
+  ServerTrackerData,
+} from "app/Repositories/ProgressTracker/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { FormPageComponentProps } from "bootstrap";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { ActionMeta } from "react-select";
-import { formatOptions } from "app/Support/Helpers";
+import { formatOptions, generateUniqueString } from "app/Support/Helpers";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
-import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
-import { MailingListResponseData } from "app/Repositories/MailingList/data";
-import Alert from "app/Support/Alert";
-import StageCapsule from "../components/capsules/StageCapsule";
-import FlowchartCapsules from "../components/capsules/FlowchartCapsules";
 import { useModal } from "app/Context/ModalContext";
+import { CarderResponseData } from "app/Repositories/Carder/data";
+import { DepartmentResponseData } from "app/Repositories/Department/data";
+import WorkflowStageRepository from "app/Repositories/WorkflowStage/WorkflowStageRepository";
+import Button from "../components/forms/Button";
+import CardButton from "../components/forms/CardButton";
 import TrackerModal from "./modals/TrackerModal";
+import Alert from "app/Support/Alert";
+
 interface DependencyProps {
   workflows: WorkflowResponseData[];
   stages: WorkflowStageResponseData[];
   documentTypes: DocumentTypeResponseData[];
-  documentActions: DocumentActionResponseData[];
-  mailingLists: MailingListResponseData[];
-}
-export interface ServerTrackersRequestProps
-  extends Partial<WorkflowStageResponseData> {
-  id: number;
-  workflow_stage_id: number;
-  fallback_to_stage_id: number;
-  return_to_stage_id: number;
-  document_type_id: number;
-  order: number;
-  actions: DataOptionsProps[];
-  recipients: DataOptionsProps[];
-  icon_path: string;
-  stage_category_name: string;
+  carders: CarderResponseData[];
+  departments: DepartmentResponseData[];
 }
 
 const ProgressTracker: React.FC<
@@ -42,18 +34,120 @@ const ProgressTracker: React.FC<
   const { openModal, closeModal } = useModal();
   const [workflows, setWorkflows] = useState<DataOptionsProps[]>([]);
   const [stages, setStages] = useState<WorkflowStageResponseData[]>([]);
-  const [actions, setActions] = useState<DataOptionsProps[]>([]);
-  const [recipients, setRecipients] = useState<DataOptionsProps[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DataOptionsProps[]>([]);
+  const [carders, setCarders] = useState<DataOptionsProps[]>([]);
+  const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
+  const [queue, setQueue] = useState<ServerTrackerData[]>([]);
 
-  const [processes, setProcesses] = useState<ServerTrackersRequestProps[]>([]);
+  const [trackerState, setTrackerState] = useState<ServerTrackerData>({
+    id: 0,
+    identifier: "",
+    workflow_stage_id: 0,
+    group_id: 0,
+    department_id: 0,
+    carder_id: 0,
+    document_type_id: 0,
+    order: 0,
+    stage_name: "",
+    actions: [],
+    recipients: [],
+  });
+
   const backendUrl = useMemo(() => "https://portal.test", []);
+  const stageRepo = useMemo(() => new WorkflowStageRepository(), []);
+
+  // console.log(state);
 
   const [selectedOptions, setSelectedOptions] = useState<{
     workflow: DataOptionsProps | null;
   }>({
     workflow: null,
   });
+
+  const handleAddToQueue = (stage: WorkflowStageResponseData) => {
+    const response: ServerTrackerData = {
+      id: 0,
+      identifier: generateUniqueString(32),
+      workflow_stage_id: stage.id,
+      group_id: 0,
+      department_id: 0,
+      carder_id: 0,
+      document_type_id: 0,
+      order: queue.length + 1,
+      stage_name: stage.name,
+      actions: [],
+      recipients: [],
+    };
+
+    setQueue([...queue, response]);
+  };
+
+  const onSubmit = (
+    response: unknown,
+    mode: "store" | "update" | "destroy" | "generate"
+  ) => {
+    // console.log(response);
+
+    const raw = response as ServerTrackerData;
+
+    setQueue(
+      queue.map((que) => {
+        if (que.identifier === raw.identifier) {
+          return raw;
+        }
+
+        return que;
+      })
+    );
+    closeModal();
+  };
+
+  const manageTracker = (tracker: ServerTrackerData) => {
+    const stage = stages.find((raw) => raw.id === tracker.workflow_stage_id);
+
+    if (stage) {
+      openModal(
+        TrackerModal,
+        "tracker",
+        {
+          title: `Manage ${stage.name} Tracker`,
+          isUpdating: true,
+          onSubmit,
+          data: tracker,
+          dependencies: [departments, documentTypes, carders, [stage]],
+        },
+        trackerState
+      );
+    }
+  };
+
+  const handleRemoveTracker = (tracker: ServerTrackerData) => {
+    Alert.flash(
+      "Are you Sure?",
+      "error",
+      "You will not be able to reverse this!!"
+    ).then((result) => {
+      if (result.isConfirmed) {
+        const newQueue = queue
+          .filter((track) => track.identifier !== tracker.identifier)
+          .map((track, idx) => ({ ...track, order: idx + 1 }));
+
+        setQueue(newQueue);
+      }
+    });
+  };
+
+  const getGroup = (selected: number, groupId: number) => {
+    const stage = stages.find((stg) => stg.id === selected);
+
+    if (!stage) {
+      return "Not Set!";
+    }
+
+    const grp = stage.groups.find((grp) => grp.value === groupId);
+
+    return grp ? grp.label : "Not Set!!";
+  };
 
   const handleSelectionChange = useCallback(
     (key: "workflow_stage" | "workflow") =>
@@ -72,130 +166,39 @@ const ProgressTracker: React.FC<
     [handleReactSelect, setState]
   );
 
-  const handleFlowchartBoard = (stage: WorkflowStageResponseData) => {
-    const position = processes.length + 1;
-    const process: ServerTrackersRequestProps = {
-      id: processes.length + 1,
-      workflow_stage_id: stage.id,
-      fallback_to_stage_id: 0,
-      return_to_stage_id: 0,
-      document_type_id: 0,
-      actions: [],
-      recipients: [],
-      order: position,
-      name: stage.name,
-      status: stage.status,
-      icon_path: stage.stage_category?.icon_path ?? "",
-      stage_category_name: stage.stage_category?.name ?? "",
-    };
-
-    Alert.flash(
-      "Add to Flowchart!!",
-      "info",
-      "You are adding this stage to the flowchart!!"
-    ).then((result) => {
-      if (result.isConfirmed) {
-        setProcesses((prev) =>
-          [...prev, process].sort((a, b) => a.order - b.order)
-        );
-      }
-    });
+  const handleStages = (stage: WorkflowStageResponseData) => {
+    return stageRepo.fromJson(stage);
   };
 
-  // console.log(processes);
-
-  const onSubmit = (
-    response: object | string,
-    mode: "store" | "update" | "destroy" | "generate"
-  ) => {
-    if (mode === "update") {
-      const trackerResponse = response as ServerTrackersRequestProps;
-
-      setProcesses(
-        processes.map((process) => {
-          if (process.id === trackerResponse.id) {
-            return trackerResponse;
-          }
-
-          return process;
-        })
-      );
-    } else if (mode === "destroy") {
-      Alert.flash(
-        "Are you Sure?",
-        "warning",
-        "You will not be able to reverse this!!"
-      ).then(async (result) => {
-        if (result.isConfirmed) {
-          console.log(response);
-        }
-      });
+  useEffect(() => {
+    if (setState) {
+      setState((prev) => ({
+        ...prev,
+        stages: queue,
+      }));
     }
-
-    closeModal();
-  };
-
-  // Manages the Tracker Modal
-  const move = (
-    process: ServerTrackersRequestProps,
-    currentPosition: number,
-    action: "up" | "down"
-  ) => {
-    if (action === "up" && currentPosition <= 1) return;
-    if (action === "down" && currentPosition >= processes.length) return;
-
-    const newPosition =
-      action === "up" ? currentPosition - 1 : currentPosition + 1;
-    const affectedProcess = processes.find((p) => p.order === newPosition);
-    if (!affectedProcess) return;
-
-    const updatedProcesses = processes.map((p) =>
-      p.id === process.id
-        ? { ...p, order: newPosition }
-        : p.id === affectedProcess.id
-        ? { ...p, order: currentPosition }
-        : p
-    );
-
-    setProcesses(updatedProcesses.sort((a, b) => a.order - b.order));
-  };
-
-  const manage = (process: ServerTrackersRequestProps) => {
-    openModal(TrackerModal, "tracker", {
-      title: `Manage ${process.name} Tracker`,
-      isUpdating: true,
-      onSubmit,
-      data: process,
-      dependencies: [stages, documentTypes, actions, recipients],
-    });
-  };
+  }, [queue, setState]);
 
   useEffect(() => {
     if (dependencies) {
       const {
         workflows = [],
         stages = [],
-        documentActions = [],
         documentTypes = [],
-        mailingLists = [],
+        carders = [],
+        departments = [],
       } = dependencies as DependencyProps;
 
       setWorkflows(formatOptions(workflows, "id", "name"));
-      setStages(stages);
-      setActions(formatOptions(documentActions, "id", "name"));
-      setRecipients(formatOptions(mailingLists, "id", "name"));
+      setStages(stages.map((stage) => handleStages(stage)));
+      setCarders(formatOptions(carders, "id", "name"));
+      setDepartments([
+        { value: 0, label: "Originating Department" },
+        ...formatOptions(departments, "id", "name"),
+      ]);
       setDocumentTypes(formatOptions(documentTypes, "id", "name"));
     }
   }, [dependencies]);
-
-  useEffect(() => {
-    if (setState && processes.length > 0) {
-      setState((prev) => ({
-        ...prev,
-        stages: processes,
-      }));
-    }
-  }, [processes, setState]);
 
   const renderMultiSelect = (
     label: string,
@@ -231,35 +234,107 @@ const ProgressTracker: React.FC<
 
       <div className="tracker__container">
         <div className="row">
-          <div className="col-md-6">
-            <div className="workflow_stages_section">
-              <div className="row">
-                {stages.map((stage) => (
-                  <div className="col-md-4 mb-3" key={stage.id}>
-                    <StageCapsule
-                      workflow_id={state.workflow_id}
-                      url={backendUrl}
-                      stage={stage}
-                      handleFlowchartBoard={handleFlowchartBoard}
+          <div className="col-md-8">
+            <div className="desk_stages flex align gap-lg">
+              {stages.map((stage, index) => (
+                <div key={index} className="desk_stages_index">
+                  <div className="process__image">
+                    <img
+                      src={backendUrl + stage.stage_category?.icon_path}
+                      alt="Process Icon"
                     />
+                  </div>
+                  <div className="process_details mt-3">
+                    <h5 className="mb-2">{stage.name}</h5>
+                  </div>
+                  <div className="footer__design mt-4">
+                    <Button
+                      label="Add to Tracker Queue"
+                      size="xs"
+                      variant="dark"
+                      icon="ri-archive-stack-line"
+                      handleClick={() => handleAddToQueue(stage)}
+                      // isDisabled
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="queue__board">
+              <h4 className="mb-4">Queued Trackers</h4>
+
+              <div className="queue__container flex column gap-md">
+                {queue.map((list, idx) => (
+                  <div className="tracker__item flex column" key={idx}>
+                    <div className="order_line flex align gap-md">
+                      <div className="number__widget">{list.order}</div>
+                      <p>
+                        {list.stage_name}
+                        <br />
+                        <small>
+                          {getGroup(list.workflow_stage_id, list.group_id)}
+                        </small>
+                        <br />
+                        <small>
+                          {documentTypes.find(
+                            (doc) => doc.value === list.document_type_id
+                          )?.label ?? "No Document Type!!"}
+                        </small>
+                      </p>
+                    </div>
+                    <div className="mid__section mb-3">
+                      <div className="item__section mb-2">
+                        <small>Actions:</small>
+                        <div className="stones_container">
+                          {list.actions.length > 0 ? (
+                            list.actions.map((action, i) => (
+                              <div key={i} className="stones actions">
+                                {action.label}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="stones actions">no actions</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="item__section mb-2">
+                        <small>Distribution Lists:</small>
+                        <div className="stones_container">
+                          {list.recipients.length > 0 ? (
+                            list.recipients.map((mailer, i) => (
+                              <div key={i} className="stones distribution">
+                                {mailer.label}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="stones distribution">
+                              empty list
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="process_actions flex align">
+                      <CardButton
+                        icon="ri-settings-2-line"
+                        label="Manage"
+                        variant="dark"
+                        handleClick={() => manageTracker(list)}
+                        size="sm"
+                      />
+                      <CardButton
+                        label="Remove"
+                        icon="ri-close-large-line"
+                        variant="danger"
+                        handleClick={() => handleRemoveTracker(list)}
+                        size="sm"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-          <div className="col-md-6">
-            <div className="workflow_section custom-card">
-              <div className="workflow_section_header mb-4">
-                <small>Workflow:</small>
-                <h3>{selectedOptions.workflow?.label ?? "Not Set"}</h3>
-              </div>
-
-              <FlowchartCapsules
-                processes={processes}
-                manageCapsule={manage}
-                move={move}
-                stages={stages}
-              />
             </div>
           </div>
         </div>

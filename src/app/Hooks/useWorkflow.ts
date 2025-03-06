@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import WorkflowRepository from "app/Repositories/Workflow/WorkflowRepository";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import {
   DocumentResponseData,
@@ -14,13 +13,17 @@ import {
 } from "app/Repositories/WorkflowStage/data";
 import { FileTemplateResponseData } from "app/Repositories/FileTemplate/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
+import ProgressTrackerRepository from "app/Repositories/ProgressTracker/ProgressTrackerRepository";
 
 export type DocumentableData = {
+  id: number;
   uploads: UploadResponseData[];
   [key: string]: unknown;
 };
 
 const useWorkflow = (document: DocumentResponseData | null) => {
+  const trackerRepo = useMemo(() => new ProgressTrackerRepository(), []);
+
   const [workflow, setWorkflow] = useState<WorkflowResponseData | null>(null);
   const [currentTracker, setCurrentTracker] =
     useState<ProgressTrackerResponseData | null>(null);
@@ -55,21 +58,22 @@ const useWorkflow = (document: DocumentResponseData | null) => {
         (tracker) => tracker.id === lastestDraft.progress_tracker_id
       );
 
+      const sanitized = tracker ? trackerRepo.fromJson(tracker) : null;
+
       if (document_type) {
         setDocType(document_type);
-
         const { template } = document_type;
 
         setTemplate(template);
       }
 
-      if (tracker) {
-        setStage(tracker.stage);
-        setGroup(tracker.stage?.group ?? null);
+      if (sanitized) {
+        setStage(sanitized.stage);
+        setGroup(sanitized.group ?? null);
+        setCurrentTracker(sanitized ?? null);
+        setActions(sanitized.loadedActions ?? []);
       }
 
-      setCurrentTracker(tracker ?? null);
-      setActions(tracker?.trackerActions ?? []);
       setDrafts(drafts);
       setWorkflow(workflow);
     }

@@ -7,13 +7,13 @@ export const documentActionColumns: ColumnData[] = [
     type: "text",
   },
   {
-    label: "Variant",
-    accessor: "variant",
+    label: "Status",
+    accessor: "draft_status",
     type: "text",
   },
   {
-    label: "Mode",
-    accessor: "mode",
+    label: "Resource Type",
+    accessor: "resource_type",
     type: "text",
   },
 ];

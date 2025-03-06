@@ -20,6 +20,7 @@ export default class GroupRepository extends BaseRepository {
     return {
       id: data.id ?? 0,
       name: data.name ?? "",
+      label: data.label ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

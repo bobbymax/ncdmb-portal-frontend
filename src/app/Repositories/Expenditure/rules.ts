@@ -1,0 +1,1 @@
+export const expenditureRules: { [key: string]: string } = {};

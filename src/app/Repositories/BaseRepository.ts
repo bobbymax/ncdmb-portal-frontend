@@ -181,8 +181,11 @@ export abstract class BaseRepository extends RepositoryService {
     }
 
     const requests: Promise<AxiosResponse<ApiResponse>>[] =
-      this.associatedResources.map((item) =>
-        this.api.get<ApiResponse>(item.url)
+      this.associatedResources.map(
+        (item) =>
+          this.api.get<ApiResponse>(item.url) as Promise<
+            AxiosResponse<ApiResponse>
+          >
       );
 
     const responses = await Promise.all(requests);

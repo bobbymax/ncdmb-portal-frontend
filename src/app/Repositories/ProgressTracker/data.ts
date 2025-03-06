@@ -1,22 +1,45 @@
-import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
-import { DocumentActionResponseData } from "../DocumentAction/data";
-import { MailingListResponseData } from "../MailingList/data";
 import { WorkflowStageResponseData } from "../WorkflowStage/data";
-import { ServerTrackersRequestProps } from "resources/views/crud/ProgressTracker";
+import { DocumentTypeResponseData } from "../DocumentType/data";
+import { CarderResponseData } from "../Carder/data";
+import { GroupResponseData } from "../Group/data";
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
+import { DocumentActionResponseData } from "../DocumentAction/data";
+
+export type ServerTrackerData = {
+  id: number;
+  identifier: string;
+  workflow_stage_id: number;
+  group_id: number;
+  department_id: number;
+  carder_id: number;
+  document_type_id: number;
+  order: number;
+  stage_name: string;
+  actions: DataOptionsProps[];
+  recipients: DataOptionsProps[];
+};
 
 export interface ProgressTrackerResponseData extends BaseResponse {
   workflow_id: number;
   workflow_stage_id: number;
   document_type_id: number;
-  fallback_to_stage_id: number;
-  return_to_stage_id: number;
-  stage: WorkflowStageResponseData | null;
-  trackerActions: DocumentActionResponseData[];
-  trackerRecipients: MailingListResponseData[];
-  stages: ServerTrackersRequestProps[];
-  workflow_stage_name?: string;
+  group_id: number;
+  carder_id: number;
+  department_id: number;
   order: number;
+  stage: WorkflowStageResponseData | null;
+  stages?: ServerTrackerData[];
+  group: GroupResponseData | null;
+  document_type: DocumentTypeResponseData | null;
+  carder: CarderResponseData | null;
+  actions: DataOptionsProps[];
+  recipients: DataOptionsProps[];
+  loadedActions: DocumentActionResponseData[];
+  department?: {
+    name: string;
+    abv: string;
+  };
   created_at?: string;
   updated_at?: string;
 }

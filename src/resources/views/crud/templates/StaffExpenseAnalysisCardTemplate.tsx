@@ -1,9 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  DraftCardProps,
-  DraftPageProps,
-  TabModelProps,
-} from "../tabs/FilePagesTab";
+import React, { useMemo } from "react";
+import { DraftPageProps } from "../tabs/FilePagesTab";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import {
   covertToWords,
@@ -14,69 +10,49 @@ import { useModal } from "app/Context/ModalContext";
 import Button from "resources/views/components/forms/Button";
 import AppendSignature from "../modals/AppendSignature";
 import { useAuth } from "app/Context/AuthContext";
-import { GroupResponseData } from "app/Repositories/Group/data";
-import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
 import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas";
 import LetterHeadedPaper from "resources/views/components/documents/LetterHeadedPaper";
 import claimLogo from "../../../assets/images/modules/claim.png";
+import { useStateContext } from "app/Context/ContentContext";
+import { useDraft } from "app/Hooks/useDraft";
+import { TabModelProps } from "app/Hooks/useFilePages";
 
 const StaffExpenseAnalysisCardTemplate: React.FC<
   DraftPageProps<TabModelProps>
-> = ({ data, draftId, updateLocalState, group, stage }) => {
-  const claim = useMemo(() => data as ClaimResponseData, [data]);
-  const { authState } = useAuth();
+> = ({ data, draftId, updateLocalState, group, stage, drafts }) => {
+  const {
+    document: claim,
+    currentDraft,
+    lastDraft,
+    setDraftState,
+  } = useDraft<ClaimResponseData>(
+    data as ClaimResponseData,
+    draftId,
+    drafts,
+    updateLocalState
+  );
 
+  const { staff } = useAuth();
+  const { groups } = useStateContext();
   const { openModal, closeModal } = useModal();
-  const [claimState, setClaimState] = useState<
-    DraftCardProps & { claimant_signature: string; approval_signature: string }
-  >({
-    resource_id: 0,
-    user_id: 0,
-    draftable_id: 0,
-    claimant_signature: "",
-    approval_signature: "",
-  });
-  const [signature, setSignature] = useState<string>("");
 
-  const onSubmit = (
+  const staffGroups = useMemo(
+    () => groups.map((group) => group.label),
+    [groups]
+  );
+
+  const handleSignatureSubmission = (
     response: object | string,
     mode: "store" | "update" | "destroy" | "generate",
     column?: string
   ) => {
-    setClaimState((prev) => ({
-      ...prev!,
+    setDraftState((prev) => ({
+      ...prev,
       isSigned: true,
       [column as string]: response as string,
     }));
-
-    setSignature(response as string);
     closeModal();
   };
-
-  // console.log(claimState, claim);
-
-  useEffect(() => {
-    if (claim && draftId > 0) {
-      setClaimState((prev) => ({
-        ...prev,
-        resource_id: claim.id,
-        user_id: claim?.user_id ?? 0,
-        draftable_id: claim.id,
-        claimant_signature: claim.claimant_signature ?? "",
-        approval_signature: claim.approval_signature ?? "",
-      }));
-    }
-  }, [claim, draftId]);
-
-  useEffect(() => {
-    updateLocalState({
-      isSigned: signature !== "",
-      draft_id: draftId,
-      service: "claim",
-      state: claimState,
-      signature,
-    });
-  }, [claimState]);
 
   return (
     <LetterHeadedPaper
@@ -143,13 +119,13 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                   <h1>{claim.owner?.name}</h1>
                 </div>
                 <div className="signature__pad__claimant">
-                  {claimState?.claimant_signature ? (
+                  {claim?.claimant_signature ? (
                     <SignatureCanvas
-                      signatureUrl={claimState?.claimant_signature}
+                      signatureUrl={claim?.claimant_signature as string}
                     />
                   ) : (
                     <div className="append__signature__bttn">
-                      {authState?.staff?.id === claim.user_id && (
+                      {staff?.id === claim.user_id && (
                         <Button
                           label="Append Signature"
                           handleClick={() =>
@@ -159,7 +135,7 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                               {
                                 title: "Sign Claim",
                                 isUpdating: true,
-                                onSubmit,
+                                onSubmit: handleSignatureSubmission,
                                 dependencies: [["claimant_signature"]],
                               },
                               claim
@@ -177,11 +153,11 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
               <div className="approval__signature__container">
                 <div className="signature__pad__approval mb-5">
                   <div className="long__dash">
-                    {claim.approval_signature ? (
-                      <img
-                        src={claim.approval_signature}
-                        className="signature__item"
-                        alt="Signature"
+                    {claim?.approval_signature &&
+                    currentDraft &&
+                    (currentDraft?.order ?? 0) >= 3 ? (
+                      <SignatureCanvas
+                        signatureUrl={claim?.approval_signature as string}
                       />
                     ) : (
                       <div
@@ -191,28 +167,45 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                           justifyContent: "flex-end",
                         }}
                       >
-                        {Array.isArray(authState?.staff?.groups) &&
-                          authState.staff?.groups.some(
-                            (g) => g.id === (group as GroupResponseData).id
-                          ) &&
-                          authState.staff?.id !== claimState.user_id && (
+                        {stage?.append_signature === 1 &&
+                          staff?.carder.label === "management" &&
+                          staffGroups.includes(group?.label ?? "") &&
+                          staff?.id !== claim.user_id &&
+                          lastDraft &&
+                          lastDraft.id === draftId && (
                             <Button
                               label="Authorize Claim"
-                              handleClick={() => {}}
+                              handleClick={() =>
+                                openModal(
+                                  AppendSignature,
+                                  "signature",
+                                  {
+                                    title: "Approve Claim",
+                                    isUpdating: true,
+                                    onSubmit: handleSignatureSubmission,
+                                    dependencies: [["approval_signature"]],
+                                  },
+                                  claim
+                                )
+                              }
                               size="sm"
                               icon="ri-sketching"
                               variant="success"
                             />
                           )}
-
-                        {/* Add if loggedin user is === claim user_id then show the request signature button */}
                       </div>
                     )}
                   </div>
                   <h4>Approved</h4>
                 </div>
                 <div className="approving__staff__details">
-                  <div className="long__dash" />
+                  <div className="long__dash">
+                    {(claim?.approval_signature as string) &&
+                      currentDraft &&
+                      (currentDraft?.order ?? 0) >= 3 && (
+                        <h1>{claim?.authorising_officer?.name}</h1>
+                      )}
+                  </div>
                   <h4>Name in Blocks:</h4>
                 </div>
               </div>

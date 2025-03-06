@@ -22,6 +22,7 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     "deletedUploads",
     "claimant_signature",
     "approval_signature",
+    "authorising_staff_id",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -35,9 +36,11 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
   state: {
     id: 0,
     code: "",
+    user_id: 0,
     sponsoring_department_id: 0,
     document_category_id: 0,
     document_type_id: 0,
+    authorising_staff_id: 0,
     workflow_id: 0,
     title: "",
     total_amount_spent: 0,

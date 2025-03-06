@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { DocumentDraftResponseData } from "./data";
 import { documentDraftRules } from "./rules";
 import { documentDraftViews } from "./views";
@@ -17,10 +22,11 @@ export default class DocumentDraftRepository extends BaseRepository {
   protected state: DocumentDraftResponseData = documentDraftConfig.state;
   public columns: ColumnData[] = documentDraftColumns;
   public actions: ButtonsProp[] = documentDraftConfig.actions;
-  public fromJson(data: DocumentDraftResponseData): DocumentDraftResponseData {
+  public fromJson(data: JsonResponse): DocumentDraftResponseData {
     return {
       id: data.id ?? 0,
       document_id: data.document_id ?? 0,
+      sub_document_reference_id: data.sub_document_reference_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
       group_id: data.group_id ?? 0,
       progress_tracker_id: data.progress_tracker_id ?? 0,
@@ -34,8 +40,13 @@ export default class DocumentDraftRepository extends BaseRepository {
       digital_signature_path: data.digital_signature_path ?? "",
       signature: data.signature ?? "",
       status: data.status ?? "",
+      resource_type: data.resource_type ?? "",
       template: data.template ?? null,
       draftable: data.draftable ?? null,
+      type: data.type ?? "paper",
+      order: data.order ?? 0,
+      ref: data.ref ?? "",
+      authorising_officer: data.authorising_officer ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

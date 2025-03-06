@@ -7,6 +7,11 @@ export const remunerationColumns: ColumnData[] = [
     type: "text",
   },
   {
+    label: "Currency",
+    accessor: "currency",
+    type: "text",
+  },
+  {
     label: "Grade Level",
     accessor: "grade_level",
     type: "text",

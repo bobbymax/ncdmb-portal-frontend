@@ -9,6 +9,7 @@ export const remunerationConfig: ConfigProp<RemunerationResponseData> = {
     "is_active",
     "start_date",
     "expiration_date",
+    "currency",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -20,6 +21,7 @@ export const remunerationConfig: ConfigProp<RemunerationResponseData> = {
     grade_level_id: 0,
     amount: 0,
     is_active: 0,
+    currency: "NGN",
     start_date: "",
     expiration_date: "",
   },

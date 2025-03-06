@@ -1,0 +1,44 @@
+import {
+  ColumnData,
+  ButtonsProp,
+} from "resources/views/components/tables/CustomDataTable";
+import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import { ExpenditureResponseData } from "./data";
+import { expenditureRules } from "./rules";
+import { expenditureViews } from "./views";
+import { expenditureColumns } from "./columns";
+import { expenditureConfig } from "./config";
+
+export default class ExpenditureRepository extends BaseRepository {
+  public fillables: Array<keyof ExpenditureResponseData> =
+    expenditureConfig.fillables;
+  public rules: { [key: string]: string } = expenditureRules;
+  public views: ViewsProps[] = expenditureViews;
+  protected state: ExpenditureResponseData = expenditureConfig.state;
+  public columns: ColumnData[] = expenditureColumns;
+  public actions: ButtonsProp[] = expenditureConfig.actions;
+  public fromJson(data: ExpenditureResponseData): ExpenditureResponseData {
+    return {
+      id: data.id ?? 0,
+      user_id: data.user_id ?? 0,
+      department_id: data.department_id ?? 0,
+      fund_id: data.fund_id ?? 0,
+      document_draft_id: data.document_draft_id ?? 0,
+      code: data.code ?? "",
+      purpose: data.purpose ?? "",
+      additional_info: data.additional_info ?? "",
+      amount: data.amount ?? "",
+      type: data.type ?? "staff-payment",
+      payment_category: data.payment_category ?? "other",
+      status: data.status ?? "",
+      currency: data.currency ?? "NGN",
+      cbn_current_rate: data.cbn_current_rate ?? "",
+      budget_year: data.budget_year ?? 0,
+      is_archived: data.is_archived ?? 0,
+      created_at: data.created_at ?? "",
+      updated_at: data.updated_at ?? "",
+    };
+  }
+  public associatedResources: DependencyProps[] =
+    expenditureConfig.associatedResources;
+}

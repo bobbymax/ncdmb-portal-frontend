@@ -1,0 +1,1 @@
+export const fundRules: { [key: string]: string } = {};

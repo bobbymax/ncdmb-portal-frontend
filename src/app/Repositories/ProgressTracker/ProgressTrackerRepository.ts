@@ -2,12 +2,18 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { ProgressTrackerResponseData } from "./data";
 import { progressTrackerRules } from "./rules";
 import { progressTrackerViews } from "./views";
 import { progressTrackerColumns } from "./columns";
 import { progressTrackerConfig } from "./config";
+import { formatOptions } from "app/Support/Helpers";
 
 export default class ProgressTrackerRepository extends BaseRepository {
   public fillables: Array<keyof ProgressTrackerResponseData> =
@@ -17,21 +23,24 @@ export default class ProgressTrackerRepository extends BaseRepository {
   protected state: ProgressTrackerResponseData = progressTrackerConfig.state;
   public columns: ColumnData[] = progressTrackerColumns;
   public actions: ButtonsProp[] = progressTrackerConfig.actions;
-  public fromJson(
-    data: ProgressTrackerResponseData
-  ): ProgressTrackerResponseData {
+  public fromJson(data: JsonResponse): ProgressTrackerResponseData {
     return {
       id: data.id ?? 0,
       workflow_id: data.workflow_id ?? 0,
       workflow_stage_id: data.workflow_stage_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
-      fallback_to_stage_id: data.fallback_to_stage_id ?? 0,
-      return_to_stage_id: data.return_to_stage_id ?? 0,
+      group_id: data.group_id ?? 0,
+      department_id: data.department_id ?? 0,
+      carder_id: data.carder_id ?? 0,
       stage: data.stage ?? null,
-      trackerActions: data.trackerActions ?? [],
-      trackerRecipients: data.trackerRecipients ?? [],
+      document_type: data.document_type ?? null,
+      carder: data.carder ?? null,
       order: data.order ?? 0,
-      stages: data.stages ?? [],
+      group: data.group ?? null,
+      actions: formatOptions(data.actions, "id", "button_text") ?? [],
+      recipients: formatOptions(data.recipients, "id", "name") ?? [],
+      department: data.department ?? null,
+      loadedActions: data.actions ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

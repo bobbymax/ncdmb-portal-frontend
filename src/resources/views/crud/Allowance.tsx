@@ -16,6 +16,7 @@ import { Raw } from "app/Support/DataTable";
 import { CityResponseData } from "app/Repositories/City/data";
 import { ActionMeta } from "react-select";
 import { JsonResponse } from "app/Repositories/BaseRepository";
+import { repo } from "bootstrap/repositories";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
@@ -61,7 +62,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
     []
   );
 
-  const remunerationRepo = new RemunerationRepository();
+  const remunerationRepo = repo("remuneration");
 
   const onSubmit = (
     response: object | string,

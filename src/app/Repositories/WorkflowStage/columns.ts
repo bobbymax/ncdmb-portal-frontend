@@ -7,8 +7,8 @@ export const workflowStageColumns: ColumnData[] = [
     type: "text",
   },
   {
-    label: "Group",
-    accessor: "group_name",
+    label: "Department",
+    accessor: "department_name",
     type: "text",
   },
 ];

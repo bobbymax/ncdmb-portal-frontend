@@ -1,6 +1,7 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { ApiService } from "./ApiService";
 import { JsonResponse } from "../Repositories/BaseRepository";
+import Cookies from "js-cookie";
 
 export interface ServerResponse {
   code?: number;
@@ -29,13 +30,19 @@ export abstract class RepositoryService implements IRepository {
     this.api = new ApiService();
   }
 
+  getUser(): { id: string } | null {
+    const userId = Cookies.get("user_id") || null;
+
+    return userId ? { id: userId } : null;
+  }
+
   isServerErrorResponse = (data: any): data is { message: string } => {
     return data && typeof data.message === "string";
   };
 
   async fetchFile(path: string): Promise<any> {
     try {
-      const response = await this.api.fetcher(path);
+      const response: AxiosResponse<Blob> = await this.api.fetcher(path);
 
       return {
         blob: response.data,

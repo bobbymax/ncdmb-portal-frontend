@@ -14,6 +14,9 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     "mode",
     "has_update",
     "component",
+    "category",
+    "draft_status",
+    "resource_type",
   ],
   associatedResources: [
     {
@@ -27,6 +30,7 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     name: "",
     label: "",
     button_text: "",
+    draft_status: "",
     action_status: "passed",
     icon: "",
     variant: "primary",
@@ -35,6 +39,8 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     description: "",
     has_update: 0,
     component: "",
+    category: "comment",
+    resource_type: "searchable",
   },
   actions: [
     {

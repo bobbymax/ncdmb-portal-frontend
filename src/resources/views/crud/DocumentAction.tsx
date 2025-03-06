@@ -30,7 +30,7 @@ const DocumentAction: React.FC<
 
   return (
     <>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Name"
           name="name"
@@ -40,7 +40,7 @@ const DocumentAction: React.FC<
           placeholder="Enter Document Action Name"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Button Text"
           name="button_text"
@@ -50,7 +50,7 @@ const DocumentAction: React.FC<
           placeholder="Enter Button Text"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Button Icon"
           name="icon"
@@ -58,6 +58,16 @@ const DocumentAction: React.FC<
           onChange={handleChange}
           isDisabled={loading}
           placeholder="Enter Button Icon"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <TextInput
+          label="Document Status"
+          name="draft_status"
+          value={state.draft_status}
+          onChange={handleChange}
+          isDisabled={loading}
+          placeholder="Enter Document Status"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -79,6 +89,7 @@ const DocumentAction: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -101,6 +112,7 @@ const DocumentAction: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -118,6 +130,7 @@ const DocumentAction: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -136,9 +149,10 @@ const DocumentAction: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <Select
           label="Update Draft"
           name="has_update"
@@ -153,6 +167,7 @@ const DocumentAction: React.FC<
           ]}
           defaultValue={999}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -167,9 +182,55 @@ const DocumentAction: React.FC<
           options={carders}
           defaultValue={0}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
-      <div className="col-md-5 mb-3">
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Resource Type"
+          name="resource_type"
+          value={state.resource_type}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "searchable", label: "Searchable" },
+            { value: "classified", label: "Classified" },
+            { value: "private", label: "Private" },
+            { value: "archived", label: "Archived" },
+            { value: "computed", label: "Computed" },
+            { value: "generated", label: "Generated" },
+            { value: "report", label: "Report" },
+            { value: "other", label: "Other" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Action Category"
+          name="category"
+          value={state.category}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "signature", label: "Signature" },
+            { value: "comment", label: "Comment" },
+            { value: "template", label: "Template" },
+            { value: "resource", label: "Resource" },
+            { value: "request", label: "Request" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-12 mb-3">
         <TextInput
           label="Action Component"
           name="component"

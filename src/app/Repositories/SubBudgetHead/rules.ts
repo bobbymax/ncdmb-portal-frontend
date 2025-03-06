@@ -1,0 +1,1 @@
+export const subBudgetHeadRules: { [key: string]: string } = {};

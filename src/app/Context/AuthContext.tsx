@@ -6,14 +6,13 @@ import React, {
   useState,
 } from "react";
 import { ApiService } from "app/Services/ApiService";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import { RoleResponseData } from "app/Repositories/Role/data";
 import { AuthPageResponseData } from "app/Repositories/Page/data";
 import { GroupResponseData } from "app/Repositories/Group/data";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
-import { useStateContext } from "./ContentContext";
-import accessPoint from "app/Services";
 import { getLoggedInUser } from "app/init";
+import { CarderResponseData } from "app/Repositories/Carder/data";
 
 export type AuthUserResponseData = {
   id: number;
@@ -22,6 +21,7 @@ export type AuthUserResponseData = {
   grade_level_id: number;
   department_id: number;
   location_id: number;
+  carder: CarderResponseData;
   avatar: string;
   email: string;
   password?: string;
@@ -39,14 +39,6 @@ export interface AuthState {
   token?: string | null;
 }
 
-interface ErrorBlock {
-  response: {
-    data: {
-      message: string;
-    };
-  };
-}
-
 interface AuthContextType {
   staff: AuthUserResponseData | undefined;
   setStaff: Dispatch<SetStateAction<AuthUserResponseData | undefined>>;
@@ -55,6 +47,7 @@ interface AuthContextType {
   setIsAuthenticated: Dispatch<SetStateAction<boolean>>;
   logout: () => void;
   updateAuthenticatedUser: (user: AuthUserResponseData) => void;
+  getUser: () => { id: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +55,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const apiService = new ApiService();
+
   const [authState, setAuthState] = useState<AuthState>({
     staff: null,
     refresh_token: null,
@@ -69,8 +64,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [staff, setStaff] = useState<AuthUserResponseData | undefined>();
+  const getUser = () => (staff ? { id: staff.id.toString() } : null);
 
-  const apiService = new ApiService();
+  // const apiService = new ApiService();
 
   const fetchUser = async () => {
     try {
@@ -78,8 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await getLoggedInUser();
       if (response && response.data.data) {
         setStaff(response.data.data);
+      } else {
+        setIsAuthenticated(false);
+        setStaff(undefined);
       }
-
       // console.log(response);
     } catch (error) {
       setIsAuthenticated(false);
@@ -95,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(false);
     } catch (error) {
       console.error("Logout failed:", error);
+      throw new Error(`Something went wrong ${error}`);
     }
   };
 
@@ -126,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsAuthenticated,
         logout,
         updateAuthenticatedUser,
+        getUser,
       }}
     >
       {children}

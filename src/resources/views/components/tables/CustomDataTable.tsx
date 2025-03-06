@@ -139,12 +139,14 @@ const CustomDataTable = ({
         >
           {pageName}
         </h1>
-        <Button
-          label={tag}
-          icon="ri-add-large-fill"
-          variant="info"
-          handleClick={addData}
-        />
+        {tag !== "" && (
+          <Button
+            label={tag}
+            icon="ri-add-large-fill"
+            variant="info"
+            handleClick={addData}
+          />
+        )}
       </div>
       <div className="top-section mb-4 flex center-align space-between">
         <div className="search-container" style={{ flexGrow: 1 }}>

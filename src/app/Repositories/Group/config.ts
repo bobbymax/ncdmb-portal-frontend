@@ -7,6 +7,7 @@ export const groupConfig: ConfigProp<GroupResponseData> = {
   state: {
     id: 0,
     name: "",
+    label: "",
   },
   actions: [
     {
