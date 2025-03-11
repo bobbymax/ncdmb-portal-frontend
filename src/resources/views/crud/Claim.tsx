@@ -2,7 +2,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import { FormPageComponentProps } from "bootstrap";
-import React, { ChangeEvent, useCallback, useEffect, useState } from "react";
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Trip from "./modals/Trip";
 import Button from "../components/forms/Button";
 import { useModal } from "app/Context/ModalContext";
@@ -68,7 +74,17 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
   const { pages } = useStateContext();
   const { pathname } = useLocation();
 
-  const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
+  const departments = useMemo(() => {
+    const resources = dependencies as DependencyProps;
+    return formatOptions(resources?.departments ?? [], "id", "abv");
+  }, [dependencies]);
+  const tripCategories = useMemo(() => {
+    const resources = dependencies as DependencyProps;
+    return resources?.tripCategories ?? [];
+  }, [dependencies]);
+
+  console.log(tripCategories);
+
   const [uploads, setUploads] = useState<File[]>([]);
   const [category, setCategory] = useState<
     DocumentCategoryResponseData | undefined
@@ -76,9 +92,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
   const [requiredDocs, setRequiredDocs] = useState<
     DocumentRequirementResponseData[]
   >([]);
-  const [tripCategories, setTripCategories] = useState<
-    TripCategoryResponseData[]
-  >([]);
+
   const [selectedDepartment, setSelectedDepartment] =
     useState<DataOptionsProps | null>(null);
 
@@ -102,26 +116,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     const docType = type.split("/");
     return docType[0];
   };
-
-  const handleFileUpload = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) {
-        const files = Array.from(e.target.files);
-
-        const newFiles = [...files, ...state.supporting_documents];
-
-        if (setState) {
-          setState((prev) => ({
-            ...prev,
-            supporting_documents: _.uniqWith(newFiles, _.isEqual),
-          }));
-        }
-      } else {
-        console.log("no files have been uploaded");
-      }
-    },
-    [setState]
-  );
 
   const onSubmit = (
     response: object | string,
@@ -220,13 +214,11 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
   useEffect(() => {
     if (dependencies && pathname !== "" && pages.length > 0) {
-      const { departments = [], tripCategories = [] } =
-        dependencies as DependencyProps;
-
       const pathArr = pathname.split("/");
       const path = `/${pathArr[1]}/${pathArr[2]}`;
-      // Set Trip Categories
-      setTripCategories(tripCategories);
+
+      // console.log(tripCategories);
+
       // Find Current Page
       const page = pages.find((pg) => pg.path === path);
 
@@ -256,7 +248,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           });
         }
       }
-      setDepartments(formatOptions(departments, "id", "abv"));
     }
   }, [dependencies, setState, params, pages, pathname]);
 

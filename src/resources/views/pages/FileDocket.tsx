@@ -42,6 +42,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
     needsSignature,
     fileState,
     fill,
+    updateServerDataState,
     draftTemplates,
   } = useWorkflowEngine(document, staff);
 
@@ -112,6 +113,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
                   fill={fill}
                   fileState={fileState}
                   draftTemplates={draftTemplates}
+                  updateServerDataState={updateServerDataState}
                 />
               </Suspense>
             </div>

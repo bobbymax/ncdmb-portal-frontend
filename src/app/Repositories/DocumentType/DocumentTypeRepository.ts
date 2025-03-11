@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { DocumentTypeResponseData } from "./data";
 import { documentTypeRules } from "./rules";
 import { documentTypeViews } from "./views";
@@ -17,7 +22,7 @@ export default class DocumentTypeRepository extends BaseRepository {
   protected state: DocumentTypeResponseData = documentTypeConfig.state;
   public columns: ColumnData[] = documentTypeColumns;
   public actions: ButtonsProp[] = documentTypeConfig.actions;
-  public fromJson(data: DocumentTypeResponseData): DocumentTypeResponseData {
+  public fromJson(data: JsonResponse): DocumentTypeResponseData {
     return {
       id: data.id ?? 0,
       name: data.name ?? "",
@@ -25,6 +30,7 @@ export default class DocumentTypeRepository extends BaseRepository {
       file_template_id: data.file_template_id ?? 0,
       template: data.template ?? null,
       workflow: data.workflow ?? null,
+      service: data.service ?? "",
       categories: data.categories ?? [],
       description: data.description ?? "",
       created_at: data.created_at ?? "",

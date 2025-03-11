@@ -6,26 +6,24 @@ import {
   WorkflowStageGroupProps,
   WorkflowStageResponseData,
 } from "app/Repositories/WorkflowStage/data";
-import React, { Suspense, useCallback } from "react";
+import React, { Suspense } from "react";
 import Button from "resources/views/components/forms/Button";
-import { DocumentUpdateResponseData } from "app/Repositories/DocumentUpdate/data";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
-import { DocumentNoteComponentProps } from "../templates/DispatchNoteComponent";
-import { TabModelProps, useFilePages } from "app/Hooks/useFilePages";
-import { DocketDataType, useWorkflowEngine } from "app/Hooks/useWorkflowEngine";
-import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
-import useDocketPipelines from "app/Hooks/useDocketPipelines";
-import { repo, service } from "bootstrap/repositories";
-import { useAuth } from "app/Context/AuthContext";
+import { DocumentNoteComponentProps } from "../templates/drafts/DispatchNoteComponent";
+import {
+  DocketDataType,
+  ServerDataRequestProps,
+} from "app/Hooks/useWorkflowEngine";
+import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
+import { BaseRepository, BaseResponse } from "app/Repositories/BaseRepository";
 
-export type ServerDocumentRequestProps = {
-  document: DocumentResponseData;
-  response: DocumentUpdateResponseData;
-  service: string;
-};
-
-export interface DraftPageProps<T = TabModelProps> {
+export interface DraftPageProps<
+  T extends BaseResponse,
+  D extends BaseRepository
+> {
+  resource: T;
+  repo: D;
   data: DocumentNoteComponentProps;
   template: FileTemplateResponseData | null;
   index: number;
@@ -33,9 +31,25 @@ export interface DraftPageProps<T = TabModelProps> {
   stage: WorkflowStageResponseData | null;
   draftId: number;
   drafts?: DocumentDraftResponseData[];
-  tracker?: ProgressTrackerResponseData | null;
+  tracker: ProgressTrackerResponseData | null;
   workflow: WorkflowResponseData | null;
-  updateLocalState: (localState: T) => void;
+  currentDraft: DocumentDraftResponseData;
+  updateServerDataState: (
+    response: { [key: string]: unknown },
+    authorisedOfficerId: number,
+    signature: string,
+    mode?: "store" | "update" | "destroy" | "generate"
+  ) => void;
+  fileState: ServerDataRequestProps;
+}
+
+export interface PaperProps<T extends BaseResponse, D extends BaseRepository> {
+  data: T;
+  repo: D;
+  template: FileTemplateResponseData | null;
+  index: number;
+  authorizedGroup: WorkflowStageGroupProps | null;
+  currentStage: WorkflowStageResponseData | null;
 }
 
 const FilePagesTab: React.FC<
@@ -53,58 +67,47 @@ const FilePagesTab: React.FC<
   resource,
   nextTracker,
   needsSignature,
-  document,
-  Repo,
   updateRaw,
   fill,
+  updateServerDataState,
   fileState,
   draftTemplates,
 }) => {
-  const { serverState, resolve } = useDocketPipelines(
+  const { resolveAction } = useFileDeskRoutePipelines(
     resource,
-    availableActions,
-    currentDraft
+    currentDraft,
+    needsSignature,
+    currentStage,
+    fileState,
+    currentTracker,
+    nextTracker,
+    updateRaw
   );
-
-  console.log(service("dispatch-note"));
-
-  const resolveAction = useCallback(
-    (action: DocumentActionResponseData) => {
-      // Check if this tracker needs to have a signature
-      if (needsSignature && fileState.signature === "") return false;
-    },
-    [needsSignature, fileState, nextTracker, currentDraft, currentTracker]
-  );
-
-  // console.log(fileState, serverState);
-
-  // console.log(service(currentDraft.document_draftable_type));
-
-  const updateLocalState = () => {};
-
-  // console.log(fileState);
 
   return (
     <>
       {/* Document Actions Section */}
-      <div className="document__actions__container">
-        <div className="action__box flex align gap-sm">
-          {availableActions &&
-            availableActions.map((action, i) => (
+      {availableActions?.length ? (
+        <div className="document__actions__container">
+          <div className="action__box flex align gap-sm">
+            {availableActions.map((action, i) => (
               <Button
                 key={i}
                 label={action.button_text}
                 icon={action.icon}
-                handleClick={() => resolve(action, fileState, nextTracker)}
+                handleClick={() => resolveAction(action)}
                 size="sm"
                 variant={action.variant}
                 isDisabled={action?.disabled ?? true}
               />
             ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <p>No actions available</p>
+      )}
 
-      {draftTemplates &&
+      {draftTemplates?.length ? (
         draftTemplates.map(({ id, component: DraftTemplateComponent }) => (
           <Suspense key={id} fallback={<div>Loading...</div>}>
             <DraftTemplateComponent
@@ -113,7 +116,6 @@ const FilePagesTab: React.FC<
               template={drafts.find((d) => d.id === id)?.template}
               group={group}
               stage={currentStage}
-              updateLocalState={updateLocalState}
               drafts={drafts}
               tracker={currentTracker}
               workflow={workflow}
@@ -125,9 +127,13 @@ const FilePagesTab: React.FC<
               fileState={fileState}
               docType={docType}
               currentDraft={currentDraft}
+              updateServerDataState={updateServerDataState}
             />
           </Suspense>
-        ))}
+        ))
+      ) : (
+        <p>No draft templates available</p>
+      )}
     </>
   );
 };

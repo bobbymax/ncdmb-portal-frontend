@@ -27,11 +27,15 @@ const FileUpdateTab: React.FC<
     }
 
     const documentOwnerId = document.user_id;
-    const operatorsIds =
-      document.updates?.map((update) => update.user_id) ?? [];
+    const operatorsIds = Array.isArray(document.updates)
+      ? document.updates?.map((update) => update.user_id)
+      : [];
+
     const threadsUserIds =
       document.updates?.flatMap((update) =>
-        update.threads.map((thread) => thread.user_id)
+        Array.isArray(update.threads)
+          ? update.threads.map((thread) => thread.user_id)
+          : []
       ) ?? [];
 
     let isDisabled = true; // Default to disabled
@@ -92,7 +96,7 @@ const FileUpdateTab: React.FC<
     <div className="row">
       <div className="col-md-12">
         <div className="updates__section">
-          {document.updates ? (
+          {Array.isArray(document.updates) && document.updates ? (
             document.updates.map((data, idx) => (
               <div className="document__update__item" key={idx}>
                 {/* Top Header */}
@@ -123,7 +127,8 @@ const FileUpdateTab: React.FC<
                     </div>
                   </div>
                   <div className="threads__container">
-                    {data.threads.length > 0 &&
+                    {Array.isArray(data.threads) &&
+                      data.threads.length > 0 &&
                       data.threads.map((thread, jx) => (
                         <div className="thread__item response_tag" key={jx}>
                           <p>{thread.response}</p>

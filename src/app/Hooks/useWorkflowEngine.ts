@@ -28,7 +28,7 @@ import React, {
 export type ServerStateRequestProps = {
   resource_id: number;
   user_id: number;
-  mode: "store" | "update" | "destroy";
+  mode: "store" | "update" | "destroy" | "generate";
   data: {
     [key: string]: unknown;
   };
@@ -41,8 +41,11 @@ export type ServerDataRequestProps = {
   last_draft_id?: number;
   document_action_id: number;
   progress_tracker_id: number;
+  service: string;
   message: string;
   signature?: string;
+  amount?: string;
+  taxable_amount?: string;
   authorising_staff_id: number;
   serverState: ServerStateRequestProps;
   component: string;
@@ -76,6 +79,12 @@ export type DocketDataType<
   document: DocumentResponseData;
   Repo: D;
   fill: (data: ServerDataRequestProps) => void;
+  updateServerDataState: (
+    response: { [key: string]: unknown },
+    authorisedOfficerId: number,
+    signature: string,
+    mode?: "store" | "update" | "destroy" | "generate"
+  ) => void;
   fileState: ServerDataRequestProps;
   setFileState: (data: ServerDataRequestProps) => void;
   draftTemplates: DraftTemplate[] | undefined;
@@ -90,8 +99,11 @@ const initialServerDataState: ServerDataRequestProps = {
   document_action_id: 0,
   progress_tracker_id: 0,
   component: "",
+  service: "",
   message: "",
   signature: "",
+  amount: "",
+  taxable_amount: "",
   authorising_staff_id: 0,
   serverState: {
     resource_id: 0,
@@ -117,6 +129,24 @@ export const useWorkflowEngine = (
     setFileState((prev) => ({ ...prev, ...data }));
   };
 
+  const updateServerDataState = (
+    response: { [key: string]: unknown },
+    authorisedOfficerId: number,
+    signature: string,
+    mode?: "store" | "update" | "destroy" | "generate"
+  ) => {
+    setFileState((prev) => ({
+      ...prev,
+      authorising_staff_id: authorisedOfficerId,
+      signature: signature,
+      serverState: {
+        ...prev.serverState,
+        mode: mode ?? "update",
+        data: response,
+      },
+    }));
+  };
+
   const docket = useMemo(() => {
     if (!document || !loggedInStaff) return null;
 
@@ -138,6 +168,7 @@ export const useWorkflowEngine = (
     const drafts = document.drafts;
     const currentStage = currentTracker.stage;
     const group = currentTracker.group;
+    // The Module from the Backend e.g. Claims, SubBudgetHeads etc.
     const resource = document.documentable;
 
     // Get Current Draft
@@ -151,21 +182,22 @@ export const useWorkflowEngine = (
     // Determine if the User has Access to Operate (Base Condition)
     let hasAccessToOperate = userGroups.includes(currentTracker?.group_id ?? 0);
 
-    // Check If Signature is Required and Not Provided → Disable "passed" Actions
-    if (
-      Number(currentTracker?.stage?.append_signature) === 1 &&
-      !fileState.signature
-    ) {
-      hasAccessToOperate = false;
-    }
-
     // Check If Logged-in User’s Groups are Not in Current Tracker Groups → Disable All Actions
     if (!userGroups.includes(currentTracker?.group_id ?? 0)) {
       hasAccessToOperate = false;
     }
 
-    // Check If Last Draft Status is "attention" → Disable "passed" Actions
-    const lastDraftStatus = currentDraft?.status;
+    // Check if this stage needs a signature
+    const needsSignature =
+      Number(currentTracker?.stage?.append_signature) === 1;
+
+    // Check If Signature is Required and Not Provided → Disable "passed" Actions
+    if (needsSignature && !fileState.signature) {
+      hasAccessToOperate = false;
+    }
+
+    // Check If Last Draft Type is "attention" → Disable "passed" Actions
+    const lastDraftStatus = currentDraft?.type;
     if (lastDraftStatus === "attention") {
       hasAccessToOperate = false;
     }
@@ -185,13 +217,7 @@ export const useWorkflowEngine = (
         ...action,
         disabled:
           !hasAccessToOperate ||
-          (Number(currentTracker?.stage?.append_signature) === 1 &&
-            !fileState.signature &&
-            action.action_status === "passed") ||
-          (lastDraftStatus === "attention" &&
-            action.action_status === "passed") ||
-          (currentDraft &&
-            currentDraft.department_id !== loggedInStaff.department_id),
+          (needsSignature && action.action_status === "passed"),
       })) ?? [];
 
     // Get Next Tracker
@@ -200,10 +226,6 @@ export const useWorkflowEngine = (
         (tracker) =>
           currentTracker && tracker.order === currentTracker?.order + 1
       ) ?? null;
-
-    // Check if this stage needs a signature
-    const needsSignature =
-      Number(currentTracker?.stage?.append_signature) === 1;
 
     return {
       workflow,
@@ -232,7 +254,10 @@ export const useWorkflowEngine = (
         return {
           id: draft.id,
           component: lazy(
-            () => import(`resources/views/crud/templates/${sanitizedComponent}`)
+            () =>
+              import(
+                `resources/views/crud/templates/drafts/${sanitizedComponent}`
+              )
           ),
         };
       })
@@ -251,5 +276,5 @@ export const useWorkflowEngine = (
     }
   }, [document, docket]);
 
-  return { ...docket, fill, fileState, draftTemplates };
+  return { ...docket, fill, updateServerDataState, fileState, draftTemplates };
 };

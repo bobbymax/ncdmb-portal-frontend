@@ -37,6 +37,7 @@ export default class DocumentActionRepository extends BaseRepository {
       resource_type: data.resource_type ?? "searchable",
       component: data.component ?? "",
       has_update: data.has_update ?? 0,
+      is_resource: data.is_resource ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

@@ -1,7 +1,6 @@
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { useEffect, useMemo, useState } from "react";
-import { DocumentNoteComponentProps } from "resources/views/crud/templates/DispatchNoteComponent";
-import { TabModelProps } from "./useFilePages";
+import { DocumentNoteComponentProps } from "resources/views/crud/templates/drafts/DispatchNoteComponent";
 import { JsonResponse } from "app/Repositories/BaseRepository";
 
 export type DraftCardProps<T = JsonResponse> = {
@@ -16,8 +15,7 @@ export type DraftCardProps<T = JsonResponse> = {
 export const useDraft = <T extends DocumentNoteComponentProps>(
   data: T,
   draftId: number,
-  drafts: DocumentDraftResponseData[] | undefined,
-  updateLocalState: (localState: TabModelProps) => void
+  drafts: DocumentDraftResponseData[] | undefined
 ) => {
   const document = useMemo(() => data, [data]);
 
@@ -45,16 +43,6 @@ export const useDraft = <T extends DocumentNoteComponentProps>(
     draftable_id: document.id,
     message: "",
   });
-
-  useEffect(() => {
-    updateLocalState({
-      draft_id: draftId,
-      service,
-      state: draftState,
-      signature: "",
-      authorising_staff_id: 0,
-    });
-  }, [draftState, service]);
 
   return {
     document,

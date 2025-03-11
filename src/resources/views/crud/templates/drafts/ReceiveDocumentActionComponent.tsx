@@ -1,12 +1,13 @@
 import React from "react";
-import { DraftPageProps } from "../tabs/FilePagesTab";
-import { TabModelProps } from "app/Hooks/useFilePages";
+import { DraftPageProps } from "../../tabs/FilePagesTab";
 import { useDraft } from "app/Hooks/useDraft";
+import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
+import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraftRepository";
 
 const ReceiveDocumentActionComponent: React.FC<
-  DraftPageProps<TabModelProps>
-> = ({ data, draftId, drafts, workflow, tracker, updateLocalState }) => {
-  const { currentDraft } = useDraft(data, draftId, drafts, updateLocalState);
+  DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
+> = ({ data, draftId, drafts, workflow, tracker }) => {
+  const { currentDraft } = useDraft(data, draftId, drafts);
   return (
     <div className="notebook__container">
       <div className="notebook">

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo } from "react";
-import { DraftPageProps } from "../tabs/FilePagesTab";
+import { DraftPageProps } from "../../tabs/FilePagesTab";
 import { useDraft } from "app/Hooks/useDraft";
-import { TabModelProps } from "app/Hooks/useFilePages";
+import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
+import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraftRepository";
 
 export type DocumentNoteComponentProps = {
   id: number;
@@ -10,15 +11,10 @@ export type DocumentNoteComponentProps = {
   [key: string]: any;
 };
 
-const DispatchNoteComponent: React.FC<DraftPageProps<TabModelProps>> = ({
-  data,
-  draftId,
-  drafts,
-  workflow,
-  tracker,
-  updateLocalState,
-}) => {
-  const { currentDraft } = useDraft(data, draftId, drafts, updateLocalState);
+const DispatchNoteComponent: React.FC<
+  DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
+> = ({ data, draftId, drafts, workflow, tracker }) => {
+  const { currentDraft } = useDraft(data, draftId, drafts);
 
   const nextTracker = useMemo(() => {
     if (!tracker || !workflow) return null;

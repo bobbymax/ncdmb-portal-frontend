@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { DraftPageProps } from "../tabs/FilePagesTab";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import {
   covertToWords,
@@ -8,29 +7,33 @@ import {
 } from "app/Support/Helpers";
 import { useModal } from "app/Context/ModalContext";
 import Button from "resources/views/components/forms/Button";
-import AppendSignature from "../modals/AppendSignature";
 import { useAuth } from "app/Context/AuthContext";
 import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas";
 import LetterHeadedPaper from "resources/views/components/documents/LetterHeadedPaper";
-import claimLogo from "../../../assets/images/modules/claim.png";
+import claimLogo from "../../../../assets/images/modules/claim.png";
 import { useStateContext } from "app/Context/ContentContext";
-import { useDraft } from "app/Hooks/useDraft";
-import { TabModelProps } from "app/Hooks/useFilePages";
+import { DraftPageProps } from "../../tabs/FilePagesTab";
+import AppendSignature from "../../modals/AppendSignature";
+import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
 
 const StaffExpenseAnalysisCardTemplate: React.FC<
-  DraftPageProps<TabModelProps>
-> = ({ data, draftId, updateLocalState, group, stage, drafts }) => {
-  const {
-    document: claim,
-    currentDraft,
-    lastDraft,
-    setDraftState,
-  } = useDraft<ClaimResponseData>(
-    data as ClaimResponseData,
-    draftId,
-    drafts,
-    updateLocalState
-  );
+  DraftPageProps<ClaimResponseData, ClaimRepository>
+> = ({
+  resource,
+  currentDraft,
+  draftId,
+  group,
+  stage,
+  drafts,
+  fileState,
+  updateServerDataState,
+}) => {
+  const claim = useMemo(() => resource as ClaimResponseData, [resource]);
+  const thisDraft = useMemo(() => {
+    if (!drafts || draftId < 1) return null;
+
+    return drafts.find((draft) => draft.id === draftId);
+  }, [drafts, draftId]);
 
   const { staff } = useAuth();
   const { groups } = useStateContext();
@@ -46,11 +49,17 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
     mode: "store" | "update" | "destroy" | "generate",
     column?: string
   ) => {
-    setDraftState((prev) => ({
-      ...prev,
-      isSigned: true,
+    const signatureObject = {
+      authorising_staff_id: staff?.id ?? 0,
       [column as string]: response as string,
-    }));
+    };
+
+    updateServerDataState(
+      signatureObject,
+      staff?.id ?? 0,
+      response as string,
+      mode
+    );
     closeModal();
   };
 
@@ -119,9 +128,12 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                   <h1>{claim.owner?.name}</h1>
                 </div>
                 <div className="signature__pad__claimant">
-                  {claim?.claimant_signature ? (
+                  {fileState.signature || claim?.claimant_signature ? (
                     <SignatureCanvas
-                      signatureUrl={claim?.claimant_signature as string}
+                      signatureUrl={
+                        (claim?.claimant_signature as string) ??
+                        (fileState.signature as string)
+                      }
                     />
                   ) : (
                     <div className="append__signature__bttn">
@@ -153,11 +165,14 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
               <div className="approval__signature__container">
                 <div className="signature__pad__approval mb-5">
                   <div className="long__dash">
-                    {claim?.approval_signature &&
-                    currentDraft &&
-                    (currentDraft?.order ?? 0) >= 3 ? (
+                    {(claim?.approval_signature || fileState.signature) &&
+                    thisDraft &&
+                    (thisDraft?.order ?? 0) >= 3 ? (
                       <SignatureCanvas
-                        signatureUrl={claim?.approval_signature as string}
+                        signatureUrl={
+                          (claim?.approval_signature as string) ??
+                          (fileState.signature as string)
+                        }
                       />
                     ) : (
                       <div
@@ -171,8 +186,8 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                           staff?.carder.label === "management" &&
                           staffGroups.includes(group?.label ?? "") &&
                           staff?.id !== claim.user_id &&
-                          lastDraft &&
-                          lastDraft.id === draftId && (
+                          currentDraft &&
+                          currentDraft.id === draftId && (
                             <Button
                               label="Authorize Claim"
                               handleClick={() =>

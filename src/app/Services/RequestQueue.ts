@@ -3,7 +3,7 @@ import CryptoJS from "crypto-js";
 class RequestQueue {
   private queue: (() => Promise<any>)[] = [];
   private isProcessing = false;
-  private SECRET_KEY = "your-secret-key-32-characters-long";
+  private SECRET_KEY = "ncdmb-staff-user";
   private IV = "1234567890123456";
 
   private encryptData(data: any): string {

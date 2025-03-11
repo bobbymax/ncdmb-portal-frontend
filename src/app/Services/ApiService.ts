@@ -61,7 +61,7 @@ export class ApiService {
   ): Promise<AxiosResponse<T>> {
     return this.request<T>({
       method: "GET",
-      url: `/api/${url}`,
+      url: `/api${url}`,
       params,
       responseType: "blob",
     });
@@ -77,6 +77,9 @@ export class ApiService {
   ): Promise<AxiosResponse<T>> {
     return this.request<T>({
       method: "POST",
+      headers: {
+        "Content-Type": this.getDataFormat(data),
+      },
       url: `/api/${url}`,
       data,
     });
@@ -94,6 +97,9 @@ export class ApiService {
 
     return this.request<T>({
       method: isFormData ? "POST" : "PUT",
+      headers: {
+        "Content-Type": this.getDataFormat(data),
+      },
       url: `/api/${url}`,
       data,
     });

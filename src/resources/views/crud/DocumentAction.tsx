@@ -230,7 +230,7 @@ const DocumentAction: React.FC<
           size="sm"
         />
       </div>
-      <div className="col-md-12 mb-3">
+      <div className="col-md-8 mb-3">
         <TextInput
           label="Action Component"
           name="component"
@@ -238,6 +238,24 @@ const DocumentAction: React.FC<
           onChange={handleChange}
           isDisabled={loading}
           placeholder="Enter Action Component"
+        />
+      </div>
+      <div className="col-md-4 mb-3">
+        <Select
+          label="Is Resource"
+          name="is_resource"
+          value={state.is_resource}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: 0, label: "No" },
+            { value: 1, label: "Yes" },
+          ]}
+          defaultValue={999}
+          defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-12 mb-3">

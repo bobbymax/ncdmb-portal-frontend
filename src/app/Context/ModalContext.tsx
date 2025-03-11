@@ -1,4 +1,9 @@
-import { BaseResponse, JsonResponse } from "app/Repositories/BaseRepository";
+import {
+  BaseRepository,
+  BaseResponse,
+  JsonResponse,
+} from "app/Repositories/BaseRepository";
+import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { Raw } from "app/Support/DataTable";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
@@ -15,10 +20,13 @@ export interface ModalValueProps<T = JsonResponse> {
   onSubmit: (
     raw: object | string,
     mode: "store" | "update" | "destroy" | "generate",
-    column?: string
+    column?: string,
+    action?: DocumentActionResponseData | null,
+    serverService?: string
   ) => void;
   dependencies?: any[][];
   template?: string;
+  service?: string;
 }
 
 interface ManageModalProps {
@@ -63,7 +71,8 @@ export const ModalProvider: React.FC<{
     Component: React.ComponentType<ModalValueProps>,
     identifier: string,
     props: ModalValueProps,
-    initialData?: BaseResponse
+    initialData?: BaseResponse,
+    Repo?: BaseRepository
   ) => {
     // console.log(content);
 

@@ -36,6 +36,8 @@ export default class DocumentDraftRepository extends BaseRepository {
       authorising_staff_id: data.authorising_staff_id ?? 0,
       document_draftable_id: data.document_draftable_id ?? 0,
       document_draftable_type: data.document_draftable_type ?? "",
+      amount: data.amount ?? "",
+      taxable_amount: data.taxable_amount ?? "",
       file_path: data.file_path ?? "",
       digital_signature_path: data.digital_signature_path ?? "",
       signature: data.signature ?? "",

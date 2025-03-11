@@ -18,6 +18,8 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     "status",
     "type",
     "resource_type",
+    "amount",
+    "taxable_amount",
   ],
   associatedResources: [],
   state: {
@@ -32,6 +34,8 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     authorising_staff_id: 0,
     document_draftable_id: 0,
     document_draftable_type: "",
+    amount: "",
+    taxable_amount: "",
     file_path: "",
     digital_signature_path: "",
     signature: "",

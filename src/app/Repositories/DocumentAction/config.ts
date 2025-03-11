@@ -17,6 +17,7 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     "category",
     "draft_status",
     "resource_type",
+    "is_resource",
   ],
   associatedResources: [
     {
@@ -41,6 +42,7 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     component: "",
     category: "comment",
     resource_type: "searchable",
+    is_resource: 0,
   },
   actions: [
     {

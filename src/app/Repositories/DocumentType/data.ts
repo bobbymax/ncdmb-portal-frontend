@@ -9,6 +9,7 @@ export interface DocumentTypeResponseData extends BaseResponse {
   description: string;
   file_template_id: number;
   template: FileTemplateResponseData | null;
+  service: string;
   workflow?: WorkflowResponseData | null;
   categories: DocumentCategoryResponseData[];
   created_at?: string;

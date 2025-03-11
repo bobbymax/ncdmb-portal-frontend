@@ -2,8 +2,11 @@ import { ConfigProp } from "../BaseRepository";
 import { DocumentTypeResponseData } from "./data";
 
 export const documentTypeConfig: ConfigProp<DocumentTypeResponseData> = {
-  fillables: ["name", "description", "file_template_id"],
-  associatedResources: [{ name: "templates", url: "fileTemplates" }],
+  fillables: ["name", "description", "file_template_id", "service"],
+  associatedResources: [
+    { name: "templates", url: "fileTemplates" },
+    { name: "apiServices", url: "apiServices" },
+  ],
   state: {
     id: 0,
     label: "",
@@ -11,6 +14,7 @@ export const documentTypeConfig: ConfigProp<DocumentTypeResponseData> = {
     description: "",
     categories: [],
     file_template_id: 0,
+    service: "",
     template: null,
   },
   actions: [

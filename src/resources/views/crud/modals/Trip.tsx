@@ -101,6 +101,8 @@ const Trip: React.FC<ModalValueProps> = ({
       const areas = cities as CityResponseData[];
       const categories = tripCategories as TripCategoryResponseData[];
 
+      console.log(tripCategories);
+
       setAirports(areas.filter((area) => area.has_airport === 1));
       setAllowances(alls.filter((allowance) => allowance.is_active === 1));
       setCities(areas);

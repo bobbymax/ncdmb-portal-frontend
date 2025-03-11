@@ -14,8 +14,6 @@ const MediaFilesTab: React.FC<
     tab,
   });
 
-  console.log(uploads);
-
   return (
     <div>
       {mergedPdfUrl && (

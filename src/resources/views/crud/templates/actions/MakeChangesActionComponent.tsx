@@ -1,23 +1,34 @@
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
-import { ActionComponentProps } from "../modals/DocumentUpdateModal";
+import React, { useEffect } from "react";
+import { ActionComponentProps } from "../../modals/DocumentUpdateModal";
 import { DocumentUpdateResponseData } from "app/Repositories/DocumentUpdate/data";
 import Textarea from "resources/views/components/forms/Textarea";
 import Button from "resources/views/components/forms/Button";
-import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
-import { DocumentResponseData } from "app/Repositories/Document/data";
+import DocumentUpdateRepository from "app/Repositories/DocumentUpdate/DocumentUpdateRepository";
 
 const MakeChangesActionComponent: React.FC<
-  ActionComponentProps<DocumentUpdateResponseData>
-> = ({ identifier, data, action, onSubmit, updateDocumentState, state }) => {
-  const { handleFormSubmit, handleInputChange, isLoading } =
-    useFileDeskRoutePipelines(
-      identifier,
-      data,
-      action,
-      updateDocumentState,
-      state,
-      onSubmit
-    );
+  ActionComponentProps<DocumentUpdateResponseData, DocumentUpdateRepository>
+> = ({
+  identifier,
+  data,
+  action,
+  currentDraft,
+  getModalState,
+  updateModalState,
+  handleInputChange,
+  handleFormSubmit,
+  isLoading,
+}) => {
+  const state: DocumentUpdateResponseData = getModalState(identifier);
+
+  useEffect(() => {
+    if (data) {
+      updateModalState(identifier, {
+        ...state,
+        document_action_id: action.id,
+        document_draft_id: currentDraft.id,
+      });
+    }
+  }, [data]);
 
   return (
     <form onSubmit={handleFormSubmit}>

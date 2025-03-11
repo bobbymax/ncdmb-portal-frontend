@@ -1,20 +1,17 @@
 import React from "react";
-import { DraftPageProps } from "../tabs/FilePagesTab";
+import { DraftPageProps } from "../../tabs/FilePagesTab";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import { useDraft } from "app/Hooks/useDraft";
-import { TabModelProps } from "app/Hooks/useFilePages";
+import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraftRepository";
+import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 
-const VerificationDocumentTemplate: React.FC<DraftPageProps<TabModelProps>> = ({
-  data,
-  draftId,
-  updateLocalState,
-  drafts,
-}) => {
+const VerificationDocumentTemplate: React.FC<
+  DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
+> = ({ data, draftId, drafts }) => {
   const { document: claim } = useDraft<ClaimResponseData>(
     data as ClaimResponseData,
     draftId,
-    drafts,
-    updateLocalState
+    drafts
   );
 
   return (

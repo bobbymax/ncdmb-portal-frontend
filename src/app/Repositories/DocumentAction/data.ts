@@ -24,6 +24,7 @@ export interface DocumentActionResponseData extends BaseResponse {
   has_update: number;
   component: string;
   description: string;
+  is_resource: number;
   created_at?: string;
   updated_at?: string;
   disabled?: boolean;

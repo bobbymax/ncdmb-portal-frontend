@@ -19,6 +19,8 @@ export interface DocumentDraftResponseData extends BaseResponse {
   authorising_staff_id: number;
   document_draftable_id: number;
   document_draftable_type: string;
+  amount: string;
+  taxable_amount: string;
   file_path: string;
   digital_signature_path: string;
   draftable: DraftableResponseData | null;
