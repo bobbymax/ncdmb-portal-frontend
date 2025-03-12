@@ -12,9 +12,7 @@ const useFunnels = () => {
     if (!Repo || draftState.service === "") {
       return;
     }
-    // transform snake(service) -
-    // Strip the _ char from string and
-    // return value in lowercase
+
     const service = strip_snake(draftState.service);
 
     try {

@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { ExpenditureResponseData } from "./data";
 import { expenditureRules } from "./rules";
 import { expenditureViews } from "./views";
@@ -17,24 +22,26 @@ export default class ExpenditureRepository extends BaseRepository {
   protected state: ExpenditureResponseData = expenditureConfig.state;
   public columns: ColumnData[] = expenditureColumns;
   public actions: ButtonsProp[] = expenditureConfig.actions;
-  public fromJson(data: ExpenditureResponseData): ExpenditureResponseData {
+  public fromJson(data: JsonResponse): ExpenditureResponseData {
     return {
       id: data.id ?? 0,
       user_id: data.user_id ?? 0,
       department_id: data.department_id ?? 0,
       fund_id: data.fund_id ?? 0,
       document_draft_id: data.document_draft_id ?? 0,
+      document_reference_id: data.document_reference_id ?? 0,
       code: data.code ?? "",
       purpose: data.purpose ?? "",
       additional_info: data.additional_info ?? "",
       amount: data.amount ?? "",
-      type: data.type ?? "staff-payment",
-      payment_category: data.payment_category ?? "other",
+      type: data.type ?? "",
       status: data.status ?? "",
       currency: data.currency ?? "NGN",
       cbn_current_rate: data.cbn_current_rate ?? "",
       budget_year: data.budget_year ?? 0,
       is_archived: data.is_archived ?? 0,
+      expenditureable_id: data.expenditureable_id ?? 0,
+      expenditureable_type: data.expenditureable_type ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

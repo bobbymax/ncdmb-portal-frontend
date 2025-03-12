@@ -11,6 +11,7 @@ export interface DocumentDraftResponseData extends BaseResponse {
   document_id: number;
   sub_document_reference_id?: number;
   document_type_id: number;
+  document_action_id: number;
   group_id: number;
   progress_tracker_id: number;
   created_by_user_id: number;

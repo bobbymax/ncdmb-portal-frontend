@@ -28,6 +28,7 @@ export default class DocumentDraftRepository extends BaseRepository {
       document_id: data.document_id ?? 0,
       sub_document_reference_id: data.sub_document_reference_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
+      document_action_id: data.document_action_id ?? 0,
       group_id: data.group_id ?? 0,
       progress_tracker_id: data.progress_tracker_id ?? 0,
       created_by_user_id: data.created_by_user_id ?? 0,

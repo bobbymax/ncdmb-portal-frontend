@@ -24,6 +24,7 @@ export interface TextInputProps {
   width?: number;
   isMulti?: boolean;
   accept?: string;
+  onBlur?: () => void;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -39,6 +40,7 @@ const TextInput: React.FC<TextInputProps> = ({
   max,
   width = 100,
   isMulti = false,
+  onBlur,
   accept,
   ...attributes
 }) => {
@@ -55,6 +57,7 @@ const TextInput: React.FC<TextInputProps> = ({
         name={name}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         className={`storm-form-control storm-form-${size}`}
         placeholder={placeholder}
         disabled={isDisabled}

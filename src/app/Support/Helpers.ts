@@ -60,6 +60,24 @@ export const accessibleTabs: TabOptionProps[] = [
   },
 ];
 
+export const dates = (dateTime: string | undefined) => {
+  if (!dateTime) {
+    return {
+      day: "",
+      month: "",
+      year: "",
+    };
+  }
+
+  const date = moment(dateTime);
+
+  return {
+    day: date.format("DD"),
+    month: date.format("MMMM"),
+    year: date.format("YYYY"),
+  };
+};
+
 export const validate = (
   fillables: string[],
   rules: { [key: string]: string },

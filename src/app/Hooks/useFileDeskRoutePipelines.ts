@@ -2,7 +2,12 @@ import { BaseResponse, JsonResponse } from "app/Repositories/BaseRepository";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { ServerDataRequestProps } from "./useWorkflowEngine";
 import { ServerResponse } from "app/Services/RepositoryService";
-import { repo, service } from "bootstrap/repositories";
+import {
+  extractModelName,
+  formatCamelCaseToSpaced,
+  repo,
+  service,
+} from "bootstrap/repositories";
 import useFunnels from "./useFunnels";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { useModal } from "app/Context/ModalContext";
@@ -51,7 +56,7 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
         ...fileState.serverState,
         data: updatedValue as { [key: string]: unknown },
         mode:
-          service === "document_update" || (action && action?.is_resource === 1)
+          service === "document_update" || (action && action.is_resource === 1)
             ? "store"
             : mode,
       },
@@ -75,8 +80,6 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
       mode,
       action
     );
-
-    console.log(mutatedState);
 
     const response: ServerResponse | undefined = await funnel.stream(
       repo(serviceName),
@@ -132,14 +135,15 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
         },
       };
 
-      console.log(serverSideService, mutateState);
-
       if (action.is_resource === 1 || action.has_update === 1) {
         openModal(DocumentUpdateModal, serverSideService, {
-          title: action.name,
-          isUpdating: true,
+          title: `${action.name} for ${formatCamelCaseToSpaced(
+            extractModelName(currentDraft.document_draftable_type)
+          )}`,
+          isUpdating:
+            serverSideService !== "document_update" || action.is_resource !== 1,
           onSubmit: handleOnSubmit,
-          dependencies: [[action, currentDraft, nextTracker]],
+          dependencies: [[action, currentDraft, nextTracker, resource]],
           template: action.component,
           data: mutateState,
           service: serverSideService,

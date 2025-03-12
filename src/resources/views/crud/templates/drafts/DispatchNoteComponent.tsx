@@ -13,8 +13,8 @@ export type DocumentNoteComponentProps = {
 
 const DispatchNoteComponent: React.FC<
   DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
-> = ({ data, draftId, drafts, workflow, tracker }) => {
-  const { currentDraft } = useDraft(data, draftId, drafts);
+> = ({ data, draftId, drafts, workflow, tracker, currentDraft }) => {
+  // const { currentDraft } = useDraft(draftId, drafts);
 
   const nextTracker = useMemo(() => {
     if (!tracker || !workflow) return null;
@@ -26,7 +26,7 @@ const DispatchNoteComponent: React.FC<
   }, [tracker, workflow]);
 
   return (
-    <div className="notebook__container">
+    <div className="card__slips note" style={{ height: "auto" }}>
       <div className="notebook">
         <h2>Dispatch Document</h2>
         <p>

@@ -16,13 +16,13 @@ import React, {
   useState,
 } from "react";
 
-export interface ActionComponentProps<T = JsonResponse, D = BaseRepository> {
+export interface ActionComponentProps<
+  T extends JsonResponse,
+  D extends BaseRepository
+> {
   identifier: string;
   getModalState: (identifier: string) => T;
-  updateModalState: (
-    identifier: string,
-    newState: Partial<DocumentUpdateResponseData>
-  ) => void;
+  updateModalState: (identifier: string, newState: T) => void;
   handleInputChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement

@@ -24,7 +24,7 @@ export interface DraftPageProps<
 > {
   resource: T;
   repo: D;
-  data: DocumentNoteComponentProps;
+  data: T;
   template: FileTemplateResponseData | null;
   index: number;
   group: WorkflowStageGroupProps | null;

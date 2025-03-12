@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { DraftPageProps } from "../../tabs/FilePagesTab";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import { useDraft } from "app/Hooks/useDraft";
@@ -6,16 +6,12 @@ import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraf
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 
 const VerificationDocumentTemplate: React.FC<
-  DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
-> = ({ data, draftId, drafts }) => {
-  const { document: claim } = useDraft<ClaimResponseData>(
-    data as ClaimResponseData,
-    draftId,
-    drafts
-  );
+  DraftPageProps<ClaimResponseData, DocumentDraftRepository>
+> = ({ data, draftId, drafts, resource }) => {
+  const claim = useMemo(() => resource as ClaimResponseData, []);
 
   return (
-    <div className="single__page note">
+    <div className="card__slips note" style={{ height: "auto" }}>
       <div className="row">
         <div className="col-md-12">
           <div className="note__content flex column gap-md">

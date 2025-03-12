@@ -168,14 +168,15 @@ export const useWorkflowEngine = (
     const drafts = document.drafts;
     const currentStage = currentTracker.stage;
     const group = currentTracker.group;
-    // The Module from the Backend e.g. Claims, SubBudgetHeads etc.
-    const resource = document.documentable;
 
     // Get Current Draft
     const currentDraft =
       drafts.length > 0
         ? drafts.reduce((max, draft) => (draft.id > max.id ? draft : max))
         : null;
+
+    // The Module from the Backend e.g. Claims, SubBudgetHeads etc.
+    const resource = document.documentable;
 
     // Get Groups (loggedin staff)
     const userGroups = loggedInStaff.groups.map((group) => group.id);

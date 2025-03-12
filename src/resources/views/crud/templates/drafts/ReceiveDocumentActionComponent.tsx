@@ -6,10 +6,10 @@ import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraf
 
 const ReceiveDocumentActionComponent: React.FC<
   DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
-> = ({ data, draftId, drafts, workflow, tracker }) => {
-  const { currentDraft } = useDraft(data, draftId, drafts);
+> = ({ data, draftId, drafts, workflow, tracker, currentDraft }) => {
+  // const { currentDraft } = useDraft(data, draftId, drafts);
   return (
-    <div className="notebook__container">
+    <div className="card__slips note" style={{ height: "auto" }}>
       <div className="notebook">
         <h2>Receive Document</h2>
         <p>

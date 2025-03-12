@@ -43,11 +43,11 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
-new ExpenditureRepository(),
-new BudgetCodeRepository(),
-new FundRepository(),
-new SubBudgetHeadRepository(),
-new BudgetHeadRepository(),
+  new ExpenditureRepository(),
+  new BudgetCodeRepository(),
+  new FundRepository(),
+  new SubBudgetHeadRepository(),
+  new BudgetHeadRepository(),
   new DocumentUpdateRepository(),
   new LocationRepository(),
   new CarderRepository(),
@@ -81,7 +81,7 @@ new BudgetHeadRepository(),
 ];
 
 // 🔹 Extracts `DocumentCategory` from `App\\Models\\DocumentCategory`
-const extractModelName = (modelPath: string): string => {
+export const extractModelName = (modelPath: string): string => {
   return modelPath.split("\\").pop() || modelPath; // Get last part of namespace
 };
 
@@ -111,6 +111,10 @@ const normalizeRepoName = (name: string): string =>
 const repoMap: Record<string, BaseRepository> = Object.fromEntries(
   repositories.map((repo) => [toSnakeCase(repo.constructor.name), repo])
 );
+
+export const formatCamelCaseToSpaced = (text: string) => {
+  return text.replace(/([A-Z][a-z]+)/g, " $1").trim();
+};
 
 // 🔹 Dynamic Repository Resolver
 export const repo = (name: string): BaseRepository => {
