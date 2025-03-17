@@ -7,8 +7,8 @@ import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 
 const VerificationDocumentTemplate: React.FC<
   DraftPageProps<ClaimResponseData, DocumentDraftRepository>
-> = ({ data, draftId, drafts, resource }) => {
-  const claim = useMemo(() => resource as ClaimResponseData, []);
+> = ({ data, draftId, drafts, resource: claim }) => {
+  // const claim = useMemo(() => resource as ClaimResponseData, []);
 
   return (
     <div className="card__slips note" style={{ height: "auto" }}>

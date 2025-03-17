@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { ClaimResponseData } from "./data";
 import { claimRules } from "./rules";
 import { claimViews } from "./views";
@@ -57,10 +62,11 @@ export default class ClaimRepository extends BaseRepository {
 
     return result;
   };
-  public fromJson(data: ClaimResponseData): ClaimResponseData {
+  public fromJson(data: JsonResponse): ClaimResponseData {
     return {
       id: data.id ?? 0,
       user_id: data.user_id ?? 0,
+      document_id: data.document_id ?? 0,
       sponsoring_department_id: data.sponsoring_department_id,
       department_id: data.department_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
@@ -68,6 +74,7 @@ export default class ClaimRepository extends BaseRepository {
       document_category_id: data.document_category_id ?? 0,
       code: data.code ?? "",
       title: data.title ?? "",
+      category_label: data.category_label ?? "",
       total_amount_spent: data.total_amount_spent ?? 0,
       total_amount_approved: data.total_amount_approved ?? 0,
       total_amount_retired: data.total_amount_retired ?? 0,

@@ -72,7 +72,8 @@ export interface ViewsProps {
     | "page"
     | "external"
     | "card"
-    | "docket";
+    | "docket"
+    | "builder";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;

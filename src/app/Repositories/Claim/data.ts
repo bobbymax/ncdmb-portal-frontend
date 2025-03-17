@@ -36,6 +36,7 @@ export interface ClaimResponseData extends BaseResponse {
   filename?: string;
   deletedExpenses?: ExpenseResponseData[];
   deletedUploads?: UploadResponseData[];
+  document_id?: number;
   authorising_officer?: {
     id: number;
     name: string;
@@ -45,6 +46,7 @@ export interface ClaimResponseData extends BaseResponse {
   } | null;
   claimant_signature: string;
   approval_signature: string;
+  category_label?: string;
   created_at?: string;
   updated_at?: string;
 }

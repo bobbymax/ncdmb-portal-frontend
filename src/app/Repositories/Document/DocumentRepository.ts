@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { DocumentResponseData } from "./data";
 import { documentRules } from "./rules";
 import { documentViews } from "./views";
@@ -17,7 +22,7 @@ export default class DocumentRepository extends BaseRepository {
   protected state: DocumentResponseData = documentConfig.state;
   public columns: ColumnData[] = documentColumns;
   public actions: ButtonsProp[] = documentConfig.actions;
-  public fromJson(data: DocumentResponseData): DocumentResponseData {
+  public fromJson(data: JsonResponse): DocumentResponseData {
     return {
       id: data.id ?? 0,
       document_category_id: data.document_category_id ?? 0,
@@ -40,6 +45,7 @@ export default class DocumentRepository extends BaseRepository {
       documentable: data.documentable,
       updates: data.updates ?? [],
       progress_tracker_id: data.progress_tracker_id,
+      action: data.action ?? null,
       is_archived: data.is_archived ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",

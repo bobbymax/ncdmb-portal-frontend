@@ -8,6 +8,7 @@ import repositories from "./repositories";
 import IndexPage from "resources/views/pages/IndexPage";
 import {
   BaseRepository,
+  BaseResponse,
   JsonResponse,
   ViewsProps,
 } from "app/Repositories/BaseRepository";
@@ -19,6 +20,8 @@ import CardPage from "resources/views/pages/CardPage";
 import ViewResourcePage from "resources/views/pages/ViewResourcePage";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import FileDocket from "resources/views/pages/FileDocket";
+import { FileTemplateResponseData } from "app/Repositories/FileTemplate/data";
+import Builder from "resources/views/pages/Builder";
 export interface ActionBttnProps {
   variant: string;
   name: string;
@@ -77,6 +80,31 @@ export interface FormPageComponentProps<T = JsonResponse> {
   mode: string;
 }
 
+interface TemplateItem {
+  id: string;
+  identifier?: string;
+  type: string;
+  component_type: string;
+  column_name?: string;
+  x: number;
+  y: number;
+  z?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface BuilderComponentProps<
+  T extends JsonResponse,
+  D extends BaseRepository
+> {
+  repo: D;
+  // components: TemplateItem[];
+  // orientation: "portrait" | "landscape";
+  resource?: T | null;
+  state: T;
+  setState?: Dispatch<SetStateAction<T>>;
+}
+
 export interface PageProps<T extends BaseRepository> {
   Repository: T;
   view: ViewsProps;
@@ -84,6 +112,9 @@ export interface PageProps<T extends BaseRepository> {
   CardPageComponent: React.ComponentType<CardPageComponentProps>;
   ViewPageComponent: React.ComponentType<ViewPageComponentProps>;
   FileDocketComponent: React.ComponentType<FileDocketComponentProps>;
+  BuilderComponent: React.ComponentType<
+    BuilderComponentProps<JsonResponse, BaseRepository>
+  >;
 }
 
 const renderRoute = <T extends BaseRepository>(
@@ -102,6 +133,7 @@ const renderRoute = <T extends BaseRepository>(
     CardPageComponent: Component,
     ViewPageComponent: Component,
     FileDocketComponent: Component,
+    BuilderComponent: Component,
   };
 
   return (
@@ -118,6 +150,8 @@ const renderRoute = <T extends BaseRepository>(
             <CardPage {...componentProps} />
           ) : view.type === "page" ? (
             <ViewResourcePage {...componentProps} />
+          ) : view.type === "builder" ? (
+            <Builder {...componentProps} />
           ) : view.type === "docket" ? (
             <FileDocket {...componentProps} />
           ) : (

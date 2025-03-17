@@ -4,6 +4,7 @@ import { DocumentDraftResponseData } from "../DocumentDraft/data";
 import { DocumentTypeResponseData } from "../DocumentType/data";
 import { WorkflowResponseData } from "../Workflow/data";
 import { DocumentUpdateResponseData } from "../DocumentUpdate/data";
+import { DocumentActionResponseData } from "../DocumentAction/data";
 
 export interface UploadResponseData extends BaseResponse {
   user_id: number;
@@ -54,6 +55,7 @@ export interface DocumentResponseData extends BaseResponse {
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;
   updates?: DocumentUpdateResponseData[];
+  action?: Partial<DocumentActionResponseData> | null;
   is_archived: number;
   created_at?: string;
   updated_at?: string;

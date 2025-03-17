@@ -1,55 +1,45 @@
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
-import { useEffect, useMemo, useState } from "react";
-import { DocumentNoteComponentProps } from "resources/views/crud/templates/drafts/DispatchNoteComponent";
-import { JsonResponse } from "app/Repositories/BaseRepository";
+import { useMemo } from "react";
 
-export type DraftCardProps<T = JsonResponse> = {
-  resource_id: number;
-  user_id: number;
-  draftable_id: number;
-  message: string;
-  componentState?: T;
-  [key: string]: unknown;
-};
-
-export const useDraft = <T extends DocumentNoteComponentProps>(
-  data: T,
+export const useDraft = (
   draftId: number,
   drafts: DocumentDraftResponseData[] | undefined
 ) => {
-  const document = useMemo(() => data, [data]);
+  const draft = useMemo(() => {
+    if (!drafts || draftId < 1) return {};
 
-  const currentDraft = useMemo(() => {
-    if (draftId < 1 || !Array.isArray(drafts)) return null;
-    return drafts.find((draft) => draft.id === draftId);
-  }, [drafts, draftId]);
+    // Sort drafts by ID in ascending order
+    const sortedDrafts = [...drafts].sort((a, b) => a.id - b.id);
 
-  const lastDraft = useMemo(() => {
-    if (draftId < 1 || !Array.isArray(drafts)) return null;
-    return drafts?.reduce((max, draft) => (draft.id > max.id ? draft : max));
-  }, [drafts, draftId]);
-
-  const service = useMemo(() => {
-    if (!currentDraft?.document_draftable_type) return "";
-    return (
-      currentDraft.document_draftable_type.split("\\").pop()?.toLowerCase() ||
-      ""
+    // Find index of the current draft
+    const currentIndex = sortedDrafts.findIndex(
+      (draft) => draft.id === draftId
     );
-  }, [currentDraft]);
 
-  const [draftState, setDraftState] = useState<DraftCardProps>({
-    resource_id: document.id,
-    user_id: document.user_id,
-    draftable_id: document.id,
-    message: "",
-  });
+    // Get current draft (if index is found)
+    const current = currentIndex !== -1 ? sortedDrafts[currentIndex] : null;
+
+    // Get the previous draft if it exists
+    const previous = currentIndex > 0 ? sortedDrafts[currentIndex - 1] : null;
+
+    // Get the last draft (highest ID)
+    const last = sortedDrafts[sortedDrafts.length - 1];
+
+    const service =
+      (current &&
+        current.document_draftable_type.split("\\").pop()?.toLowerCase()) ||
+      "";
+
+    return { current, previous, last, service };
+  }, [draftId, drafts]);
+
+  const hasSignature = () => {
+    const signature = draft.previous?.signature !== "";
+    return signature ? draft.previous?.authorising_officer : null;
+  };
 
   return {
-    document,
-    currentDraft,
-    lastDraft,
-    draftState,
-    setDraftState,
-    service,
+    ...draft,
+    hasSignature,
   };
 };

@@ -31,7 +31,8 @@ const ClaimCard = ({
     total_amount_spent,
     status,
     created_at,
-    document_category_id,
+    document_id,
+    category_label,
     expenses = [],
   } = claim;
 
@@ -51,7 +52,7 @@ const ClaimCard = ({
     };
   };
 
-  const generateUrl = (path: string, params?: string | number[]) => {
+  const generateUrl = (path: string, params?: (string | number)[]) => {
     if (path === "") {
       return "";
     }
@@ -104,7 +105,7 @@ const ClaimCard = ({
                   onManage(
                     claim,
                     bttn.label,
-                    generateUrl(bttn.url ?? "", [document_category_id, id])
+                    generateUrl(bttn.url ?? "", [category_label as string, id])
                   )
                 }
                 size="xs"

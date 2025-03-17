@@ -8,7 +8,13 @@ export interface DocumentActionResponseData extends BaseResponse {
   icon: string;
   variant: "primary" | "info" | "warning" | "success" | "danger" | "dark";
   draft_status: string;
-  action_status: "passed" | "failed" | "stalled" | "cancelled" | "complete";
+  action_status:
+    | "passed"
+    | "failed"
+    | "stalled"
+    | "cancelled"
+    | "complete"
+    | "appeal";
   state: "conditional" | "fixed";
   mode: "store" | "update" | "destroy";
   category: "signature" | "comment" | "template" | "resource" | "request";

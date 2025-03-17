@@ -192,10 +192,12 @@ export const useWorkflowEngine = (
     const needsSignature =
       Number(currentTracker?.stage?.append_signature) === 1;
 
+    const noSignatureFound = needsSignature && !fileState.signature;
+
     // Check If Signature is Required and Not Provided → Disable "passed" Actions
-    if (needsSignature && !fileState.signature) {
-      hasAccessToOperate = false;
-    }
+    // if (noSignatureFound) {
+    //   hasAccessToOperate = false;
+    // }
 
     // Check If Last Draft Type is "attention" → Disable "passed" Actions
     const lastDraftStatus = currentDraft?.type;
@@ -218,7 +220,7 @@ export const useWorkflowEngine = (
         ...action,
         disabled:
           !hasAccessToOperate ||
-          (needsSignature && action.action_status === "passed"),
+          (noSignatureFound && action.action_status === "passed"),
       })) ?? [];
 
     // Get Next Tracker

@@ -37,13 +37,17 @@ const ExpenditureActionComponent: React.FC<
 }) => {
   const { isLoading } = useStateContext();
   const state: ExpenditureResponseData = getModalState(service);
-  const { fetch } = useRepo(Repo);
+  const { fetch, fetchCommitments } = useRepo(Repo);
 
   const { staff } = useAuth();
   const { dependencies: expoDependencies } = useRepo(repo("expenditure"));
-  const [funds, setFunds] = useState<DataOptionsProps[]>([]);
+  const [funds, setFunds] = useState<FundResponseData[]>([]);
   const [file, setFile] = useState<DocumentResponseData | null>(null);
   const [rate, setRate] = useState<string>("");
+  const [currentCommittment, setCurrentCommittment] = useState<number>(0);
+  const [totalApprovedAmount, setTotalApprovedAmount] = useState<number>(0);
+  const [newBalance, setNewBalance] = useState<number>(0);
+  const [cannotRaise, setCannotRaise] = useState<boolean>(false);
 
   const [selectedOptions, setSelectedOptions] = useState<{
     fund: DataOptionsProps | null;
@@ -56,6 +60,24 @@ const ExpenditureActionComponent: React.FC<
     if (response) {
       setFile(response as DocumentResponseData);
     }
+  };
+
+  const committments = async (fundId: number) => {
+    const response = await fetchCommitments(fundId);
+    if (response) {
+      setCurrentCommittment(Number(response));
+    }
+  };
+
+  const handleDifference = (
+    approvedAmount: number,
+    resourceAmount: number,
+    currentCommittment: number
+  ) => {
+    const difference = approvedAmount - (resourceAmount + currentCommittment);
+
+    setNewBalance(difference);
+    setCannotRaise(difference < 1);
   };
 
   useEffect(() => {
@@ -78,6 +100,29 @@ const ExpenditureActionComponent: React.FC<
   }, []);
 
   useEffect(() => {
+    if (currentDraft) {
+      handleDifference(
+        totalApprovedAmount,
+        Number(currentDraft.amount),
+        currentCommittment
+      );
+    }
+  }, [totalApprovedAmount, currentDraft, currentCommittment]);
+
+  useEffect(() => {
+    if (selectedOptions.fund) {
+      committments(selectedOptions.fund.value);
+
+      const fund = funds.find((fnd) => fnd.id === selectedOptions.fund?.value);
+      // console.log(fund);
+
+      setTotalApprovedAmount(Number(fund?.total_approved_amount));
+    }
+  }, [selectedOptions.fund]);
+
+  console.log(totalApprovedAmount);
+
+  useEffect(() => {
     if (file) {
       updateModalState(service, {
         ...state,
@@ -85,17 +130,6 @@ const ExpenditureActionComponent: React.FC<
       });
     }
   }, [file]);
-
-  /**
-   *
-   * I have access to the action performed
-   * I have access to the resource data (column_name: data)
-   * I have access to the state {identifier}
-   * I have access to the current draft
-   * I have access to the dependencies from the modal
-   *
-   */
-  // console.log(funds);
 
   const handleOnBlur = () => {
     setRate(formatNumber(state.amount));
@@ -117,7 +151,7 @@ const ExpenditureActionComponent: React.FC<
   useEffect(() => {
     if (expoDependencies) {
       const { funds = [] } = expoDependencies as DependencyProps;
-      setFunds(formatOptions(funds, "id", "name"));
+      setFunds(funds);
     }
   }, [expoDependencies]);
 
@@ -170,7 +204,7 @@ const ExpenditureActionComponent: React.FC<
         <div className={`col-md-${state.type !== "estacode" ? 12 : 6} mb-2`}>
           <MultiSelect
             label="Funds"
-            options={funds}
+            options={formatOptions(funds, "id", "name")}
             value={selectedOptions.fund}
             onChange={handleSelectionChange("fund")}
             placeholder="Budget Fund"
@@ -185,31 +219,48 @@ const ExpenditureActionComponent: React.FC<
               <small className="storm-form-label mb-2">Purpose</small>
               <h2>{state.purpose}</h2>
             </div>
-            <div className="col-md-4 mb-3">
+            <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Beneficiary:</small>
               <h3>{file?.owner?.name}</h3>
             </div>
-            <div className="col-md-4 mb-3">
+            <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Department:</small>
               <h3>{file?.owner?.department}</h3>
             </div>
-            <div className="col-md-4 mb-3">
+            <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Approved Amount:</small>
               <h3>{`${state.currency} ${formatNumber(
                 currentDraft.amount
               )}`}</h3>
             </div>
+            <div className="col-md-3 mb-3">
+              <small className="storm-form-label mb-2">
+                Current Committment:
+              </small>
+              <h3>{`${state.currency} ${formatNumber(
+                currentCommittment.toString()
+              )}`}</h3>
+            </div>
           </div>
         </div>
 
-        <Button
-          type="submit"
-          variant="dark"
-          label="Make Committment"
-          size="sm"
-          icon="ri-paypal-line"
-          isDisabled={!state.fund_id || state.fund_id < 1}
-        />
+        <div className="flex align gap-lg">
+          <Button
+            type="submit"
+            variant="dark"
+            label="Make Committment"
+            size="sm"
+            icon="ri-paypal-line"
+            isDisabled={!state.fund_id || state.fund_id < 1}
+          />
+          <p>
+            {cannotRaise
+              ? "You cannot run a fund to overdraft, please try another!"
+              : `A balance of ${formatNumber(
+                  newBalance.toString()
+                )} would be left after drawing this amount!`}
+          </p>
+        </div>
       </div>
     </form>
   );

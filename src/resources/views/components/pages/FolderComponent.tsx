@@ -2,7 +2,7 @@ import {
   DocumentOwnerData,
   DocumentResponseData,
 } from "app/Repositories/Document/data";
-import { handleProgressFlow } from "app/Support/Helpers";
+import { formatText, handleProgressFlow } from "app/Support/Helpers";
 import fileIcons from "app/Support/FileIcons";
 import folder from "../../../assets/images/folder.png";
 import Button from "../forms/Button";
@@ -17,6 +17,12 @@ interface FileCardProps {
 const FolderComponent = ({ owner, document, openFolder }: FileCardProps) => {
   return (
     <div className="custom-card file__card">
+      <small
+        className={`status-badge ${document?.action?.variant ?? "warning"}`}
+      >
+        {formatText(document?.action?.draft_status ?? "pending")}
+      </small>
+
       <div className="file__card__header flex align between mb-4">
         <div className="identity flex align start gap-lg">
           <div className="avatar"></div>
@@ -34,37 +40,44 @@ const FolderComponent = ({ owner, document, openFolder }: FileCardProps) => {
           <small>{document.ref}</small>
           <h2>{document.title}</h2>
           <small className="bready">
-            Folder Created: {moment(document.created_at).format("LL")}
+            Published: {moment(document.created_at).format("LL")}
           </small>
         </div>
-        <div className="file__icon__desc">
-          <img src={folder} alt="folder icon" style={{ width: "10%" }} />
-          <div className="progress">
-            <div
-              className="progress-bar bg-success"
-              role="progressbar"
-              style={{
-                width: `${handleProgressFlow(
-                  document.drafts.length,
-                  document.workflow?.trackers ?? []
-                )}%`,
-              }}
-            >
-              {`${handleProgressFlow(
-                document.drafts.length,
-                document.workflow?.trackers ?? []
-              )}%`}
-            </div>
-          </div>
+
+        <div className="avatar-group">
+          <img
+            src="https://placehold.co/40x40"
+            alt="User 1"
+            className="custom__avatar"
+          />
+          <img
+            src="https://placehold.co/40x40"
+            alt="User 2"
+            className="custom__avatar"
+          />
+          <img
+            src="https://placehold.co/40x40"
+            alt="User 3"
+            className="custom__avatar"
+          />
+          <img
+            src="https://placehold.co/40x40"
+            alt="User 4"
+            className="custom__avatar"
+          />
+          <span className="more-avatars">+3</span>
         </div>
+
         <Button
           label="Open File"
-          icon="ri-folder-open-line"
+          icon="ri-file-paper-line"
           handleClick={() => openFolder(document)}
-          variant="dark"
-          size="sm"
+          variant="success"
+          size="xs"
         />
       </div>
+
+      {/* <div className="ncdmb_logo" /> */}
     </div>
   );
 };

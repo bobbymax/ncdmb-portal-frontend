@@ -7,7 +7,8 @@ import DocumentDraftRepository from "app/Repositories/DocumentDraft/DocumentDraf
 const ReceiveDocumentActionComponent: React.FC<
   DraftPageProps<DocumentDraftResponseData, DocumentDraftRepository>
 > = ({ data, draftId, drafts, workflow, tracker, currentDraft }) => {
-  // const { currentDraft } = useDraft(data, draftId, drafts);
+  const { current } = useDraft(draftId, drafts);
+
   return (
     <div className="card__slips note" style={{ height: "auto" }}>
       <div className="notebook">
@@ -19,7 +20,7 @@ const ReceiveDocumentActionComponent: React.FC<
           are needed, request necessary updates. Once verified, acknowledge
           receipt and proceed with the next stage of processing.
         </p>
-        <div className="status-bar">{currentDraft?.status}</div>
+        <div className="status-bar">{current?.status}</div>
       </div>
     </div>
   );

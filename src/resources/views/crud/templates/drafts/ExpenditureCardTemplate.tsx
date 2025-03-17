@@ -1,42 +1,24 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { DraftPageProps } from "../../tabs/FilePagesTab";
 import { ExpenditureResponseData } from "app/Repositories/Expenditure/data";
 import ExpenditureRepository from "app/Repositories/Expenditure/ExpenditureRepository";
-import moment from "moment";
-import { dates } from "app/Support/Helpers";
+import { dates, formatNumber } from "app/Support/Helpers";
+import { useAuth } from "app/Context/AuthContext";
+import { useDraft } from "app/Hooks/useDraft";
 
 const ExpenditureCardTemplate: React.FC<
   DraftPageProps<ExpenditureResponseData, ExpenditureRepository>
-> = ({ draftId, drafts, currentDraft }) => {
-  const expenditure = useMemo(() => {
-    if (
-      currentDraft?.draftable &&
-      isExpenditureResponseData(currentDraft.draftable)
-    ) {
-      return currentDraft.draftable;
-    }
-    return null;
-  }, [currentDraft]);
+> = ({ resource, data: expenditure, drafts, draftId }) => {
+  const { staff } = useAuth();
+  const { current, last } = useDraft(draftId, drafts);
 
-  // Type Guard Function
-  function isExpenditureResponseData(
-    data: any
-  ): data is ExpenditureResponseData {
-    return (
-      typeof data === "object" &&
-      data !== null &&
-      "user_id" in data &&
-      "department_id" in data &&
-      "fund_id" in data &&
-      "document_draft_id" in data
-    );
-  }
+  // console.log(expenditure);
 
   return (
     <div className="row">
       <div className="col-md-12">
         <div className="expense__slip flex align">
-          <div className="card__slips posted__date flex column center">
+          <div className="card__slips posted__date flex column center align">
             <small>Deducted On:</small>
             <h1>{dates(expenditure?.created_at).day}</h1>
             <span>{`${dates(expenditure?.created_at).month}, ${
@@ -44,9 +26,49 @@ const ExpenditureCardTemplate: React.FC<
             }`}</span>
           </div>
           <div className="card__slips expense__details">
-            <small className="clip dark">{expenditure?.type}</small>
-            <h2>{expenditure?.purpose}</h2>
-            <small></small>
+            <div className="credit__card__header">
+              <div className="status__badge flex align end">
+                {current?.status}
+              </div>
+              <div className="left__side">
+                <div className="side__wrapper flex center column">
+                  <div className="fling flex align gap-sm">
+                    <i className="ri-secure-payment-fill" />
+                    <small>{expenditure.type}</small>
+                  </div>
+                  <p>{expenditure.purpose}</p>
+                  <div className="fund__details flex column mt-3">
+                    <small className="small__title">Defrayed From:</small>
+                    <small className="fund__name">
+                      {expenditure.fund?.sub_budget_head} -{" "}
+                      {expenditure.fund?.budget_code}
+                    </small>
+                  </div>
+
+                  <div className="fund__details flex column mt-3">
+                    <small className="small__title">Beneficiary:</small>
+                    <small className="fund__name">
+                      {staff?.id === resource.user_id
+                        ? "You!!"
+                        : resource.owner?.name}
+                    </small>
+                  </div>
+
+                  <div className="fund__details flex column mt-3">
+                    <small className="small__title">Amount:</small>
+                    <h1>
+                      {expenditure.currency} {formatNumber(expenditure.amount)}
+                    </h1>
+                    <small>
+                      Raised by{" "}
+                      {staff?.id === expenditure.user_id
+                        ? "You!!"
+                        : expenditure.controller?.name}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

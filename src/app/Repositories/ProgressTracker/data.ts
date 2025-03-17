@@ -23,6 +23,7 @@ export type ServerTrackerData = {
 export interface ProgressTrackerResponseData extends BaseResponse {
   workflow_id: number;
   workflow_stage_id: number;
+  identifier?: string;
   document_type_id: number;
   group_id: number;
   carder_id: number;

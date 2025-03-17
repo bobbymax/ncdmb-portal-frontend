@@ -26,6 +26,7 @@ export default class ProgressTrackerRepository extends BaseRepository {
   public fromJson(data: JsonResponse): ProgressTrackerResponseData {
     return {
       id: data.id ?? 0,
+      identifier: data.identifier ?? "",
       workflow_id: data.workflow_id ?? 0,
       workflow_stage_id: data.workflow_stage_id ?? 0,
       document_type_id: data.document_type_id ?? 0,

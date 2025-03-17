@@ -2,13 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import { FormPageComponentProps } from "bootstrap";
-import React, {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Trip from "./modals/Trip";
 import Button from "../components/forms/Button";
 import { useModal } from "app/Context/ModalContext";
@@ -38,6 +32,7 @@ import imageIcon from "../../assets/images/image-icon.png";
 import pdfIcon from "../../assets/images/pdf-icon.webp";
 import Dropzone from "../components/forms/Dropzone";
 import moment from "moment";
+import { AuthPageResponseData } from "app/Repositories/Page/data";
 
 interface DependencyProps {
   allowances: AllowanceResponseData[];
@@ -83,7 +78,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     return resources?.tripCategories ?? [];
   }, [dependencies]);
 
-  console.log(tripCategories);
+  // console.log(tripCategories);
 
   const [uploads, setUploads] = useState<File[]>([]);
   const [category, setCategory] = useState<
@@ -182,6 +177,13 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     });
   };
 
+  const getPage = (name: string, pages: AuthPageResponseData[]) => {
+    const pathArr = name.split("/");
+    const path = `/${pathArr[1]}/${pathArr[2]}`;
+
+    return pages.find((pg) => pg.path === path);
+  };
+
   useEffect(() => {
     if (uploads.length > 0 && setState) {
       setState((prev) => ({
@@ -214,13 +216,8 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
 
   useEffect(() => {
     if (dependencies && pathname !== "" && pages.length > 0) {
-      const pathArr = pathname.split("/");
-      const path = `/${pathArr[1]}/${pathArr[2]}`;
-
-      // console.log(tripCategories);
-
       // Find Current Page
-      const page = pages.find((pg) => pg.path === path);
+      const page = getPage(pathname, pages);
 
       if (!page) {
         console.error("Page must be found");
@@ -250,8 +247,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       }
     }
   }, [dependencies, setState, params, pages, pathname]);
-
-  // console.log(category);
 
   useEffect(() => {
     if (

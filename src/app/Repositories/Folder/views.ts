@@ -7,7 +7,7 @@ export const folderViews: ViewsProps[] = [
     component: "Folders",
     frontend_path: "/desk/folders",
     type: "card",
-    tag: "Open Folder",
+    tag: "",
     mode: "list",
   },
   {

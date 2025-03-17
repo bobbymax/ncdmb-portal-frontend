@@ -42,6 +42,9 @@ export default class ExpenditureRepository extends BaseRepository {
       is_archived: data.is_archived ?? 0,
       expenditureable_id: data.expenditureable_id ?? 0,
       expenditureable_type: data.expenditureable_type ?? "",
+      fund: data.fund ?? null,
+      owner: data.owner ?? null,
+      controller: data.controller ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

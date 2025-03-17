@@ -27,7 +27,7 @@ const Folders: React.FC<
       <div className="col-md-12 mb-3">
         <div className="row">
           {collection.map((document) => (
-            <div key={document.id} className="col-md-4 mb-3">
+            <div key={document.id} className="col-md-3 mb-3">
               <FolderComponent
                 owner={document?.owner ?? null}
                 document={document}

@@ -70,16 +70,7 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
       conditions: [],
       operator: "and",
       display: "Manage",
-      url: "/hub/claims/%d/%d/manage",
-    },
-    {
-      label: "view",
-      icon: "ri-gallery-view-2",
-      variant: "dark",
-      conditions: [],
-      operator: "and",
-      display: "View",
-      url: "/hub/claims/%d/%d/view",
+      url: "/hub/claims/%s/%d/manage",
     },
   ],
 };

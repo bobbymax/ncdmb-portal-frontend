@@ -25,8 +25,6 @@ const Login = () => {
       const staff: AxiosResponse<{ data: AuthUserResponseData }> =
         await getLoggedInUser();
 
-      console.log(staff.data.data);
-
       if (staff) {
         // Save user ID in cookies
         Cookies.set("user_id", staff?.data?.data?.id?.toString(), {

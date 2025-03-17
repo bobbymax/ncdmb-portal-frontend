@@ -6,7 +6,7 @@ import {
   WorkflowStageGroupProps,
   WorkflowStageResponseData,
 } from "app/Repositories/WorkflowStage/data";
-import React, { Suspense } from "react";
+import React, { Suspense, useCallback, useMemo } from "react";
 import Button from "resources/views/components/forms/Button";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
@@ -17,6 +17,7 @@ import {
 } from "app/Hooks/useWorkflowEngine";
 import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
 import { BaseRepository, BaseResponse } from "app/Repositories/BaseRepository";
+import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 
 export interface DraftPageProps<
   T extends BaseResponse,
@@ -84,13 +85,21 @@ const FilePagesTab: React.FC<
     updateRaw
   );
 
+  const filteredActions = useMemo(
+    () =>
+      availableActions?.filter(
+        (action) => !["appeal", "cancelled"].includes(action.action_status)
+      ) || [],
+    [availableActions]
+  );
+
   return (
     <>
       {/* Document Actions Section */}
-      {availableActions?.length ? (
+      {filteredActions.length ? (
         <div className="document__actions__container">
           <div className="action__box flex align gap-sm">
-            {availableActions.map((action, i) => (
+            {filteredActions.map((action, i) => (
               <Button
                 key={i}
                 label={action.button_text}

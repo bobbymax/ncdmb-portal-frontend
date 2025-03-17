@@ -24,13 +24,22 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
     }
   };
 
+  const fetchCommitments = async (fundId: number) => {
+    try {
+      const response = await Repo.show("committment/funds", fundId);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching committments ", error);
+    }
+  };
+
   useEffect(() => {
     if (repo) {
       resourceDependencies();
     }
   }, [repo]);
 
-  return { dependencies, fetch };
+  return { dependencies, fetch, fetchCommitments };
 };
 
 export default useRepo;

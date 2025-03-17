@@ -130,8 +130,6 @@ export abstract class RepositoryService implements IRepository {
     param: string | number,
     body: Record<string, any> | FormData
   ): Promise<ServerResponse> {
-    console.log(typeof body);
-
     try {
       const response: AxiosResponse<ServerResponse> = await this.api.put(
         `${url}/${param}`,

@@ -109,8 +109,6 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
    */
   const resolveAction = useCallback(
     async (action: DocumentActionResponseData) => {
-      if (needsSignature && !fileState.signature) return false;
-
       let serverSideService = service(currentDraft?.document_draftable_type);
       const actionMode = action.is_resource === 1 ? "store" : "update";
 

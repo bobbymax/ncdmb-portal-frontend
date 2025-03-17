@@ -71,6 +71,10 @@ const IndexPage = ({
         navigate(`${view.frontend_path}/${raw.id}/payments`);
         break;
 
+      case "builder":
+        navigate(`${view.frontend_path}/${raw.id}/builder`);
+        break;
+
       default:
         navigate(`${view.frontend_path}/${raw.id}/manage`);
         break;

@@ -114,6 +114,14 @@ export const getCookie = (name: string): string | null => {
   return match ? decodeURIComponent(match[2]) : null;
 };
 
+export const formatText = (input: string): string => {
+  if (!input.trim()) return ""; // Return empty string if input is empty
+
+  return input
+    .replace(/-/g, " ") // Replace hyphens with spaces
+    .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize each word
+};
+
 export const formatUrl = (
   urlTemplate: string,
   ...params: (string | number)[]

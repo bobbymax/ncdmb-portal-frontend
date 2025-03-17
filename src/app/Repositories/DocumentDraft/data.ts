@@ -1,4 +1,5 @@
 import { BaseResponse } from "../BaseRepository";
+import { DocumentActionResponseData } from "../DocumentAction/data";
 import { FileTemplateResponseData } from "../FileTemplate/data";
 
 export type DraftableResponseData = {
@@ -38,6 +39,14 @@ export interface DocumentDraftResponseData extends BaseResponse {
     grade_level: string;
     email: string;
   } | null;
+  staff?: {
+    id: number;
+    name: string;
+    staff_no: string | number;
+    grade_level: string;
+    email: string;
+  } | null;
+  action?: Partial<DocumentActionResponseData> | null;
   type: "attention" | "paper" | "response";
   created_at?: string;
   updated_at?: string;

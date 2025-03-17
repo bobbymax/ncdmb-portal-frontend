@@ -6,7 +6,6 @@ import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { BaseRepository } from "app/Repositories/BaseRepository";
-import { DraftCardProps } from "./useDraft";
 
 export const useFilePages = <T extends BaseRepository>(
   model: DocumentResponseData,

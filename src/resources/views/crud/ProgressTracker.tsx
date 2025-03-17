@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import {
   ProgressTrackerResponseData,
   ServerTrackerData,
@@ -19,6 +18,9 @@ import Button from "../components/forms/Button";
 import CardButton from "../components/forms/CardButton";
 import TrackerModal from "./modals/TrackerModal";
 import Alert from "app/Support/Alert";
+import { useParams } from "react-router-dom";
+import _ from "lodash";
+import { repo } from "bootstrap/repositories";
 
 interface DependencyProps {
   workflows: WorkflowResponseData[];
@@ -30,14 +32,17 @@ interface DependencyProps {
 
 const ProgressTracker: React.FC<
   FormPageComponentProps<ProgressTrackerResponseData>
-> = ({ state, handleReactSelect, dependencies, setState, loading }) => {
+> = ({ state, handleReactSelect, dependencies, setState, loading, mode }) => {
+  const params = useParams();
   const { openModal, closeModal } = useModal();
-  const [workflows, setWorkflows] = useState<DataOptionsProps[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowResponseData[]>([]);
   const [stages, setStages] = useState<WorkflowStageResponseData[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DataOptionsProps[]>([]);
   const [carders, setCarders] = useState<DataOptionsProps[]>([]);
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
   const [queue, setQueue] = useState<ServerTrackerData[]>([]);
+
+  const trackerRepo = useMemo(() => repo("progress_tracker"), []);
 
   const [trackerState, setTrackerState] = useState<ServerTrackerData>({
     id: 0,
@@ -55,8 +60,6 @@ const ProgressTracker: React.FC<
 
   const backendUrl = useMemo(() => "https://portal.test", []);
   const stageRepo = useMemo(() => new WorkflowStageRepository(), []);
-
-  // console.log(state);
 
   const [selectedOptions, setSelectedOptions] = useState<{
     workflow: DataOptionsProps | null;
@@ -189,7 +192,7 @@ const ProgressTracker: React.FC<
         departments = [],
       } = dependencies as DependencyProps;
 
-      setWorkflows(formatOptions(workflows, "id", "name"));
+      setWorkflows(workflows);
       setStages(stages.map((stage) => handleStages(stage)));
       setCarders(formatOptions(carders, "id", "name"));
       setDepartments([
@@ -199,6 +202,53 @@ const ProgressTracker: React.FC<
       setDocumentTypes(formatOptions(documentTypes, "id", "name"));
     }
   }, [dependencies]);
+
+  useEffect(() => {
+    if (
+      mode === "update" &&
+      workflows.length > 0 &&
+      _.isObject(params) &&
+      _.has(params, "id")
+    ) {
+      const { id } = params;
+      const currentWorkflow = workflows.find(
+        (workflow) => workflow.id === Number(id)
+      );
+
+      setSelectedOptions({
+        workflow: {
+          value: currentWorkflow?.id,
+          label: currentWorkflow?.name as string,
+        },
+      });
+
+      if (setState) {
+        setState((prev) => ({
+          ...prev,
+          workflow_id: currentWorkflow?.id ?? 0,
+        }));
+      }
+
+      const trackers = currentWorkflow?.trackers;
+      const queued: ServerTrackerData[] = trackers
+        ? trackers?.map((tracker) => ({
+            id: tracker.order,
+            order: tracker.order,
+            identifier: tracker.identifier ?? "",
+            workflow_stage_id: tracker.workflow_stage_id,
+            group_id: tracker.group_id,
+            department_id: tracker.department_id,
+            carder_id: tracker.carder_id,
+            document_type_id: tracker.document_type_id,
+            stage_name: tracker?.stage?.name as string,
+            actions: formatOptions(tracker.actions, "id", "name"),
+            recipients: formatOptions(tracker.recipients, "id", "name"),
+          }))
+        : [];
+
+      setQueue(queued);
+    }
+  }, [mode, workflows]);
 
   const renderMultiSelect = (
     label: string,
@@ -225,7 +275,7 @@ const ProgressTracker: React.FC<
     <>
       {renderMultiSelect(
         "Workflow",
-        workflows,
+        formatOptions(workflows, "id", "name"),
         selectedOptions.workflow,
         handleSelectionChange("workflow"),
         "Workflow",
