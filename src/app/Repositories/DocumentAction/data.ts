@@ -14,6 +14,7 @@ export interface DocumentActionResponseData extends BaseResponse {
     | "stalled"
     | "cancelled"
     | "complete"
+    | "reversed"
     | "appeal";
   state: "conditional" | "fixed";
   mode: "store" | "update" | "destroy";

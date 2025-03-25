@@ -2079,14 +2079,38 @@ p.claim-description {
 
 .action__bttn__item {
   p {
-    background-color: rgb(255, 210, 210);
     padding: var(--card-padding-lg);
     margin-bottom: 8px;
     border-radius: 4px;
-    color: var(--color-bttn-danger);
     font-size: 12px;
     text-align: justify;
     opacity: 0.65;
+  }
+
+  p.danger {
+    background-color: rgb(255, 210, 210);
+    color: var(--color-bttn-danger);
+  }
+
+  p.info {
+    background-color: rgb(242, 242, 255);
+    color: var(--color-bttn-info);
+  }
+
+  p.dark {
+    background-color: rgb(234, 234, 234);
+    color: var(--color-dark);
+  }
+
+  p.success,
+  p.primary {
+    background-color: rgb(191, 255, 191);
+    color: var(--color-bttn-success);
+  }
+
+  p.warning {
+    background-color: rgb(255, 228, 177);
+    color: orange;
   }
 }
 

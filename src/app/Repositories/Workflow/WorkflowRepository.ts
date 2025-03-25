@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { WorkflowResponseData } from "./data";
 import { workflowRules } from "./rules";
 import { workflowViews } from "./views";
@@ -25,6 +30,7 @@ export default class WorkflowRepository extends BaseRepository {
       type: data.type ?? "serialize",
       stages: data.stages ?? [],
       trackers: data.trackers ?? [],
+      signatories: data.signatories ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

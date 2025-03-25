@@ -1,6 +1,7 @@
 import { BaseResponse } from "../BaseRepository";
 import { DocumentActionResponseData } from "../DocumentAction/data";
 import { FileTemplateResponseData } from "../FileTemplate/data";
+import { SignatureResponseData } from "../Signature/data";
 
 export type DraftableResponseData = {
   id: number;
@@ -47,7 +48,10 @@ export interface DocumentDraftResponseData extends BaseResponse {
     email: string;
   } | null;
   action?: Partial<DocumentActionResponseData> | null;
+  approval?: SignatureResponseData | null;
+  history?: Partial<DocumentDraftResponseData>[];
   type: "attention" | "paper" | "response";
+  version_number?: number;
   created_at?: string;
   updated_at?: string;
 }

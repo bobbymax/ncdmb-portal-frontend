@@ -23,6 +23,7 @@ export default class CarderRepository extends BaseRepository {
       label: data.label ?? "",
       grade_levels: data.grade_levels ?? [],
       actions: data.actions ?? [],
+      groups: data.groups ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

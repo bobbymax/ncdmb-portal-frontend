@@ -23,6 +23,7 @@ export default class UserRepository extends BaseRepository {
   public fromJson(data: UserResponseData): UserResponseData {
     return {
       id: data.id ?? 0,
+      name: data.name ?? "",
       grade_level_id: data.grade_level_id ?? 0,
       department_id: data.department_id ?? 0,
       location_id: data.location_id ?? 0,

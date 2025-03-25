@@ -2,6 +2,7 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
 import { WorkflowResponseData } from "../Workflow/data";
 import { DocumentTypeResponseData } from "../DocumentType/data";
+import { SignatoryResponseData } from "../Signatory/data";
 
 export interface AuthPageResponseData extends BaseResponse {
   icon: string;
@@ -15,6 +16,7 @@ export interface AuthPageResponseData extends BaseResponse {
   document_type_id: number;
   type: "app" | "index" | "view" | "form" | "external" | "dashboard" | "report";
   roles?: DataOptionsProps[];
+  signatories?: SignatoryResponseData[];
   workflow: WorkflowResponseData | null;
   documentType: DocumentTypeResponseData | null;
   created_at?: string;

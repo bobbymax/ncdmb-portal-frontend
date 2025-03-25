@@ -14,11 +14,15 @@ import { useModal } from "app/Context/ModalContext";
 import { useAuth } from "app/Context/AuthContext";
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import { toast } from "react-toastify";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import Alert from "app/Support/Alert";
 import DocumentUpdateModal from "resources/views/crud/modals/DocumentUpdateModal";
+import { useNavigate } from "react-router-dom";
+import { useStateContext } from "app/Context/ContentContext";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
+import { SignatureResponseData } from "app/Repositories/Signature/data";
 
 export const useFileDeskRoutePipelines = <T extends BaseResponse>(
   resource: T,
@@ -28,12 +32,49 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
   fileState: ServerDataRequestProps,
   currentTracker: ProgressTrackerResponseData | undefined,
   nextTracker: ProgressTrackerResponseData | undefined,
-  updateRaw: ((data: JsonResponse) => void) | undefined = undefined
+  updateRaw: ((data: JsonResponse) => void) | undefined = undefined,
+  signatories?: SignatoryResponseData[],
+  drafts?: DocumentDraftResponseData[]
 ) => {
+  const { setIsLoading } = useStateContext();
   const { openModal, closeModal } = useModal();
   const { staff } = useAuth();
   const funnel = useFunnels();
   const [error, setError] = useState<string>("");
+  const navigate = useNavigate();
+
+  const activeSignatory: SignatoryResponseData | null = useMemo(() => {
+    if (
+      !signatories ||
+      signatories.length < 1 ||
+      !currentTracker ||
+      currentTracker.signatory_id < 1
+    )
+      return null;
+
+    return (
+      signatories.find(
+        (signatory) => signatory.id === currentTracker.signatory_id
+      ) ?? null
+    );
+  }, [signatories, currentTracker]);
+
+  const signatures: SignatureResponseData[] = useMemo(() => {
+    if (!signatories || signatories.length < 1 || !drafts) return [];
+
+    return drafts.flatMap((draft) => {
+      const history = draft.history ?? [];
+      const approval = draft.approval;
+
+      const historyApprovals = history
+        .map((h) => h.approval)
+        .filter(
+          (a): a is SignatureResponseData => a !== null && a !== undefined
+        );
+
+      return approval ? [approval, ...historyApprovals] : historyApprovals;
+    });
+  }, [signatories, drafts]);
 
   /**
    * Builds the `mutatedState` for API requests
@@ -81,16 +122,30 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
       action
     );
 
-    const response: ServerResponse | undefined = await funnel.stream(
-      repo(serviceName),
-      mutatedState
-    );
+    setIsLoading(true);
 
-    if (response?.data && updateRaw) {
-      updateRaw(response.data as DocumentResponseData);
-      toast.success(response.message);
-    } else {
-      handleError("Cannot process workflow");
+    try {
+      const response: ServerResponse | undefined = await funnel.stream(
+        repo(serviceName),
+        mutatedState
+      );
+
+      if (response?.data && updateRaw) {
+        if (action?.mode === "destroy") {
+          navigate("/desk/folders");
+        } else {
+          updateRaw(response.data as DocumentResponseData);
+        }
+
+        toast.success(response.message);
+      } else {
+        handleError("Cannot process workflow");
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
     }
 
     closeModal();
@@ -108,16 +163,36 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
    * Resolves the action to execute
    */
   const resolveAction = useCallback(
-    async (action: DocumentActionResponseData) => {
+    async (
+      action: DocumentActionResponseData,
+      signatory?: SignatoryResponseData
+    ) => {
       let serverSideService = service(currentDraft?.document_draftable_type);
       const actionMode = action.is_resource === 1 ? "store" : "update";
 
       if (
         action.action_status === "passed" &&
+        action.category === "signature"
+      ) {
+        serverSideService = "signature";
+      } else if (
+        action.action_status === "passed" &&
         action.is_resource === 1 &&
         nextTracker?.document_type?.service
       ) {
         serverSideService = service(nextTracker.document_type.service);
+      } else if (
+        (action.action_status === "cancelled" ||
+          action.action_status === "reversed") &&
+        action.mode === "destroy" &&
+        action.is_resource === 1
+      ) {
+        serverSideService = "document_trail";
+      } else if (
+        action.action_status === "appeal" &&
+        action.category === "signature"
+      ) {
+        serverSideService = "signature_request";
       } else if (action.has_update === 1) {
         serverSideService = "document_update";
       }
@@ -129,7 +204,11 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
         serverState: {
           ...fileState.serverState,
           resource_id: resource.id,
-          mode: serverSideService === "document_update" ? "store" : actionMode,
+          mode:
+            serverSideService === "document_update" ||
+            serverSideService === "document_trail"
+              ? "store"
+              : actionMode,
         },
       };
 
@@ -141,7 +220,9 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
           isUpdating:
             serverSideService !== "document_update" || action.is_resource !== 1,
           onSubmit: handleOnSubmit,
-          dependencies: [[action, currentDraft, nextTracker, resource]],
+          dependencies: [
+            [action, currentDraft, nextTracker, resource, signatory],
+          ],
           template: action.component,
           data: mutateState,
           service: serverSideService,
@@ -171,5 +252,5 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
     [needsSignature, fileState, nextTracker, currentDraft, currentTracker]
   );
 
-  return { handleOnSubmit, resolveAction, error };
+  return { handleOnSubmit, resolveAction, error, activeSignatory, signatures };
 };

@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 
-const SignatureCanvas = ({ signatureUrl }: { signatureUrl: string }) => {
+const SignatureCanvas = ({
+  signatureUrl,
+  styles,
+}: {
+  signatureUrl: string;
+  styles?: { [key: string]: string | number };
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -52,6 +58,7 @@ const SignatureCanvas = ({ signatureUrl }: { signatureUrl: string }) => {
         pointerEvents: "none",
         userSelect: "none",
         background: "transparent",
+        ...styles,
       }}
     />
   );

@@ -21,6 +21,7 @@ import Alert from "app/Support/Alert";
 import { useParams } from "react-router-dom";
 import _ from "lodash";
 import { repo } from "bootstrap/repositories";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 
 interface DependencyProps {
   workflows: WorkflowResponseData[];
@@ -28,6 +29,7 @@ interface DependencyProps {
   documentTypes: DocumentTypeResponseData[];
   carders: CarderResponseData[];
   departments: DepartmentResponseData[];
+  signatories: SignatoryResponseData[];
 }
 
 const ProgressTracker: React.FC<
@@ -39,6 +41,7 @@ const ProgressTracker: React.FC<
   const [stages, setStages] = useState<WorkflowStageResponseData[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DataOptionsProps[]>([]);
   const [carders, setCarders] = useState<DataOptionsProps[]>([]);
+  const [signatories, setSignatories] = useState<SignatoryResponseData[]>([]);
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
   const [queue, setQueue] = useState<ServerTrackerData[]>([]);
 
@@ -52,6 +55,7 @@ const ProgressTracker: React.FC<
     department_id: 0,
     carder_id: 0,
     document_type_id: 0,
+    signatory_id: 0,
     order: 0,
     stage_name: "",
     actions: [],
@@ -76,6 +80,7 @@ const ProgressTracker: React.FC<
       department_id: 0,
       carder_id: 0,
       document_type_id: 0,
+      signatory_id: 0,
       order: queue.length + 1,
       stage_name: stage.name,
       actions: [],
@@ -89,8 +94,6 @@ const ProgressTracker: React.FC<
     response: unknown,
     mode: "store" | "update" | "destroy" | "generate"
   ) => {
-    // console.log(response);
-
     const raw = response as ServerTrackerData;
 
     setQueue(
@@ -117,7 +120,13 @@ const ProgressTracker: React.FC<
           isUpdating: true,
           onSubmit,
           data: tracker,
-          dependencies: [departments, documentTypes, carders, [stage]],
+          dependencies: [
+            departments,
+            documentTypes,
+            carders,
+            [stage],
+            signatories,
+          ],
         },
         trackerState
       );
@@ -190,6 +199,7 @@ const ProgressTracker: React.FC<
         documentTypes = [],
         carders = [],
         departments = [],
+        signatories = [],
       } = dependencies as DependencyProps;
 
       setWorkflows(workflows);
@@ -199,6 +209,7 @@ const ProgressTracker: React.FC<
         { value: 0, label: "Originating Department" },
         ...formatOptions(departments, "id", "name"),
       ]);
+      setSignatories(signatories);
       setDocumentTypes(formatOptions(documentTypes, "id", "name"));
     }
   }, [dependencies]);
@@ -239,6 +250,7 @@ const ProgressTracker: React.FC<
             group_id: tracker.group_id,
             department_id: tracker.department_id,
             carder_id: tracker.carder_id,
+            signatory_id: tracker.signatory_id,
             document_type_id: tracker.document_type_id,
             stage_name: tracker?.stage?.name as string,
             actions: formatOptions(tracker.actions, "id", "name"),

@@ -120,7 +120,7 @@ const ExpenditureActionComponent: React.FC<
     }
   }, [selectedOptions.fund]);
 
-  console.log(totalApprovedAmount);
+  // console.log(totalApprovedAmount);
 
   useEffect(() => {
     if (file) {

@@ -18,39 +18,57 @@ const useFileActions = ({
   uploads,
   tab,
 }: FileActionProps<BaseRepository>) => {
-  const [files, setFiles] = useState<File[]>([]);
   const [mergedPdfUrl, setMergedPdfUrl] = useState<string | null>(null);
 
-  const getFileFullPaths = (uploads: UploadResponseData[]): string[] => {
-    return uploads.map((upload) => upload.path);
+  const fetchSecureFile = async (id: number): Promise<Uint8Array | null> => {
+    try {
+      const response = await Repo.show("uploads", id);
+
+      const data = response.data as UploadResponseData;
+
+      const base64 = data.file_path.split(",")[1];
+      const binary = atob(base64);
+
+      const byteArray = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        byteArray[i] = binary.charCodeAt(i);
+      }
+
+      return byteArray;
+    } catch (error) {
+      console.error("Failed to fetch or decode file:", error);
+      console.log(error);
+      return null;
+    }
   };
 
-  // Function to merge files into a single PDF
-  const mergeFilesToPDF = async (files: File[]): Promise<string> => {
+  const mergeSecureFilesToPDF = async (
+    uploads: UploadResponseData[]
+  ): Promise<string> => {
     const mergedPdf = await PDFDocument.create();
 
-    for (const file of files) {
-      const arrayBuffer = await file.arrayBuffer();
+    for (const upload of uploads) {
+      const fileBytes = await fetchSecureFile(upload.id);
 
-      if (file.type === "application/pdf") {
-        const pdfToMerge = await PDFDocument.load(arrayBuffer);
+      if (!fileBytes) continue;
+
+      if (upload.mime_type === "application/pdf") {
+        const pdfDoc = await PDFDocument.load(fileBytes);
         const copiedPages = await mergedPdf.copyPages(
-          pdfToMerge,
-          pdfToMerge.getPageIndices()
+          pdfDoc,
+          pdfDoc.getPageIndices()
         );
         copiedPages.forEach((page) => mergedPdf.addPage(page));
-      } else if (file.type.startsWith("image/")) {
-        const imageBuffer = new Uint8Array(arrayBuffer);
-        const page = mergedPdf.addPage();
-
+      } else if (upload.mime_type.startsWith("image/")) {
         let image;
-        if (file.type === "image/jpeg") {
-          image = await mergedPdf.embedJpg(imageBuffer);
-        } else if (file.type === "image/png") {
-          image = await mergedPdf.embedPng(imageBuffer);
+        if (upload.mime_type === "image/jpeg") {
+          image = await mergedPdf.embedJpg(fileBytes);
+        } else if (upload.mime_type === "image/png") {
+          image = await mergedPdf.embedPng(fileBytes);
         }
 
         if (image) {
+          const page = mergedPdf.addPage();
           const { width, height } = image.scale(1);
           page.setWidth(width);
           page.setHeight(height);
@@ -61,35 +79,19 @@ const useFileActions = ({
 
     const pdfBytes = await mergedPdf.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    // setMergedPdfUrl(URL.createObjectURL(blob)); // Return the Blob URL
     return URL.createObjectURL(blob);
   };
 
   useEffect(() => {
     if (uploads.length > 0) {
-      const fullPaths = getFileFullPaths(uploads);
-
-      const getUploadedFiles = async () => {
-        const fetchedFiles = await Repo.getFiles(fullPaths);
-
-        setFiles(fetchedFiles);
-      };
-
-      getUploadedFiles();
-    }
-  }, [Repo, uploads]);
-
-  useEffect(() => {
-    if (files.length > 0) {
-      const getMergedUrl = async () => {
-        const url = await mergeFilesToPDF(files);
-
+      const merge = async () => {
+        const url = await mergeSecureFilesToPDF(uploads);
         setMergedPdfUrl(url);
       };
 
-      getMergedUrl();
+      merge();
     }
-  }, [files]);
+  }, [uploads]);
 
   return { mergedPdfUrl };
 };

@@ -4,6 +4,11 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import WidgetRepository from "app/Repositories/Widget/WidgetRepository";
+import SignatureRepository from "app/Repositories/Signature/SignatureRepository";
+import SignatoryRepository from "app/Repositories/Signatory/SignatoryRepository";
+import SignatureRequestRepository from "app/Repositories/SignatureRequest/SignatureRequestRepository";
+import DocumentTrailRepository from "app/Repositories/DocumentTrail/DocumentTrailRepository";
 import ExpenditureRepository from "app/Repositories/Expenditure/ExpenditureRepository";
 import BudgetCodeRepository from "app/Repositories/BudgetCode/BudgetCodeRepository";
 import FundRepository from "app/Repositories/Fund/FundRepository";
@@ -43,6 +48,11 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+new WidgetRepository(),
+new SignatureRepository(),
+new SignatoryRepository(),
+  new SignatureRequestRepository(),
+  new DocumentTrailRepository(),
   new ExpenditureRepository(),
   new BudgetCodeRepository(),
   new FundRepository(),

@@ -1,0 +1,1 @@
+export const signatureRules: { [key: string]: string } = {};

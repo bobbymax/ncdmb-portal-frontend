@@ -4,6 +4,7 @@ import { RoleResponseData } from "../Role/data";
 
 export interface UserResponseData extends BaseResponse {
   staff_no: string;
+  name?: string;
   firstname: string;
   middlename: string;
   surname: string;

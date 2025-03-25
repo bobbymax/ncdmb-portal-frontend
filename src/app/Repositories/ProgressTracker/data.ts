@@ -14,6 +14,7 @@ export type ServerTrackerData = {
   department_id: number;
   carder_id: number;
   document_type_id: number;
+  signatory_id: number;
   order: number;
   stage_name: string;
   actions: DataOptionsProps[];
@@ -28,6 +29,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
   group_id: number;
   carder_id: number;
   department_id: number;
+  signatory_id: number;
   order: number;
   stage: WorkflowStageResponseData | null;
   stages?: ServerTrackerData[];

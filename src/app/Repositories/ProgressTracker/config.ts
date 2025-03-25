@@ -9,6 +9,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     { name: "documentTypes", url: "documentTypes" },
     { name: "carders", url: "carders" },
     { name: "departments", url: "departments" },
+    { name: "signatories", url: "signatories" },
   ],
   state: {
     id: 0,
@@ -18,6 +19,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     group_id: 0,
     department_id: 0,
     carder_id: 0,
+    signatory_id: 0,
     order: 0,
     stage: null,
     document_type: null,

@@ -32,6 +32,7 @@ export default class DocumentTypeRepository extends BaseRepository {
       workflow: data.workflow ?? null,
       service: data.service ?? "",
       categories: data.categories ?? [],
+      widgets: data.widgets ?? [],
       description: data.description ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",

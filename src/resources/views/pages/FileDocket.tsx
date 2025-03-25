@@ -2,15 +2,35 @@ import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { useResourceActions } from "app/Hooks/useResourceActions";
 import {
   BaseRepository,
+  BaseResponse,
   TabOptionProps,
 } from "app/Repositories/BaseRepository";
-import { DocumentResponseData } from "app/Repositories/Document/data";
+import {
+  DocumentResponseData,
+  UploadResponseData,
+} from "app/Repositories/Document/data";
 import { PageProps } from "bootstrap";
 import { useAuth } from "app/Context/AuthContext";
 import { useWorkflowEngine } from "app/Hooks/useWorkflowEngine";
 import { accessibleTabs } from "app/Support/Helpers";
 import TabActionButtonComponent from "../components/pages/TabActionButtonComponent";
 import FileDocketHeader from "../components/pages/FileDocketHeader";
+import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
+import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
+import { WorkflowResponseData } from "app/Repositories/Workflow/data";
+import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
+
+export interface DocketSidebarProps<T extends BaseResponse> {
+  // resource, drafts, currentDraft, tracker, widget
+  resource: T;
+  drafts: DocumentDraftResponseData[];
+  tracker: ProgressTrackerResponseData;
+  workflow: WorkflowResponseData;
+  tab: TabOptionProps;
+  docType: DocumentTypeResponseData;
+  document: DocumentResponseData;
+  uploads: UploadResponseData[];
+}
 
 const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
   const { staff } = useAuth();
@@ -44,6 +64,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
     fill,
     updateServerDataState,
     draftTemplates,
+    signatories,
   } = useWorkflowEngine(document, staff);
 
   const handleTabToggle = useCallback(
@@ -65,6 +86,20 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
     );
   }, [activeActionComponent]);
 
+  const DynamicSidebarComponent = useMemo(() => {
+    if (!activeActionComponent) return () => <div>No component available</div>;
+
+    const sanitizedComponent =
+      activeActionComponent.sidebar.replace(/[^a-zA-Z0-9]/g, "") ||
+      "FallbackComponent";
+
+    return lazy(() =>
+      import(`../crud/templates/sidebars/${sanitizedComponent}`).catch(() => ({
+        default: () => <div>Error loading component</div>,
+      }))
+    );
+  }, [activeActionComponent]);
+
   return (
     <div className="docket__container">
       {/* Desk Header */}
@@ -78,7 +113,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
       {/* Desk Board */}
       <div className="row">
         <div className="col-md-8">
-          <div className="desk__office custom-card mb-3">
+          <div className="desk__office custom-card file__card mb-3">
             <TabActionButtonComponent
               tabs={accessibleTabs}
               handleTabToggle={handleTabToggle}
@@ -114,12 +149,28 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
                   fileState={fileState}
                   draftTemplates={draftTemplates}
                   updateServerDataState={updateServerDataState}
+                  signatories={signatories}
                 />
               </Suspense>
             </div>
           </div>
         </div>
-        <div className="col-md-3"></div>
+        <div className="col-md-4 mb-3">
+          <div className="custom-card file__card desk__office">
+            <Suspense fallback={<div>Loading...</div>}>
+              <DynamicSidebarComponent
+                resource={resource}
+                tab={activeActionComponent}
+                workflow={workflow}
+                tracker={currentTracker}
+                drafts={drafts}
+                docType={docType}
+                uploads={uploads}
+                document={document}
+              />
+            </Suspense>
+          </div>
+        </div>
       </div>
     </div>
   );

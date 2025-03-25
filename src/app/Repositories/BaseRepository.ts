@@ -57,6 +57,7 @@ export interface TabOptionProps {
   appendSignature: boolean;
   isDefault: boolean;
   path?: string;
+  sidebar: string;
 }
 
 export interface ViewsProps {

@@ -6,18 +6,19 @@ import {
   WorkflowStageGroupProps,
   WorkflowStageResponseData,
 } from "app/Repositories/WorkflowStage/data";
-import React, { Suspense, useCallback, useMemo } from "react";
+import React, { Suspense, useMemo } from "react";
 import Button from "resources/views/components/forms/Button";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
-import { DocumentNoteComponentProps } from "../templates/drafts/DispatchNoteComponent";
 import {
   DocketDataType,
   ServerDataRequestProps,
 } from "app/Hooks/useWorkflowEngine";
 import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
 import { BaseRepository, BaseResponse } from "app/Repositories/BaseRepository";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
+import { SignatureResponseData } from "app/Repositories/Signature/data";
 
 export interface DraftPageProps<
   T extends BaseResponse,
@@ -42,6 +43,14 @@ export interface DraftPageProps<
     mode?: "store" | "update" | "destroy" | "generate"
   ) => void;
   fileState: ServerDataRequestProps;
+  signatories?: SignatoryResponseData[];
+  actions?: DocumentActionResponseData[];
+  resolveAction: (
+    action: DocumentActionResponseData,
+    signatory?: SignatoryResponseData
+  ) => void;
+  activeSignatory?: SignatoryResponseData | null;
+  signatures?: (SignatureResponseData | null | undefined)[] | null;
 }
 
 export interface PaperProps<T extends BaseResponse, D extends BaseRepository> {
@@ -73,25 +82,40 @@ const FilePagesTab: React.FC<
   updateServerDataState,
   fileState,
   draftTemplates,
+  signatories,
+  document,
 }) => {
-  const { resolveAction } = useFileDeskRoutePipelines(
-    resource,
-    currentDraft,
-    needsSignature,
-    currentStage,
-    fileState,
-    currentTracker,
-    nextTracker,
-    updateRaw
-  );
+  const { resolveAction, activeSignatory, signatures } =
+    useFileDeskRoutePipelines(
+      resource,
+      currentDraft,
+      needsSignature,
+      currentStage,
+      fileState,
+      currentTracker,
+      nextTracker,
+      updateRaw,
+      signatories,
+      drafts
+    );
 
-  const filteredActions = useMemo(
-    () =>
-      availableActions?.filter(
-        (action) => !["appeal", "cancelled"].includes(action.action_status)
-      ) || [],
-    [availableActions]
-  );
+  // console.log(document);
+
+  const filteredActions = useMemo(() => {
+    return (
+      availableActions?.filter((action) => {
+        const isInExcludedStatuses = [
+          "appeal",
+          "cancelled",
+          "reversed",
+        ].includes(action.action_status);
+        const isPassedSignature =
+          action.action_status === "passed" && action.category === "signature";
+
+        return !isInExcludedStatuses && !isPassedSignature;
+      }) || []
+    );
+  }, [availableActions]);
 
   return (
     <>
@@ -137,6 +161,11 @@ const FilePagesTab: React.FC<
               docType={docType}
               currentDraft={currentDraft}
               updateServerDataState={updateServerDataState}
+              signatories={signatories}
+              actions={availableActions}
+              resolveAction={resolveAction}
+              activeSignatory={activeSignatory}
+              signatures={signatures}
             />
           </Suspense>
         ))

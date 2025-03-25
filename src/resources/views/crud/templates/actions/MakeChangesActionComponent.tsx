@@ -46,10 +46,10 @@ const MakeChangesActionComponent: React.FC<
         </div>
         <div className="col-md-12">
           <Button
-            label="Update Draft"
-            icon="ri-message-line"
-            variant="dark"
-            size="md"
+            label={action.name}
+            icon={action.icon}
+            variant={action.variant}
+            size="sm"
             type="submit"
             isDisabled={state.comment === "" || isLoading}
           />

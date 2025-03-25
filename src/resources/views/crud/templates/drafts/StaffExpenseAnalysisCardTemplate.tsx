@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ClaimResponseData } from "app/Repositories/Claim/data";
 import {
   covertToWords,
@@ -13,8 +13,9 @@ import LetterHeadedPaper from "resources/views/components/documents/LetterHeaded
 import claimLogo from "../../../../assets/images/modules/claim.png";
 import { useStateContext } from "app/Context/ContentContext";
 import { DraftPageProps } from "../../tabs/FilePagesTab";
-import AppendSignature from "../../modals/AppendSignature";
 import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
+import { SignatureResponseData } from "app/Repositories/Signature/data";
 
 const StaffExpenseAnalysisCardTemplate: React.FC<
   DraftPageProps<ClaimResponseData, ClaimRepository>
@@ -26,42 +27,47 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
   stage,
   drafts,
   fileState,
-  updateServerDataState,
+  signatories,
+  actions,
+  resolveAction,
+  activeSignatory,
+  signatures,
 }) => {
+  const [owner, setOwner] = useState<SignatureResponseData | null>(null);
+  const [authoriser, setAuthoriser] = useState<SignatureResponseData | null>(
+    null
+  );
   const claim = useMemo(() => resource as ClaimResponseData, [resource]);
-  const thisDraft = useMemo(() => {
-    if (!drafts || draftId < 1) return null;
 
-    return drafts.find((draft) => draft.id === draftId);
-  }, [drafts, draftId]);
+  const appendSignatureAction = useMemo(() => {
+    if (!actions || actions.length < 1) return null;
+
+    return actions.find(
+      (action) =>
+        action.category === "signature" && action.action_status === "passed"
+    );
+  }, [actions]);
 
   const { staff } = useAuth();
   const { groups } = useStateContext();
-  const { openModal, closeModal } = useModal();
 
   const staffGroups = useMemo(
     () => groups.map((group) => group.label),
     [groups]
   );
 
-  const handleSignatureSubmission = (
-    response: object | string,
-    mode: "store" | "update" | "destroy" | "generate",
-    column?: string
-  ) => {
-    const signatureObject = {
-      authorising_staff_id: staff?.id ?? 0,
-      [column as string]: response as string,
-    };
+  useEffect(() => {
+    if (signatures && signatures?.length > 0) {
+      setOwner(
+        signatures.find((signature) => signature?.type === "owner") ?? null
+      );
+      setAuthoriser(
+        signatures.find((signature) => signature?.type === "approval") ?? null
+      );
+    }
+  }, [signatures]);
 
-    updateServerDataState(
-      signatureObject,
-      staff?.id ?? 0,
-      response as string,
-      mode
-    );
-    closeModal();
-  };
+  // console.log(signatures);
 
   return (
     <LetterHeadedPaper
@@ -128,36 +134,26 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                   <h1>{claim.owner?.name}</h1>
                 </div>
                 <div className="signature__pad__claimant">
-                  {fileState.signature || claim?.claimant_signature ? (
-                    <SignatureCanvas
-                      signatureUrl={
-                        (claim?.claimant_signature as string) ??
-                        (fileState.signature as string)
-                      }
-                    />
+                  {owner ? (
+                    <SignatureCanvas signatureUrl={owner.signature} />
                   ) : (
                     <div className="append__signature__bttn">
-                      {staff?.id === claim.user_id && (
-                        <Button
-                          label="Append Signature"
-                          handleClick={() =>
-                            openModal(
-                              AppendSignature,
-                              "signature",
-                              {
-                                title: "Sign Claim",
-                                isUpdating: true,
-                                onSubmit: handleSignatureSubmission,
-                                dependencies: [["claimant_signature"]],
-                              },
-                              claim
-                            )
-                          }
-                          size="sm"
-                          icon="ri-sketching"
-                          variant="dark"
-                        />
-                      )}
+                      {activeSignatory?.type === "owner" &&
+                        staff?.id === claim.user_id &&
+                        appendSignatureAction && (
+                          <Button
+                            label={appendSignatureAction.button_text}
+                            handleClick={() =>
+                              resolveAction(
+                                appendSignatureAction,
+                                activeSignatory
+                              )
+                            }
+                            size="sm"
+                            icon={appendSignatureAction.icon}
+                            variant={appendSignatureAction.variant}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
@@ -165,42 +161,34 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
               <div className="approval__signature__container">
                 <div className="signature__pad__approval mb-5">
                   <div className="long__dash">
-                    {(claim?.approval_signature || fileState.signature) &&
-                    thisDraft &&
-                    (thisDraft?.order ?? 0) >= 3 ? (
+                    {authoriser ? (
                       <SignatureCanvas
-                        signatureUrl={
-                          (claim?.approval_signature as string) ??
-                          (fileState.signature as string)
-                        }
+                        signatureUrl={authoriser.signature}
+                        styles={{
+                          width: "160%",
+                        }}
                       />
                     ) : (
                       <div
                         className="append__signature__bttn"
                         style={{
                           display: "flex",
-                          justifyContent: "flex-end",
+                          justifyContent: "flex-start",
                         }}
                       >
-                        {stage?.append_signature === 1 &&
+                        {appendSignatureAction &&
+                          activeSignatory?.type === "approval" &&
                           staff?.carder.label === "management" &&
                           staffGroups.includes(group?.label ?? "") &&
                           staff?.id !== claim.user_id &&
-                          currentDraft &&
-                          currentDraft.id === draftId && (
+                          currentDraft?.department_id ===
+                            staff?.department_id && (
                             <Button
-                              label="Authorize Claim"
+                              label={appendSignatureAction.button_text}
                               handleClick={() =>
-                                openModal(
-                                  AppendSignature,
-                                  "signature",
-                                  {
-                                    title: "Approve Claim",
-                                    isUpdating: true,
-                                    onSubmit: handleSignatureSubmission,
-                                    dependencies: [["approval_signature"]],
-                                  },
-                                  claim
+                                resolveAction(
+                                  appendSignatureAction,
+                                  activeSignatory
                                 )
                               }
                               size="sm"
@@ -211,15 +199,13 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                       </div>
                     )}
                   </div>
-                  <h4>Approved</h4>
+                  <h4>Approved By:</h4>
                 </div>
                 <div className="approving__staff__details">
                   <div className="long__dash">
-                    {(claim?.approval_signature as string) &&
-                      currentDraft &&
-                      (currentDraft?.order ?? 0) >= 3 && (
-                        <h1>{claim?.authorising_officer?.name}</h1>
-                      )}
+                    {authoriser && (
+                      <h1>{authoriser.approving_officer?.name}</h1>
+                    )}
                   </div>
                   <h4>Name in Blocks:</h4>
                 </div>

@@ -14,6 +14,7 @@ import {
 import { FileTemplateResponseData } from "app/Repositories/FileTemplate/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import ProgressTrackerRepository from "app/Repositories/ProgressTracker/ProgressTrackerRepository";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 
 export type DocumentableData = {
   id: number;
@@ -36,6 +37,7 @@ const useWorkflow = (document: DocumentResponseData | null) => {
   );
   const [docType, setDocType] = useState<DocumentTypeResponseData | null>(null);
   const [uploads, setUploads] = useState<UploadResponseData[]>([]);
+  const [signatories, setSignatories] = useState<SignatoryResponseData[]>([]);
 
   const metaData = useMemo(() => {
     return document?.documentable as DocumentableData;
@@ -53,6 +55,7 @@ const useWorkflow = (document: DocumentResponseData | null) => {
       }
 
       setUploads(metaData.uploads ?? []);
+      setSignatories(workflow?.signatories ?? []);
 
       const tracker = workflow?.trackers.find(
         (tracker) => tracker.id === lastestDraft.progress_tracker_id
@@ -89,6 +92,7 @@ const useWorkflow = (document: DocumentResponseData | null) => {
     docType,
     template,
     uploads,
+    signatories,
   };
 };
 

@@ -2,7 +2,9 @@ import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { ServerTrackerData } from "app/Repositories/ProgressTracker/data";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
+import { formatOptions } from "app/Support/Helpers";
 import React, {
   FormEvent,
   useCallback,
@@ -20,7 +22,8 @@ type DependencyProps = [
   departments: DataOptionsProps[],
   documentTypes: DataOptionsProps[],
   carders: DataOptionsProps[],
-  stages: WorkflowStageResponseData[]
+  stages: WorkflowStageResponseData[],
+  signatories: SignatoryResponseData[]
 ];
 
 const TrackerModal: React.FC<ModalValueProps> = ({
@@ -35,9 +38,12 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   const state: ServerTrackerData = getModalState(identifier);
 
   // Extract dependencies safely
-  const [departments, documentTypes, carders, stages] = useMemo(() => {
-    return dependencies ? (dependencies as DependencyProps) : [[], [], [], []];
-  }, [dependencies]);
+  const [departments, documentTypes, carders, stages, signatories] =
+    useMemo(() => {
+      return dependencies
+        ? (dependencies as DependencyProps)
+        : [[], [], [], [], []];
+    }, [dependencies]);
 
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
   const [accessibleActions, setAccessibleActions] = useState<
@@ -50,6 +56,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     department: DataOptionsProps | null;
     document_type: DataOptionsProps | null;
     carder: DataOptionsProps | null;
+    signatory: DataOptionsProps | null;
     actions: DataOptionsProps[];
     recipients: DataOptionsProps[];
   }>({
@@ -57,6 +64,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     department: null,
     document_type: null,
     carder: null,
+    signatory: null,
     actions: [],
     recipients: [],
   });
@@ -96,6 +104,15 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     if (data && groups.length > 0) {
       const raw = data as ServerTrackerData;
       updateModalState(identifier, raw);
+      const sig =
+        signatories.find((signatory) => signatory.id === raw.signatory_id) ??
+        null;
+
+      const formatted: DataOptionsProps = {
+        value: sig?.id ?? 0,
+        label: sig?.type ?? "none",
+      };
+
       setSelectedOptions((prev) => ({
         ...prev,
         group: groups.find((grp) => grp.value === raw.group_id) ?? null,
@@ -107,6 +124,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           ) ?? null,
         carder:
           carders.find((carder) => carder.value === raw.carder_id) ?? null,
+        signatory: formatted,
         actions: raw.actions ?? [],
         recipients: raw.recipients ?? [],
       }));
@@ -199,6 +217,13 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           selectedOptions.carder,
           handleSelectionChange("carder"),
           "Carder"
+        )}
+        {renderMultiSelect(
+          "Signatory",
+          formatOptions(signatories, "id", "type", true),
+          selectedOptions.signatory,
+          handleSelectionChange("signatory"),
+          "Signatory"
         )}
         <div className="col-md-12">
           <Button

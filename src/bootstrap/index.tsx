@@ -80,19 +80,6 @@ export interface FormPageComponentProps<T = JsonResponse> {
   mode: string;
 }
 
-interface TemplateItem {
-  id: string;
-  identifier?: string;
-  type: string;
-  component_type: string;
-  column_name?: string;
-  x: number;
-  y: number;
-  z?: number;
-  width?: number;
-  height?: number;
-}
-
 export interface BuilderComponentProps<
   T extends JsonResponse,
   D extends BaseRepository

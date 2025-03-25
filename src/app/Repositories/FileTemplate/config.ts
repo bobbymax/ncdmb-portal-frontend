@@ -29,13 +29,13 @@ export const fileTemplateConfig: ConfigProp<FileTemplateResponseData> = {
       operator: "and",
       display: "Manage",
     },
-    {
-      label: "builder",
-      icon: "ri-tools-line",
-      variant: "dark",
-      conditions: [],
-      operator: "and",
-      display: "Builder",
-    },
+    // {
+    //   label: "builder",
+    //   icon: "ri-tools-line",
+    //   variant: "dark",
+    //   conditions: [],
+    //   operator: "and",
+    //   display: "Builder",
+    // },
   ],
 };

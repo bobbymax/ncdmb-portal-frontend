@@ -21,6 +21,7 @@ export const accessibleTabs: TabOptionProps[] = [
     appendSignature: true,
     isDefault: true,
     status: "draft",
+    sidebar: "AnalysisSidebar",
   },
   {
     title: "Supporting Documents",
@@ -33,6 +34,7 @@ export const accessibleTabs: TabOptionProps[] = [
     appendSignature: true,
     isDefault: false,
     status: "draft",
+    sidebar: "OcrAnalysisSidebar",
   },
   {
     title: "Updates",
@@ -45,18 +47,33 @@ export const accessibleTabs: TabOptionProps[] = [
     appendSignature: false,
     isDefault: false,
     status: "draft",
+    sidebar: "TrackingSidebar",
   },
   {
-    title: "Terminate Process",
-    label: "terminate",
+    title: "Manage",
+    label: "manage",
     component: "TerminateProcessTab",
     icon: "ri-file-shred-line",
-    variant: "danger",
+    variant: "warning",
     endpoint: "serviceWorkers",
     hasFile: false,
     appendSignature: false,
     isDefault: false,
     status: "draft",
+    sidebar: "AdminSidebar",
+  },
+  {
+    title: "Print Document",
+    label: "print",
+    component: "PrintDocumentTab",
+    icon: "ri-printer-line",
+    variant: "dark",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: false,
+    isDefault: false,
+    status: "draft",
+    sidebar: "PrintSidebar",
   },
 ];
 
@@ -176,7 +193,8 @@ export const formatAmountNoCurrency = (
 export const formatOptions = (
   data: Record<string, any>[],
   value: string,
-  label: string
+  label: string,
+  addBase: boolean = false
 ): DataOptionsProps[] => {
   if (!Array.isArray(data) || data.length < 1) {
     return [];
@@ -187,7 +205,9 @@ export const formatOptions = (
     label: row[label],
   }));
 
-  return response;
+  const base: DataOptionsProps[] = [{ value: 0, label: "None" }, ...response];
+
+  return addBase ? base : response;
 };
 
 export const checkSignaturePosition = (

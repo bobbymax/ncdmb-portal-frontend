@@ -1,6 +1,6 @@
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import avatar from "../../../assets/images/avatars/profile_picture.webp";
 import Textarea from "resources/views/components/forms/Textarea";
 import CardButton from "resources/views/components/forms/CardButton";
@@ -13,7 +13,7 @@ import { DocketDataType } from "app/Hooks/useWorkflowEngine";
 
 const FileUpdateTab: React.FC<
   DocketDataType<DocumentResponseData, DocumentRepository>
-> = ({ document, updateRaw, currentDraft, Repo }) => {
+> = ({ document, currentDraft, Repo, hasAccessToOperate }) => {
   const [responses, setResponses] = useState<{ [key: number]: string }>({});
   const { isLoading, setIsLoading } = useStateContext();
   const [disableThread, setDisableThread] = useState<boolean>(false);
@@ -26,29 +26,20 @@ const FileUpdateTab: React.FC<
       return;
     }
 
-    const documentOwnerId = document.user_id;
-    const operatorsIds = Array.isArray(document.updates)
-      ? document.updates?.map((update) => update.user_id)
-      : [];
+    const documentOwnerId = document.user_id ?? 0;
+    const operatorsIds = (document?.updates ?? []).map(
+      (update) => update?.user_id ?? 0
+    );
 
-    const threadsUserIds =
-      document.updates?.flatMap((update) =>
-        Array.isArray(update.threads)
-          ? update.threads.map((thread) => thread.user_id)
-          : []
-      ) ?? [];
+    const threadsUserIds = (document?.updates ?? []).flatMap((update) =>
+      Array.isArray(update.threads)
+        ? update.threads.map((thread) => thread?.user_id ?? 0)
+        : []
+    );
 
-    let isDisabled = true; // Default to disabled
-
-    if (currentDraft.type === "attention") {
-      // If it's "attention" type, allow document owner to respond
-      isDisabled = !(staff.id === documentOwnerId);
-    } else if (currentDraft.type === "response") {
-      // If it's "response" type, disable for document owner, allow for operators or thread users
-      isDisabled =
-        staff.id === documentOwnerId ||
-        !(operatorsIds.includes(staff.id) || threadsUserIds.includes(staff.id));
-    }
+    const isDisabled =
+      currentDraft?.type !== "attention" ||
+      (currentDraft?.type === "attention" && documentOwnerId !== staff?.id);
 
     setDisableThread(isDisabled);
   }, [currentDraft, staff, document]);
@@ -69,6 +60,9 @@ const FileUpdateTab: React.FC<
       message: string
     ) => {
       setIsLoading(true);
+
+      // console.log(data, draftId, updateId, message);
+
       try {
         const response = await Repo.update("documentUpdates", updateId, {
           message,
@@ -144,20 +138,12 @@ const FileUpdateTab: React.FC<
                 </div>
                 <div className="response__box mt-3">
                   <Textarea
-                    placeholder={`${
-                      disableThread ||
-                      currentDraft?.id !== data.document_draft_id
-                        ? "Waiting for Response!!!"
-                        : "Enter Response"
-                    }`}
+                    placeholder="Enter Message"
                     value={responses[idx] || ""}
                     onChange={(e) => handleResponseChange(idx, e.target.value)}
                     rows={1}
                     name={`thread-${idx}`}
-                    isDisabled={
-                      disableThread ||
-                      currentDraft?.id !== data.document_draft_id
-                    }
+                    isDisabled={disableThread || hasAccessToOperate}
                   />
                   <div className="bttn__section flex end">
                     <CardButton
@@ -171,7 +157,7 @@ const FileUpdateTab: React.FC<
                           responses[idx]
                         )
                       }
-                      isDisabled={!responses[idx]}
+                      isDisabled={!responses[idx] || isLoading}
                     />
                   </div>
                 </div>

@@ -13,6 +13,7 @@ export interface UploadResponseData extends BaseResponse {
   path: string;
   size: bigint;
   mime_type: string;
+  file_path: string;
   extension: string;
   created_at?: string;
   updated_at?: string;

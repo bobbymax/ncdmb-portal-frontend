@@ -108,6 +108,7 @@ const DocumentAction: React.FC<
             { value: "appeal", label: "Appeal" },
             { value: "stalled", label: "Stall" },
             { value: "cancelled", label: "Cancel Process" },
+            { value: "reversed", label: "Reverse Last Draft" },
             { value: "complete", label: "Complete" },
           ]}
           defaultValue=""

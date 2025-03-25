@@ -14,7 +14,6 @@ import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { GroupResponseData } from "app/Repositories/Group/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
-import ProgressTrackerRepository from "app/Repositories/ProgressTracker/ProgressTrackerRepository";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import React, {
@@ -24,6 +23,8 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import useWorkflow from "./useWorkflow";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 
 export type ServerStateRequestProps = {
   resource_id: number;
@@ -88,6 +89,7 @@ export type DocketDataType<
   fileState: ServerDataRequestProps;
   setFileState: (data: ServerDataRequestProps) => void;
   draftTemplates: DraftTemplate[] | undefined;
+  signatories?: SignatoryResponseData[];
 };
 
 // Define a default generic type
@@ -117,10 +119,31 @@ export const useWorkflowEngine = (
   document: DocumentResponseData,
   loggedInStaff: AuthUserResponseData | undefined
 ) => {
-  const ProgressTrackerRepo = useMemo(
-    () => new ProgressTrackerRepository(),
-    []
+  const {
+    workflow,
+    currentTracker,
+    drafts,
+    group,
+    stage,
+    docType,
+    uploads,
+    signatories,
+  } = useWorkflow(document);
+
+  // Get Current Draft
+  const currentDraft = useMemo(
+    () =>
+      drafts.length > 0
+        ? drafts.reduce((max, draft) => (draft.id > max.id ? draft : max))
+        : null,
+    [drafts]
   );
+
+  const nextTracker =
+    workflow?.trackers.find(
+      (tracker) => currentTracker && tracker.order === currentTracker?.order + 1
+    ) ?? null;
+
   const [fileState, setFileState] = useState<ServerDataRequestProps>(
     initialServerDataState
   );
@@ -147,110 +170,86 @@ export const useWorkflowEngine = (
     }));
   };
 
-  const docket = useMemo(() => {
+  const needsSignature = Number(currentTracker?.stage?.append_signature) === 1;
+  const noSignatureFound = needsSignature && !fileState.signature;
+
+  const resource = useMemo(() => {
     if (!document || !loggedInStaff) return null;
+    return document.documentable;
+  }, [document, loggedInStaff, fileState.signature]);
 
-    // Get Workflow
-    const workflow = document.workflow;
-    const docType = document.document_type;
-    const uploads = document.uploads ?? [];
+  const hasAccessToOperate = useMemo(() => {
+    if (!currentTracker || !loggedInStaff || !currentDraft) {
+      // console.log("🔴 Access Denied: No current tracker or logged-in staff.");
+      return false;
+    }
 
-    const tracker = workflow?.trackers.find(
-      (tracker) => tracker.id === document.progress_tracker_id
-    );
-
-    // Get Current Tracker
-    const currentTracker = ProgressTrackerRepo.fromJson(
-      tracker as JsonResponse
-    );
-
-    // Get Drafts
-    const drafts = document.drafts;
-    const currentStage = currentTracker.stage;
-    const group = currentTracker.group;
-
-    // Get Current Draft
-    const currentDraft =
-      drafts.length > 0
-        ? drafts.reduce((max, draft) => (draft.id > max.id ? draft : max))
-        : null;
-
-    // The Module from the Backend e.g. Claims, SubBudgetHeads etc.
-    const resource = document.documentable;
-
-    // Get Groups (loggedin staff)
     const userGroups = loggedInStaff.groups.map((group) => group.id);
-    // Determine if the User has Access to Operate (Base Condition)
-    let hasAccessToOperate = userGroups.includes(currentTracker?.group_id ?? 0);
+    const isUserInGroup = userGroups.includes(currentTracker?.group_id);
+    const isUserInDepartment =
+      loggedInStaff.department_id === currentDraft.department_id;
 
-    // Check If Logged-in User’s Groups are Not in Current Tracker Groups → Disable All Actions
-    if (!userGroups.includes(currentTracker?.group_id ?? 0)) {
-      hasAccessToOperate = false;
+    let canOperate = isUserInGroup && isUserInDepartment;
+
+    if (!canOperate) {
+      // console.log(
+      //   `🔴 Access Denied: User is not in required group or department.`
+      // );
     }
 
-    // Check if this stage needs a signature
-    const needsSignature =
-      Number(currentTracker?.stage?.append_signature) === 1;
-
-    const noSignatureFound = needsSignature && !fileState.signature;
-
-    // Check If Signature is Required and Not Provided → Disable "passed" Actions
-    // if (noSignatureFound) {
-    //   hasAccessToOperate = false;
-    // }
-
-    // Check If Last Draft Type is "attention" → Disable "passed" Actions
-    const lastDraftStatus = currentDraft?.type;
-    if (lastDraftStatus === "attention") {
-      hasAccessToOperate = false;
-    }
-
-    // Check If Last Draft Department ID !== Logged-in User Department ID → Disable All Actions
+    // If draft is "attention", only the document owner can respond
     if (
-      currentDraft &&
-      currentDraft.department_id !== loggedInStaff.department_id
+      currentDraft?.type === "attention" ||
+      currentDraft?.status === "rejected"
     ) {
-      hasAccessToOperate = false;
+      // canOperate = loggedInStaff.id === document.owner?.id;
+      canOperate = false;
+      if (!canOperate) {
+        // console.log(
+        //   `🔴 Access Denied: Only the document owner (${document.owner?.id}) can respond.`
+        // );
+      }
     }
 
-    // Check Permissions for User (Optional: If extra permission-based logic is needed)
-    // Get Available Actions (Disable Certain Actions Based on Above Logic)
-    const availableActions =
+    // If the draft is already responded to, allow workflow to continue
+    if (
+      canOperate &&
+      ["response", "paper"].includes(currentDraft?.type ?? "")
+    ) {
+      canOperate = true;
+      // console.log("✅ Access Granted: Document has already been responded to.");
+    }
+
+    // console.log(
+    //   `ℹ️ Final Access Decision: ${canOperate ? "GRANTED ✅" : "DENIED ❌"}`
+    // );
+    return canOperate;
+  }, [
+    currentTracker,
+    loggedInStaff,
+    currentDraft,
+    document,
+    fileState.signature,
+  ]);
+
+  const availableActions = useMemo(() => {
+    return (
       currentTracker?.loadedActions?.map((action) => ({
         ...action,
         disabled:
           !hasAccessToOperate ||
-          (noSignatureFound && action.action_status === "passed"),
-      })) ?? [];
-
-    // Get Next Tracker
-    const nextTracker =
-      workflow?.trackers.find(
-        (tracker) =>
-          currentTracker && tracker.order === currentTracker?.order + 1
-      ) ?? null;
-
-    return {
-      workflow,
-      currentTracker,
-      drafts,
-      currentDraft,
-      hasAccessToOperate,
-      availableActions,
-      nextTracker,
-      needsSignature,
-      docType,
-      group,
-      currentStage,
-      uploads,
-      resource,
-    } as Partial<DocketDataType<BaseResponse, BaseRepository>>;
-  }, [document, loggedInStaff, fileState.signature]);
+          (noSignatureFound && action.action_status === "passed") ||
+          !["responded", "signature-request", "pending"].includes(
+            currentDraft?.status ?? ""
+          ),
+      })) ?? []
+    );
+  }, [currentTracker, hasAccessToOperate, noSignatureFound]);
 
   const draftTemplates: DraftTemplate[] | undefined = useMemo(() => {
     return (
-      docket?.drafts &&
-      docket?.drafts.map((draft) => {
+      drafts &&
+      drafts.map((draft) => {
         const sanitizedComponent =
           draft?.template?.component.replace(/[^a-zA-Z0-9]/g, "") ||
           "FallbackComponent";
@@ -265,19 +264,37 @@ export const useWorkflowEngine = (
         };
       })
     );
-  }, [docket?.drafts]);
+  }, [drafts]);
 
   useEffect(() => {
-    if (document && docket) {
+    if (document) {
       setFileState((prev) => ({
         ...prev,
         workflow_id: document.workflow_id,
         document_id: document.id,
-        last_draft_id: docket.currentDraft?.id ?? 0,
-        progress_tracker_id: docket.currentTracker?.id ?? 0,
+        last_draft_id: currentDraft?.id ?? 0,
+        progress_tracker_id: currentTracker?.id ?? 0,
       }));
     }
-  }, [document, docket]);
+  }, [document]);
+
+  const docket = {
+    workflow,
+    currentTracker,
+    drafts,
+    currentDraft,
+    hasAccessToOperate,
+    availableActions,
+    nextTracker,
+    needsSignature,
+    docType,
+    group,
+    currentStage: stage,
+    uploads,
+    resource,
+    signatories,
+    document,
+  };
 
   return { ...docket, fill, updateServerDataState, fileState, draftTemplates };
 };

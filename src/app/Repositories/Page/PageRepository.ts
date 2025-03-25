@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { AuthPageResponseData } from "./data";
 import { pageConfig } from "./config";
 import { pageRules } from "./rules";
@@ -17,7 +22,7 @@ export default class PageRepository extends BaseRepository {
   protected state: AuthPageResponseData = pageConfig.state;
   public columns: ColumnData[] = pageColumns;
   public actions: ButtonsProp[] = pageConfig.actions;
-  public fromJson(data: AuthPageResponseData): AuthPageResponseData {
+  public fromJson(data: JsonResponse): AuthPageResponseData {
     return {
       id: data.id || 0,
       name: data.name || "",
@@ -31,6 +36,7 @@ export default class PageRepository extends BaseRepository {
       roles: formatOptions(data.roles ?? [], "id", "name") ?? [],
       workflow: data.workflow ?? null,
       documentType: data.documentType ?? null,
+      signatories: data.signatories ?? [],
       type: "index",
       label: "",
     };

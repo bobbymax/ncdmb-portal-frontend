@@ -8,9 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 const ProgressTrackers: React.FC<
   CardPageComponentProps<WorkflowResponseData, WorkflowRepository>
-> = ({ Repository, collection, onManageRawData, View }) => {
+> = ({ collection }) => {
   const navigate = useNavigate();
-  console.log(collection);
 
   const endpoint = useMemo(() => "https://portal.test", []);
 
