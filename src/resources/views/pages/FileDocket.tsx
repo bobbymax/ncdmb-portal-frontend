@@ -19,6 +19,7 @@ import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
+import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 
 export interface DocketSidebarProps<T extends BaseResponse> {
   // resource, drafts, currentDraft, tracker, widget
@@ -30,6 +31,7 @@ export interface DocketSidebarProps<T extends BaseResponse> {
   docType: DocumentTypeResponseData;
   document: DocumentResponseData;
   uploads: UploadResponseData[];
+  availableActions: DocumentActionResponseData[];
 }
 
 const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
@@ -167,6 +169,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
                 docType={docType}
                 uploads={uploads}
                 document={document}
+                availableActions={availableActions}
               />
             </Suspense>
           </div>

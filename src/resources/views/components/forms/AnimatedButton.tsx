@@ -40,11 +40,9 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   return (
     <button
       type={type}
-      className={`storm-bttn storm-bttn-${size} storm-bttn-${variant} ${additionalClass} animate__animated animate__${animation} ${
-        speedup ? "animate__" + flag : ""
-      } ${delay > 0 ? "animate__delay-" + delay + "s" : ""} ${
-        fullWidth ? " storm-bttn-full " : ""
-      } ${rounded ? " rounded " : ""} ${isDisabled ? " is-disabled " : ""}`}
+      className={`storm-bttn storm-bttn-${size} storm-bttn-${variant} ${additionalClass} ${
+        isDisabled ? " is-disabled " : ""
+      }`}
       onClick={handleClick}
       disabled={isDisabled}
     >

@@ -676,6 +676,41 @@ b {
   /* word-break: break-all; */
 }
 
+.claim__header h2 {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.widget__action {
+  p {
+    font-size: 13px;
+    line-height: 1.3;
+    text-align: justify;
+    padding: var(--card-padding-lg);
+    letter-spacing: 1px;
+  }
+}
+
+.amount__due small {
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+.amount__due p {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.duration {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-tetiary-conresponding);
+}
+
 p.claim-description {
   font-size: 11px;
   letter-spacing: 1px;
@@ -1246,7 +1281,8 @@ p.claim-description {
 }
 
 .table-container,
-.custom-card {
+.custom-card,
+.conflict_claim_item {
   background-color: var(--color-white);
   padding: var(--card-padding-xl);
   border-radius: 3px;
@@ -1361,7 +1397,6 @@ p.claim-description {
 }
 
 .claims-card {
-  /* border-top: 3px solid var(--color-ajacent); */
   border-radius: 6px;
   position: relative;
   overflow: hidden;
@@ -1373,7 +1408,7 @@ p.claim-description {
   background-origin: border-box;
   background-position: center;
   width: 295px;
-  height: 310px;
+  height: auto;
   text-wrap: wrap;
 
   &::before {
@@ -1458,13 +1493,6 @@ p.claim-description {
       font-size: 32px;
       color: grey;
       font-family: "Dosis", serif;
-    }
-    .duration {
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--color-tetiary-conresponding);
     }
   }
 }
@@ -2243,6 +2271,10 @@ p.claim-description {
   border: 1px dashed var(--color-border);
 }
 
+.signature__container__box {
+  position: relative !important;
+}
+
 .signature-container {
   background-blend-mode: multiply;
 }
@@ -2673,7 +2705,7 @@ p.claim-description {
 
 .desk__office {
   border-radius: 6px;
-  overflow: auto;
+  overflow-y: auto;
   height: 720px;
 }
 
@@ -3137,6 +3169,63 @@ p.little-badge {
   font-size: 7px;
   text-transform: uppercase;
   letter-spacing: 2px;
+}
+
+/* Widgets Area */
+.widget {
+  color: var(--color-bttn-success);
+  overflow: auto;
+  h5 {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 13px;
+  }
+}
+
+.conflict_claim_item {
+  margin-bottom: 9px;
+  padding: var(--card-padding-lg);
+  border-radius: 6px;
+  background-color: rgb(240, 240, 240);
+
+  h5 {
+    color: var(--color-bttn-danger);
+  }
+
+  p {
+    text-transform: uppercase;
+    letter-spacing: 2px !important;
+  }
+}
+
+.widget__body {
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+.widget__body {
+  padding: 21px 0;
+}
+
+.widget.claim {
+  p {
+    font-size: 12px;
+    text-align: justify;
+    /* text-transform: uppercase; */
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  p.amount {
+    span {
+      font-size: 19px;
+    }
+    margin-top: 10px;
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: -1.7px;
+  }
 }
 
 .custom__badge__profile h4,

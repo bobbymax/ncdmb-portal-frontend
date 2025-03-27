@@ -11,17 +11,18 @@ const Claims: React.FC<
     <>
       <div className="row">
         <div className="col-md-12">
-          <div className="claim-container">
+          <div className="row">
             {collection.length > 0 ? (
               collection.map((claim, i) => (
-                <ClaimCard
-                  key={i}
-                  claim={claim}
-                  onManage={onManageRawData}
-                  actions={Repository.actions}
-                  grid={3}
-                  mb={3}
-                />
+                <div className="col-md-3 mb-3" key={i}>
+                  <ClaimCard
+                    claim={claim}
+                    onManage={onManageRawData}
+                    actions={Repository.actions}
+                    grid={3}
+                    mb={3}
+                  />
+                </div>
               ))
             ) : (
               <div className="col-md-12 mb-3">

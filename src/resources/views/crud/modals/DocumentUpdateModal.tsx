@@ -1,10 +1,16 @@
 import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
 import { ServerDataRequestProps } from "app/Hooks/useWorkflowEngine";
-import { BaseRepository, JsonResponse } from "app/Repositories/BaseRepository";
+import {
+  BaseRepository,
+  BaseResponse,
+  JsonResponse,
+} from "app/Repositories/BaseRepository";
+import { DocumentResponseData } from "app/Repositories/Document/data";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
+import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { repo } from "bootstrap/repositories";
 import React, {
   FormEvent,
@@ -37,13 +43,16 @@ export interface ActionComponentProps<
   service: string;
   Repo: D;
   isLoading: boolean;
+  document: DocumentResponseData | null;
+  signatory: SignatoryResponseData | null;
 }
 
 type DependenciesProps = [
   requirements: [
     action: DocumentActionResponseData | null,
     currentDraft: DocumentDraftResponseData | null,
-    nextTracker: ProgressTrackerResponseData | null
+    signatory: SignatoryResponseData | null,
+    document: DocumentResponseData | null
   ]
 ];
 
@@ -62,6 +71,10 @@ const DocumentUpdateModal: React.FC<ModalValueProps> = ({
   const [action, setAction] = useState<DocumentActionResponseData | null>(null);
   const [currentDraft, setCurrentDraft] =
     useState<DocumentDraftResponseData | null>(null);
+  const [document, setDocument] = useState<DocumentResponseData | null>(null);
+  const [signatory, setSignatory] = useState<SignatoryResponseData | null>(
+    null
+  );
 
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -99,8 +112,11 @@ const DocumentUpdateModal: React.FC<ModalValueProps> = ({
   useEffect(() => {
     if (Array.isArray(dependencies) && dependencies.length > 0) {
       const [requirements = []] = dependencies as DependenciesProps;
+
       setAction(requirements[0] as DocumentActionResponseData);
       setCurrentDraft(requirements[1] as DocumentDraftResponseData);
+      setSignatory(requirements[2] as SignatoryResponseData);
+      setDocument(requirements[3] as DocumentResponseData);
     }
   }, [dependencies]);
 
@@ -120,6 +136,8 @@ const DocumentUpdateModal: React.FC<ModalValueProps> = ({
         service={service}
         Repo={repo(service ?? "document")}
         isLoading={isLoading}
+        document={document}
+        signatory={signatory}
       />
     </Suspense>
   );

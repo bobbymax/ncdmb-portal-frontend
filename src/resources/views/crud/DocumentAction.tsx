@@ -225,6 +225,7 @@ const DocumentAction: React.FC<
             { value: "template", label: "Template" },
             { value: "resource", label: "Resource" },
             { value: "request", label: "Request" },
+            { value: "upload", label: "Upload" },
           ]}
           defaultValue=""
           defaultCheckDisabled

@@ -18,7 +18,13 @@ export interface DocumentActionResponseData extends BaseResponse {
     | "appeal";
   state: "conditional" | "fixed";
   mode: "store" | "update" | "destroy";
-  category: "signature" | "comment" | "template" | "resource" | "request";
+  category:
+    | "signature"
+    | "comment"
+    | "template"
+    | "resource"
+    | "request"
+    | "upload";
   resource_type:
     | "searchable"
     | "classified"

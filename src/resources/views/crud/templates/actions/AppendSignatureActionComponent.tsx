@@ -9,8 +9,6 @@ import SignatureCanvas from "react-signature-canvas";
 import Button from "resources/views/components/forms/Button";
 import TextInput from "resources/views/components/forms/TextInput";
 
-type DependenciesProps = [signatories: SignatoryResponseData[]];
-
 const AppendSignatureActionComponent: React.FC<
   ActionComponentProps<SignatureResponseData, SignatureRepository>
 > = ({
@@ -21,6 +19,7 @@ const AppendSignatureActionComponent: React.FC<
   updateModalState,
   handleFormSubmit,
   dependencies,
+  signatory,
 }) => {
   const { isLoading } = useStateContext();
   const { staff } = useAuth();
@@ -98,18 +97,15 @@ const AppendSignatureActionComponent: React.FC<
   }, [uploadedImage, signaturePadRef.current]);
 
   useEffect(() => {
-    if (staff && currentDraft && dependencies) {
-      const [signatories = []] = dependencies as DependenciesProps;
-      const signatory = signatories[4];
-
+    if (staff && currentDraft && dependencies && signatory) {
       updateModalState(identifier, {
         ...state,
         user_id: staff.id,
         document_draft_id: currentDraft.id,
-        signatory_id: signatory?.id ?? 0,
+        signatory_id: signatory.id,
       });
     }
-  }, [staff, currentDraft, dependencies]);
+  }, [staff, currentDraft, dependencies, signatory]);
 
   return (
     <form onSubmit={handleFormSubmit}>

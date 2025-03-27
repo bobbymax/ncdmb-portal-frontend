@@ -61,15 +61,15 @@ const ClaimCard = ({
   };
 
   return (
-    <div className="custom-card claims-card">
-      <div className="claims-card-header mb-2">
-        <div className="flex align between gap-lg mb-2">
+    <div className="custom-card file__card claim__details">
+      <div className="claim__header mb-2">
+        <div className="claim__header__strip flex align between mb-2">
           <p className="code">{code}</p>
-          <p className="status-badge">{status}</p>
+          <p className="claim-badge">{status}</p>
         </div>
         <h2>{title}</h2>
       </div>
-      <div className="claims-card-body">
+      <div className="claims-card-body mt-3">
         <div className="row">
           <div className="col-md-12 mb-2">
             <div
@@ -78,8 +78,9 @@ const ClaimCard = ({
                 flexDirection: "column",
                 alignItems: "flex-start",
                 flexWrap: "wrap",
-                lineHeight: 0.9,
+                lineHeight: 1.2,
               }}
+              className="amount__due"
             >
               <small className="title">Total Amount Due:</small>
               <p className="amount">{formatCurrency(total_amount_spent)}</p>
@@ -118,22 +119,6 @@ const ClaimCard = ({
             ))}
           </div>
         </div>
-        <small className="date_created">
-          Registered on: {moment(created_at).format("ll")}
-        </small>
-        <small
-          style={{
-            display: "block",
-            textAlign: "right",
-            fontSize: ".75rem",
-            letterSpacing: 3,
-            fontWeight: 600,
-            textTransform: "uppercase",
-          }}
-          className="expenses_desc"
-        >
-          {`${expenses.length} total expenses`}
-        </small>
       </div>
     </div>
   );

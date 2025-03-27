@@ -51,16 +51,18 @@ const SignatureCanvas = ({
   }, [signatureUrl]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="signature-container"
-      style={{
-        pointerEvents: "none",
-        userSelect: "none",
-        background: "transparent",
-        ...styles,
-      }}
-    />
+    <div className="signature__container__box">
+      <canvas
+        ref={canvasRef}
+        className="signature-container"
+        style={{
+          pointerEvents: "none",
+          userSelect: "none",
+          background: "transparent",
+          ...styles,
+        }}
+      />
+    </div>
   );
 };
 

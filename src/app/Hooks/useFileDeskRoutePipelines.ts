@@ -34,7 +34,8 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
   nextTracker: ProgressTrackerResponseData | undefined,
   updateRaw: ((data: JsonResponse) => void) | undefined = undefined,
   signatories?: SignatoryResponseData[],
-  drafts?: DocumentDraftResponseData[]
+  drafts?: DocumentDraftResponseData[],
+  document?: DocumentResponseData | undefined
 ) => {
   const { setIsLoading } = useStateContext();
   const { openModal, closeModal } = useModal();
@@ -220,9 +221,7 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
           isUpdating:
             serverSideService !== "document_update" || action.is_resource !== 1,
           onSubmit: handleOnSubmit,
-          dependencies: [
-            [action, currentDraft, nextTracker, resource, signatory],
-          ],
+          dependencies: [[action, currentDraft, signatory, document]],
           template: action.component,
           data: mutateState,
           service: serverSideService,

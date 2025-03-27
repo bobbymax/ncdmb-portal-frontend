@@ -135,7 +135,12 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                 </div>
                 <div className="signature__pad__claimant">
                   {owner ? (
-                    <SignatureCanvas signatureUrl={owner.signature} />
+                    <SignatureCanvas
+                      styles={{
+                        width: "85%",
+                      }}
+                      signatureUrl={owner.signature}
+                    />
                   ) : (
                     <div className="append__signature__bttn">
                       {activeSignatory?.type === "owner" &&
@@ -163,17 +168,19 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                   <div className="long__dash">
                     {authoriser ? (
                       <SignatureCanvas
-                        signatureUrl={authoriser.signature}
                         styles={{
                           width: "160%",
+                          justifyContent: "flex-end",
                         }}
+                        signatureUrl={authoriser.signature}
                       />
                     ) : (
                       <div
                         className="append__signature__bttn"
                         style={{
                           display: "flex",
-                          justifyContent: "flex-start",
+                          justifyContent: "flex-end",
+                          alignItems: "flex-end",
                         }}
                       >
                         {appendSignatureAction &&

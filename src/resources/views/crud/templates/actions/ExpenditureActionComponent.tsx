@@ -30,19 +30,18 @@ const ExpenditureActionComponent: React.FC<
   getModalState,
   currentDraft,
   updateModalState,
-  dependencies,
   Repo,
   handleInputChange,
   handleFormSubmit,
+  document,
 }) => {
   const { isLoading } = useStateContext();
   const state: ExpenditureResponseData = getModalState(service);
-  const { fetch, fetchCommitments } = useRepo(Repo);
+  const { fetchCommitments } = useRepo(Repo);
 
   const { staff } = useAuth();
   const { dependencies: expoDependencies } = useRepo(repo("expenditure"));
   const [funds, setFunds] = useState<FundResponseData[]>([]);
-  const [file, setFile] = useState<DocumentResponseData | null>(null);
   const [rate, setRate] = useState<string>("");
   const [currentCommittment, setCurrentCommittment] = useState<number>(0);
   const [totalApprovedAmount, setTotalApprovedAmount] = useState<number>(0);
@@ -54,13 +53,6 @@ const ExpenditureActionComponent: React.FC<
   }>({
     fund: null,
   });
-
-  const fetchDocument = async () => {
-    const response = await fetch(currentDraft?.document_id);
-    if (response) {
-      setFile(response as DocumentResponseData);
-    }
-  };
 
   const committments = async (fundId: number) => {
     const response = await fetchCommitments(fundId);
@@ -81,23 +73,24 @@ const ExpenditureActionComponent: React.FC<
   };
 
   useEffect(() => {
-    updateModalState(service, {
-      ...state,
-      document_draft_id: currentDraft.id,
-      department_id: staff?.department_id ?? 0,
-      user_id: staff?.id ?? 0,
-      amount: currentDraft?.amount,
-      type: extractModelName(
-        currentDraft.document_draftable_type
-      ).toLowerCase(),
-      currency: "NGN",
-      budget_year: 2024,
-      expenditureable_id: currentDraft.document_draftable_id,
-      expenditureable_type: currentDraft.document_draftable_type,
-    });
-
-    fetchDocument();
-  }, []);
+    if (document) {
+      updateModalState(service, {
+        ...state,
+        purpose: `PYMT for ${document.title}`,
+        document_draft_id: currentDraft.id,
+        department_id: staff?.department_id ?? 0,
+        user_id: staff?.id ?? 0,
+        amount: currentDraft?.amount,
+        type: extractModelName(
+          currentDraft.document_draftable_type
+        ).toLowerCase(),
+        currency: "NGN",
+        budget_year: 2024,
+        expenditureable_id: document.documentable_id,
+        expenditureable_type: document.documentable_type,
+      });
+    }
+  }, [document]);
 
   useEffect(() => {
     if (currentDraft) {
@@ -114,22 +107,9 @@ const ExpenditureActionComponent: React.FC<
       committments(selectedOptions.fund.value);
 
       const fund = funds.find((fnd) => fnd.id === selectedOptions.fund?.value);
-      // console.log(fund);
-
       setTotalApprovedAmount(Number(fund?.total_approved_amount));
     }
   }, [selectedOptions.fund]);
-
-  // console.log(totalApprovedAmount);
-
-  useEffect(() => {
-    if (file) {
-      updateModalState(service, {
-        ...state,
-        purpose: `PYMT for ${file.title}`,
-      });
-    }
-  }, [file]);
 
   const handleOnBlur = () => {
     setRate(formatNumber(state.amount));
@@ -221,11 +201,11 @@ const ExpenditureActionComponent: React.FC<
             </div>
             <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Beneficiary:</small>
-              <h3>{file?.owner?.name}</h3>
+              <h3>{document?.owner?.name}</h3>
             </div>
             <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Department:</small>
-              <h3>{file?.owner?.department}</h3>
+              <h3>{document?.owner?.department}</h3>
             </div>
             <div className="col-md-3 mb-3">
               <small className="storm-form-label mb-2">Approved Amount:</small>
@@ -248,10 +228,10 @@ const ExpenditureActionComponent: React.FC<
           <Button
             type="submit"
             variant="dark"
-            label="Make Committment"
+            label="Commit Expenditure"
             size="sm"
             icon="ri-paypal-line"
-            isDisabled={!state.fund_id || state.fund_id < 1}
+            isDisabled={!state.fund_id || state.fund_id < 1 || !document}
           />
           <p>
             {cannotRaise

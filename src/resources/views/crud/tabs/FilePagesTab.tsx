@@ -96,7 +96,8 @@ const FilePagesTab: React.FC<
       nextTracker,
       updateRaw,
       signatories,
-      drafts
+      drafts,
+      document
     );
 
   // console.log(document);
@@ -112,7 +113,10 @@ const FilePagesTab: React.FC<
         const isPassedSignature =
           action.action_status === "passed" && action.category === "signature";
 
-        return !isInExcludedStatuses && !isPassedSignature;
+        const isDraftUpload =
+          action.action_status === "stalled" && action.category === "upload";
+
+        return !isInExcludedStatuses && !isPassedSignature && !isDraftUpload;
       }) || []
     );
   }, [availableActions]);
