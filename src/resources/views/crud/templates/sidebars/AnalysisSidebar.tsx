@@ -1,12 +1,14 @@
-import { BaseRepository, BaseResponse } from "app/Repositories/BaseRepository";
+import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
+import { DocketDataType } from "app/Hooks/useWorkflowEngine";
+import { BaseResponse } from "app/Repositories/BaseRepository";
 import { DocumentResponseData } from "app/Repositories/Document/data";
+import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { WidgetResponseData } from "app/Repositories/Widget/data";
 import React, { lazy, Suspense, useMemo } from "react";
 import Button from "resources/views/components/forms/Button";
-import { DocketSidebarProps } from "resources/views/pages/FileDocket";
 
 export interface SidebarProps<T extends BaseResponse> {
   resource: T;
@@ -18,17 +20,37 @@ export interface SidebarProps<T extends BaseResponse> {
   actions: DocumentActionResponseData[];
 }
 
-const AnalysisSidebar: React.FC<DocketSidebarProps<DocumentResponseData>> = ({
+const AnalysisSidebar: React.FC<
+  DocketDataType<DocumentResponseData, DocumentRepository>
+> = ({
   resource,
   drafts,
-  tracker,
-  workflow,
-  tab,
+  currentTracker,
+  currentDraft,
+  needsSignature,
+  currentStage,
+  fileState,
+  nextTracker,
+  updateRaw,
   docType,
   uploads,
   document,
   availableActions,
+  signatories,
 }) => {
+  const { resolveAction } = useFileDeskRoutePipelines(
+    resource,
+    currentDraft,
+    needsSignature,
+    currentStage,
+    fileState,
+    currentTracker,
+    nextTracker,
+    updateRaw,
+    signatories,
+    drafts,
+    document
+  );
   const widgets = useMemo(() => {
     if (!docType || !Array.isArray(docType.widgets)) return [];
     return docType.widgets;
@@ -44,7 +66,7 @@ const AnalysisSidebar: React.FC<DocketSidebarProps<DocumentResponseData>> = ({
           action.action_status === "stalled" && action.category === "upload"
       ) ?? ({} as DocumentActionResponseData)
     );
-  }, []);
+  }, [availableActions]);
 
   // Map of widget.component => lazy-loaded component
   const widgetComponents = useMemo(() => {
@@ -67,19 +89,20 @@ const AnalysisSidebar: React.FC<DocketSidebarProps<DocumentResponseData>> = ({
 
   return (
     <div>
-      <div className="widget widget__action mb-4">
-        <div className="widget__title flex align gap-md">
-          <i className="ri-wallet-3-line" />
-          <h5>Upload Draft</h5>
-        </div>
+      <div
+        className="widget widget__action"
+        style={{
+          marginBottom: 42,
+        }}
+      >
         <p className="description">{action.description}</p>
         <Button
           label={action.button_text}
-          handleClick={() => {}}
-          isDisabled={false}
+          handleClick={() => resolveAction(action)}
+          isDisabled={currentDraft && currentDraft?.upload !== null}
           variant={action.variant}
           icon={action.icon}
-          size="xs"
+          size="sm"
         />
       </div>
       {widgets.length > 0 ? (
@@ -104,8 +127,8 @@ const AnalysisSidebar: React.FC<DocketSidebarProps<DocumentResponseData>> = ({
               <WidgetComponent
                 widget={widget}
                 resource={resource}
-                tracker={tracker}
-                uploadsCount={uploads.length}
+                tracker={currentTracker}
+                uploadsCount={uploads?.length}
                 docType={docType}
                 document={document}
                 actions={availableActions}

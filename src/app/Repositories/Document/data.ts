@@ -11,10 +11,12 @@ export interface UploadResponseData extends BaseResponse {
   department_id: number;
   name: string;
   path: string;
-  size: bigint;
+  size: number;
   mime_type: string;
   file_path: string;
   extension: string;
+  uploadable_id?: number;
+  uploadable_type?: string;
   created_at?: string;
   updated_at?: string;
 }

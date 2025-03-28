@@ -53,6 +53,7 @@ export default class DocumentDraftRepository extends BaseRepository {
       action: data.action ?? null,
       authorising_officer: data.authorising_officer ?? null,
       history: data.history ?? [],
+      upload: data.upload ?? null,
       approval: data.approval ?? null,
       version_number: data.version_number ?? 0,
       created_at: data.created_at ?? "",

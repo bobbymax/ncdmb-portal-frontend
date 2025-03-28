@@ -1,4 +1,5 @@
 import { BaseResponse } from "../BaseRepository";
+import { UploadResponseData } from "../Document/data";
 import { DocumentActionResponseData } from "../DocumentAction/data";
 import { FileTemplateResponseData } from "../FileTemplate/data";
 import { SignatureResponseData } from "../Signature/data";
@@ -50,6 +51,7 @@ export interface DocumentDraftResponseData extends BaseResponse {
   action?: Partial<DocumentActionResponseData> | null;
   approval?: SignatureResponseData | null;
   history?: Partial<DocumentDraftResponseData>[];
+  upload?: UploadResponseData | null;
   type: "attention" | "paper" | "response";
   version_number?: number;
   created_at?: string;

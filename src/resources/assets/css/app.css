@@ -1862,6 +1862,16 @@ p.claim-description {
   color: var(--color-bttn-danger);
 }
 
+.description {
+  /* background-color: var(--color-border-lighter); */
+  /* border: 1px solid var(--color-border); */
+  border-left: 1px solid var(--color-primary);
+  /* border-radius: 4px; */
+  margin-bottom: 11px;
+  color: var(--color-ajacent-alternate);
+  font-style: italic;
+}
+
 .expenses-display {
   display: flex;
   flex-direction: column;

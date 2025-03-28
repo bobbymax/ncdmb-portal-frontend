@@ -19,6 +19,7 @@ import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import React, {
   lazy,
   LazyExoticComponent,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -52,7 +53,7 @@ export type ServerDataRequestProps = {
   component: string;
 };
 
-type DraftTemplate = {
+export type DraftTemplate = {
   id: number;
   component: LazyExoticComponent<React.ComponentType<any>>;
 };
@@ -76,6 +77,7 @@ export type DocketDataType<
   resource: T;
   index: number;
   updateRaw?: (data: JsonResponse) => void;
+  handleUpdateRaw: (data: JsonResponse) => void;
   tab: TabOptionProps;
   document: DocumentResponseData;
   Repo: D;
@@ -90,6 +92,7 @@ export type DocketDataType<
   setFileState: (data: ServerDataRequestProps) => void;
   draftTemplates: DraftTemplate[] | undefined;
   signatories?: SignatoryResponseData[];
+  draftUploads?: UploadResponseData[];
 };
 
 // Define a default generic type
@@ -117,7 +120,8 @@ const initialServerDataState: ServerDataRequestProps = {
 
 export const useWorkflowEngine = (
   document: DocumentResponseData,
-  loggedInStaff: AuthUserResponseData | undefined
+  loggedInStaff: AuthUserResponseData | undefined,
+  refreshRaw?: (data: JsonResponse) => void
 ) => {
   const {
     workflow,
@@ -128,6 +132,7 @@ export const useWorkflowEngine = (
     docType,
     uploads,
     signatories,
+    draftUploads,
   } = useWorkflow(document);
 
   // Get Current Draft
@@ -151,6 +156,15 @@ export const useWorkflowEngine = (
   const fill = (data: ServerDataRequestProps) => {
     setFileState((prev) => ({ ...prev, ...data }));
   };
+
+  const handleUpdateRaw = useCallback(
+    (data: JsonResponse) => {
+      if (!refreshRaw) return;
+
+      refreshRaw(data);
+    },
+    [refreshRaw]
+  );
 
   const updateServerDataState = (
     response: { [key: string]: unknown },
@@ -294,6 +308,8 @@ export const useWorkflowEngine = (
     resource,
     signatories,
     document,
+    draftUploads,
+    handleUpdateRaw,
   };
 
   return { ...docket, fill, updateServerDataState, fileState, draftTemplates };

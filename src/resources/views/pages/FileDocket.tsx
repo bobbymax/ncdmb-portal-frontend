@@ -67,7 +67,9 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
     updateServerDataState,
     draftTemplates,
     signatories,
-  } = useWorkflowEngine(document, staff);
+    draftUploads,
+    handleUpdateRaw,
+  } = useWorkflowEngine(document, staff, refreshRaw);
 
   const handleTabToggle = useCallback(
     (value: string) => setActiveTab((prev) => (prev !== value ? value : prev)),
@@ -152,6 +154,8 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
                   draftTemplates={draftTemplates}
                   updateServerDataState={updateServerDataState}
                   signatories={signatories}
+                  draftUploads={draftUploads}
+                  handleUpdateRaw={handleUpdateRaw}
                 />
               </Suspense>
             </div>
@@ -161,15 +165,34 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
           <div className="custom-card file__card desk__office">
             <Suspense fallback={<div>Loading...</div>}>
               <DynamicSidebarComponent
+                Repo={Repository}
                 resource={resource}
                 tab={activeActionComponent}
+                currentDraft={currentDraft}
+                hasAccessToOperate={hasAccessToOperate}
+                nextTracker={nextTracker}
+                needsSignature={needsSignature}
                 workflow={workflow}
-                tracker={currentTracker}
-                drafts={drafts}
-                docType={docType}
-                uploads={uploads}
-                document={document}
                 availableActions={availableActions}
+                currentTracker={currentTracker}
+                drafts={drafts}
+                group={group}
+                docType={docType}
+                currentStage={currentStage}
+                component={activeActionComponent?.component}
+                uploads={uploads}
+                index={accessibleTabs.indexOf(
+                  activeActionComponent as TabOptionProps
+                )}
+                updateRaw={refreshRaw}
+                document={document}
+                fill={fill}
+                fileState={fileState}
+                draftTemplates={draftTemplates}
+                updateServerDataState={updateServerDataState}
+                signatories={signatories}
+                draftUploads={draftUploads}
+                handleUpdateRaw={handleUpdateRaw}
               />
             </Suspense>
           </div>

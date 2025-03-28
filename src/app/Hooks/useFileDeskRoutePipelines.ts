@@ -12,7 +12,10 @@ import useFunnels from "./useFunnels";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { useModal } from "app/Context/ModalContext";
 import { useAuth } from "app/Context/AuthContext";
-import { DocumentResponseData } from "app/Repositories/Document/data";
+import {
+  DocumentResponseData,
+  UploadResponseData,
+} from "app/Repositories/Document/data";
 import { toast } from "react-toastify";
 import { useCallback, useMemo, useState } from "react";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
@@ -76,6 +79,21 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
       return approval ? [approval, ...historyApprovals] : historyApprovals;
     });
   }, [signatories, drafts]);
+
+  // const draftUploads: UploadResponseData[] = useMemo(() => {
+  //   if (!drafts) return [];
+
+  //   return drafts.flatMap((draft) => {
+  //     const history = draft.history ?? [];
+  //     const upload = draft.upload;
+
+  //     const historyUploads = history
+  //       .map((h) => h.upload)
+  //       .filter((a): a is UploadResponseData => a !== null && a !== undefined);
+
+  //     return upload ? [upload, ...historyUploads] : historyUploads;
+  //   });
+  // }, [drafts]);
 
   /**
    * Builds the `mutatedState` for API requests
@@ -177,6 +195,11 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
       ) {
         serverSideService = "signature";
       } else if (
+        action.action_status === "stalled" &&
+        action.category === "upload"
+      ) {
+        serverSideService = "upload";
+      } else if (
         action.action_status === "passed" &&
         action.is_resource === 1 &&
         nextTracker?.document_type?.service
@@ -251,5 +274,11 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
     [needsSignature, fileState, nextTracker, currentDraft, currentTracker]
   );
 
-  return { handleOnSubmit, resolveAction, error, activeSignatory, signatures };
+  return {
+    handleOnSubmit,
+    resolveAction,
+    error,
+    activeSignatory,
+    signatures,
+  };
 };

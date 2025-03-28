@@ -43,6 +43,21 @@ const useWorkflow = (document: DocumentResponseData | null) => {
     return document?.documentable as DocumentableData;
   }, [document]);
 
+  const draftUploads: UploadResponseData[] = useMemo(() => {
+    if (!drafts) return [];
+
+    return drafts.flatMap((draft) => {
+      const history = draft.history ?? [];
+      const upload = draft.upload;
+
+      const historyUploads = history
+        .map((h) => h.upload)
+        .filter((a): a is UploadResponseData => a !== null && a !== undefined);
+
+      return upload ? [upload, ...historyUploads] : historyUploads;
+    });
+  }, [drafts]);
+
   useEffect(() => {
     if (document) {
       const { workflow, drafts, document_type, uploads = [] } = document;
@@ -93,6 +108,7 @@ const useWorkflow = (document: DocumentResponseData | null) => {
     template,
     uploads,
     signatories,
+    draftUploads,
   };
 };
 
