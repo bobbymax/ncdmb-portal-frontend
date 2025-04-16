@@ -81,7 +81,7 @@ const DocumentCategory: React.FC<
 
   return (
     <>
-      <div className="col-md-7 mb-3">
+      <div className="col-md-4 mb-3">
         <TextInput
           label="Name"
           name="name"
@@ -92,7 +92,7 @@ const DocumentCategory: React.FC<
         />
       </div>
 
-      <div className="col-md-5 mb-3">
+      <div className="col-md-4 mb-3">
         <TextInput
           label="Icon"
           name="icon"
@@ -100,6 +100,24 @@ const DocumentCategory: React.FC<
           onChange={handleChange}
           isDisabled={loading}
           placeholder="Enter Document Category Icon"
+        />
+      </div>
+
+      <div className="col-md-4 mb-3">
+        <Select
+          label="Type"
+          name="type"
+          value={state.type}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "staff", label: "Staff" },
+            { value: "third-party", label: "Third Party" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
         />
       </div>
 

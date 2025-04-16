@@ -39,6 +39,7 @@ const CardPage = ({
             icon="ri-function-add-line"
             handleClick={() => navigate(url)}
             variant="success"
+            size="sm"
           />
         )}
       </div>

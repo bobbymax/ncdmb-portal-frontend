@@ -1,33 +1,36 @@
 import { DocketDataType } from "app/Hooks/useWorkflowEngine";
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
-import React, { Suspense, useMemo, useRef, useState } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
-import { useAuth } from "app/Context/AuthContext";
-import useGenerateTemplateImages from "app/Hooks/useGenerateTemplateImages";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import useTemplateCapture from "app/Hooks/useTemplateCapture";
 
 const PrintDocumentTab: React.FC<
   DocketDataType<DocumentResponseData, DocumentRepository>
-> = ({ updateRaw, document, draftUploads }) => {
-  const { dataUrls, hiddenRender } = useGenerateTemplateImages(
+> = ({ document, draftUploads, draftTemplates }) => {
+  const { pdfUrl, loading, hiddenRender } = useTemplateCapture(
     document,
-    updateRaw
+    draftUploads ?? [],
+    draftTemplates ?? []
   );
 
-  // console.log(dataUrls);
+  // console.log(draftTemplates);
 
   return (
     <>
-      <div
-        style={{
-          padding: 23,
-        }}
-        className="print__area"
-      >
-        {/*  */}
+      <div className="print__area">
+        {loading && <p>Loading templates...</p>}
+        {hiddenRender}
       </div>
+
+      {pdfUrl && (
+        <div style={{ marginTop: "12px" }}>
+          <iframe
+            src={pdfUrl}
+            title="Merged PDF"
+            style={{ width: "100%", height: "620px", border: "none" }}
+          ></iframe>
+        </div>
+      )}
     </>
   );
 };

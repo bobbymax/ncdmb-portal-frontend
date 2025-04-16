@@ -57,6 +57,8 @@ export interface DocumentResponseData extends BaseResponse {
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;
+  linked_drafts?: DocumentDraftResponseData[];
+  complete_or_linked_drafts?: DocumentDraftResponseData[];
   updates?: DocumentUpdateResponseData[];
   action?: Partial<DocumentActionResponseData> | null;
   is_archived: number;

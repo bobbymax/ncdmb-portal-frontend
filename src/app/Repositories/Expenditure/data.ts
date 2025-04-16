@@ -1,6 +1,6 @@
 import { BaseResponse } from "../BaseRepository";
 
-type FundProps = {
+export type FundProps = {
   department: string;
   budget_code: string;
   sub_budget_head: string;
@@ -13,6 +13,28 @@ type ControllerProps = {
   staff_no: string;
   department: string;
   role: string;
+};
+
+type ExpenditureableProps = {
+  [key: string]: unknown;
+  id: number;
+  user_id?: number;
+  department_id?: number;
+  fund_id?: number;
+  code?: string;
+  type: string;
+  owner?: {
+    grade_level: string;
+    name: string;
+    staff_no: string;
+  };
+  vendor?: {
+    name: string;
+    registration_no: string;
+    address: string;
+    phone: string;
+    email: string;
+  };
 };
 
 // @owner means department here
@@ -40,8 +62,10 @@ export interface ExpenditureResponseData extends BaseResponse {
   is_archived: number;
   expenditureable_id?: number;
   expenditureable_type?: string;
+  expenditureable?: ExpenditureableProps | null;
   fund?: FundProps | null;
   controller?: ControllerProps | null;
+  trackable_draft_id?: number;
   owner?: OwnerProps | null;
   created_at?: string;
   updated_at?: string;

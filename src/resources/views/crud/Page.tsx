@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { AuthPageResponseData } from "app/Repositories/Page/data";
 import { FormPageComponentProps } from "bootstrap";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import TextInput from "../components/forms/TextInput";
 import Select from "../components/forms/Select";
 import { RoleResponseData } from "app/Repositories/Role/data";
@@ -44,6 +44,25 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
       setSelectedRoles(value as DataOptionsProps[]);
     });
   };
+
+  const handleUploadImage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (setState) {
+            setState((prevState) => ({
+              ...prevState,
+              image_path: reader.result as string,
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [setState]
+  );
 
   useEffect(() => {
     if (dependencies) {
@@ -114,7 +133,15 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           placeholder="Enter Page Path"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
+        <TextInput
+          label="Image Icon"
+          name="image_path"
+          onChange={handleUploadImage}
+          type="file"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Icon"
           value={state.icon}
@@ -123,7 +150,7 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           placeholder="Enter Page Icon"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <Select
           label="Parent"
           value={state.parent_id}
@@ -136,7 +163,7 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
           defaultCheckDisabled
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
         <Select
           label="Page Type"
           value={state.type}

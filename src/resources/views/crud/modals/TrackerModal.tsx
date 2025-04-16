@@ -3,6 +3,7 @@ import { ModalValueProps, useModal } from "app/Context/ModalContext";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { ServerTrackerData } from "app/Repositories/ProgressTracker/data";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
+import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { formatOptions } from "app/Support/Helpers";
 import React, {
@@ -23,7 +24,8 @@ type DependencyProps = [
   documentTypes: DataOptionsProps[],
   carders: DataOptionsProps[],
   stages: WorkflowStageResponseData[],
-  signatories: SignatoryResponseData[]
+  signatories: SignatoryResponseData[],
+  workflows: WorkflowResponseData[]
 ];
 
 const TrackerModal: React.FC<ModalValueProps> = ({
@@ -38,11 +40,11 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   const state: ServerTrackerData = getModalState(identifier);
 
   // Extract dependencies safely
-  const [departments, documentTypes, carders, stages, signatories] =
+  const [departments, documentTypes, carders, stages, signatories, workflows] =
     useMemo(() => {
       return dependencies
         ? (dependencies as DependencyProps)
-        : [[], [], [], [], []];
+        : [[], [], [], [], [], []];
     }, [dependencies]);
 
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
@@ -57,6 +59,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     document_type: DataOptionsProps | null;
     carder: DataOptionsProps | null;
     signatory: DataOptionsProps | null;
+    internal_process: DataOptionsProps | null;
     actions: DataOptionsProps[];
     recipients: DataOptionsProps[];
   }>({
@@ -65,6 +68,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     document_type: null,
     carder: null,
     signatory: null,
+    internal_process: null,
     actions: [],
     recipients: [],
   });
@@ -113,6 +117,10 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         label: sig?.type ?? "none",
       };
 
+      const process =
+        workflows.find((workflow) => workflow.id === raw.internal_process_id) ??
+        null;
+
       setSelectedOptions((prev) => ({
         ...prev,
         group: groups.find((grp) => grp.value === raw.group_id) ?? null,
@@ -124,6 +132,9 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           ) ?? null,
         carder:
           carders.find((carder) => carder.value === raw.carder_id) ?? null,
+        internal_process: process
+          ? { value: process.id, label: process.name }
+          : { value: 0, label: "None" },
         signatory: formatted,
         actions: raw.actions ?? [],
         recipients: raw.recipients ?? [],
@@ -224,6 +235,13 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           selectedOptions.signatory,
           handleSelectionChange("signatory"),
           "Signatory"
+        )}
+        {renderMultiSelect(
+          "Internal Process",
+          formatOptions(workflows, "id", "name", true),
+          selectedOptions.internal_process,
+          handleSelectionChange("internal_process"),
+          "Process"
         )}
         <div className="col-md-12">
           <Button

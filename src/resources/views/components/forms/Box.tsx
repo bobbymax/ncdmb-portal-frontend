@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from "react";
 
 export interface CheckboxProps {
-  label: string;
+  label?: string;
   type?: "radio" | "checkbox";
   value?: number | string | undefined;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;

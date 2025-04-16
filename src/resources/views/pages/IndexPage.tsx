@@ -27,8 +27,6 @@ const IndexPage = ({
     {}
   );
 
-  // console.log(Cookies.get("user_id"));
-
   const onSubmit = (
     response: string | object,
     mode: "store" | "update" | "destroy" | "generate"

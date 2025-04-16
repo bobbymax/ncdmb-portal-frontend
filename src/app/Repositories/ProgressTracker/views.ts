@@ -23,7 +23,7 @@ export const progressTrackerViews: ViewsProps[] = [
   },
   {
     title: "Manage Tracker",
-    server_url: "progressTrackers",
+    server_url: "workflows",
     component: "ProgressTracker",
     frontend_path: "/admin-centre/progress-trackers/:id/manage",
     type: "form",

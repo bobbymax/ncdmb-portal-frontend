@@ -45,6 +45,8 @@ export default class DocumentRepository extends BaseRepository {
       documentable: data.documentable,
       updates: data.updates ?? [],
       progress_tracker_id: data.progress_tracker_id,
+      complete_or_linked_drafts: data.complete_or_linked_drafts ?? [],
+      linked_drafts: data.linked_drafts ?? [],
       action: data.action ?? null,
       is_archived: data.is_archived ?? 0,
       created_at: data.created_at ?? "",

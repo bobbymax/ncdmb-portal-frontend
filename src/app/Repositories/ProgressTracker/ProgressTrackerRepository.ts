@@ -34,6 +34,7 @@ export default class ProgressTrackerRepository extends BaseRepository {
       department_id: data.department_id ?? 0,
       carder_id: data.carder_id ?? 0,
       signatory_id: data.signatory_id ?? 0,
+      internal_process_id: data.internal_process_id ?? 0,
       stage: data.stage ?? null,
       document_type: data.document_type ?? null,
       carder: data.carder ?? null,

@@ -1,0 +1,15 @@
+export const paymentRules: { [key: string]: string } = {
+  user_id: "required|integer",
+  department_id: "required|integer",
+  workflow_id: "required|integer",
+  document_category_id: "required|integer",
+  document_type_id: "required|integer",
+  payment_batch_id: "required|integer",
+  expenditure_id: "required|integer",
+  narration: "required|string",
+  total_amount_payable: "required",
+  payable_id: "required|integer",
+  payable_type: "required|string",
+  period: "required|string",
+  fiscal_year: "required|integer",
+};

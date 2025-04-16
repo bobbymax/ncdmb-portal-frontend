@@ -48,7 +48,7 @@ const useGenerateTemplateImages = (
   const { signatures } = useFileDeskRoutePipelines(
     resource as BaseResponse,
     currentDraft as DocumentDraftResponseData,
-    needsSignature,
+    needsSignature as boolean,
     currentStage as WorkflowStageResponseData,
     fileState,
     currentTracker as ProgressTrackerResponseData,

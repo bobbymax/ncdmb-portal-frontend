@@ -132,7 +132,7 @@ const CustomDataTable = ({
   };
 
   return (
-    <div className="table-container">
+    <div className="table-container custom-card file__card">
       <div className="table-header mb-4 flex between align">
         <h1
           className="resource-header"
@@ -144,8 +144,9 @@ const CustomDataTable = ({
           <Button
             label={tag}
             icon="ri-add-large-fill"
-            variant="info"
+            variant="success"
             handleClick={addData}
+            size="sm"
           />
         )}
       </div>

@@ -30,6 +30,7 @@ const Aside = ({
               title="Dashboard"
             >
               <i className="ri-dashboard-line" />
+              <span className="tooltip">Dashboard</span>
             </Link>
             {navigation.map((nav, i) => (
               <Link
@@ -41,6 +42,7 @@ const Aside = ({
                 title={nav.name}
               >
                 <i className={nav.icon} />
+                <span className="tooltip">{nav.name}</span>
               </Link>
             ))}
           </div>

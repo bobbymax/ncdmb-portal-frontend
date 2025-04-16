@@ -20,6 +20,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     department_id: 0,
     carder_id: 0,
     signatory_id: 0,
+    internal_process_id: 0,
     order: 0,
     stage: null,
     document_type: null,

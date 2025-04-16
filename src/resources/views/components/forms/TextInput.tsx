@@ -12,7 +12,8 @@ export interface TextInputProps {
     | "email"
     | "date"
     | "datetime"
-    | "time";
+    | "time"
+    | "month";
   value?: number | string | undefined | any;
   size?: "sm" | "md" | "lg" | "xl";
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -25,6 +26,7 @@ export interface TextInputProps {
   isMulti?: boolean;
   accept?: string;
   onBlur?: () => void;
+  uppercase?: boolean;
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -42,6 +44,7 @@ const TextInput: React.FC<TextInputProps> = ({
   isMulti = false,
   onBlur,
   accept,
+  uppercase,
   ...attributes
 }) => {
   return (
@@ -58,7 +61,9 @@ const TextInput: React.FC<TextInputProps> = ({
         value={value}
         onChange={onChange}
         onBlur={onBlur}
-        className={`storm-form-control storm-form-${size}`}
+        className={`storm-form-control storm-form-${size} ${
+          uppercase ? "capital" : ""
+        }`}
         placeholder={placeholder}
         disabled={isDisabled}
         multiple={isMulti}

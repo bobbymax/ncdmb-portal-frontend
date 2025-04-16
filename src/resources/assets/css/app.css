@@ -1,10 +1,12 @@
 @import "bootstrap";
 /* @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"); */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap");
 /* @import url("https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap"); */
 @import "remixicon/fonts/remixicon.css";
 @import "custom-animations.css";
 @import "modal.css";
+@import "menu.css";
 
 :root {
   --color-primary: #5bba6f;
@@ -27,7 +29,7 @@
 
   --color-bttn-info: #0984e3;
   --color-bttn-info-variant: #31a6ff;
-  --color-bttn-warning: #fdcb6e;
+  --color-bttn-warning: peru;
   --color-bttn-warning-variant: #ffdd9d;
   --color-bttn-danger: #d63031;
   --color-bttn-danger-variant: #f15959;
@@ -113,6 +115,24 @@ body {
   font-size: 14px;
 }
 
+.debug-grid::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  background-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.2) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
+  background-size: 42px 42px; /* adjust grid size */
+  z-index: 99999;
+}
+
 #wrapper {
   display: grid;
   width: 100vw;
@@ -145,7 +165,8 @@ body {
   .sidebar-box {
     position: relative;
     height: 100vh;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 
@@ -228,11 +249,21 @@ body {
 #portal-header {
   background-color: var(--color-white);
   border-bottom: 1.2px solid var(--color-navbar-border);
+
   .portal-header__inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 1.28rem;
+
+    .space-button {
+      font-size: 1.28rem;
+
+      /* h3 {
+        font-size: 1.5rem;
+        font-weight: 500;
+      } */
+    }
 
     #profile-area {
       display: flex;
@@ -346,6 +377,46 @@ body {
       margin-bottom: 0;
     }
   }
+}
+
+.nav-link-item {
+  position: relative;
+}
+
+/* Show on hover */
+.nav-link-item:hover .tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Tooltip styling */
+.tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateY(-50%);
+  background: #222;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  font-size: 0.875rem;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Arrow (optional) */
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #222;
 }
 
 #content {
@@ -1038,9 +1109,30 @@ p.claim-description {
 }
 
 .card-page-header h1 {
-  font-size: 4rem;
-  font-weight: 300;
+  font-size: 2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
   color: var(--color-ajacent);
+}
+
+.ledger__card {
+  h2 {
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    color: darkslateblue;
+  }
+
+  small {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+.form-check-label {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 600;
 }
 
 .none {
@@ -1755,6 +1847,11 @@ p.claim-description {
   /* box-shadow: 0 0.5px 0.5px 0.5px rgba(0, 0, 0, 0.3); */
 }
 
+.storm-form-control.capital {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
 .storm-form-lg {
   padding: 0.74rem 1.48rem;
 }
@@ -1870,6 +1967,14 @@ p.claim-description {
   margin-bottom: 11px;
   color: var(--color-ajacent-alternate);
   font-style: italic;
+}
+
+.template-capture {
+  background: white;
+  box-shadow: none;
+  border: none !important;
+  /* width: 794px;
+  height: auto; */
 }
 
 .expenses-display {
@@ -2398,15 +2503,29 @@ p.claim-description {
   right: 28px;
 }
 
-.file__card .file__card__header .identity {
-  width: 75%;
-}
-
 .file__card .file__card__header .identity .user_name {
   text-transform: uppercase;
   font-size: 11px;
   line-height: 1;
   letter-spacing: 2px;
+}
+
+.singing__items h5 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 14px 0;
+}
+
+.signing__contain {
+  border-bottom: 1px dashed var(--color-border-nav-variant);
+  padding: 5px 0;
+  position: relative;
+}
+
+.doc__card {
+  max-height: 300px;
+  height: 300px;
 }
 
 .file__card .file__card__header .identity .user_name p {
@@ -2834,6 +2953,10 @@ p.claim-description {
   border: 1px solid #c8c8c8;
 }
 
+/* Menu Complete Styling */
+
+/* End Menu Complete Styling */
+
 .process_details {
   display: flex;
   flex-direction: column;
@@ -3029,6 +3152,39 @@ p.claim-description {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+}
+
+/* Payment Voucher Styles */
+.payment__voucher .voucher__title {
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-size: 16px;
+  color: peru;
+}
+
+.payment_exps {
+  background-color: var(--color-white);
+  padding: 16px 21px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.detts small,
+.detts span,
+.detts p {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.detts small {
+  color: peru;
+  font-weight: 600;
+}
+
+.detts p {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--color-secondary);
 }
 
 p.little-badge {
@@ -3558,6 +3714,10 @@ p.little-badge {
     font-size: 1.8rem;
     font-weight: 700;
   }
+}
+
+.handwritten {
+  font-family: "Caveat", cursive;
 }
 
 @media (max-width: 800px) {

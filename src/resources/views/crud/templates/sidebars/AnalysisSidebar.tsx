@@ -1,3 +1,4 @@
+import { useAuth } from "app/Context/AuthContext";
 import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
 import { DocketDataType } from "app/Hooks/useWorkflowEngine";
 import { BaseResponse } from "app/Repositories/BaseRepository";
@@ -7,6 +8,7 @@ import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { WidgetResponseData } from "app/Repositories/Widget/data";
+import _ from "lodash";
 import React, { lazy, Suspense, useMemo } from "react";
 import Button from "resources/views/components/forms/Button";
 
@@ -37,7 +39,9 @@ const AnalysisSidebar: React.FC<
   document,
   availableActions,
   signatories,
+  hasAccessToOperate,
 }) => {
+  const { staff } = useAuth();
   const { resolveAction } = useFileDeskRoutePipelines(
     resource,
     currentDraft,
@@ -89,22 +93,24 @@ const AnalysisSidebar: React.FC<
 
   return (
     <div>
-      <div
-        className="widget widget__action"
-        style={{
-          marginBottom: 42,
-        }}
-      >
-        <p className="description">{action.description}</p>
-        <Button
-          label={action.button_text}
-          handleClick={() => resolveAction(action)}
-          isDisabled={currentDraft && currentDraft?.upload !== null}
-          variant={action.variant}
-          icon={action.icon}
-          size="sm"
-        />
-      </div>
+      {hasAccessToOperate && !_.isEmpty(action) && (
+        <div
+          className="widget widget__action"
+          style={{
+            marginBottom: 42,
+          }}
+        >
+          <p className="description">{action.description}</p>
+          <Button
+            label={action.button_text}
+            handleClick={() => resolveAction(action)}
+            isDisabled={currentDraft && currentDraft?.upload !== null}
+            variant={action.variant}
+            icon={action.icon}
+            size="sm"
+          />
+        </div>
+      )}
       {widgets.length > 0 ? (
         widgets.map((widget) => {
           const WidgetComponent = widgetComponents[widget.component];

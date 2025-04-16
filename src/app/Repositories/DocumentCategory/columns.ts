@@ -11,4 +11,9 @@ export const documentCategoryColumns: ColumnData[] = [
     accessor: "document_type",
     type: "text",
   },
+  {
+    label: "Type",
+    accessor: "type",
+    type: "text",
+  },
 ];

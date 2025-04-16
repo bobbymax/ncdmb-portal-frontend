@@ -10,6 +10,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "icon",
       "workflow_id",
       "selectedRequirements",
+      "type",
     ],
     associatedResources: [
       { name: "documentTypes", url: "documentTypes" },
@@ -24,6 +25,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       label: "",
       icon: "",
       description: "",
+      type: "staff",
       requirements: [],
       selectedRequirements: [],
     },

@@ -3,7 +3,12 @@ import Main from "./bootstrap";
 import "animate.css";
 
 const App = () => {
-  return <Main />;
+  return (
+    // <div className="debug-grid">
+    //   <Main />
+    // </div>
+    <Main />
+  );
 };
 
 export default App;

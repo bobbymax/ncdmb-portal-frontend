@@ -5,6 +5,7 @@ import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
 export interface DocumentCategoryResponseData extends BaseResponse {
   document_type_id: number;
   workflow_id: number;
+  type: "staff" | "third-party";
   name: string;
   icon: string;
   label: string;

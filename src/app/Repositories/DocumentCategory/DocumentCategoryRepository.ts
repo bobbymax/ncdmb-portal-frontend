@@ -30,6 +30,7 @@ export default class DocumentCategoryRepository extends BaseRepository {
       icon: data.icon ?? "",
       description: data.description ?? "",
       requirements: data.requirements ?? [],
+      type: data.type ?? "staff",
       selectedRequirements:
         formatOptions(data.requirements ?? [], "id", "name") ?? [],
       created_at: data.created_at ?? "",

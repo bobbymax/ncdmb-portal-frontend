@@ -184,7 +184,10 @@ export const useWorkflowEngine = (
     }));
   };
 
-  const needsSignature = Number(currentTracker?.stage?.append_signature) === 1;
+  const needsSignature =
+    Number(currentTracker?.stage?.append_signature) === 1 &&
+    currentTracker &&
+    currentTracker?.signatory_id > 0;
   const noSignatureFound = needsSignature && !fileState.signature;
 
   const resource = useMemo(() => {
@@ -246,6 +249,7 @@ export const useWorkflowEngine = (
     fileState.signature,
   ]);
 
+  // Actions Control Centre
   const availableActions = useMemo(() => {
     return (
       currentTracker?.loadedActions?.map((action) => ({

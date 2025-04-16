@@ -56,6 +56,7 @@ const ProgressTracker: React.FC<
     carder_id: 0,
     document_type_id: 0,
     signatory_id: 0,
+    internal_process_id: 0,
     order: 0,
     stage_name: "",
     actions: [],
@@ -71,6 +72,8 @@ const ProgressTracker: React.FC<
     workflow: null,
   });
 
+  // console.log(state);
+
   const handleAddToQueue = (stage: WorkflowStageResponseData) => {
     const response: ServerTrackerData = {
       id: 0,
@@ -81,6 +84,7 @@ const ProgressTracker: React.FC<
       carder_id: 0,
       document_type_id: 0,
       signatory_id: 0,
+      internal_process_id: 0,
       order: queue.length + 1,
       stage_name: stage.name,
       actions: [],
@@ -126,6 +130,7 @@ const ProgressTracker: React.FC<
             carders,
             [stage],
             signatories,
+            workflows,
           ],
         },
         trackerState
@@ -252,6 +257,7 @@ const ProgressTracker: React.FC<
             carder_id: tracker.carder_id,
             signatory_id: tracker.signatory_id,
             document_type_id: tracker.document_type_id,
+            internal_process_id: tracker.internal_process_id,
             stage_name: tracker?.stage?.name as string,
             actions: formatOptions(tracker.actions, "id", "name"),
             recipients: formatOptions(tracker.recipients, "id", "name"),

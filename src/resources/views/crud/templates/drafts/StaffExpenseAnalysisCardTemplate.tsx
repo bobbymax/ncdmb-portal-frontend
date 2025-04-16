@@ -5,7 +5,6 @@ import {
   formatAmountNoCurrency,
   formatDateToPeriodString,
 } from "app/Support/Helpers";
-import { useModal } from "app/Context/ModalContext";
 import Button from "resources/views/components/forms/Button";
 import { useAuth } from "app/Context/AuthContext";
 import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas";
@@ -14,7 +13,6 @@ import claimLogo from "../../../../assets/images/modules/claim.png";
 import { useStateContext } from "app/Context/ContentContext";
 import { DraftPageProps } from "../../tabs/FilePagesTab";
 import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
-import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { SignatureResponseData } from "app/Repositories/Signature/data";
 
 const StaffExpenseAnalysisCardTemplate: React.FC<
@@ -169,7 +167,7 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
                     {authoriser ? (
                       <SignatureCanvas
                         styles={{
-                          width: "160%",
+                          width: "70%",
                           justifyContent: "flex-end",
                         }}
                         signatureUrl={authoriser.signature}

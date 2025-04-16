@@ -27,7 +27,7 @@ export const useDraft = (
 
     const service =
       (current &&
-        current.document_draftable_type.split("\\").pop()?.toLowerCase()) ||
+        current.document_draftable_type?.split("\\").pop()?.toLowerCase()) ||
       "";
 
     return { current, previous, last, service };

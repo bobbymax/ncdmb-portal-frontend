@@ -10,7 +10,7 @@ const MergeFiles: React.FC = () => {
   const fetchFiles = async (): Promise<string[]> => {
     const response = await axios.get("");
 
-    console.log(response.data.files);
+    // console.log(response.data.files);
 
     return response.data.files; // Assume the API returns an array of file URLs
   };

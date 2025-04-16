@@ -100,8 +100,7 @@ const FilePagesTab: React.FC<
       document
     );
 
-  // console.log(document);
-
+  // This filteredActions is to control button display
   const filteredActions = useMemo(() => {
     return (
       availableActions?.filter((action) => {

@@ -11,6 +11,7 @@ export const pageConfig: ConfigProp<AuthPageResponseData> = {
     "roles",
     "workflow_id",
     "document_type_id",
+    "image_path",
   ],
   associatedResources: [
     { name: "pages", url: "pages" },
@@ -27,6 +28,7 @@ export const pageConfig: ConfigProp<AuthPageResponseData> = {
     type: "index",
     parent_id: 0,
     workflow_id: 0,
+    image_path: "",
     document_type_id: 0,
     roles: [],
     is_default: false,

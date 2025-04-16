@@ -4,7 +4,6 @@ import {
 } from "app/Repositories/Document/data";
 import { formatText, handleProgressFlow } from "app/Support/Helpers";
 import fileIcons from "app/Support/FileIcons";
-import folder from "../../../assets/images/folder.png";
 import Button from "../forms/Button";
 import moment from "moment";
 
@@ -16,23 +15,20 @@ interface FileCardProps {
 
 const FolderComponent = ({ owner, document, openFolder }: FileCardProps) => {
   return (
-    <div className="custom-card file__card">
+    <div className="custom-card file__card doc__card">
       <small
         className={`status-badge ${document?.action?.variant ?? "warning"}`}
       >
         {formatText(document?.action?.draft_status ?? "pending")}
       </small>
 
-      <div className="file__card__header flex align between mb-4">
+      <div className="file__card__header mb-4">
         <div className="identity flex align start gap-lg">
           <div className="avatar"></div>
           <div className="user_name">
             <p>{owner?.name}</p>
             <small>{document?.owner?.department}</small>
           </div>
-        </div>
-        <div className="category flex end">
-          <img src={fileIcons[document.document_template]} alt="Claim Icon" />
         </div>
       </div>
       <div className="file__card__item mb-3">

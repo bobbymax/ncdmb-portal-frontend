@@ -70,7 +70,7 @@ const ManageResourcePage = ({
 
   return (
     <div className="container-fluid">
-      <div className="custom-card">
+      <div className="custom-card file__card">
         <div className="custom-card-header flex align between mb-3">
           <h1
             style={{

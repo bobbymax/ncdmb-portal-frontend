@@ -27,6 +27,7 @@ export default class PageRepository extends BaseRepository {
       id: data.id || 0,
       name: data.name || "",
       icon: data.icon || "",
+      image_path: data.image_path || "",
       is_default: data.is_default ?? false,
       is_menu: data.is_menu ?? false,
       path: data.path ?? "",
@@ -37,6 +38,7 @@ export default class PageRepository extends BaseRepository {
       workflow: data.workflow ?? null,
       documentType: data.documentType ?? null,
       signatories: data.signatories ?? [],
+      categories: data.categories ?? [],
       type: "index",
       label: "",
     };

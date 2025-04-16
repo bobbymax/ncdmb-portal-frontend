@@ -115,10 +115,10 @@ export const validate = (
 export // Function to format numbers with commas and allow decimals
 const formatNumber = (value: string) => {
   // Ensure only numbers and a single decimal point are allowed
-  const [integerPartRaw, decimalPart] = value.split(".");
+  const [integerPartRaw, decimalPart] = value?.split(".") ?? "";
 
   // Format the integer part with commas
-  const integerPart = integerPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const integerPart = integerPartRaw?.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
   // If there’s a decimal part, retain it
   return decimalPart !== undefined

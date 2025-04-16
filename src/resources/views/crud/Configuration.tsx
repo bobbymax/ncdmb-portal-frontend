@@ -1,10 +1,4 @@
-import React, {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import TextInput from "../components/forms/TextInput";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { ActionMeta } from "react-select";
@@ -13,28 +7,21 @@ import CustomDataTable, {
   ColumnData,
 } from "../components/tables/CustomDataTable";
 import Button from "../components/forms/Button";
-import { RESOURCE_MAPPINGS } from "resources/resourceIdentifier";
 import { processExcelFile } from "app/Support/FileProcessor";
 import Select from "../components/forms/Select";
-import { repo } from "bootstrap/repositories";
 import { toast } from "react-toastify";
-// import { RESOURCE_MAPPINGS } from "resources/resourceIdentifier";
+import { CardPageComponentProps } from "bootstrap";
+import { ImportResponseData } from "app/Repositories/Import/data";
+import ImportRepository from "app/Repositories/Import/ImportRepository";
 
-const Configuration = () => {
-  const documentRepo = useMemo(() => repo("document"), []);
+const Configuration: React.FC<
+  CardPageComponentProps<ImportResponseData, ImportRepository>
+> = ({ Repository, collection }) => {
   const [file, setFile] = useState<File | null>(null);
   const [data, setData] = useState<any[]>([]);
   const [columns, setColumns] = useState<ColumnData[]>([]);
-  const [selectedResource, setSelectedResource] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const resources: DataOptionsProps[] = [
-    { value: "staff", label: "Staff" },
-    { value: "budget_heads", label: "Budget Heads" },
-    { value: "sub_budget_heads", label: "Sub Budget Heads" },
-    { value: "expenditures", label: "Expenditures" },
-    { value: "funds", label: "Funds" },
-  ];
   const [resource, setResource] = useState<DataOptionsProps | null>(null);
   const { isLoading } = useStateContext();
   const handleString = (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
@@ -42,19 +29,20 @@ const Configuration = () => {
     setResource(value);
   };
 
+  // console.log(RESOURCE_MAPPINGS);
+
   const handleFileSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     const body = {
-      resource: selectedResource,
       data,
     };
 
     try {
       setUploading(true);
 
-      const response = await documentRepo.store(
-        `configuration/imports/${resource}`,
+      const response = await Repository.store(
+        `configuration/imports/${resource?.value}`,
         body
       );
 
@@ -76,6 +64,24 @@ const Configuration = () => {
     if (event.target.files && event.target.files.length > 0) {
       setFile(event.target.files[0]);
     }
+  };
+
+  const reformatCollection = (collection: unknown[]) => {
+    const rows = collection as string[];
+    if (collection.length === 0) return [];
+
+    const formattedCollection: DataOptionsProps[] = [];
+
+    rows.forEach((item) => {
+      formattedCollection.push({
+        value: item,
+        label: item
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" "),
+      });
+    });
+    return formattedCollection;
   };
 
   // Process the Excel File
@@ -105,50 +111,50 @@ const Configuration = () => {
     }
   }, [file]);
 
-  // console.log(data);
-
   return (
     <>
-      <div
-        className="custom-card"
-        style={{ borderRadius: 4, overflow: "hidden", paddingTop: 30 }}
-      >
-        <form onSubmit={handleFileSubmit}>
-          <div className="row">
-            <div className="col-md-5">
-              <TextInput
-                label="Upload Excel File"
-                name="file"
-                onChange={handleFileChange}
-                type="file"
-                size="sm"
-              />
-            </div>
-            <div className="col-md-5">
-              <Select
-                label="Resource"
-                options={resources}
-                value={selectedResource}
-                onChange={(e) => setSelectedResource(e.target.value)}
-                valueKey="value"
-                labelKey="label"
-                defaultValue=""
-                defaultCheckDisabled
-                size="sm"
-              />
-            </div>
-            <div className="col-md-2 mt-3">
-              <Button
-                label="Import"
-                icon="ri-import-line"
-                type="submit"
-                variant="dark"
-                fullWidth
-                isDisabled={!file || selectedResource === ""}
-              />
-            </div>
+      <div className="row">
+        <div className="col-md-4">
+          <div
+            className="custom-card file__card"
+            style={{ overflow: "hidden", padding: 25 }}
+          >
+            <form onSubmit={handleFileSubmit}>
+              <div className="row">
+                <div className="col-md-12 mb-2">
+                  <TextInput
+                    label="Upload Excel File"
+                    name="file"
+                    onChange={handleFileChange}
+                    type="file"
+                    size="sm"
+                  />
+                </div>
+                <div className="col-md-12 mb-2">
+                  <MultiSelect
+                    label="Resource"
+                    options={reformatCollection(collection as unknown[])}
+                    value={resource}
+                    onChange={handleString}
+                    placeholder="Resource"
+                    isSearchable
+                    isDisabled={loading}
+                  />
+                </div>
+                <div className="col-md-12">
+                  <Button
+                    label="Import"
+                    icon="ri-import-line"
+                    type="submit"
+                    variant="dark"
+                    isDisabled={!file || !resource}
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
       <div className="data__display__area mt-3">
         <CustomDataTable
