@@ -4,6 +4,7 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import TransactionRepository from "app/Repositories/Transaction/TransactionRepository";
 import EntityRepository from "app/Repositories/Entity/EntityRepository";
 import LedgerRepository from "app/Repositories/Ledger/LedgerRepository";
 import PaymentRepository from "app/Repositories/Payment/PaymentRepository";
@@ -54,15 +55,16 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
-new EntityRepository(),
-new LedgerRepository(),
-new PaymentRepository(),
-new ChartOfAccountRepository(),
-new ImportRepository(),
-new PaymentBatchRepository(),
-new WidgetRepository(),
-new SignatureRepository(),
-new SignatoryRepository(),
+new TransactionRepository(),
+  new EntityRepository(),
+  new LedgerRepository(),
+  new PaymentRepository(),
+  new ChartOfAccountRepository(),
+  new ImportRepository(),
+  new PaymentBatchRepository(),
+  new WidgetRepository(),
+  new SignatureRepository(),
+  new SignatoryRepository(),
   new SignatureRequestRepository(),
   new DocumentTrailRepository(),
   new ExpenditureRepository(),
@@ -107,8 +109,23 @@ export const extractModelName = (modelPath: string): string => {
   return modelPath.split("\\").pop() || modelPath; // Get last part of namespace
 };
 
+export const toTitleCase = (input: string): string => {
+  return (
+    input
+      // Replace underscores and hyphens with spaces
+      .replace(/[_-]/g, " ")
+      // Add space before capital letters (for camelCase and PascalCase)
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      // Capitalize each word
+      .replace(
+        /\w\S*/g,
+        (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+  );
+};
+
 // 🔹 Converts `ClaimRepository` → `claim` and `DocumentCategoryRepository` → `document_category`
-const toSnakeCase = (str: string): string =>
+export const toSnakeCase = (str: string): string =>
   str
     .replace(/([a-z])([A-Z])/g, "$1_$2") // Add underscores between camelCase
     .replace(/Repository$/, "") // Remove "Repository" suffix

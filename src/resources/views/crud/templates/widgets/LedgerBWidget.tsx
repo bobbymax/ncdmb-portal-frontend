@@ -1,80 +1,90 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { SidebarProps } from "../sidebars/AnalysisSidebar";
 import { PaymentBatchResponseData } from "app/Repositories/PaymentBatch/data";
-import { repo } from "bootstrap/repositories";
-import { ChartOfAccountResponseData } from "app/Repositories/ChartOfAccount/data";
-import MultiSelect, {
-  DataOptionsProps,
-} from "resources/views/components/forms/MultiSelect";
+import MultiSelect from "resources/views/components/forms/MultiSelect";
 import { formatCurrency, formatOptions } from "app/Support/Helpers";
 import { useStateContext } from "app/Context/ContentContext";
-import { ExpenditureResponseData } from "app/Repositories/Expenditure/data";
 import Box from "resources/views/components/forms/Box";
-import { LedgerResponseData } from "app/Repositories/Ledger/data";
-
-type DependencyProps = {
-  chartOfAccounts: ChartOfAccountResponseData[];
-  ledgers: LedgerResponseData[];
-};
+import Button from "resources/views/components/forms/Button";
+import TextInput from "resources/views/components/forms/TextInput";
+import usePaymentProcessor from "app/Hooks/usePaymentProcessor";
+import Select from "resources/views/components/forms/Select";
+import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
+import {
+  ProcessedDataProps,
+  useFileProcessor,
+} from "app/Context/FileProcessorProvider";
+import { ExpenditureResponseData } from "app/Repositories/Expenditure/data";
 
 const LedgerBWidget: React.FC<SidebarProps<PaymentBatchResponseData>> = ({
   tracker,
   resource,
   widget,
-  uploadCount,
-  docType,
   document,
+  hasAccessToOperate,
+  actions,
+  currentDraft,
+  updateRaw,
 }) => {
-  const { isLoading, setIsLoading } = useStateContext();
-  const batchRepo = useMemo(() => repo("payment_batch"), []);
+  const { isLoading } = useStateContext();
   const batch = useMemo(() => resource as PaymentBatchResponseData, [resource]);
-  const [accountCodes, setAccountCodes] = useState<
-    ChartOfAccountResponseData[]
-  >([]);
-  const [ledgers, setLedgers] = useState<LedgerResponseData[]>([]);
-  const [accCode, setAccCode] = useState<DataOptionsProps | null>(null);
-  const [allSelected, setAllSelected] = useState<string>("no");
-  const [paymentIds, setPaymentIds] = useState<number[]>([]);
+  const {
+    state,
+    expenditures,
+    ledgers,
+    accountCodes,
+    entities,
+    selectedOptions,
+    allSelected,
+    updateProcessorState,
+    handleSelectionChange,
+    handleSelectAll,
+    handleCheckbox,
+  } = usePaymentProcessor(batch, currentDraft, tracker, document, updateRaw);
+  const {
+    processIncomingStateAndResources,
+    documentProcessed,
+    setDocumentProcessed,
+  } = useFileProcessor();
 
-  const handleRequirementsChange = (newValue: unknown) => {
-    const result = newValue as DataOptionsProps;
-    setAccCode(result);
+  console.log(document);
+
+  const next = (action: DocumentActionResponseData) => {
+    if (!state.budget_year) return;
+
+    const filteredExpenditures: ProcessedDataProps<ExpenditureResponseData>[] =
+      expenditures
+        .filter((exp) => state.paymentIds.includes(exp.id))
+        .map((exp) => ({
+          raw: exp,
+          status: "cleared",
+          actionPerformed: "exact",
+        }));
+
+    processIncomingStateAndResources(state, filteredExpenditures, action);
   };
 
-  const expenditures: ExpenditureResponseData[] = useMemo(() => {
-    if (!batch) return [];
-    // const batch = resource as PaymentBatchResponseData;
-    return batch.expenditures ?? [];
-  }, [batch]);
+  const paymentAction = useMemo(() => {
+    if (!actions) return null;
+    if (!Array.isArray(actions)) return null;
 
-  const handleSelectAll = (e: ChangeEvent<HTMLInputElement>) => {
-    const isChecked = e.target.checked;
-    setAllSelected(isChecked ? "yes" : "no");
-    const ids: number[] = [];
-    expenditures.map((exp) => ids.push(exp.id));
-    const paymentIds = isChecked ? ids : [];
-    setPaymentIds(paymentIds);
-  };
+    return actions.find((action) => {
+      const isPaymentAction =
+        action.is_payment === 1 &&
+        action.is_resource === 1 &&
+        action.has_update === 1 &&
+        action.action_status === "passed";
+
+      return isPaymentAction;
+    });
+  }, [actions]);
 
   useEffect(() => {
-    if (batchRepo) {
-      const dependencies = async () => {
-        try {
-          const response = (await batchRepo.dependencies()) as unknown;
-          const { chartOfAccounts = [], ledgers = [] } =
-            response as DependencyProps;
-          setAccountCodes(chartOfAccounts);
-          setLedgers(ledgers);
-        } catch (error) {
-          console.error(error);
-        }
-      };
-
-      dependencies();
+    if (documentProcessed && updateRaw) {
+      updateRaw(documentProcessed);
+      setDocumentProcessed(null);
     }
-  }, [batchRepo]);
-
-  console.log(paymentIds);
+  }, [documentProcessed, updateRaw]);
 
   return (
     <>
@@ -82,13 +92,76 @@ const LedgerBWidget: React.FC<SidebarProps<PaymentBatchResponseData>> = ({
         <h4 className="voucher__title mb-5">{widget.title}</h4>
 
         <div className="row mt-4">
+          <div className="col-md-6 mb-2">
+            <TextInput
+              label="Period"
+              value={state.period}
+              name="period"
+              onChange={updateProcessorState}
+              type="month"
+              isDisabled={isLoading}
+            />
+          </div>
+          <div className="col-md-6 mb-2">
+            <Select
+              size="sm"
+              label="Budget Year"
+              value={state.budget_year}
+              name="budget_year"
+              onChange={updateProcessorState}
+              defaultValue={0}
+              defaultCheckDisabled
+              valueKey="value"
+              labelKey="label"
+              options={[
+                { value: 2024, label: 2024 },
+                { value: 2025, label: 2025 },
+              ]}
+            />
+          </div>
+          <div className="col-md-12 mb-2">
+            <MultiSelect
+              label="Ledger"
+              options={formatOptions(ledgers, "id", "name")}
+              value={selectedOptions.ledger}
+              onChange={handleSelectionChange("ledger")}
+              placeholder="Ledger"
+              isSearchable
+              isDisabled={isLoading}
+            />
+          </div>
           <div className="col-md-12 mb-3">
             <MultiSelect
               label="Account Code"
               options={formatOptions(accountCodes, "id", "name")}
-              value={accCode}
-              onChange={handleRequirementsChange}
+              value={selectedOptions.account_code}
+              onChange={handleSelectionChange("account_code")}
               placeholder="Account Code"
+              isSearchable
+              isDisabled={isLoading}
+            />
+          </div>
+          <div className="col-md-6 mb-3">
+            <MultiSelect
+              label="Type"
+              options={[
+                { value: "debit", label: "DEBIT" },
+                { value: "credit", label: "CREDIT" },
+              ]}
+              value={selectedOptions.transaction_type}
+              onChange={handleSelectionChange("transaction_type")}
+              placeholder="Type"
+              isSearchable
+              isDisabled={isLoading}
+            />
+          </div>
+          <div className="col-md-6 mb-3">
+            <MultiSelect
+              label="Entity"
+              options={formatOptions(entities, "id", "acronym")}
+              value={selectedOptions.entity}
+              onChange={handleSelectionChange("entity")}
+              placeholder="Entity"
               isSearchable
               isDisabled={isLoading}
             />
@@ -100,29 +173,26 @@ const LedgerBWidget: React.FC<SidebarProps<PaymentBatchResponseData>> = ({
               onChange={handleSelectAll}
               isChecked={
                 allSelected === "yes" ||
-                (paymentIds.length > 0 &&
-                  paymentIds.length === expenditures.length)
+                ((state.paymentIds ?? []).length > 0 &&
+                  (state.paymentIds ?? []).length === expenditures.length)
               }
             />
           </div>
           <div className="col-md-12 mb-3">
             {expenditures.length > 0 ? (
               expenditures.map((exp, i) => (
-                <div key={i} className="payment_exps flex align between gap-md">
+                <div
+                  key={i}
+                  className="payment_exps flex align between gap-md mb-3"
+                >
                   <Box
                     value={exp.id}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
-                      if (isChecked && !paymentIds.includes(exp.id)) {
-                        setPaymentIds((prev) => [...prev, exp.id]);
-                      } else {
-                        setPaymentIds((prev) =>
-                          prev.filter((id) => id !== exp.id)
-                        );
-                      }
+                      handleCheckbox(isChecked, exp);
                     }}
                     type="checkbox"
-                    isChecked={paymentIds.includes(exp.id)}
+                    isChecked={(state.paymentIds ?? []).includes(exp.id)}
                   />
                   <div className="detts flex column">
                     <small>
@@ -139,6 +209,25 @@ const LedgerBWidget: React.FC<SidebarProps<PaymentBatchResponseData>> = ({
               <p>No Expenditures</p>
             )}
           </div>
+
+          {paymentAction && hasAccessToOperate && (
+            <div className="col-md-12 mb-3 mt-3">
+              <Button
+                label={paymentAction.button_text}
+                icon={paymentAction.icon}
+                size="sm"
+                variant={paymentAction.variant}
+                handleClick={() => next(paymentAction)}
+                isDisabled={
+                  isLoading ||
+                  (state.paymentIds ?? []).length < 1 ||
+                  !selectedOptions.account_code ||
+                  !selectedOptions.ledger ||
+                  state.period === ""
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

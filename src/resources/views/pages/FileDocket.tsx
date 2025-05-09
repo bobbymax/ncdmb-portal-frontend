@@ -20,6 +20,7 @@ import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/da
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
+import { FileProcessorProvider } from "app/Context/FileProcessorProvider";
 
 export interface DocketSidebarProps<T extends BaseResponse> {
   // resource, drafts, currentDraft, tracker, widget
@@ -42,7 +43,7 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
   });
 
   const document = useMemo(() => raw as DocumentResponseData, [raw]);
-  const [activeTab, setActiveTab] = useState<string>("pages");
+  const [activeTab, setActiveTab] = useState<string>("document");
   const activeActionComponent = useMemo(
     () => accessibleTabs.find((tab) => tab.label === activeTab),
     [activeTab]
@@ -69,6 +70,8 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
     signatories,
     draftUploads,
     handleUpdateRaw,
+    widgets,
+    widgetComponents,
   } = useWorkflowEngine(document, staff, refreshRaw);
 
   const handleTabToggle = useCallback(
@@ -105,29 +108,67 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
   }, [activeActionComponent]);
 
   return (
-    <div className="docket__container">
-      {/* Desk Header */}
-      <FileDocketHeader
-        title={document?.title}
-        reference={document?.ref}
-        document_type={docType?.name ?? ""}
-        back={back}
-      />
+    <FileProcessorProvider>
+      <div className="docket__container">
+        {/* Desk Header */}
+        <FileDocketHeader
+          title={document?.title}
+          reference={document?.ref}
+          document_type={docType?.name ?? ""}
+          back={back}
+        />
 
-      {/* Desk Board */}
-      <div className="row">
-        <div className="col-md-8">
-          <div className="desk__office custom-card file__card mb-3">
-            <TabActionButtonComponent
-              tabs={accessibleTabs}
-              handleTabToggle={handleTabToggle}
-              activeTab={activeTab}
-            />
+        {/* Desk Board */}
+        <div className="row">
+          <div className="col-md-8 mb-3">
+            <div className="desk__office custom-card file__card mb-3">
+              <TabActionButtonComponent
+                tabs={accessibleTabs}
+                handleTabToggle={handleTabToggle}
+                activeTab={activeTab}
+              />
 
-            {/* Draft Templates */}
-            <div className="file__tab__content mt-3">
+              {/* Draft Templates */}
+              <div className="file__tab__content mt-3">
+                <Suspense fallback={<div>Loading...</div>}>
+                  <DynamicComponent
+                    Repo={Repository}
+                    resource={resource}
+                    tab={activeActionComponent}
+                    currentDraft={currentDraft}
+                    hasAccessToOperate={hasAccessToOperate}
+                    nextTracker={nextTracker}
+                    needsSignature={needsSignature}
+                    workflow={workflow}
+                    availableActions={availableActions}
+                    currentTracker={currentTracker}
+                    drafts={drafts}
+                    group={group}
+                    docType={docType}
+                    currentStage={currentStage}
+                    component={activeActionComponent?.component}
+                    uploads={uploads}
+                    index={accessibleTabs.indexOf(
+                      activeActionComponent as TabOptionProps
+                    )}
+                    updateRaw={refreshRaw}
+                    document={document}
+                    fill={fill}
+                    fileState={fileState}
+                    draftTemplates={draftTemplates}
+                    updateServerDataState={updateServerDataState}
+                    signatories={signatories}
+                    draftUploads={draftUploads}
+                    handleUpdateRaw={handleUpdateRaw}
+                  />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4 mb-3">
+            <div className="custom-card file__card desk__office">
               <Suspense fallback={<div>Loading...</div>}>
-                <DynamicComponent
+                <DynamicSidebarComponent
                   Repo={Repository}
                   resource={resource}
                   tab={activeActionComponent}
@@ -156,49 +197,15 @@ const FileDocket = ({ Repository, view }: PageProps<BaseRepository>) => {
                   signatories={signatories}
                   draftUploads={draftUploads}
                   handleUpdateRaw={handleUpdateRaw}
+                  widgets={widgets}
+                  widgetComponents={widgetComponents}
                 />
               </Suspense>
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-3">
-          <div className="custom-card file__card desk__office">
-            <Suspense fallback={<div>Loading...</div>}>
-              <DynamicSidebarComponent
-                Repo={Repository}
-                resource={resource}
-                tab={activeActionComponent}
-                currentDraft={currentDraft}
-                hasAccessToOperate={hasAccessToOperate}
-                nextTracker={nextTracker}
-                needsSignature={needsSignature}
-                workflow={workflow}
-                availableActions={availableActions}
-                currentTracker={currentTracker}
-                drafts={drafts}
-                group={group}
-                docType={docType}
-                currentStage={currentStage}
-                component={activeActionComponent?.component}
-                uploads={uploads}
-                index={accessibleTabs.indexOf(
-                  activeActionComponent as TabOptionProps
-                )}
-                updateRaw={refreshRaw}
-                document={document}
-                fill={fill}
-                fileState={fileState}
-                draftTemplates={draftTemplates}
-                updateServerDataState={updateServerDataState}
-                signatories={signatories}
-                draftUploads={draftUploads}
-                handleUpdateRaw={handleUpdateRaw}
-              />
-            </Suspense>
-          </div>
-        </div>
       </div>
-    </div>
+    </FileProcessorProvider>
   );
 };
 

@@ -7,7 +7,8 @@
   background: rgba(0, 0, 0, 0.7);
 }
 
-.modal-main {
+.modal-main,
+.modal-main-normal {
   position: fixed;
   width: 65%;
   height: auto;
@@ -17,6 +18,11 @@
   background-color: var(--color-white);
   border-radius: 3px;
   /* opacity: 0; */
+}
+
+.modal-main-normal {
+  width: 45%;
+  left: 32%;
 }
 
 .custom__modal-header {

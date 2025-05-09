@@ -152,34 +152,32 @@ const renderRoute = <T extends BaseRepository>(
 
 const Main = () => {
   return (
-    <AuthProvider>
-      <Suspense fallback={<p>Loading...</p>}>
-        <Routes>
-          {repositories.map((repo) =>
-            repo.views.map((view, j) => {
-              return renderRoute(repo, view, j);
-            })
-          )}
+    <Suspense fallback={<p>Loading...</p>}>
+      <Routes>
+        {repositories.map((repo) =>
+          repo.views.map((view, j) => {
+            return renderRoute(repo, view, j);
+          })
+        )}
 
-          <Route
-            element={
-              <AuthGuard>
-                <Dashboard />
-              </AuthGuard>
-            }
-            path="/:id"
-          />
-          <Route
-            element={
-              <Guest>
-                <Login />
-              </Guest>
-            }
-            path="/auth/login"
-          />
-        </Routes>
-      </Suspense>
-    </AuthProvider>
+        <Route
+          element={
+            <AuthGuard>
+              <Dashboard />
+            </AuthGuard>
+          }
+          path="/:id"
+        />
+        <Route
+          element={
+            <Guest>
+              <Login />
+            </Guest>
+          }
+          path="/auth/login"
+        />
+      </Routes>
+    </Suspense>
   );
 };
 

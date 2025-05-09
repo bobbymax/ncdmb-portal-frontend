@@ -284,6 +284,9 @@ export class TripExpenseGenerator {
           : this.calculateTotalAmount(numOfDays, remuneration.amount),
         description,
         status: "pending",
+        total_amount_paid: 0,
+        variation: 0,
+        variation_type: "subtract",
       });
     }
   }

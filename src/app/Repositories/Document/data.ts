@@ -61,6 +61,7 @@ export interface DocumentResponseData extends BaseResponse {
   complete_or_linked_drafts?: DocumentDraftResponseData[];
   updates?: DocumentUpdateResponseData[];
   action?: Partial<DocumentActionResponseData> | null;
+  parents?: DocumentResponseData[];
   is_archived: number;
   created_at?: string;
   updated_at?: string;

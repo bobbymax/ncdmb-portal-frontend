@@ -8,14 +8,14 @@ export interface ModalProps {
   children: ReactNode;
 }
 
-const Modal = ({ title, close, show, size = "lg", children }: ModalProps) => {
+const Modal = ({ title, close, show, size, children }: ModalProps) => {
   const isToggled = show ? "modal block" : "modal none";
   return (
     <div className={isToggled}>
       <section
-        className={`animate__animated animate__bounceIn modal-main ${
-          size && size === "lg" ? " large" : ""
-        }`}
+        className={`animate__animated animate__bounceIn ${
+          size === "lg" ? "modal-main" : "modal-main-normal"
+        } ${size && size === "lg" ? " large" : ""}`}
       >
         <div className="custom__modal-header">
           <h3 className="custom__modal-title">{title}</h3>

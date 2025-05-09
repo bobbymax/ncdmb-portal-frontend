@@ -25,7 +25,8 @@ type DependencyProps = [
   carders: DataOptionsProps[],
   stages: WorkflowStageResponseData[],
   signatories: SignatoryResponseData[],
-  workflows: WorkflowResponseData[]
+  workflows: WorkflowResponseData[],
+  widgets: DataOptionsProps[]
 ];
 
 const TrackerModal: React.FC<ModalValueProps> = ({
@@ -40,12 +41,19 @@ const TrackerModal: React.FC<ModalValueProps> = ({
   const state: ServerTrackerData = getModalState(identifier);
 
   // Extract dependencies safely
-  const [departments, documentTypes, carders, stages, signatories, workflows] =
-    useMemo(() => {
-      return dependencies
-        ? (dependencies as DependencyProps)
-        : [[], [], [], [], [], []];
-    }, [dependencies]);
+  const [
+    departments,
+    documentTypes,
+    carders,
+    stages,
+    signatories,
+    workflows,
+    widgets,
+  ] = useMemo(() => {
+    return dependencies
+      ? (dependencies as DependencyProps)
+      : [[], [], [], [], [], [], []];
+  }, [dependencies]);
 
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
   const [accessibleActions, setAccessibleActions] = useState<
@@ -60,8 +68,10 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     carder: DataOptionsProps | null;
     signatory: DataOptionsProps | null;
     internal_process: DataOptionsProps | null;
+    permission: DataOptionsProps | null;
     actions: DataOptionsProps[];
     recipients: DataOptionsProps[];
+    widgets: DataOptionsProps[];
   }>({
     group: null,
     department: null,
@@ -69,8 +79,10 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     carder: null,
     signatory: null,
     internal_process: null,
+    permission: null,
     actions: [],
     recipients: [],
+    widgets: [],
   });
 
   /**
@@ -88,7 +100,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           identifier,
           Array.isArray(updatedValue)
             ? { [key]: updatedValue }
-            : { [`${key}_id`]: updatedValue.value }
+            : { [key === "permission" ? key : `${key}_id`]: updatedValue.value }
         );
 
         setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
@@ -98,8 +110,16 @@ const TrackerModal: React.FC<ModalValueProps> = ({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    console.log(state);
+
     onSubmit(state, "update");
   };
+
+  const permissions: DataOptionsProps[] = [
+    { value: "r", label: "Read" },
+    { value: "rw", label: "Read/Write" },
+    { value: "rwx", label: "Read/Write/Execute" },
+  ];
 
   /**
    * Sync `data` from props into modal state
@@ -108,6 +128,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     if (data && groups.length > 0) {
       const raw = data as ServerTrackerData;
       updateModalState(identifier, raw);
+
       const sig =
         signatories.find((signatory) => signatory.id === raw.signatory_id) ??
         null;
@@ -121,6 +142,9 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         workflows.find((workflow) => workflow.id === raw.internal_process_id) ??
         null;
 
+      const permission =
+        permissions.find((perm) => perm.value === raw.permission) ?? null;
+
       setSelectedOptions((prev) => ({
         ...prev,
         group: groups.find((grp) => grp.value === raw.group_id) ?? null,
@@ -132,12 +156,15 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           ) ?? null,
         carder:
           carders.find((carder) => carder.value === raw.carder_id) ?? null,
+        permission,
         internal_process: process
           ? { value: process.id, label: process.name }
           : { value: 0, label: "None" },
         signatory: formatted,
         actions: raw.actions ?? [],
         recipients: raw.recipients ?? [],
+        widgets:
+          raw.widgets?.length < 1 ? [{ value: 0, label: "None" }] : raw.widgets,
       }));
     }
   }, [data, groups]);
@@ -242,6 +269,25 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           selectedOptions.internal_process,
           handleSelectionChange("internal_process"),
           "Process"
+        )}
+        {renderMultiSelect(
+          "Widgets",
+          widgets,
+          selectedOptions.widgets,
+          handleSelectionChange("widgets"),
+          "Widgets",
+          false,
+          6,
+          true
+        )}
+        {renderMultiSelect(
+          "Permissions",
+          permissions,
+          selectedOptions.permission,
+          handleSelectionChange("permission"),
+          "Permisison",
+          false,
+          6
         )}
         <div className="col-md-12">
           <Button

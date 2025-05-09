@@ -22,6 +22,7 @@ export const widgetConfig: ConfigProp<WidgetResponseData> = {
     id: 0,
     document_type_id: 0,
     department_id: 0,
+    progress_tracker_id: 0,
     title: "",
     component: "",
     chart_type: "none",

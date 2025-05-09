@@ -18,6 +18,7 @@ export interface ColumnData {
   accessor: string;
   type: "text" | "currency" | "date" | "status" | "badge" | "field" | "bool";
   format?: string;
+  simplify?: (data: unknown) => void;
 }
 
 export interface ButtonsProp {

@@ -11,9 +11,15 @@ export interface ExpenseResponseData extends BaseResponse {
   total_distance_covered: number;
   unit_price: number;
   total_amount_spent: number;
+  total_amount_paid: number;
+  variation: number;
+  variation_type: "add" | "subtract";
   description: string;
+  remark?: string;
   type?: "flight-takeoff" | "flight-land" | "road" | "per-diem" | "wallet";
   status?: "pending" | "cleared" | "altered" | "rejected";
+  allowance?: string;
+  item?: string;
   created_at?: string;
   updated_at?: string;
 }

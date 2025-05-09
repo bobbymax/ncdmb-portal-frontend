@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { AuthPageResponseData } from "app/Repositories/Page/data";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { ProtectedProps } from "resources/templates/Protected";
-import { AuthState, AuthUserResponseData } from "./AuthContext";
+import { AuthState } from "./AuthContext";
 import { GroupResponseData } from "app/Repositories/Group/data";
 import { RoleResponseData } from "app/Repositories/Role/data";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
+import { useLocation } from "react-router-dom";
 
 interface StateContextType {
   apps: AuthPageResponseData[];
@@ -28,11 +29,16 @@ interface StateContextType {
   setAuthenticatedUser: React.Dispatch<React.SetStateAction<AuthState | null>>;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  dashboard: string;
+  setDashboard: React.Dispatch<React.SetStateAction<string>>;
+  activePage: string;
+  setActivePage: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
 export const ContentContext = ({ children }: ProtectedProps) => {
+  const { pathname } = useLocation();
   const [apps, setApps] = useState<AuthPageResponseData[]>([]);
   const [navigation, setNavigation] = useState<AuthPageResponseData[]>([]);
   const [pages, setPages] = useState<AuthPageResponseData[]>([]);
@@ -41,6 +47,8 @@ export const ContentContext = ({ children }: ProtectedProps) => {
     RemunerationResponseData[]
   >([]);
   const [role, setRole] = useState<RoleResponseData | null>(null);
+  const [dashboard, setDashboard] = useState<string>("");
+  const [activePage, setActivePage] = useState<string>("");
 
   const [permissions, setPermissions] = useState<string[]>([]);
   const [authenticatedUser, setAuthenticatedUser] = useState<AuthState | null>({
@@ -49,6 +57,16 @@ export const ContentContext = ({ children }: ProtectedProps) => {
     token: null,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (pathname !== "") {
+      const pageName = pathname.split("/");
+      const appPath = pageName[1];
+      const pagePath = pageName.length > 2 ? `/${appPath}/${pageName[2]}` : "";
+      setDashboard(`/${appPath}`);
+      setActivePage(pagePath !== "" ? pagePath : `/${appPath}`);
+    }
+  }, [pathname]);
 
   return (
     <StateContext.Provider
@@ -71,6 +89,10 @@ export const ContentContext = ({ children }: ProtectedProps) => {
         setAuthenticatedUser,
         isLoading,
         setIsLoading,
+        dashboard,
+        setActivePage,
+        activePage,
+        setDashboard,
       }}
     >
       {children}

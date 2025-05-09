@@ -18,16 +18,23 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     "draft_status",
     "resource_type",
     "is_resource",
+    "trigger_workflow_id",
+    "is_payment",
   ],
   associatedResources: [
     {
       name: "carders",
       url: "carders",
     },
+    {
+      name: "workflows",
+      url: "workflows",
+    },
   ],
   state: {
     id: 0,
     carder_id: 0,
+    trigger_workflow_id: 0,
     name: "",
     label: "",
     button_text: "",
@@ -43,6 +50,7 @@ export const documentActionConfig: ConfigProp<DocumentActionResponseData> = {
     category: "comment",
     resource_type: "searchable",
     is_resource: 0,
+    is_payment: 0,
   },
   actions: [
     {

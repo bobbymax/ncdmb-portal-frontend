@@ -15,10 +15,13 @@ export interface PaymentResponseData extends BaseResponse {
   expenditure_id: number;
   narration: string;
   total_amount_payable: string;
+  total_approved_amount: number;
+  total_amount_paid: number;
+  total_taxable_amount: number;
   payable_id: number;
   payable_type: string;
   payment_method: "bank-transfer" | "cheque" | "cash" | "cheque-number";
-  payment_type: "staff" | "third-party";
+  type: "staff" | "third-party";
   currency: "USD" | "EUR" | "NGN" | "GBP" | "YEN";
   period: string;
   fiscal_year: number;

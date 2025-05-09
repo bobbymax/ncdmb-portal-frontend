@@ -25,6 +25,7 @@ export default class WidgetRepository extends BaseRepository {
       title: data.title ?? "",
       component: data.component ?? "",
       chart_type: data.chart_type ?? "none",
+      progress_tracker_id: data.progress_tracker_id ?? 0,
       is_active: data.is_active ?? 0,
       response: data.response ?? "resource",
       type: data.type ?? "box",

@@ -14,18 +14,16 @@ import { useStateContext } from "app/Context/ContentContext";
 import { DraftPageProps } from "../../tabs/FilePagesTab";
 import ClaimRepository from "app/Repositories/Claim/ClaimRepository";
 import { SignatureResponseData } from "app/Repositories/Signature/data";
+import { ColumnData } from "resources/views/components/tables/CustomDataTable";
+import { ExpenseResponseData } from "app/Repositories/Expense/data";
+import PageTable from "resources/views/components/pages/PageTable";
 
 const StaffExpenseAnalysisCardTemplate: React.FC<
   DraftPageProps<ClaimResponseData, ClaimRepository>
 > = ({
-  resource,
+  resource: claim,
   currentDraft,
-  draftId,
   group,
-  stage,
-  drafts,
-  fileState,
-  signatories,
   actions,
   resolveAction,
   activeSignatory,
@@ -35,7 +33,6 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
   const [authoriser, setAuthoriser] = useState<SignatureResponseData | null>(
     null
   );
-  const claim = useMemo(() => resource as ClaimResponseData, [resource]);
 
   const appendSignatureAction = useMemo(() => {
     if (!actions || actions.length < 1) return null;
@@ -65,8 +62,6 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
     }
   }, [signatures]);
 
-  // console.log(signatures);
-
   return (
     <LetterHeadedPaper
       tagline="Finance & Account Directorate Analysis of Expenditure"
@@ -79,41 +74,8 @@ const StaffExpenseAnalysisCardTemplate: React.FC<
             <p className="subtxt">Purpose of Claim:</p>
             <h1>{claim.title}</h1>
           </div>
-          <div className="print__expense__wrapper mt-4">
-            <div className="table__wrapper">
-              <table className="custom-table">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th>Duration</th>
-                    <th
-                      style={{
-                        textAlign: "right",
-                      }}
-                    >
-                      Amount Spent
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {claim.expenses.map((expense) => (
-                    <tr key={expense.id}>
-                      <td>{expense.description}</td>
-                      <td>
-                        {formatDateToPeriodString(
-                          expense.start_date,
-                          expense.end_date
-                        )}
-                      </td>
-                      <td className="amount">
-                        {formatAmountNoCurrency(expense.total_amount_spent)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+
+          <PageTable expenses={claim.expenses} />
 
           <div className="total__expense_section">
             <div className="total__expense__container">

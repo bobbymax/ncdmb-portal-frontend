@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { DocumentActionResponseData } from "./data";
 import { documentActionRules } from "./rules";
 import { documentActionViews } from "./views";
@@ -17,12 +22,11 @@ export default class DocumentActionRepository extends BaseRepository {
   protected state: DocumentActionResponseData = documentActionConfig.state;
   public columns: ColumnData[] = documentActionColumns;
   public actions: ButtonsProp[] = documentActionConfig.actions;
-  public fromJson(
-    data: DocumentActionResponseData
-  ): DocumentActionResponseData {
+  public fromJson(data: JsonResponse): DocumentActionResponseData {
     return {
       id: data.id ?? 0,
       carder_id: data.carder_id ?? 0,
+      trigger_workflow_id: data.trigger_workflow_id,
       name: data.name ?? "",
       label: data.label ?? "",
       description: data.description ?? "",
@@ -38,6 +42,7 @@ export default class DocumentActionRepository extends BaseRepository {
       component: data.component ?? "",
       has_update: data.has_update ?? 0,
       is_resource: data.is_resource ?? 0,
+      is_payment: data.is_payment ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

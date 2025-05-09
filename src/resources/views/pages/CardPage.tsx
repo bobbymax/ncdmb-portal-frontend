@@ -29,6 +29,8 @@ const CardPage = ({
     }
   };
 
+  // console.log(url);
+
   return (
     <div className="card-page-component">
       <div className="card-page-header flex align between mb-5">

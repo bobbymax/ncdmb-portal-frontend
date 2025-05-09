@@ -13,8 +13,12 @@ export const expenseConfig: ConfigProp<ExpenseResponseData> = {
     "total_distance_covered",
     "unit_price",
     "total_amount_spent",
+    "total_amount_paid",
     "description",
     "status",
+    "variation",
+    "variation_type",
+    "remark",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -30,11 +34,15 @@ export const expenseConfig: ConfigProp<ExpenseResponseData> = {
     end_date: "",
     no_of_days: 0,
     total_distance_covered: 0,
+    total_amount_paid: 0,
     unit_price: 0,
     total_amount_spent: 0,
     description: "",
     type: "flight-takeoff",
     status: "pending",
+    variation: 0,
+    variation_type: "subtract",
+    remark: "",
   },
   actions: [
     {

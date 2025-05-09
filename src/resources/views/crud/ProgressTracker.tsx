@@ -22,6 +22,7 @@ import { useParams } from "react-router-dom";
 import _ from "lodash";
 import { repo } from "bootstrap/repositories";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
+import { WidgetResponseData } from "app/Repositories/Widget/data";
 
 interface DependencyProps {
   workflows: WorkflowResponseData[];
@@ -30,6 +31,7 @@ interface DependencyProps {
   carders: CarderResponseData[];
   departments: DepartmentResponseData[];
   signatories: SignatoryResponseData[];
+  widgets: WidgetResponseData[];
 }
 
 const ProgressTracker: React.FC<
@@ -44,6 +46,7 @@ const ProgressTracker: React.FC<
   const [signatories, setSignatories] = useState<SignatoryResponseData[]>([]);
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
   const [queue, setQueue] = useState<ServerTrackerData[]>([]);
+  const [widgets, setWidgets] = useState<DataOptionsProps[]>([]);
 
   const trackerRepo = useMemo(() => repo("progress_tracker"), []);
 
@@ -58,9 +61,11 @@ const ProgressTracker: React.FC<
     signatory_id: 0,
     internal_process_id: 0,
     order: 0,
+    permission: "r",
     stage_name: "",
     actions: [],
     recipients: [],
+    widgets: [],
   });
 
   const backendUrl = useMemo(() => "https://portal.test", []);
@@ -86,9 +91,11 @@ const ProgressTracker: React.FC<
       signatory_id: 0,
       internal_process_id: 0,
       order: queue.length + 1,
+      permission: "r",
       stage_name: stage.name,
       actions: [],
       recipients: [],
+      widgets: [],
     };
 
     setQueue([...queue, response]);
@@ -131,6 +138,7 @@ const ProgressTracker: React.FC<
             [stage],
             signatories,
             workflows,
+            widgets,
           ],
         },
         trackerState
@@ -205,6 +213,7 @@ const ProgressTracker: React.FC<
         carders = [],
         departments = [],
         signatories = [],
+        widgets = [],
       } = dependencies as DependencyProps;
 
       setWorkflows(workflows);
@@ -216,6 +225,7 @@ const ProgressTracker: React.FC<
       ]);
       setSignatories(signatories);
       setDocumentTypes(formatOptions(documentTypes, "id", "name"));
+      setWidgets(formatOptions(widgets, "id", "title", true));
     }
   }, [dependencies]);
 
@@ -256,11 +266,13 @@ const ProgressTracker: React.FC<
             department_id: tracker.department_id,
             carder_id: tracker.carder_id,
             signatory_id: tracker.signatory_id,
+            permission: tracker.permission,
             document_type_id: tracker.document_type_id,
             internal_process_id: tracker.internal_process_id,
             stage_name: tracker?.stage?.name as string,
             actions: formatOptions(tracker.actions, "id", "name"),
             recipients: formatOptions(tracker.recipients, "id", "name"),
+            widgets: formatOptions(tracker?.widgets ?? [], "id", "title", true),
           }))
         : [];
 

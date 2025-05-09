@@ -2,6 +2,7 @@ import { BaseResponse } from "../BaseRepository";
 
 export interface DocumentActionResponseData extends BaseResponse {
   carder_id: number;
+  trigger_workflow_id: number;
   name: string;
   label: string;
   button_text: string;
@@ -40,6 +41,7 @@ export interface DocumentActionResponseData extends BaseResponse {
   component: string;
   description: string;
   is_resource: number;
+  is_payment: number;
   created_at?: string;
   updated_at?: string;
   disabled?: boolean;

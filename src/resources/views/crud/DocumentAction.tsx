@@ -6,10 +6,13 @@ import TextInput from "../components/forms/TextInput";
 import Select from "../components/forms/Select";
 import { StageCategoryResponseData } from "app/Repositories/StageCategory/data";
 import { CarderResponseData } from "app/Repositories/Carder/data";
+import { WorkflowResponseData } from "app/Repositories/Workflow/data";
+import { formatOptions } from "app/Support/Helpers";
 
 interface DependencyProps {
   stageCategories: StageCategoryResponseData[];
   carders: CarderResponseData[];
+  workflows: WorkflowResponseData[];
 }
 
 const DocumentAction: React.FC<
@@ -17,14 +20,19 @@ const DocumentAction: React.FC<
 > = ({ state, handleChange, loading, dependencies }) => {
   const [categories, setCategories] = useState<StageCategoryResponseData[]>([]);
   const [carders, setCarders] = useState<CarderResponseData[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowResponseData[]>([]);
 
   useEffect(() => {
     if (dependencies) {
-      const { stageCategories = [], carders = [] } =
-        dependencies as DependencyProps;
+      const {
+        stageCategories = [],
+        carders = [],
+        workflows = [],
+      } = dependencies as DependencyProps;
 
       setCategories(stageCategories);
       setCarders(carders);
+      setWorkflows(workflows);
     }
   }, [dependencies]);
 
@@ -234,7 +242,7 @@ const DocumentAction: React.FC<
           size="sm"
         />
       </div>
-      <div className="col-md-8 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Action Component"
           name="component"
@@ -244,7 +252,40 @@ const DocumentAction: React.FC<
           placeholder="Enter Action Component"
         />
       </div>
-      <div className="col-md-4 mb-3">
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Trigger Workflow"
+          name="trigger_workflow_id"
+          value={state.trigger_workflow_id}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={formatOptions(workflows, "id", "name", true)}
+          defaultValue={999}
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Is Payment Action"
+          name="is_payment"
+          value={state.is_payment}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: 0, label: "No" },
+            { value: 1, label: "Yes" },
+          ]}
+          defaultValue={999}
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
         <Select
           label="Is Resource"
           name="is_resource"

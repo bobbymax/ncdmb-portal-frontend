@@ -11,10 +11,10 @@ import { TabOptionProps } from "app/Repositories/BaseRepository";
 
 export const accessibleTabs: TabOptionProps[] = [
   {
-    title: "Pages",
-    label: "pages",
+    title: "Document",
+    label: "document",
     component: "FilePagesTab",
-    icon: "ri-file-copy-2-line",
+    icon: "ri-book-shelf-line",
     variant: "success",
     endpoint: "serviceWorkers",
     hasFile: false,
@@ -24,10 +24,23 @@ export const accessibleTabs: TabOptionProps[] = [
     sidebar: "AnalysisSidebar",
   },
   {
-    title: "Supporting Documents",
-    label: "supporting-documents",
+    title: "Pages",
+    label: "pages",
+    component: "LinkedDocumentsTab",
+    icon: "ri-links-line",
+    variant: "info",
+    endpoint: "serviceWorkers",
+    hasFile: false,
+    appendSignature: false,
+    isDefault: false,
+    status: "draft",
+    sidebar: "AnalysisSidebar",
+  },
+  {
+    title: "Uploads",
+    label: "uploads",
     component: "MediaFilesTab",
-    icon: "ri-folder-line",
+    icon: "ri-gallery-upload-line",
     variant: "dark",
     endpoint: "serviceWorkers",
     hasFile: false,
@@ -321,7 +334,7 @@ const addAndToWords = (words: string): string => {
 };
 
 export const covertToWords = (amount: number): string => {
-  const [whole, fraction] = amount.toFixed(2).split(".");
+  const [whole, fraction] = (amount ?? 0).toFixed(2).split(".");
   const wholeWords = addAndToWords(toWords(parseInt(whole, 10)));
   let result = `${wholeWords} Naira`;
 

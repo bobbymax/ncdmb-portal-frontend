@@ -5,6 +5,7 @@ import { CarderResponseData } from "../Carder/data";
 import { GroupResponseData } from "../Group/data";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { DocumentActionResponseData } from "../DocumentAction/data";
+import { WidgetResponseData } from "../Widget/data";
 
 export type ServerTrackerData = {
   id: number;
@@ -18,8 +19,10 @@ export type ServerTrackerData = {
   internal_process_id: number;
   order: number;
   stage_name: string;
+  permission: "r" | "rw" | "rwx";
   actions: DataOptionsProps[];
   recipients: DataOptionsProps[];
+  widgets: DataOptionsProps[];
 };
 
 export interface ProgressTrackerResponseData extends BaseResponse {
@@ -32,6 +35,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
   department_id: number;
   signatory_id: number;
   internal_process_id: number;
+  permission: "r" | "rw" | "rwx";
   order: number;
   stage: WorkflowStageResponseData | null;
   stages?: ServerTrackerData[];
@@ -45,6 +49,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
     name: string;
     abv: string;
   };
+  widgets?: WidgetResponseData[];
   created_at?: string;
   updated_at?: string;
 }

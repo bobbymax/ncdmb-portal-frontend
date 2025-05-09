@@ -17,6 +17,7 @@ export const paymentBatchConfig: ConfigProp<PaymentBatchResponseData> = {
   associatedResources: [
     { name: "chartOfAccounts", url: "chartOfAccounts" },
     { name: "ledgers", url: "group/ledgers" },
+    { name: "entities", url: "entities" },
   ],
   state: {
     id: 0,

@@ -69,7 +69,7 @@ const useWorkflow = (document: DocumentResponseData | null) => {
         );
       }
 
-      setUploads(metaData.uploads ?? []);
+      setUploads(uploads ?? []);
       setSignatories(workflow?.signatories ?? []);
 
       const tracker = workflow?.trackers.find(
@@ -96,6 +96,8 @@ const useWorkflow = (document: DocumentResponseData | null) => {
       setWorkflow(workflow);
     }
   }, [document]);
+
+  // console.log(document);
 
   return {
     workflow,

@@ -26,6 +26,7 @@ import React, {
 } from "react";
 import useWorkflow from "./useWorkflow";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
+import { WidgetResponseData } from "app/Repositories/Widget/data";
 
 export type ServerStateRequestProps = {
   resource_id: number;
@@ -91,8 +92,10 @@ export type DocketDataType<
   fileState: ServerDataRequestProps;
   setFileState: (data: ServerDataRequestProps) => void;
   draftTemplates: DraftTemplate[] | undefined;
+  widgets: WidgetResponseData[];
   signatories?: SignatoryResponseData[];
   draftUploads?: UploadResponseData[];
+  widgetComponents: Record<string, React.LazyExoticComponent<React.FC<any>>>;
 };
 
 // Define a default generic type
@@ -143,6 +146,30 @@ export const useWorkflowEngine = (
         : null,
     [drafts]
   );
+
+  const widgets = useMemo(() => {
+    if (!currentTracker || !Array.isArray(currentTracker.widgets)) return [];
+    return currentTracker.widgets;
+  }, [currentTracker]);
+
+  const widgetComponents = useMemo(() => {
+    const map: Record<string, React.LazyExoticComponent<React.FC<any>>> = {};
+
+    widgets.forEach((widget) => {
+      const componentName = widget.component.replace(/[^a-zA-Z0-9]/g, "");
+
+      try {
+        map[widget.component] = lazy(
+          () =>
+            import(`resources/views/crud/templates/widgets/${componentName}`)
+        );
+      } catch (e) {
+        console.warn(`Widget ${componentName} failed to load.`);
+      }
+    });
+
+    return map;
+  }, [widgets]);
 
   const nextTracker =
     workflow?.trackers.find(
@@ -304,6 +331,7 @@ export const useWorkflowEngine = (
     hasAccessToOperate,
     availableActions,
     nextTracker,
+    widgets,
     needsSignature,
     docType,
     group,
@@ -314,6 +342,7 @@ export const useWorkflowEngine = (
     document,
     draftUploads,
     handleUpdateRaw,
+    widgetComponents,
   };
 
   return { ...docket, fill, updateServerDataState, fileState, draftTemplates };

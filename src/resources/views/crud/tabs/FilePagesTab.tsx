@@ -112,10 +112,30 @@ const FilePagesTab: React.FC<
         const isPassedSignature =
           action.action_status === "passed" && action.category === "signature";
 
+        const isComputed = action.resource_type === "computed";
+
+        const isPaymentAction =
+          action.is_payment === 1 &&
+          action.is_resource === 1 &&
+          action.has_update === 1 &&
+          action.action_status === "passed";
+
+        const isConsolidateAction =
+          action.is_payment === 1 &&
+          action.has_update === 1 &&
+          action.resource_type === "private";
+
         const isDraftUpload =
           action.action_status === "stalled" && action.category === "upload";
 
-        return !isInExcludedStatuses && !isPassedSignature && !isDraftUpload;
+        return (
+          !isInExcludedStatuses &&
+          !isPassedSignature &&
+          !isDraftUpload &&
+          !isPaymentAction &&
+          !isComputed &&
+          !isConsolidateAction
+        );
       }) || []
     );
   }, [availableActions]);

@@ -10,6 +10,7 @@ export interface WidgetResponseData extends BaseResponse {
   is_active: number;
   response: "resource" | "collection";
   type: "box" | "card" | "chart" | "banner" | "breadcrumb";
+  progress_tracker_id: number;
   groups: DataOptionsProps[];
   created_at?: string;
   updated_at?: string;
