@@ -2,6 +2,7 @@ import { EntityResponseData } from "app/Repositories/Entity/data";
 import { FormPageComponentProps } from "bootstrap";
 import React, { useEffect } from "react";
 import TextInput from "../components/forms/TextInput";
+import Select from "../components/forms/Select";
 
 const Entity: React.FC<FormPageComponentProps<EntityResponseData>> = ({
   state,

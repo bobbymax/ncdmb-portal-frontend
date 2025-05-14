@@ -49,11 +49,11 @@ export const useForm = <T extends BaseRepository>(
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >
     ) => {
-      const { name, value } = e.target;
+      const { name, value, type } = e.target;
 
       setState((prevState) => ({
         ...prevState,
-        [name]: !isNaN(Number(value)) && value !== "" ? Number(value) : value,
+        [name]: type === "number" ? value : value,
       }));
     },
     []

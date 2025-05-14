@@ -8,6 +8,9 @@ import { TransactionResponseData } from "app/Repositories/Transaction/data";
 import { useModal } from "app/Context/ModalContext";
 import TransactionModal from "../../modals/TransactionModal";
 import { repo } from "bootstrap/repositories";
+import useTransactions from "app/Hooks/useTransactions";
+import { useAuth } from "app/Context/AuthContext";
+import { ProcessedDataProps } from "app/Context/FileProcessorProvider";
 
 const PaymentVoucherTemplate: React.FC<
   DraftPageProps<PaymentResponseData, PaymentRepository>
@@ -23,11 +26,38 @@ const PaymentVoucherTemplate: React.FC<
   //   console.log(payment_voucher);
 
   const { openLoop, setSize, closeModal } = useModal();
+  const { staff } = useAuth();
+  const { taxableAmount, dependencies } = useTransactions(payment_voucher);
   const transactionRepo = useMemo(() => repo("transaction"), []);
+
+  //   console.log(taxableAmount);
 
   const [transactions, setTransactions] = useState<TransactionResponseData[]>(
     []
   );
+
+  const handleModalSubmits = (
+    response: ProcessedDataProps<TransactionResponseData>
+  ) => {
+    //
+  };
+
+  const toggleModal = (raw: TransactionResponseData | null = null) => {
+    openLoop(TransactionModal, "transaction", {
+      title: `${raw ? "Adjust" : "Add"} Transaction`,
+      modalState: transactionRepo.getState(),
+      data: raw,
+      repo: transactionRepo,
+      isUpdating: raw !== null,
+      handleSubmit: handleModalSubmits,
+      dependencies,
+      extras: {
+        taxableAmount,
+        voucher: payment_voucher,
+        loggedInUser: staff,
+      },
+    });
+  };
 
   return (
     <>
@@ -58,9 +88,13 @@ const PaymentVoucherTemplate: React.FC<
                 <small>Please Pay</small>
                 <h5>Beneficiary Name</h5>
               </div>
-              <div className="line exp__description">
+              <div className="line exp__description mb-2">
                 <small>In Respect of</small>
                 <h5>Expenditure Payment</h5>
+              </div>
+              <div className="line exp__description">
+                <small>Department</small>
+                <h5>1003</h5>
               </div>
             </div>
             <div className="expenditure__details flex column gap-sm">
@@ -77,6 +111,10 @@ const PaymentVoucherTemplate: React.FC<
                 <p>TPP32221</p>
               </div>
               <div className="exp__details__payment flex align start gap-md">
+                <p>Budget Head:</p>
+                <p>R345677</p>
+              </div>
+              <div className="exp__details__payment flex align start gap-md">
                 <p>Period:</p>
                 <p>10/2024</p>
               </div>
@@ -88,6 +126,10 @@ const PaymentVoucherTemplate: React.FC<
                 <p>Currency:</p>
                 <p>NGN</p>
               </div>
+              <div className="exp__details__payment flex align start gap-md">
+                <p>Budget Year:</p>
+                <p>2024</p>
+              </div>
             </div>
           </div>
           {/* End Payment Details Here */}
@@ -95,16 +137,7 @@ const PaymentVoucherTemplate: React.FC<
           {/* Transaction Table */}
           <Button
             label="Add Transaction"
-            handleClick={() =>
-              openLoop(TransactionModal, "transaction", {
-                title: "Adjust Transaction",
-                modalState: transactionRepo.getState(),
-                data: null,
-                repo: transactionRepo,
-                isUpdating: false,
-                handleSubmit: () => {},
-              })
-            }
+            handleClick={() => toggleModal()}
             size="xs"
             variant="dark"
             icon="ri-wallet-3-line"
@@ -116,9 +149,6 @@ const PaymentVoucherTemplate: React.FC<
                 <th>Description</th>
                 <th>Transaction Amount</th>
                 <th>Debit/Credit</th>
-                <th>Department</th>
-                <th>Budget Head</th>
-                <th>Budget Year</th>
               </tr>
             </thead>
             <tbody></tbody>

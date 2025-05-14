@@ -8,6 +8,7 @@ import {
 import { useAuth } from "app/Context/AuthContext";
 import useDataProcessor from "app/Hooks/useDataProcessor";
 import { formatAmountNoCurrency } from "app/Support/Helpers";
+import useTransactions from "app/Hooks/useTransactions";
 
 const LedgerHWidget: React.FC<SidebarProps<PaymentResponseData>> = ({
   tracker,
@@ -36,7 +37,9 @@ const LedgerHWidget: React.FC<SidebarProps<PaymentResponseData>> = ({
     payment.type
   );
 
-  console.log(dataState);
+  const { transactionRepo, taxableAmount } = useTransactions(payment);
+
+  //   console.log(taxableAmount);
 
   return (
     <div className="adjustable_ledger_wrapper">
@@ -48,7 +51,13 @@ const LedgerHWidget: React.FC<SidebarProps<PaymentResponseData>> = ({
         </div>
         <div className="line exp__description">
           <small>Total Taxable Amount:</small>
-          <h1>{formatAmountNoCurrency(dataState.total_taxable_amount)}</h1>
+          <h1>
+            {formatAmountNoCurrency(
+              dataState.total_taxable_amount < 1
+                ? taxableAmount
+                : dataState.total_taxable_amount
+            )}
+          </h1>
         </div>
         <div className="line exp__description">
           <small>Total Payable Amount:</small>

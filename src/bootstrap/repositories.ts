@@ -4,6 +4,7 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import JournalTypeRepository from "app/Repositories/JournalType/JournalTypeRepository";
 import TransactionRepository from "app/Repositories/Transaction/TransactionRepository";
 import EntityRepository from "app/Repositories/Entity/EntityRepository";
 import LedgerRepository from "app/Repositories/Ledger/LedgerRepository";
@@ -55,6 +56,7 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+new JournalTypeRepository(),
 new TransactionRepository(),
   new EntityRepository(),
   new LedgerRepository(),
