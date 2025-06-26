@@ -3,7 +3,7 @@ import React, { ChangeEvent } from "react";
 export interface SelectInputProps {
   label: string;
   value?: number | string | undefined;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
   defaultValue: string | number;
   defaultText?: string;

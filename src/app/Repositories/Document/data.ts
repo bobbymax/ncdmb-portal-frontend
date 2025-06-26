@@ -21,6 +21,23 @@ export interface UploadResponseData extends BaseResponse {
   updated_at?: string;
 }
 
+type DocumentActionProps = {
+  id: number;
+  name: string;
+  action_status:
+    | "passed"
+    | "failed"
+    | "attend"
+    | "appeal"
+    | "escalate"
+    | "processing"
+    | "stalled"
+    | "cancelled"
+    | "reversed"
+    | "complete";
+  status: string;
+};
+
 export interface DocumentOwnerData {
   id: number;
   name: string;
@@ -51,17 +68,20 @@ export interface DocumentResponseData extends BaseResponse {
   file_path: string;
   document_template: string;
   documentable?: DocumentableData;
-  status: "pending" | "approved" | "rejected";
+  status: string;
   drafts: DocumentDraftResponseData[];
+  // action?: DocumentActionProps | null
   workflow: WorkflowResponseData | null;
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;
   linked_drafts?: DocumentDraftResponseData[];
   complete_or_linked_drafts?: DocumentDraftResponseData[];
+  dept?: string;
   updates?: DocumentUpdateResponseData[];
   action?: Partial<DocumentActionResponseData> | null;
   parents?: DocumentResponseData[];
+  amount?: number;
   is_archived: number;
   created_at?: string;
   updated_at?: string;

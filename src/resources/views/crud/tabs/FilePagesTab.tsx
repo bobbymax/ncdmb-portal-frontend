@@ -27,6 +27,7 @@ export interface DraftPageProps<
   resource: T;
   repo: D;
   data: T;
+  document: DocumentResponseData;
   template: FileTemplateResponseData | null;
   index: number;
   group: WorkflowStageGroupProps | null;
@@ -189,6 +190,7 @@ const FilePagesTab: React.FC<
               resolveAction={resolveAction}
               activeSignatory={activeSignatory}
               signatures={signatures}
+              document={document}
             />
           </Suspense>
         ))

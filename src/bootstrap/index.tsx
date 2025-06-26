@@ -22,6 +22,7 @@ import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import FileDocket from "resources/views/pages/FileDocket";
 import { FileTemplateResponseData } from "app/Repositories/FileTemplate/data";
 import Builder from "resources/views/pages/Builder";
+import PageLoader from "resources/views/components/loaders/PageLoader";
 export interface ActionBttnProps {
   variant: string;
   name: string;
@@ -152,7 +153,7 @@ const renderRoute = <T extends BaseRepository>(
 
 const Main = () => {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
         {repositories.map((repo) =>
           repo.views.map((view, j) => {

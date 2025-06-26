@@ -12,10 +12,7 @@ import useFunnels from "./useFunnels";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { useModal } from "app/Context/ModalContext";
 import { useAuth } from "app/Context/AuthContext";
-import {
-  DocumentResponseData,
-  UploadResponseData,
-} from "app/Repositories/Document/data";
+import { DocumentResponseData } from "app/Repositories/Document/data";
 import { toast } from "react-toastify";
 import { useCallback, useMemo, useState } from "react";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
@@ -79,21 +76,6 @@ export const useFileDeskRoutePipelines = <T extends BaseResponse>(
       return approval ? [approval, ...historyApprovals] : historyApprovals;
     });
   }, [signatories, drafts]);
-
-  // const draftUploads: UploadResponseData[] = useMemo(() => {
-  //   if (!drafts) return [];
-
-  //   return drafts.flatMap((draft) => {
-  //     const history = draft.history ?? [];
-  //     const upload = draft.upload;
-
-  //     const historyUploads = history
-  //       .map((h) => h.upload)
-  //       .filter((a): a is UploadResponseData => a !== null && a !== undefined);
-
-  //     return upload ? [upload, ...historyUploads] : historyUploads;
-  //   });
-  // }, [drafts]);
 
   /**
    * Builds the `mutatedState` for API requests

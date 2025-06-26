@@ -2,78 +2,166 @@ import {
   DocumentOwnerData,
   DocumentResponseData,
 } from "app/Repositories/Document/data";
-import { formatText, handleProgressFlow } from "app/Support/Helpers";
-import fileIcons from "app/Support/FileIcons";
+import { formatCurrency } from "app/Support/Helpers";
 import Button from "../forms/Button";
 import moment from "moment";
+import { extractModelName, toTitleCase } from "bootstrap/repositories";
+import { useEffect, useState } from "react";
+import { AuthorisingOfficerProps } from "app/Repositories/DocumentDraft/data";
+import CircularProgressBar from "./CircularProgressBar";
 
 interface FileCardProps {
-  owner: DocumentOwnerData | null;
+  loader: boolean;
   document: DocumentResponseData;
   openFolder: (document: DocumentResponseData) => void;
 }
 
-const FolderComponent = ({ owner, document, openFolder }: FileCardProps) => {
-  return (
-    <div className="custom-card file__card doc__card">
-      <small
-        className={`status-badge ${document?.action?.variant ?? "warning"}`}
-      >
-        {formatText(document?.action?.draft_status ?? "pending")}
-      </small>
+const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
+  const [officers, setOfficers] = useState<AuthorisingOfficerProps[]>([]);
+  const [amount, setAmount] = useState<string>("");
+  const [color, setColor] = useState<string>("");
 
-      <div className="file__card__header mb-4">
-        <div className="identity flex align start gap-lg">
-          <div className="avatar"></div>
-          <div className="user_name">
-            <p>{owner?.name}</p>
-            <small>{document?.owner?.department}</small>
-          </div>
-        </div>
-      </div>
-      <div className="file__card__item mb-3">
-        <div className="right">
-          <small>{document.ref}</small>
+  useEffect(() => {
+    if (document.drafts && document.drafts.length > 0) {
+      const approvalsMap = new Map<string | number, AuthorisingOfficerProps>();
+      const drafts = document.drafts;
+
+      drafts.forEach((draft) => {
+        const { history = [] } = draft;
+
+        const latestAmount =
+          history.length > 0
+            ? history.reduce((max, item) =>
+                (item?.version_number ?? 0) > (max?.version_number ?? 0)
+                  ? item
+                  : max
+              ).amount
+            : document.amount; // or 0 or undefined
+
+        setAmount(formatCurrency(Number(latestAmount)));
+
+        history.forEach((action) => {
+          const staffId = action.authorising_officer?.id;
+          const staff = action.authorising_officer;
+
+          if (staffId && staff && !approvalsMap.has(staffId)) {
+            approvalsMap.set(
+              staffId,
+              action?.authorising_officer as AuthorisingOfficerProps
+            );
+          }
+        });
+      });
+
+      setOfficers(Array.from(approvalsMap.values()));
+    }
+  }, [document.drafts]);
+
+  return (
+    <div className="resource__card">
+      <div className="mb-3">
+        <div
+          style={{
+            backgroundColor: color,
+          }}
+          className="doc__details folder_card__padding"
+        >
           <h2>{document.title}</h2>
           <small className="bready">
             Published: {moment(document.created_at).format("LL")}
           </small>
+          <small>{document.ref}</small>
+        </div>
+        <div className="details_mid__section flex align gap-md between">
+          <div
+            className="left__mid__section"
+            style={{
+              width: "65%",
+            }}
+          >
+            <div className="file__category">
+              <small
+                style={{
+                  backgroundColor: color,
+                }}
+                className="category_name"
+              >
+                {toTitleCase(
+                  extractModelName(document.documentable_type ?? "")
+                )}
+              </small>
+            </div>
+            <small
+              style={{
+                padding: "0 25px",
+                fontSize: 9,
+                textTransform: "uppercase",
+                letterSpacing: 2,
+                fontWeight: 600,
+                color: color,
+              }}
+            >
+              Reviewers:
+            </small>
+            <div className="avatar-group">
+              {officers.slice(0, 4).map((officer) => {
+                const namePaths = officer.name.trim().split(" ");
+
+                const initials =
+                  (namePaths[0]?.[0] ?? "") + (namePaths[1]?.[0] ?? "");
+
+                return officer.avatar ? (
+                  <img
+                    src="https://placehold.co/40x40"
+                    alt="User 1"
+                    className="custom__avatar"
+                  />
+                ) : (
+                  <div
+                    key={officer.id}
+                    className="custom__avatar placeholder-avatar"
+                    title={officer.name}
+                    style={{
+                      backgroundColor: color,
+                    }}
+                  >
+                    {initials.toUpperCase()}
+                  </div>
+                );
+              })}
+
+              {/* <span className="more-avatars">+3</span> */}
+            </div>
+          </div>
+          <div
+            className="document__progress__bar"
+            style={{
+              width: "35%",
+            }}
+          >
+            <CircularProgressBar
+              min={1}
+              max={document.workflow?.trackers.length ?? 1}
+              currentValue={officers.length}
+              callback={(response: string) => setColor(response)}
+            />
+          </div>
         </div>
 
-        <div className="avatar-group">
-          <img
-            src="https://placehold.co/40x40"
-            alt="User 1"
-            className="custom__avatar"
+        <div className="footer__mid__section">
+          <Button
+            label="Open File"
+            icon="ri-file-paper-line"
+            handleClick={() => openFolder(document)}
+            variant="success"
+            size="xs"
+            style={{
+              backgroundColor: color,
+            }}
+            rounded
           />
-          <img
-            src="https://placehold.co/40x40"
-            alt="User 2"
-            className="custom__avatar"
-          />
-          <img
-            src="https://placehold.co/40x40"
-            alt="User 3"
-            className="custom__avatar"
-          />
-          <img
-            src="https://placehold.co/40x40"
-            alt="User 4"
-            className="custom__avatar"
-          />
-          <span className="more-avatars">+3</span>
         </div>
-
-        <Button
-          label="Open File"
-          icon="ri-file-paper-line"
-          handleClick={() => openFolder(document)}
-          variant="success"
-          size="xs"
-        />
       </div>
-
-      {/* <div className="ncdmb_logo" /> */}
     </div>
   );
 };

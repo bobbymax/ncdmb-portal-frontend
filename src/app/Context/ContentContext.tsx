@@ -28,7 +28,9 @@ interface StateContextType {
   authenticatedUser: AuthState | null;
   setAuthenticatedUser: React.Dispatch<React.SetStateAction<AuthState | null>>;
   isLoading: boolean;
+  componentLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setComponentLoading: React.Dispatch<React.SetStateAction<boolean>>;
   dashboard: string;
   setDashboard: React.Dispatch<React.SetStateAction<string>>;
   activePage: string;
@@ -57,6 +59,7 @@ export const ContentContext = ({ children }: ProtectedProps) => {
     token: null,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [componentLoading, setComponentLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (pathname !== "") {
@@ -87,6 +90,8 @@ export const ContentContext = ({ children }: ProtectedProps) => {
         setPermissions,
         authenticatedUser,
         setAuthenticatedUser,
+        componentLoading,
+        setComponentLoading,
         isLoading,
         setIsLoading,
         dashboard,

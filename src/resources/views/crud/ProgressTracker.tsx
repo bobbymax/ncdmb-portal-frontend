@@ -119,6 +119,8 @@ const ProgressTracker: React.FC<
     closeModal();
   };
 
+  // console.log(queue);
+
   const manageTracker = (tracker: ServerTrackerData) => {
     const stage = stages.find((raw) => raw.id === tracker.workflow_stage_id);
 

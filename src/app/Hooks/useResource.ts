@@ -8,8 +8,7 @@ type ProcessedDataProps<T extends BaseResponse> = {
 };
 
 const useResource = <T extends BaseResponse, D extends BaseRepository>(
-  repo: D,
-  data: T | T[]
+  repo: D
 ) => {
   const { setIsLoading } = useStateContext();
   const [dependencies, setDependencies] = useState<object>({});

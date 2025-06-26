@@ -135,7 +135,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
 
       const formatted: DataOptionsProps = {
         value: sig?.id ?? 0,
-        label: sig?.type ?? "none",
+        label: sig?.compound ?? "none",
       };
 
       const process =
@@ -258,7 +258,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         )}
         {renderMultiSelect(
           "Signatory",
-          formatOptions(signatories, "id", "type", true),
+          formatOptions(signatories, "id", "compound", true),
           selectedOptions.signatory,
           handleSelectionChange("signatory"),
           "Signatory"

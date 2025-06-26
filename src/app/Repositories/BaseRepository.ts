@@ -60,6 +60,14 @@ export interface TabOptionProps {
   sidebar: string;
 }
 
+export type BeneficiaryProps = {
+  payment_number: string | number;
+  classification: string;
+  name: string;
+  beneficiary_id: number;
+  resource_type: string;
+};
+
 export interface ViewsProps {
   title: string;
   server_url: string;

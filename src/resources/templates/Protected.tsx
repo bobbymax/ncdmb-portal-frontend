@@ -8,6 +8,7 @@ import { useAuth } from "app/Context/AuthContext";
 import Button from "resources/views/components/forms/Button";
 import avatar from "../assets/images/avatars/profile_picture.webp";
 import { useNavigate } from "react-router-dom";
+import PageLoader from "resources/views/components/loaders/PageLoader";
 
 export interface ProtectedProps {
   children: ReactNode;
@@ -53,6 +54,7 @@ const Protected = ({ children }: ProtectedProps) => {
           </div>
         </div>
       </main>
+      <PageLoader />
       <ModalPage />
       <ToastContainer />
     </ModalProvider>

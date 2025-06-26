@@ -7,7 +7,8 @@ import { PDFDocument } from "pdf-lib";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
-import { TabOptionProps } from "app/Repositories/BaseRepository";
+import { BaseResponse, TabOptionProps } from "app/Repositories/BaseRepository";
+import { TransactionResponseData } from "app/Repositories/Transaction/data";
 
 export const accessibleTabs: TabOptionProps[] = [
   {
@@ -23,19 +24,19 @@ export const accessibleTabs: TabOptionProps[] = [
     status: "draft",
     sidebar: "AnalysisSidebar",
   },
-  {
-    title: "Pages",
-    label: "pages",
-    component: "LinkedDocumentsTab",
-    icon: "ri-links-line",
-    variant: "info",
-    endpoint: "serviceWorkers",
-    hasFile: false,
-    appendSignature: false,
-    isDefault: false,
-    status: "draft",
-    sidebar: "AnalysisSidebar",
-  },
+  // {
+  //   title: "Pages",
+  //   label: "pages",
+  //   component: "LinkedDocumentsTab",
+  //   icon: "ri-links-line",
+  //   variant: "info",
+  //   endpoint: "serviceWorkers",
+  //   hasFile: false,
+  //   appendSignature: false,
+  //   isDefault: false,
+  //   status: "draft",
+  //   sidebar: "AnalysisSidebar",
+  // },
   {
     title: "Uploads",
     label: "uploads",
@@ -75,20 +76,43 @@ export const accessibleTabs: TabOptionProps[] = [
     status: "draft",
     sidebar: "AdminSidebar",
   },
-  {
-    title: "Print Document",
-    label: "print",
-    component: "PrintDocumentTab",
-    icon: "ri-printer-line",
-    variant: "dark",
-    endpoint: "serviceWorkers",
-    hasFile: false,
-    appendSignature: false,
-    isDefault: false,
-    status: "draft",
-    sidebar: "PrintSidebar",
-  },
+  // {
+  //   title: "Print Document",
+  //   label: "print",
+  //   component: "PrintDocumentTab",
+  //   icon: "ri-printer-line",
+  //   variant: "dark",
+  //   endpoint: "serviceWorkers",
+  //   hasFile: false,
+  //   appendSignature: false,
+  //   isDefault: false,
+  //   status: "draft",
+  //   sidebar: "PrintSidebar",
+  // },
 ];
+
+export const extractFourDigitsAfterFirstChar = (input: string) => {
+  const match = input.match(/^[A-Za-z](\d{4})/);
+  return match ? match[1] : null;
+};
+
+export const getBeneficiaryTag = (beneficiary: string): string => {
+  let collector: string;
+
+  switch (beneficiary) {
+    case "entity":
+      collector = "Entity";
+      break;
+    case "third-party":
+      collector = "Vendor";
+      break;
+    default:
+      collector = "User";
+      break;
+  }
+
+  return collector;
+};
 
 export const dates = (dateTime: string | undefined) => {
   if (!dateTime) {
@@ -207,20 +231,25 @@ export const formatOptions = (
   data: Record<string, any>[],
   value: string,
   label: string,
-  addBase: boolean = false
+  addBase: boolean = false,
+  isInteger: boolean = false
 ): DataOptionsProps[] => {
   if (!Array.isArray(data) || data.length < 1) {
     return [];
   }
 
   const response: DataOptionsProps[] = data.map((row) => ({
-    value: row[value],
+    value: isInteger ? Number(row[value]) : row[value],
     label: row[label],
   }));
 
   const base: DataOptionsProps[] = [{ value: 0, label: "None" }, ...response];
 
   return addBase ? base : response;
+};
+
+export const pluck = (arr: any[], key: string) => {
+  return arr.map((item) => item[key]);
 };
 
 export const checkSignaturePosition = (
@@ -290,6 +319,61 @@ export const generateShortUniqueString = (length: number = 8): string => {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+};
+
+export const fetchResourceObjectOrValue = <T extends BaseResponse>(
+  collection: T[],
+  param: string | number,
+  key: keyof T = "id"
+) => {
+  if (!collection || collection.length < 1 || !param) return;
+
+  return collection.find((raw) => raw[key] === param);
+};
+
+export const syncPartialIntoLocal = (
+  partials: Partial<TransactionResponseData>[],
+  locals: TransactionResponseData[],
+  matchKey: keyof TransactionResponseData = "id"
+): TransactionResponseData[] => {
+  return partials.map((partial) => {
+    const match = locals.find((local) => local[matchKey] === partial[matchKey]);
+
+    if (match) {
+      return {
+        ...match, // Keep full structure + user edits
+        ...partial, // Overwrite only fields from partial (e.g. refreshed values)
+      };
+    }
+
+    // If no match, hydrate the missing one — either with default or fresh generation
+    return {
+      id: partial.reference ?? generateUniqueString(16),
+      ...partial,
+    } as TransactionResponseData;
+  });
+};
+
+/**
+ * Formats a numeric string with commas and allows decimals.
+ * Example: "1234567.89" → "1,234,567.89"
+ */
+export const formatInputNumber = (value: string): string => {
+  // Remove all characters except digits and dots
+  const cleaned = value.replace(/[^0-9.]/g, "");
+
+  // Prevent multiple decimal points
+  const parts = cleaned.split(".");
+  const integerPart = parts[0];
+  const decimalPart = parts[1] !== undefined ? parts[1].slice(0, 2) : undefined; // optional: limit to 2 decimal places
+
+  // Format integer part with commas
+  const formattedInt = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  // Return with or without decimal part
+  return decimalPart !== undefined
+    ? `${formattedInt}.${decimalPart}`
+    : formattedInt;
 };
 
 export const getEarliestAndLatestDates = (

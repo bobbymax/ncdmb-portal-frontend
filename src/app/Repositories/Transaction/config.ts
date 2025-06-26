@@ -15,6 +15,9 @@ export const transactionConfig: ConfigProp<TransactionResponseData> = {
     "beneficiary_type",
     "payment_method",
     "currency",
+    "trail_balance",
+    "journal_type_id",
+    "flag",
   ],
   associatedResources: [
     { name: "ledgers", url: "ledgers" },
@@ -22,6 +25,7 @@ export const transactionConfig: ConfigProp<TransactionResponseData> = {
     { name: "entities", url: "entities" },
     { name: "vendors", url: "vendors" },
     { name: "users", url: "users" },
+    { name: "journalTypes", url: "journalTypes" },
   ],
   state: {
     id: 0,
@@ -30,6 +34,7 @@ export const transactionConfig: ConfigProp<TransactionResponseData> = {
     payment_id: 0,
     ledger_id: 0,
     chart_of_account_id: 0,
+    journal_type_id: 0,
     type: "credit",
     amount: 0,
     narration: "",
@@ -37,6 +42,8 @@ export const transactionConfig: ConfigProp<TransactionResponseData> = {
     beneficiary_type: "",
     payment_method: "bank-transfer",
     currency: "NGN",
+    trail_balance: "left",
+    flag: "payable",
   },
   actions: [
     {

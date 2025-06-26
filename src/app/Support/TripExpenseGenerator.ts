@@ -287,6 +287,8 @@ export class TripExpenseGenerator {
         total_amount_paid: 0,
         variation: 0,
         variation_type: "subtract",
+        cleared_amount: 0,
+        audited_amount: 0,
       });
     }
   }

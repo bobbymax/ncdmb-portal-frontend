@@ -19,6 +19,8 @@ export const expenseConfig: ConfigProp<ExpenseResponseData> = {
     "variation",
     "variation_type",
     "remark",
+    "cleared_amount",
+    "audited_amount",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -37,6 +39,8 @@ export const expenseConfig: ConfigProp<ExpenseResponseData> = {
     total_amount_paid: 0,
     unit_price: 0,
     total_amount_spent: 0,
+    cleared_amount: 0,
+    audited_amount: 0,
     description: "",
     type: "flight-takeoff",
     status: "pending",

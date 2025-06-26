@@ -2,6 +2,8 @@ import { AuthPageResponseData } from "app/Repositories/Page/data";
 import { Link } from "react-router-dom";
 import CompanyLogo from "../pages/CompanyLogo";
 import { useCallback, useMemo } from "react";
+import NewBrandLogo from "../pages/NewBrandLogo";
+import AlternateLogo from "../pages/AlternateLogo";
 
 interface SidebarProps {
   navigation: AuthPageResponseData[];
@@ -114,7 +116,11 @@ const Aside = ({
     <aside id="sidebar-wrapper">
       <div className="sidebar-box">
         {/* Logo Section */}
-        <CompanyLogo color="primary" text />
+        {/* <CompanyLogo color="primary" text /> */}
+        <div className="brand-name">
+          {/* <NewBrandLogo /> */}
+          <AlternateLogo />
+        </div>
         {/* End Logo Section */}
         <div className="mb-4"></div>
         {/* Navigation Section */}

@@ -34,6 +34,8 @@ export default class ExpenseRepository extends BaseRepository {
       total_distance_covered: data.total_distance_covered ?? 0,
       unit_price: data.unit_price ?? 0,
       total_amount_spent: data.total_amount_spent ?? 0,
+      cleared_amount: data.cleared_amount ?? 0,
+      audited_amount: data.audited_amount ?? 0,
       total_amount_paid: data.total_amount_paid ?? 0,
       description: data.description ?? "",
       item: data.item ?? "",

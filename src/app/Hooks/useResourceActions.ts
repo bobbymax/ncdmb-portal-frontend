@@ -1,3 +1,4 @@
+import { useStateContext } from "app/Context/ContentContext";
 import {
   BaseRepository,
   JsonResponse,
@@ -19,6 +20,7 @@ export const useResourceActions = <T extends BaseRepository>(
   View: ViewsProps,
   { shouldFetch = true, hasParam = false, param = "" }: RestData
 ) => {
+  const { setComponentLoading } = useStateContext();
   const params = useParams<{ [key: string]: string }>();
   const navigate = useNavigate();
   const [collection, setCollection] = useState<JsonResponse[]>([]);
@@ -35,6 +37,7 @@ export const useResourceActions = <T extends BaseRepository>(
   const fetchCollection = useCallback(
     async (signal?: AbortSignal) => {
       setLoading(true);
+      setComponentLoading(true);
       setResourceError(null);
       try {
         const { data } = await repo.collection(View.server_url);
@@ -43,6 +46,7 @@ export const useResourceActions = <T extends BaseRepository>(
         handleError(err, signal);
       } finally {
         setLoading(false);
+        setComponentLoading(false);
       }
     },
     [View.server_url, repo]

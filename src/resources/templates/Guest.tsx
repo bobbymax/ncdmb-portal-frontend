@@ -1,17 +1,13 @@
 import { ProtectedProps } from "./Protected";
+import { tsParticles } from "@tsparticles/engine";
+import { loadAll } from "@tsparticles/all";
+import { useEffect } from "react";
 
 const Guest = ({ children }: ProtectedProps) => {
-  return (
-    <>
-      <div className="login-bg"></div>
-      <div
-        className="login-form flex align"
-        style={{ justifyContent: "center" }}
-      >
-        {children}
-      </div>
-    </>
-  );
+  useEffect(() => {
+    loadAll(tsParticles);
+  }, []);
+  return <div className="login-form">{children}</div>;
 };
 
 export default Guest;

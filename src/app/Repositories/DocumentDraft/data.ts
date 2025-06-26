@@ -10,6 +10,15 @@ export type DraftableResponseData = {
   [key: string]: unknown;
 };
 
+export type AuthorisingOfficerProps = {
+  id: number;
+  name: string;
+  staff_no: string | number;
+  grade_level: string;
+  email: string;
+  avatar?: string;
+};
+
 export interface DocumentDraftResponseData extends BaseResponse {
   document_id: number;
   sub_document_reference_id?: number;
@@ -34,13 +43,7 @@ export interface DocumentDraftResponseData extends BaseResponse {
   status: string;
   ref: string;
   order?: number;
-  authorising_officer?: {
-    id: number;
-    name: string;
-    staff_no: string | number;
-    grade_level: string;
-    email: string;
-  } | null;
+  authorising_officer?: AuthorisingOfficerProps | null;
   staff?: {
     id: number;
     name: string;

@@ -261,7 +261,7 @@ const DocumentAction: React.FC<
           isDisabled={loading}
           valueKey="value"
           labelKey="label"
-          options={formatOptions(workflows, "id", "name", true)}
+          options={formatOptions(workflows, "id", "name", true, true)}
           defaultValue={999}
           defaultCheckDisabled
           size="sm"

@@ -1,11 +1,14 @@
+import { SignatureResponseData } from "app/Repositories/Signature/data";
 import { useEffect, useRef } from "react";
 
 const SignatureCanvas = ({
   signatureUrl,
   styles,
+  signature,
 }: {
   signatureUrl: string;
   styles?: { [key: string]: string | number };
+  signature?: SignatureResponseData | null;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -62,6 +65,20 @@ const SignatureCanvas = ({
           ...styles,
         }}
       />
+      {signature && (
+        <small
+          style={{
+            textTransform: "uppercase",
+            textAlign: "center",
+            letterSpacing: 2,
+            fontWeight: "bolder",
+            color: "green",
+            display: "block",
+          }}
+        >
+          {signature.approving_officer?.name}
+        </small>
+      )}
     </div>
   );
 };

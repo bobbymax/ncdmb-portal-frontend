@@ -20,10 +20,6 @@ import React, {
   useState,
 } from "react";
 import Button from "resources/views/components/forms/Button";
-import pending from "../../../../assets/images/pending.png";
-import altered from "../../../../assets/images/updated.png";
-import cleared from "../../../../assets/images/cleared.png";
-import rejected from "../../../../assets/images/rejected.png";
 import AlterExpense from "../../modals/AlterExpense";
 import { ExpenseResponseData } from "app/Repositories/Expense/data";
 import { BaseResponse } from "app/Repositories/BaseRepository";
@@ -37,12 +33,13 @@ const ClaimEditableComponent: React.FC<
   const { openLoop, setSize, closeModal } = useModal();
   const {
     processIncomingData,
+    processBatchIncomingData,
     processedData,
     resetEditableState,
     resolveProcessedData,
     reconcile,
   } = useFileProcessor();
-  const { dependencies } = useResource(expenseRepo, claim.expenses);
+  const { dependencies } = useResource(expenseRepo);
   const [period, setPeriod] = useState<{ value: string }[]>([]);
   const [bulk, setBulk] = useState<number[]>([]);
   const [allSelected, setAllSelected] = useState<"yes" | "no">("no");
@@ -137,6 +134,7 @@ const ClaimEditableComponent: React.FC<
 
     Alert.flash("Confirm!", "info", "Clear all expenses for this claim?").then(
       async (result) => {
+        const expenseValues: ProcessedDataProps<ExpenseResponseData>[] = [];
         if (result.isConfirmed) {
           for (const exp of matchExpenses) {
             const newValue: ProcessedDataProps<ExpenseResponseData> = {
@@ -149,11 +147,12 @@ const ClaimEditableComponent: React.FC<
               actionPerformed: "exact",
             };
 
-            processIncomingData(newValue);
-
-            await new Promise((resolve) => setTimeout(resolve, 400));
+            expenseValues.push(newValue);
+            // processIncomingData(newValue);
+            await new Promise((resolve) => setTimeout(resolve, 200));
           }
 
+          processBatchIncomingData(expenseValues);
           setBulk([]);
           setAllSelected("no");
           closeModal();
@@ -294,7 +293,7 @@ const ClaimEditableComponent: React.FC<
                               isUpdating: true,
                               handleSubmit: handle,
                               dependencies,
-                              extras: period,
+                              extras: [period],
                             })
                           }
                           size="sm"

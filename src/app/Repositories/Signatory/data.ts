@@ -15,6 +15,7 @@ export interface SignatoryResponseData extends BaseResponse {
     | "initiator"
     | "vendor";
   order: number;
+  compound?: string;
   created_at?: string;
   updated_at?: string;
 }

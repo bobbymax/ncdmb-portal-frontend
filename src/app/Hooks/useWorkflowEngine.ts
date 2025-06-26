@@ -286,7 +286,8 @@ export const useWorkflowEngine = (
           (noSignatureFound && action.action_status === "passed") ||
           !["responded", "signature-request", "pending"].includes(
             currentDraft?.status ?? ""
-          ),
+          ) ||
+          (action.category !== "request" && document?.status === "processing"),
       })) ?? []
     );
   }, [currentTracker, hasAccessToOperate, noSignatureFound]);

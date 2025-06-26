@@ -6,6 +6,7 @@ import { ExpenseResponseData } from "app/Repositories/Expense/data";
 import ExpenseRepository from "app/Repositories/Expense/ExpenseRepository";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 import { formatCurrency, formatOptions } from "app/Support/Helpers";
+import _ from "lodash";
 import moment from "moment";
 import React, { FormEvent, useEffect, useState } from "react";
 import Button from "resources/views/components/forms/Button";
@@ -46,6 +47,7 @@ const AlterExpense: React.FC<
   >([]);
   const [period, setPeriod] = useState<{ value: string }[]>([]);
   const [hasDistanceCovered, setHasDistanceCovered] = useState<boolean>(false);
+  const [stat, setStat] = useState<string>("");
 
   let status: "altered" | "cleared" | "rejected";
   let performed: "add" | "subtract" | "exact" | "removed";
@@ -53,25 +55,32 @@ const AlterExpense: React.FC<
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    console.log(state.total_amount_paid, state.total_amount_spent);
+    // Determine status
+    if (stat === "not-set") {
+      const paid = Number(state.total_amount_paid);
+      const spent = Number(state.total_amount_spent);
 
-    if (
-      Number(state.total_amount_paid) > Number(state.total_amount_spent) ||
-      Number(state.total_amount_paid) < Number(state.total_amount_spent)
-    ) {
-      status = "altered";
-      performed =
-        Number(state.total_amount_paid) > Number(state.total_amount_spent)
-          ? "add"
-          : "subtract";
-    } else if (
-      Number(state.total_amount_paid) === Number(state.total_amount_spent)
-    ) {
-      status = "cleared";
+      if (paid === 0) {
+        status = "rejected";
+      } else if (paid === spent) {
+        status = "cleared";
+      } else {
+        status = "altered";
+      }
+    } else {
+      status = stat as "cleared" | "altered" | "rejected";
+    }
+
+    // Determine performed action
+    const paid = Number(state.total_amount_paid);
+    const spent = Number(state.total_amount_spent);
+
+    if (status === "cleared") {
       performed = "exact";
-    } else if (Number(state.total_amount_paid) === 0) {
-      status = "rejected";
+    } else if (status === "rejected") {
       performed = "removed";
+    } else {
+      performed = paid > spent ? "add" : "subtract";
     }
 
     const props: ProcessedDataProps<ExpenseResponseData> = {
@@ -129,8 +138,11 @@ const AlterExpense: React.FC<
       setAllowances(allowances);
       setRemunerations(remunerations);
 
-      if (extras) {
-        setPeriod(extras);
+      if (extras && _.isArray(extras) && extras.length > 0) {
+        const period = extras[0];
+        const status = extras.length > 1 ? extras[1] : "not-set";
+        setStat(status);
+        setPeriod(period);
       }
     }
   }, [dependencies, extras]);
@@ -212,7 +224,6 @@ const AlterExpense: React.FC<
             name="remark"
             value={state.remark}
             onChange={handleInputChange}
-            isDisabled
             placeholder="Remark"
             rows={2}
           />
@@ -226,13 +237,13 @@ const AlterExpense: React.FC<
               variant="dark"
               size="sm"
             />
-            <Button
+            {/* <Button
               label="Remove Expense"
               icon="ri-delete-row"
               variant="danger"
               size="sm"
               handleClick={() => {}}
-            />
+            /> */}
           </div>
         </div>
       </div>

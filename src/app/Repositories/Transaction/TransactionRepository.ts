@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { TransactionResponseData } from "./data";
 import { transactionRules } from "./rules";
 import { transactionViews } from "./views";
@@ -17,7 +22,7 @@ export default class TransactionRepository extends BaseRepository {
   protected state: TransactionResponseData = transactionConfig.state;
   public columns: ColumnData[] = transactionColumns;
   public actions: ButtonsProp[] = transactionConfig.actions;
-  public fromJson(data: TransactionResponseData): TransactionResponseData {
+  public fromJson(data: JsonResponse): TransactionResponseData {
     return {
       id: data.id ?? 0,
       user_id: data.user_id ?? 0,
@@ -25,6 +30,7 @@ export default class TransactionRepository extends BaseRepository {
       payment_id: data.payment_id ?? 0,
       ledger_id: data.ledger_id ?? 0,
       chart_of_account_id: data.chart_of_account_id ?? 0,
+      journal_type_id: data.journal_type_id ?? 0,
       reference: data.reference ?? "",
       type: data.type ?? "credit",
       amount: data.amount ?? 0,
@@ -32,7 +38,10 @@ export default class TransactionRepository extends BaseRepository {
       beneficiary_id: data.beneficiary_id ?? 0,
       beneficiary_type: data.beneficiary_type ?? "",
       payment_method: data.payment_method ?? "bank-transfer",
+      journal_type: data.journal_type ?? null,
       currency: data.currency ?? "NGN",
+      trail_balance: data.trail_balance ?? "left",
+      flag: data.flag ?? "payable",
       status: data.status ?? "",
       posted_at: data.posted_at ?? "",
       is_achived: data.is_achived ?? 0,

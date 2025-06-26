@@ -1,4 +1,4 @@
-import { BaseResponse } from "../BaseRepository";
+import { BaseResponse, BeneficiaryProps } from "../BaseRepository";
 import { DocumentResponseData, UploadResponseData } from "../Document/data";
 import { ExpenseResponseData } from "../Expense/data";
 import { TripResponseData } from "../Trip/data";
@@ -33,6 +33,7 @@ export interface ClaimResponseData extends BaseResponse {
   owner: ClaimOwnerProps | null;
   supporting_documents: File[];
   uploads?: UploadResponseData[];
+  beneficiary?: BeneficiaryProps | null;
   filename?: string;
   deletedExpenses?: ExpenseResponseData[];
   deletedUploads?: UploadResponseData[];

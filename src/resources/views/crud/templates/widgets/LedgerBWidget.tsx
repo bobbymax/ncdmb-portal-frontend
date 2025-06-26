@@ -41,27 +41,21 @@ const LedgerBWidget: React.FC<SidebarProps<PaymentBatchResponseData>> = ({
     handleSelectAll,
     handleCheckbox,
   } = usePaymentProcessor(batch, currentDraft, tracker, document, updateRaw);
+
   const {
-    processIncomingStateAndResources,
+    resolveDataWithAction,
     documentProcessed,
     setDocumentProcessed,
+    convertToProcessingDataProps,
   } = useFileProcessor();
-
-  console.log(document);
 
   const next = (action: DocumentActionResponseData) => {
     if (!state.budget_year) return;
-
     const filteredExpenditures: ProcessedDataProps<ExpenditureResponseData>[] =
-      expenditures
-        .filter((exp) => state.paymentIds.includes(exp.id))
-        .map((exp) => ({
-          raw: exp,
-          status: "cleared",
-          actionPerformed: "exact",
-        }));
+      convertToProcessingDataProps(expenditures, "cleared", "exact");
+    resolveDataWithAction(action, state, filteredExpenditures);
 
-    processIncomingStateAndResources(state, filteredExpenditures, action);
+    // processIncomingStateAndResources(state, filteredExpenditures, action);
   };
 
   const paymentAction = useMemo(() => {

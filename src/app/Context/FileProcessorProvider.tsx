@@ -1,7 +1,9 @@
+import { TransactionLinesProp } from "app/Hooks/useAccountingHooks";
 import { BaseResponse, JsonResponse } from "app/Repositories/BaseRepository";
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
+import { TransactionResponseData } from "app/Repositories/Transaction/data";
 import Alert from "app/Support/Alert";
 import { editableComponentRegistry } from "bootstrap/registry";
 import { extractModelName, repo, toSnakeCase } from "bootstrap/repositories";
@@ -10,6 +12,7 @@ import {
   Dispatch,
   ReactNode,
   SetStateAction,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -46,7 +49,7 @@ export type ServerSideProcessedDataProps<T extends BaseResponse> = {
   type: "staff" | "third-party";
   file: string;
   period: string;
-  // entity_type?: string;
+  entity_type?: string;
   status?: string;
 };
 
@@ -61,10 +64,13 @@ interface FileProcessorContextType {
   editableComponent: JSX.Element | null;
   alterAction: DocumentActionResponseData | null;
   setAlterAction: Dispatch<SetStateAction<DocumentActionResponseData | null>>;
+  processComplete: boolean;
+  setProcessComplete: Dispatch<SetStateAction<boolean>>;
   processorUri: string;
   setProcessorUri: Dispatch<SetStateAction<string>>;
   service: string;
   setService: Dispatch<SetStateAction<string>>;
+  paymentTransactions: Partial<TransactionResponseData>[];
   reconcile: DocumentActionResponseData | null;
   setReconcile: Dispatch<SetStateAction<DocumentActionResponseData | null>>;
   lastDraft: DocumentDraftResponseData | null;
@@ -72,16 +78,34 @@ interface FileProcessorContextType {
   processIncomingData: <T extends BaseResponse>(
     props: ProcessedDataProps<T>
   ) => void;
+  processBatchIncomingData: <T extends BaseResponse>(
+    list: ProcessedDataProps<T>[]
+  ) => void;
+  replaceProcessedData: <T extends BaseResponse>(
+    processed: ProcessedDataProps<T>[]
+  ) => void;
+  convertToProcessingDataProps: <T extends BaseResponse>(
+    collection: T[],
+    status: "cleared" | "altered" | "rejected",
+    actionPerformed: "add" | "subtract" | "exact" | "removed"
+  ) => ProcessedDataProps<T>[];
   processIncomingStateAndResources: <T extends BaseResponse>(
     state: { [key: string]: unknown },
     resources: ProcessedDataProps<T>[],
     action: DocumentActionResponseData | null
   ) => void;
+  resolveDataWithAction: <T extends BaseResponse>(
+    action: DocumentActionResponseData,
+    state?: Record<string, any>,
+    processedData?: ProcessedDataProps<T>[]
+  ) => void;
   updateServerProcessedData: <T extends BaseResponse>(
     props: Partial<ServerSideProcessedDataProps<T>>
   ) => void;
+  processTransactionLines: (summary: TransactionLinesProp) => void;
   resetEditableState: () => void;
   resolveProcessedData: () => void;
+  getState: (label: string) => void;
 }
 
 export type EditableComponentProps<T extends BaseResponse> = {
@@ -111,57 +135,108 @@ export const FileProcessorProvider = ({
   const [alterAction, setAlterAction] =
     useState<DocumentActionResponseData | null>(null);
 
-  const [chains, setChains] = useState<DocumentResponseData[]>([]);
   const [drafts, setDrafts] = useState<DocumentDraftResponseData[]>([]);
   const [service, setService] = useState<string>("");
-  const [processedData, setProcessedData] = useState<
-    ProcessedDataProps<BaseResponse>[]
-  >([]);
-  const [serverSideProcessedData, setServerSideProcessedData] = useState<
-    ServerSideProcessedDataProps<BaseResponse>
-  >({} as ServerSideProcessedDataProps<BaseResponse>);
   const [reconcile, setReconcile] = useState<DocumentActionResponseData | null>(
     null
   );
   const [pendingResolution, setPendingResolution] = useState<boolean>(false);
+  const [processComplete, setProcessComplete] = useState<boolean>(false);
 
-  // console.log(serverSideProcessedData);
+  const [state, setState] = useState({
+    processedData: [] as ProcessedDataProps<BaseResponse>[],
+    serverSideProcessedData: {} as ServerSideProcessedDataProps<BaseResponse>,
+    paymentTransactions: [] as Partial<TransactionResponseData>[],
+  });
 
-  const processIncomingStateAndResources = <T extends BaseResponse>(
-    state: { [key: string]: unknown },
-    resources: ProcessedDataProps<T>[],
-    action: DocumentActionResponseData | null = null
+  // console.log(state.serverSideProcessedData);
+
+  const updateState = (patch: Partial<typeof state>) => {
+    setState((prev) => ({ ...prev, ...patch }));
+  };
+
+  const getState = (label: string) => {
+    if (label in state) {
+      return state[label as keyof typeof state];
+    }
+
+    console.warn(`Invalid key '${label}' used in getState.`);
+    return undefined;
+  };
+
+  const processIncomingStateAndResources = useCallback(
+    <T extends BaseResponse>(
+      stateInput: Record<string, unknown>,
+      resources: ProcessedDataProps<T>[],
+      action: DocumentActionResponseData | null = null
+    ) => {
+      if (!stateInput || resources.length < 1) return;
+      updateState({
+        serverSideProcessedData: {
+          ...state.serverSideProcessedData,
+          document_action_id: action
+            ? action.id
+            : state.serverSideProcessedData.document_action_id,
+          state: stateInput,
+          resources,
+        },
+      });
+      resolveProcessedData();
+    },
+    []
+  );
+
+  const processTransactionLines = (
+    summary: TransactionLinesProp,
+    preparedTransactionLines?: TransactionResponseData[]
   ) => {
-    if (!state || resources.length < 1) return;
-    setServerSideProcessedData((prev) => ({
-      ...prev,
-      document_action_id: action ? action.id : prev.document_action_id,
-      state,
-      resources,
-    }));
+    const transactions = Object.values(summary).flatMap((entry) =>
+      entry ? (Array.isArray(entry) ? entry : [entry]) : []
+    );
+    updateState({ paymentTransactions: transactions });
+  };
 
-    //  Reconcile Data Here
-    setPendingResolution(true);
+  const convertToProcessingDataProps = <T extends BaseResponse>(
+    collection: T[],
+    status: "cleared" | "altered" | "rejected",
+    actionPerformed: "add" | "subtract" | "exact" | "removed"
+  ): ProcessedDataProps<T>[] => {
+    return collection.map((data) => ({
+      raw: data,
+      status,
+      actionPerformed,
+    }));
   };
 
   const processIncomingData = <T extends BaseResponse>(
     props: ProcessedDataProps<T>
   ) => {
     if (!props) return;
-    setProcessedData((prev) => [...prev, props]);
+    updateState({ processedData: [...state.processedData, props] });
+  };
+
+  const processBatchIncomingData = <T extends BaseResponse>(
+    list: ProcessedDataProps<T>[]
+  ) => {
+    updateState({
+      processedData: [...state.processedData, ...list],
+    });
+  };
+
+  const replaceProcessedData = <T extends BaseResponse>(
+    processed: ProcessedDataProps<T>[]
+  ) => {
+    updateState({ processedData: processed });
   };
 
   const resolveProcessedData = () => {
     Alert.flash("Confirm", "info", "Reconcile Data").then(async (result) => {
       if (result.isConfirmed) {
-        // Do Something
-
         try {
-          const response = await documentRepo.store(
-            processorUri,
-            serverSideProcessedData
-          );
-
+          const response = await documentRepo.store(processorUri, {
+            ...state.serverSideProcessedData,
+            resources: state.processedData,
+          });
           if (response) {
             setDocumentProcessed(response.data as DocumentResponseData);
             resetEditableState();
@@ -177,78 +252,105 @@ export const FileProcessorProvider = ({
     });
   };
 
-  // console.log(serverSideProcessedData);
+  const resolveDataWithAction = <T extends BaseResponse>(
+    action: DocumentActionResponseData,
+    stateInput?: Record<string, any>,
+    processedData?: ProcessedDataProps<T>[]
+  ) => {
+    Alert.flash("Confirm", "info", "Consolidate Response Data").then(
+      async (result) => {
+        if (result.isConfirmed) {
+          const body = {
+            ...state.serverSideProcessedData,
+            state: stateInput
+              ? stateInput
+              : state.serverSideProcessedData.state,
+            resources:
+              state.processedData.length < 1 && processedData
+                ? processedData
+                : state.processedData,
+            document_action_id: action.id,
+          };
+
+          try {
+            const response = await documentRepo.store(processorUri, body);
+
+            if (response) {
+              setDocumentProcessed(response.data as DocumentResponseData);
+              resetEditableState();
+              toast.success(
+                response?.message ?? "Document processed successfully!!"
+              );
+            }
+          } catch (error) {
+            console.log("Something went wrong: ", error);
+            toast.error("Something went wrong!!");
+          }
+        }
+      }
+    );
+  };
+
+  // console.log(state);
 
   const updateServerProcessedData = <T extends BaseResponse>(
     props: Partial<ServerSideProcessedDataProps<T>>
   ) => {
-    setServerSideProcessedData((prev) => ({
-      ...prev,
-      ...props,
-    }));
+    updateState({
+      serverSideProcessedData: { ...state.serverSideProcessedData, ...props },
+    });
   };
 
-  const resetEditableState = () => {
+  const resetEditableState = useCallback(() => {
     setFile(null);
-    setServerSideProcessedData(
-      {} as ServerSideProcessedDataProps<BaseResponse>
-    );
     setDrafts([]);
     setService("");
     setAlterAction(null);
-    setProcessedData([]);
-    setChains([]);
-    setIsEditing(false);
     setDocumentProcessed(null);
-  };
+    setIsEditing(false);
+    updateState({
+      processedData: [],
+      serverSideProcessedData: {} as ServerSideProcessedDataProps<BaseResponse>,
+      paymentTransactions: [],
+    });
+  }, []);
 
   const editableComponent: JSX.Element | null = useMemo(() => {
     if (!file) return null;
 
-    setIsEditing(true);
     const componentKey = toSnakeCase(extractModelName(file.documentable_type));
     const EditableResourceComponent = editableComponentRegistry[componentKey];
 
-    const isEditableAndHasResource =
-      EditableResourceComponent && file?.documentable;
+    if (EditableResourceComponent && file.documentable) {
+      setService(componentKey);
 
-    if (isEditableAndHasResource) setService(componentKey);
+      return (
+        <EditableResourceComponent
+          file={file}
+          service={componentKey}
+          resource={file.documentable}
+          action={alterAction}
+        />
+      );
+    }
 
-    return isEditableAndHasResource ? (
-      <EditableResourceComponent
-        file={file}
-        service={componentKey}
-        resource={file.documentable}
-        action={alterAction}
-      />
-    ) : null;
-  }, [file]);
+    return null;
+  }, [file, alterAction]);
 
-  const lastDraft: DocumentDraftResponseData | null = useMemo(() => {
-    if (drafts.length < 1) return null;
-
-    return drafts.reduce((latest, current) =>
-      current.id > latest.id ? current : latest
-    );
+  const lastDraft = useMemo(() => {
+    return drafts.length
+      ? drafts.reduce((latest, current) =>
+          current.id > latest.id ? current : latest
+        )
+      : null;
   }, [drafts]);
 
   useEffect(() => {
     if (file) {
       const { drafts = [], parents = [] } = file;
-
       setDrafts(drafts);
-      setChains(parents);
     }
   }, [file]);
-
-  useEffect(() => {
-    if (processedData.length > 0) {
-      setServerSideProcessedData((prev) => ({
-        ...prev,
-        resources: processedData,
-      }));
-    }
-  }, [processedData]);
 
   useEffect(() => {
     if (pendingResolution) {
@@ -272,17 +374,26 @@ export const FileProcessorProvider = ({
         setAlterAction,
         processorUri,
         setProcessorUri,
+        processComplete,
+        setProcessComplete,
         service,
         setService,
         lastDraft,
-        processedData,
+        processedData: state.processedData,
+        convertToProcessingDataProps,
         processIncomingData,
+        processBatchIncomingData,
+        replaceProcessedData,
         processIncomingStateAndResources,
         updateServerProcessedData,
         resetEditableState,
         reconcile,
         setReconcile,
         resolveProcessedData,
+        processTransactionLines,
+        resolveDataWithAction,
+        paymentTransactions: state.paymentTransactions,
+        getState,
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 import { useAuth } from "app/Context/AuthContext";
 import { ChartOfAccountResponseData } from "app/Repositories/ChartOfAccount/data";
 import { EntityResponseData } from "app/Repositories/Entity/data";
+import { JournalTypeResponseData } from "app/Repositories/JournalType/data";
 import { LedgerResponseData } from "app/Repositories/Ledger/data";
 import { PaymentResponseData } from "app/Repositories/Payment/data";
 import { TransactionResponseData } from "app/Repositories/Transaction/data";
@@ -13,6 +14,7 @@ type DependencyProps = {
   chartOfAccounts: ChartOfAccountResponseData[];
   entities: EntityResponseData[];
   users: UserResponseData[];
+  journalTypes: JournalTypeResponseData[];
 };
 
 const useTransactions = (payment: PaymentResponseData) => {
@@ -41,28 +43,6 @@ const useTransactions = (payment: PaymentResponseData) => {
     const firstTransactionCredit: Partial<TransactionResponseData> = {};
   }, [payment, taxableAmount, staff]);
 
-  // Set taxable Amount
-  // Subtract taxable amount from Total Amount Approved
-  // Check transaction type for payment i.e. debit/credit
-  // If debit create first transaction i.e. credit and debit leg
-  // ..contd. for the result (approvedAmount - taxAmount)
-  // if payment is debit
-  /**
-   * {
-   *    user_id: logged-in user
-   *    department_id: logged-in user's department
-   *    payment_id: payment.id,
-   *    ledger_id: get ledger H id
-   *    chart_of_account_id: select account code
-   *    type: debit/credit
-   *    amount: result
-   *    narration:
-   *    beneficiary_id:
-   *    beneficiary_type:
-   *    currency: payment.currency
-   * }
-   */
-
   useEffect(() => {
     if (!transactionRepo) return;
 
@@ -84,8 +64,6 @@ const useTransactions = (payment: PaymentResponseData) => {
       getDependencies();
     }
   }, [transactionRepo]);
-
-  //   console.log(dependencies);
 
   return {
     transactionRepo,

@@ -2,7 +2,13 @@ import { useAuth } from "app/Context/AuthContext";
 import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import useCarders from "./utilities/useCarders";
+
+export type ApprovalCardProps = {
+  signatory: SignatoryResponseData;
+  title: string;
+};
 
 const useSignatures = (
   signatories: SignatoryResponseData[],
@@ -10,42 +16,77 @@ const useSignatures = (
   currentDraft: DocumentDraftResponseData
 ) => {
   const { staff } = useAuth();
+  const { isOperational } = useCarders(
+    tracker?.carder_id,
+    staff?.carder?.id ?? 0
+  );
 
-  const stageSingatory = useMemo(() => {
+  const [canSign, setCanSign] = useState<boolean>(false);
+
+  const stageSignatory = useMemo(() => {
     if (!tracker) return null;
     return signatories.find((s) => s.id === tracker.signatory_id);
   }, [tracker, signatories]);
 
   // console.log(stageSingatory);
 
-  const canSignDocument = useMemo(() => {
-    // Early exit if any required entity is missing
-    if (!staff || !tracker || !currentDraft || !signatories?.length)
+  const canSignDocument = useCallback(() => {
+    // Guard clauses to ensure required data is available
+    if (
+      !staff ||
+      !tracker ||
+      !currentDraft ||
+      !signatories?.length ||
+      !stageSignatory
+    ) {
       return false;
-    if (tracker.signatory_id === 0) return false;
+    }
 
-    const signatory = signatories.find((s) => s.id === tracker.signatory_id);
-
-    if (!signatory) return false;
-
+    // Determine department ID to match against
     const expectedDepartmentId =
-      tracker.department_id !== 0
+      tracker.department_id > 0
         ? tracker.department_id
         : currentDraft.department_id;
 
-    const isInGroup = staff.groups?.some(
-      (group) => group.id === signatory.group_id
-    );
+    // Ensure the signatory is actually defined
+    if (tracker.signatory_id < 1) return false;
 
-    console.log(isInGroup);
+    // Check if user belongs to the required group
+    const isInRequiredGroup =
+      staff.groups?.some((group) => group.id === stageSignatory.group_id) ??
+      false;
 
-    const isInDepartment = staff.department_id === expectedDepartmentId;
-    const belongsToCarder = staff.carder?.id === tracker.carder_id;
+    // Check department match
+    const isInRequiredDepartment = staff.department_id === expectedDepartmentId;
 
-    return isInGroup && isInDepartment && belongsToCarder;
-  }, [signatories, tracker, staff, currentDraft]);
+    // Final result: must match group, department, and carder condition
+    return isInRequiredGroup && isInRequiredDepartment && isOperational;
+  }, [
+    staff,
+    tracker,
+    currentDraft,
+    signatories,
+    stageSignatory,
+    isOperational,
+  ]);
 
-  return { canSignDocument, stageSingatory };
+  const arrangeApprovals = (
+    approvals: string[],
+    signatories: SignatoryResponseData[] | undefined
+  ) => {
+    if (!signatories) return [];
+
+    return signatories?.map((signatory, index) => ({
+      signatory,
+      title: approvals[index] ?? `Approval ${index + 1}`,
+    }));
+  };
+
+  useEffect(() => {
+    setCanSign(canSignDocument());
+  }, [canSignDocument]);
+
+  return { canSign, stageSignatory, arrangeApprovals };
 };
 
 export default useSignatures;

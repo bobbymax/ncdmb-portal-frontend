@@ -1,0 +1,1 @@
+export const journalRules: { [key: string]: string } = {};

@@ -25,6 +25,7 @@ export const paymentConfig: ConfigProp<PaymentResponseData> = {
     "total_amount_paid",
     "total_approved_amount",
     "total_taxable_amount",
+    "chart_of_account_id",
   ],
   associatedResources: [{ name: "chartOfAccounts", url: "chartOfAccounts" }],
   state: {
@@ -32,6 +33,7 @@ export const paymentConfig: ConfigProp<PaymentResponseData> = {
     user_id: 0,
     department_id: 0,
     workflow_id: 0,
+    chart_of_account_id: 0,
     beneficiary: "",
     document_category_id: 0,
     document_type_id: 0,
@@ -51,6 +53,8 @@ export const paymentConfig: ConfigProp<PaymentResponseData> = {
     period: "",
     fiscal_year: 0,
     transaction_type: "debit",
+    resource_id: 0,
+    resource_type: "",
   },
   actions: [
     {

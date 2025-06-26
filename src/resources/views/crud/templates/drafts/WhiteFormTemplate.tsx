@@ -13,6 +13,7 @@ import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas
 import Button from "resources/views/components/forms/Button";
 import { DocumentActionResponseData } from "app/Repositories/DocumentAction/data";
 import moment from "moment";
+import SignatureSlot from "resources/views/components/partials/SignatureSlot";
 
 const BatchDetail = ({ title, value }: { title: string; value: string }) => (
   <div className="row mb-2">
@@ -20,83 +21,6 @@ const BatchDetail = ({ title, value }: { title: string; value: string }) => (
     <div className="col-md-7 right__side">{value}</div>
   </div>
 );
-
-const SignatureSlot = ({
-  tracker,
-  signatory,
-  signature,
-  label,
-  canSign,
-  action,
-  resolveAction,
-}: {
-  tracker: ProgressTrackerResponseData;
-  signatory: SignatoryResponseData;
-  signature?: SignatureResponseData;
-  label: string;
-  canSign: boolean;
-  action: any;
-  resolveAction: (
-    action: DocumentActionResponseData,
-    signatory?: SignatoryResponseData
-  ) => void;
-}) => {
-  return (
-    <div className="col-md-12 mb-4">
-      <div className="row">
-        <div className="col-md-8 mb-3">
-          <div className="singing__items flex align gap-md">
-            <h5>{label}</h5>
-            <div className="signing__contain" style={{ flex: 1 }}>
-              {signature ? (
-                <div className="signing__pad">
-                  <SignatureCanvas
-                    styles={{
-                      width: "90%",
-                      justifyContent: "flex-end",
-                    }}
-                    signatureUrl={signature.signature}
-                  />
-                </div>
-              ) : (
-                tracker?.signatory_id === signatory?.id &&
-                canSign &&
-                action && (
-                  <Button
-                    label={action.button_text}
-                    size="xs"
-                    variant={action.variant}
-                    handleClick={() => resolveAction(action, signatory)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4 mb-3">
-          <div className="singing__items flex align gap-md">
-            <h5>Date</h5>
-            <div className="signing__contain" style={{ flex: 1 }}>
-              {signature ? (
-                <small
-                  className="handwritten date__slot"
-                  style={{
-                    fontSize: "3rem",
-                    color: "darkblue",
-                  }}
-                >
-                  {moment(signature?.created_at).format("L")}
-                </small>
-              ) : (
-                <small></small>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const WhiteFormTemplate: React.FC<
   DraftPageProps<PaymentBatchResponseData, PaymentBatchRepository>
@@ -115,7 +39,7 @@ const WhiteFormTemplate: React.FC<
   activeSignatory,
   signatures,
 }) => {
-  const { canSignDocument: canSign } = useSignatures(
+  const { canSign } = useSignatures(
     signatories as SignatoryResponseData[],
     tracker as ProgressTrackerResponseData,
     currentDraft
@@ -219,6 +143,11 @@ const WhiteFormTemplate: React.FC<
                   const signature = signatures?.find(
                     (sig) => sig?.signatory_id === signatory.id
                   );
+
+                  // Determine if this particular signatory can sign
+                  const isSlotSignatory =
+                    tracker?.signatory_id === signatory.id;
+                  const thisCanSign = !signature && isSlotSignatory && canSign;
                   return (
                     <SignatureSlot
                       key={signatory.id}
@@ -226,7 +155,7 @@ const WhiteFormTemplate: React.FC<
                       signatory={signatory}
                       label={label}
                       signature={signature as SignatureResponseData}
-                      canSign={canSign}
+                      canSign={thisCanSign}
                       action={appendSignatureAction}
                       resolveAction={resolveAction}
                     />

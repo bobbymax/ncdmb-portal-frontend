@@ -2,6 +2,7 @@ import React from "react";
 
 export interface ButtonProps {
   label?: string | number;
+  style?: React.CSSProperties;
   variant?: "primary" | "success" | "info" | "warning" | "danger" | "dark";
   type?: "submit" | "button";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
@@ -14,6 +15,7 @@ export interface ButtonProps {
   rounded?: boolean;
   handleClick?: (value: string | number | object | []) => void;
   iconSize?: "lg" | "nm";
+  bgColor?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -30,10 +32,13 @@ const Button: React.FC<ButtonProps> = ({
   rounded = false,
   handleClick = undefined,
   iconSize = "nm",
+  bgColor,
+  style,
 }) => {
   return (
     <div className="bttn-group flex align gap-md">
       <button
+        style={style}
         type={type}
         className={`storm-bttn storm-bttn-${size} storm-bttn-${variant} ${additionalClass} ${
           fullWidth ? " storm-bttn-full " : ""

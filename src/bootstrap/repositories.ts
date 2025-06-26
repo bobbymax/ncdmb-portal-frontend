@@ -4,6 +4,8 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import JournalRepository from "app/Repositories/Journal/JournalRepository";
+import ResourceEditorRepository from "app/Repositories/ResourceEditor/ResourceEditorRepository";
 import JournalTypeRepository from "app/Repositories/JournalType/JournalTypeRepository";
 import TransactionRepository from "app/Repositories/Transaction/TransactionRepository";
 import EntityRepository from "app/Repositories/Entity/EntityRepository";
@@ -56,8 +58,10 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
-new JournalTypeRepository(),
-new TransactionRepository(),
+  new JournalRepository(),
+  new ResourceEditorRepository(),
+  new JournalTypeRepository(),
+  new TransactionRepository(),
   new EntityRepository(),
   new LedgerRepository(),
   new PaymentRepository(),
@@ -108,7 +112,8 @@ new TransactionRepository(),
 
 // 🔹 Extracts `DocumentCategory` from `App\\Models\\DocumentCategory`
 export const extractModelName = (modelPath: string): string => {
-  return modelPath.split("\\").pop() || modelPath; // Get last part of namespace
+  if (!modelPath || typeof modelPath !== "string") return "unknown";
+  return modelPath.split("\\").pop() || modelPath;
 };
 
 export const toTitleCase = (input: string): string => {
@@ -141,7 +146,7 @@ const toFolderName = (str: string): string =>
     .join("");
 
 // 🔹 Converts `DocumentCategory` → `documentcategory`
-const toServiceName = (str: string): string =>
+export const toServiceName = (str: string): string =>
   str.replace(/_/g, "").toLowerCase();
 
 // 🔹 Handles either `camelCase` or `snake_case`

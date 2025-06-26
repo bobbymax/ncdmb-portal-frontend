@@ -25,6 +25,7 @@ export default class SignatoryRepository extends BaseRepository {
       department_id: data.department_id ?? 0,
       type: data.type ?? "owner",
       order: data.order ?? 0,
+      compound: data.compound ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

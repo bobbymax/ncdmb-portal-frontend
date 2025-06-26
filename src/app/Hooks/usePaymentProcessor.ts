@@ -17,6 +17,9 @@ import Alert from "app/Support/Alert";
 import { repo } from "bootstrap/repositories";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
+import useServerSideProcessedData, {
+  ServerOptions,
+} from "./useServerSideProcessedData";
 
 export type ProcessorProps = {
   paymentIds: number[];
@@ -70,6 +73,28 @@ const usePaymentProcessor = (
     return payment.expenditures ?? [];
   }, [payment]);
 
+  const options: ServerOptions = useMemo(
+    () => ({
+      type: payment.type,
+      method: "consolidate",
+      mode: "store",
+      service: "payment",
+      period: "",
+      file: "",
+      budget_year: payment.budget_year ?? 2025,
+      workflow_id: tracker?.workflow_id ?? 0,
+      state: {
+        id: payment.id,
+      },
+      document_type: "payment-voucher",
+      document_category: `${payment.type}-commitment`,
+      status: "voucher-generated",
+      entity_type: "entity",
+      trigger_workflow_id: tracker.internal_process_id,
+    }),
+    [payment]
+  );
+
   const property = useMemo(() => {
     // Entity Type: entity,user,vendor
     if (!payment) return null;
@@ -83,6 +108,13 @@ const usePaymentProcessor = (
       method: "consolidate",
     };
   }, [payment]);
+
+  const { responseState, dataCollections } = useServerSideProcessedData(
+    payment,
+    currentDraft,
+    options,
+    tracker
+  );
 
   const [allSelected, setAllSelected] = useState<string>("no");
   const [accountCodes, setAccountCodes] = useState<
@@ -159,30 +191,30 @@ const usePaymentProcessor = (
 
   // console.log(state);
 
-  useEffect(() => {
-    if (property && document && tracker && payment && staff && currentDraft) {
-      const body: Partial<
-        ServerSideProcessedDataProps<PaymentBatchResponseData>
-      > = {
-        ...property,
-        document_type: property.type,
-        document_category: property.category,
-        document_draft_id: currentDraft.id,
-        mode: property.mode as "store" | "update",
-        document_resource_id: payment.id,
-        document_id: document.id,
-        workflow_id: document.workflow_id,
-        trigger_workflow_id: tracker.internal_process_id,
-        progress_tracker_id: tracker.id,
-        type: payment.type,
-        user_id: staff.id,
-        budget_year: payment.budget_year,
-        department_id: staff.department_id,
-      };
+  // useEffect(() => {
+  //   if (property && document && tracker && payment && staff && currentDraft) {
+  //     const body: Partial<
+  //       ServerSideProcessedDataProps<PaymentBatchResponseData>
+  //     > = {
+  //       ...property,
+  //       document_type: property.type,
+  //       document_category: property.category,
+  //       document_draft_id: currentDraft.id,
+  //       mode: property.mode as "store" | "update",
+  //       document_resource_id: payment.id,
+  //       document_id: document.id,
+  //       workflow_id: document.workflow_id,
+  //       trigger_workflow_id: tracker.internal_process_id,
+  //       progress_tracker_id: tracker.id,
+  //       type: payment.type,
+  //       user_id: staff.id,
+  //       budget_year: payment.budget_year,
+  //       department_id: staff.department_id,
+  //     };
 
-      updateServerProcessedData(body);
-    }
-  }, [property, document, tracker, payment, staff, currentDraft]);
+  //     updateServerProcessedData(body);
+  //   }
+  // }, [property, document, tracker, payment, staff, currentDraft]);
 
   useEffect(() => {
     if (batchRepo) {

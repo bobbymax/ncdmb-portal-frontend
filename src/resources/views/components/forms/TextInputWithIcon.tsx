@@ -1,7 +1,7 @@
 import React from "react";
 import { TextInputProps } from "./TextInput";
 
-interface WithIcon extends TextInputProps {
+export interface WithIcon extends TextInputProps {
   icon: string;
   width?: number;
 }
@@ -35,7 +35,7 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
           id={name}
           value={value}
           onChange={onChange}
-          className={`storm-form-control storm-form-${size} storm-control-with-icon`}
+          className={`custom-storm-form-control storm-form-${size} storm-control-with-icon`}
           placeholder={placeholder}
           disabled={isDisabled}
           name={name}
