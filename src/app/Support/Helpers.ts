@@ -227,6 +227,13 @@ export const formatAmountNoCurrency = (
   }).format(amount);
 };
 
+export const except = (text: string, maxLength: number): string => {
+  if (!text || typeof text !== "string") return "";
+  return text.length > maxLength
+    ? text.slice(0, maxLength).trimEnd() + "..."
+    : text;
+};
+
 export const formatOptions = (
   data: Record<string, any>[],
   value: string,

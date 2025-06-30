@@ -53,7 +53,7 @@ const Folders: React.FC<
     }, 2000); // delay in milliseconds (e.g., 1500ms = 1.5s)
   };
 
-  console.log(componentLoading);
+  // console.log(componentLoading);
 
   return (
     <div className="row">

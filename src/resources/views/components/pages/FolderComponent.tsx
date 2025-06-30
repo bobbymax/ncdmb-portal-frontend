@@ -2,13 +2,14 @@ import {
   DocumentOwnerData,
   DocumentResponseData,
 } from "app/Repositories/Document/data";
-import { formatCurrency } from "app/Support/Helpers";
+import { except, formatCurrency } from "app/Support/Helpers";
 import Button from "../forms/Button";
 import moment from "moment";
 import { extractModelName, toTitleCase } from "bootstrap/repositories";
 import { useEffect, useState } from "react";
 import { AuthorisingOfficerProps } from "app/Repositories/DocumentDraft/data";
 import CircularProgressBar from "./CircularProgressBar";
+import { ProgressTrackerResponseData } from "app/Repositories/ProgressTracker/data";
 
 interface FileCardProps {
   loader: boolean;
@@ -20,11 +21,24 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
   const [officers, setOfficers] = useState<AuthorisingOfficerProps[]>([]);
   const [amount, setAmount] = useState<string>("");
   const [color, setColor] = useState<string>("");
+  const [currentTracker, setCurrentTracker] =
+    useState<ProgressTrackerResponseData>({} as ProgressTrackerResponseData);
+
+  // console.log(document);
 
   useEffect(() => {
-    if (document.drafts && document.drafts.length > 0) {
+    if (document && document.drafts && document.drafts.length > 0) {
       const approvalsMap = new Map<string | number, AuthorisingOfficerProps>();
       const drafts = document.drafts;
+      const workflow = document.workflow;
+
+      if (!workflow) return;
+
+      const currentTracker = workflow.trackers.find(
+        (tracker) => tracker.id === document.progress_tracker_id
+      );
+
+      setCurrentTracker(currentTracker as ProgressTrackerResponseData);
 
       drafts.forEach((draft) => {
         const { history = [] } = draft;
@@ -55,7 +69,7 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
 
       setOfficers(Array.from(approvalsMap.values()));
     }
-  }, [document.drafts]);
+  }, [document]);
 
   return (
     <div className="resource__card">
@@ -66,7 +80,7 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
           }}
           className="doc__details folder_card__padding"
         >
-          <h2>{document.title}</h2>
+          <h2>{except(document.title, 35)}</h2>
           <small className="bready">
             Published: {moment(document.created_at).format("LL")}
           </small>
@@ -141,7 +155,7 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
           >
             <CircularProgressBar
               min={1}
-              max={document.workflow?.trackers.length ?? 1}
+              max={currentTracker.order}
               currentValue={officers.length}
               callback={(response: string) => setColor(response)}
             />

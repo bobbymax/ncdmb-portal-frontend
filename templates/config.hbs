@@ -3,7 +3,9 @@ import { {{name}}ResponseData } from "./data";
 
 export const {{camelCase name}}Config: ConfigProp<{{name}}ResponseData> = {
     fillables: [],
-    associatedResources: [],
+    associatedResources: [
+        {name: "", url: ""}
+    ],
     state: {
         id: 0,
     },

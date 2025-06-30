@@ -1,0 +1,46 @@
+import { ViewsProps } from "../BaseRepository";
+
+export const templateViews: ViewsProps[] = [
+  {
+    title: "List of Templates",
+    server_url: "templates",
+    component: "Templates",
+    frontend_path: "/intelligence/templates",
+    type: "index",
+    tag: "Add Template",
+    mode: "list",
+  },
+  {
+    title: "Create Template",
+    server_url: "templates",
+    component: "Template",
+    frontend_path: "/intelligence/templates/create",
+    type: "form",
+    tag: "",
+    mode: "store",
+    action: "Add Template",
+    index_path: "/intelligence/templates",
+  },
+  {
+    title: "Template Builder",
+    server_url: "templates",
+    component: "ContentBuilder",
+    frontend_path: "/intelligence/templates/:id/builder",
+    type: "builder",
+    tag: "",
+    mode: "update",
+    action: "Save Template",
+    index_path: "/intelligence/templates",
+  },
+  {
+    title: "Manage Template",
+    server_url: "templates",
+    component: "Template",
+    frontend_path: "/intelligence/templates/:id/manage",
+    type: "form",
+    tag: "",
+    mode: "update",
+    action: "Update Record",
+    index_path: "/intelligence/templates",
+  },
+];

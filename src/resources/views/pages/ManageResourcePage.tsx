@@ -89,6 +89,7 @@ const ManageResourcePage = ({
             handleClick={back}
             icon="ri-arrow-left-line"
             isDisabled={loading}
+            size="sm"
           />
         </div>
         <form

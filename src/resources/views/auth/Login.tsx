@@ -59,9 +59,10 @@ const Login = () => {
 
         if (defaultPage) {
           // defaultPage.path;
-          navigate("/desk/folders");
+          navigate(defaultPage.path);
         } else {
           console.log("Default Page not found");
+          navigate("/desk/folders");
         }
       }
     } catch (error) {

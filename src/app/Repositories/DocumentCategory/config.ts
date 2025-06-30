@@ -11,11 +11,13 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "workflow_id",
       "selectedRequirements",
       "type",
+      "selectedBlocks",
     ],
     associatedResources: [
       { name: "documentTypes", url: "documentTypes" },
       { name: "workflows", url: "workflows" },
       { name: "documentRequirements", url: "documentRequirements" },
+      { name: "blocks", url: "blocks" },
     ],
     state: {
       id: 0,
@@ -28,6 +30,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       type: "staff",
       requirements: [],
       selectedRequirements: [],
+      selectedBlocks: [],
     },
     actions: [
       {

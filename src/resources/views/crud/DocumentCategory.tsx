@@ -1,6 +1,6 @@
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import { FormPageComponentProps } from "bootstrap";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Textarea from "../components/forms/Textarea";
 import TextInput from "../components/forms/TextInput";
 import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
@@ -10,11 +10,13 @@ import { DocumentRequirementResponseData } from "app/Repositories/DocumentRequir
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
 import { ActionMeta } from "react-select";
+import { BlockResponseData } from "app/Repositories/Block/data";
 
 interface DependencyProps {
   documentTypes: DocumentTypeResponseData[];
   workflows: WorkflowResponseData[];
   documentRequirements: DocumentRequirementResponseData[];
+  blocks: BlockResponseData[];
 }
 
 const DocumentCategory: React.FC<
@@ -29,32 +31,34 @@ const DocumentCategory: React.FC<
   mode,
 }) => {
   const [docTypes, setDocTypes] = useState<DocumentTypeResponseData[]>([]);
+  const [blocks, setBlocks] = useState<BlockResponseData[]>([]);
   const [workflows, setWorkflows] = useState<WorkflowResponseData[]>([]);
   const [documentRequirements, setDocumentRequirements] = useState<
     DocumentRequirementResponseData[]
   >([]);
 
-  const [selectedRequirements, setSelectedRequirements] = useState<
-    DataOptionsProps[]
-  >([]);
+  const [selectedOptions, setSelectedOptions] = useState<{
+    selectedBlocks: DataOptionsProps[];
+    selectedRequirements: DataOptionsProps[];
+  }>({
+    selectedBlocks: [],
+    selectedRequirements: [],
+  });
 
-  const handleRequirementsChange = (
-    newValue: unknown,
-    actionMeta: ActionMeta<unknown>
-  ) => {
-    // setSelectedRoles(newValue as DataOptionsProps[]);
-    handleReactSelect(newValue, actionMeta, (value) => {
-      const result = value as DataOptionsProps[];
-      setSelectedRequirements(result);
+  const handleSelectionChange = useCallback(
+    (key: keyof typeof selectedOptions) =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        const updatedValue = newValue as DataOptionsProps[];
 
-      if (setState) {
-        setState((prev) => ({
-          ...prev,
-          selectedRequirements: [...result, ...prev.selectedRequirements],
-        }));
-      }
-    });
-  };
+        // Update modal state dynamically
+        if (setState) {
+          setState((prev) => ({ ...prev, [key]: updatedValue }));
+        }
+
+        setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
+      },
+    [setState]
+  );
 
   useEffect(() => {
     if (dependencies) {
@@ -62,10 +66,12 @@ const DocumentCategory: React.FC<
         documentTypes = [],
         workflows = [],
         documentRequirements = [],
+        blocks = [],
       } = dependencies as DependencyProps;
       setDocTypes(documentTypes);
       setWorkflows(workflows);
       setDocumentRequirements(documentRequirements);
+      setBlocks(blocks);
     }
   }, [dependencies]);
 
@@ -75,9 +81,13 @@ const DocumentCategory: React.FC<
       Array.isArray(state.selectedRequirements) &&
       state.selectedRequirements.length > 0
     ) {
-      setSelectedRequirements(state.selectedRequirements);
+      setSelectedOptions((prev) => ({
+        ...prev,
+        selectedBlocks: state.selectedBlocks,
+        selectedRequirements: state.selectedRequirements,
+      }));
     }
-  }, [mode, state.selectedRequirements]);
+  }, [mode, state.selectedRequirements, state.selectedBlocks]);
 
   return (
     <>
@@ -118,6 +128,7 @@ const DocumentCategory: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
 
@@ -133,6 +144,7 @@ const DocumentCategory: React.FC<
           options={workflows}
           defaultValue={0}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -147,6 +159,7 @@ const DocumentCategory: React.FC<
           options={docTypes}
           defaultValue={0}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
 
@@ -154,9 +167,21 @@ const DocumentCategory: React.FC<
         <MultiSelect
           label="Supporting Documents Required"
           options={formatOptions(documentRequirements, "id", "name")}
-          value={selectedRequirements}
-          onChange={handleRequirementsChange}
+          value={selectedOptions.selectedRequirements}
+          onChange={handleSelectionChange("selectedRequirements")}
           placeholder="Document Requirements"
+          isSearchable
+          isMulti
+          isDisabled={loading}
+        />
+      </div>
+      <div className="col-md-12 mb-3">
+        <MultiSelect
+          label="Template Blocks"
+          options={formatOptions(blocks, "id", "title")}
+          value={selectedOptions.selectedBlocks}
+          onChange={handleSelectionChange("selectedBlocks")}
+          placeholder="Template Blocks"
           isSearchable
           isMulti
           isDisabled={loading}

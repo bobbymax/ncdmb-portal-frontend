@@ -82,7 +82,7 @@ export interface FormPageComponentProps<T = JsonResponse> {
 }
 
 export interface BuilderComponentProps<
-  T extends JsonResponse,
+  T extends BaseResponse,
   D extends BaseRepository
 > {
   repo: D;

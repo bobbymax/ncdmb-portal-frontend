@@ -3,6 +3,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 /* @import url("https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&display=swap"); */
 @import "remixicon/fonts/remixicon.css";
 @import "custom-animations.css";
@@ -807,7 +808,7 @@ b {
   background-repeat: no-repeat;
   mix-blend-mode: multiply;
   background-size: cover;
-  /* height: 100vh; */
+  height: 100% !important;
 }
 
 .brand-name {
@@ -893,6 +894,146 @@ b {
   flex-wrap: wrap;
   gap: var(--flex-gap-xl);
   /* word-break: break-all; */
+}
+
+.block__container {
+  flex-wrap: wrap;
+}
+
+.glassy-card {
+  position: relative;
+  background: whitesmoke;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  color: #1a1a1a;
+  font-family: "Segoe UI", "Noto Sans", sans-serif;
+  position: relative;
+  z-index: 0;
+
+  /* Core gradient border logic */
+  border: 2px solid transparent;
+  background-clip: padding-box, border-box;
+  background-origin: border-box;
+  background-image: linear-gradient(whitesmoke, whitesmoke),
+    /* card fill */
+      linear-gradient(to top, #006400, #32cd32 40%, transparent 100%); /* green fade border */
+
+  /* Light simulation: NE light source */
+  box-shadow: -6px 6px 14px rgba(0, 100, 0, 0.2),
+    /* soft shadow bottom-left */ 3px -3px 8px rgba(255, 255, 255, 0.3); /* top-right light */
+
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-image 0.3s ease;
+  overflow: hidden;
+}
+
+.glassy-card__title {
+  color: var(--color-ajacent);
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+/* Optional glow-fade using after element */
+.glassy-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(0, 128, 0, 0.3), rgba(0, 128, 0, 0));
+  pointer-events: none;
+  filter: blur(12px);
+  opacity: 0.8;
+}
+
+/* Animate emission */
+.glassy-card.emit::after {
+  animation: emitPulse 0.6s ease-out forwards;
+}
+
+@keyframes emitPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  60% {
+    transform: scale(15);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(20);
+    opacity: 0;
+  }
+}
+
+.glassy-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  background-image: linear-gradient(#f5f5f5, #f5f5f5),
+    linear-gradient(to top, #00c851, #007e33 30%, transparent 100%);
+
+  box-shadow: -8px 8px 24px rgba(0, 128, 0, 0.3),
+    /* deeper bottom-left shadow */ 4px -4px 12px rgba(255, 255, 255, 0.4),
+    /* brighter top-right light */ 0 0 20px rgba(0, 128, 0, 0.4); /* outer glow */
+  cursor: pointer;
+  border-color: rgba(0, 255, 128, 0.4);
+}
+
+.glassy-card:hover::after {
+  opacity: 1;
+  filter: blur(16px);
+}
+
+.glassy-card__icon {
+  font-size: 22px;
+  color: var(--color-ajacent);
+}
+
+.block__item {
+  background-color: var(--color-ajacent);
+  padding: 10px 12px;
+  width: 75%;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.template__page {
+  background-color: var(--color-white);
+  padding: 20px 32px;
+  font-family: "Noto Sans", sans-serif;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  /* height: 100% !important; */
+}
+
+.custom__table__style {
+  width: 100%;
+  font-weight: 700;
+}
+
+.custom__table__style tr {
+  border-top: 1.2px solid #848080;
+  border-bottom: 1.2px solid #848080;
+}
+
+.custom__table__style tr td {
+  border-left: 1.2px solid #848080;
+  border-right: 1.2px solid #848080;
+  padding: 5px 9px;
+}
+
+.top__banner img {
+  width: 78px;
+  height: 78px;
+}
+
+.block__item i {
+  color: whitesmoke;
+  font-size: 3rem;
 }
 
 .claim__header h2 {
@@ -2830,6 +2971,16 @@ p.claim-description {
   font-weight: 500;
 }
 
+.tip {
+  margin-bottom: 10px;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 2px;
+  letter-spacing: 1.5px;
+  color: rgb(95, 25, 25);
+  background-color: burlywood;
+}
+
 /* End face pile */
 
 .ncdmb_logo {
@@ -2941,8 +3092,12 @@ p.claim-description {
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 6px;
+  height: 310px;
 }
 
+.details_mid__section {
+  padding: 8px 0;
+}
 .folder_card__padding {
   padding: 20px 25px;
 }

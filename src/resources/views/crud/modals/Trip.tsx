@@ -207,16 +207,6 @@ const Trip: React.FC<ModalValueProps> = ({
               isDisabled
             />
           </div>
-          <div className="col-md-12 mb-3">
-            <Textarea
-              label="Purpose"
-              name="purpose"
-              value={state.purpose}
-              onChange={handleInputChange}
-              placeholder="Enter Purpose for Trip"
-              rows={4}
-            />
-          </div>
           <div className="col-md-4 mb-3">
             <TextInput
               label="Departure"
