@@ -1,25 +1,23 @@
+import { ContentAreaProps } from "app/Hooks/useBuilder";
 import { BaseResponse } from "../BaseRepository";
 
-// type OptionProps = {
-//   name: string;
-//   data_type: "string" | "number" | "currency" | "date";
-//   isFormatted?: boolean;
-// };
+export type BlockDataType =
+  | "paragraph"
+  | "purchase"
+  | "event"
+  | "milestone"
+  | "estacode"
+  | "invoice"
+  | "training"
+  | "posting"
+  | "bullet"
+  | "approval";
 
 export interface BlockResponseData extends BaseResponse {
   title: string;
   label?: string;
   icon: string;
-  data_type:
-    | "paragraph"
-    | "purchase"
-    | "event"
-    | "milestone"
-    | "estacode"
-    | "invoice"
-    | "training"
-    | "posting"
-    | "bullet";
+  data_type: BlockDataType;
   input_type:
     | "ParagraphBlock"
     | "EventBlock"
@@ -30,6 +28,7 @@ export interface BlockResponseData extends BaseResponse {
     | "ListBlock";
   max_words: number;
   type: "staff" | "third-party" | "document";
+  contents: ContentAreaProps[];
   active: number;
   created_at?: string;
   updated_at?: string;

@@ -59,9 +59,12 @@ export abstract class RepositoryService implements IRepository {
     }
   }
 
-  async collection(url: string): Promise<ServerResponse> {
+  async collection(url: string, params?: object): Promise<ServerResponse> {
     try {
-      const response: AxiosResponse<ServerResponse> = await this.api.get(url);
+      const response: AxiosResponse<ServerResponse> = await this.api.get(
+        url,
+        params ?? {}
+      );
       const code = response.status;
       return { code, ...response.data };
     } catch (error) {

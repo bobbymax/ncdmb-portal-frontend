@@ -43,6 +43,8 @@ export default class UserRepository extends BaseRepository {
       email: data.email ?? "",
       is_logged_in: data.is_logged_in ?? false,
       groups: formatOptions(data.groups, "id", "name") ?? [],
+      grade_level: data.grade_level ?? "",
+      remunerations: data.remunerations ?? [],
       blocked: data.blocked ?? 0,
       type: data.type ?? "permanent",
     };

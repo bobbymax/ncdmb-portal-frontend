@@ -17,6 +17,8 @@ import React, {
   FormEvent,
 } from "react";
 import { ProcessedDataProps } from "./FileProcessorProvider";
+import { BlockDataType } from "app/Repositories/Block/data";
+import { BlockDataTypeMap } from "resources/views/crud/templates/blocks";
 
 type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers
@@ -34,6 +36,19 @@ export interface ModalLoopProps<
   handleSubmit: (props: ProcessedDataProps<T>) => void;
   dependencies?: object;
   extras?: any;
+}
+
+export interface BlockModalProps<P extends BlockDataType> {
+  title: string;
+  type: P;
+  blockState: BlockDataTypeMap[P];
+  data?: unknown;
+  isUpdating: boolean;
+  addBlockComponent: (props: unknown) => void;
+  dependencies?: {
+    partials: any[];
+    extras: unknown;
+  };
 }
 
 export interface ModalValueProps<T = JsonResponse> {
@@ -74,6 +89,12 @@ interface ModalContextType {
     identifier: string,
     props: ModalLoopProps<any, any>,
     initialData?: BaseResponse
+  ) => void;
+  openBlock: <P extends BlockDataType>(
+    BlockComponent: React.ComponentType<BlockModalProps<P>>,
+    props: BlockModalProps<P>,
+    type: P,
+    initialState?: unknown
   ) => void;
   handleInputChange: (
     e: React.ChangeEvent<
@@ -148,6 +169,22 @@ export const ModalProvider: React.FC<{
     }));
   };
 
+  const openBlock = <P extends BlockDataType>(
+    BlockComponent: React.ComponentType<BlockModalProps<P>>,
+    props: BlockModalProps<P>,
+    type: P,
+    initialState?: unknown
+  ) => {
+    setCurrentIdentifier(type);
+    setContent(<BlockComponent {...props} />);
+    setIsOpen(true);
+    setTitle(props.title);
+    setModalState((prevState) => ({
+      ...prevState,
+      [type]: initialState || {}, // Initialize modalState with ResponseData if provided
+    }));
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -217,6 +254,7 @@ export const ModalProvider: React.FC<{
         currentIdentifier,
         openModal,
         openLoop,
+        openBlock,
         closeModal,
         handleInputChange,
         updateModalState,

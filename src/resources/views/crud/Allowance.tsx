@@ -187,7 +187,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
 
   return (
     <>
-      <div className="col-md-7 mb-3">
+      <div className="col-md-3 mb-3">
         <TextInput
           label="Name"
           name="name"
@@ -196,7 +196,45 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           placeholder="Enter Allowance Name"
         />
       </div>
-      <div className="col-md-5 mb-3">
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Payment Basis"
+          name="payment_basis"
+          value={state.payment_basis}
+          onChange={handleChange}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "weekdays", label: "Weekdays" },
+            { value: "days", label: "Days" },
+            { value: "nights", label: "Nights" },
+            { value: "fixed", label: "Fixed" },
+            { value: "km", label: "Kilometers" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Route"
+          name="payment_route"
+          value={state.payment_route}
+          onChange={handleChange}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "one-off", label: "One Off" },
+            { value: "round-trip", label: "Round Trip" },
+            { value: "computable", label: "Computable" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
         <Select
           label="Parent"
           name="parent_id"
@@ -207,6 +245,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           options={allowances}
           defaultValue={999}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -223,6 +262,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           ]}
           defaultValue={999}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -239,6 +279,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           ]}
           defaultValue={999}
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -255,6 +296,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -288,6 +330,7 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
           ]}
           defaultValue=""
           defaultCheckDisabled
+          size="sm"
         />
       </div>
       {renderMultiSelect(

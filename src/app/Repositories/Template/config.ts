@@ -12,12 +12,18 @@ export const templateConfig: ConfigProp<TemplateResponseData> = {
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
+    { name: "workflowStages", url: "workflowStages" },
   ],
   state: {
     id: 0,
     document_category_id: 0,
     name: "",
     header: "memo",
+    config: {
+      subject: "",
+      recipients: [],
+      processes: [],
+    },
     body: [],
     footer: "",
     active: 1,

@@ -7,6 +7,8 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { DocumentActionResponseData } from "../DocumentAction/data";
 import { WidgetResponseData } from "../Widget/data";
 
+export type PermissionTypes = "r" | "rw" | "rwx";
+
 export type ServerTrackerData = {
   id: number;
   identifier: string;
@@ -19,7 +21,7 @@ export type ServerTrackerData = {
   internal_process_id: number;
   order: number;
   stage_name: string;
-  permission: "r" | "rw" | "rwx";
+  permission: PermissionTypes;
   actions: DataOptionsProps[];
   recipients: DataOptionsProps[];
   widgets: DataOptionsProps[];

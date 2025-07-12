@@ -9,6 +9,9 @@ import { DocumentDraftResponseData } from "app/Repositories/DocumentDraft/data";
 import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { BaseResponse, TabOptionProps } from "app/Repositories/BaseRepository";
 import { TransactionResponseData } from "app/Repositories/Transaction/data";
+import axios from "axios";
+
+const GOOGLE_API_KEY = "AIzaSyAgfl2V6_4HkCuqMnDDLl_mUhmIaEY4yXk";
 
 export const accessibleTabs: TabOptionProps[] = [
   {
@@ -94,6 +97,30 @@ export const accessibleTabs: TabOptionProps[] = [
 export const extractFourDigitsAfterFirstChar = (input: string) => {
   const match = input.match(/^[A-Za-z](\d{4})/);
   return match ? match[1] : null;
+};
+
+export const getDistanceInKm = async (
+  origin: string,
+  destination: string
+): Promise<number | null> => {
+  const endpoint = "https://maps.googleapis.com/maps/api/distancematrix/json";
+
+  try {
+    const response = await axios.get(endpoint, {
+      params: {
+        origins: origin,
+        destinations: destination,
+        key: GOOGLE_API_KEY,
+        units: "metric",
+      },
+    });
+
+    const distance = response.data.rows[0].element[0].distance.value;
+    return distance / 1000;
+  } catch (error) {
+    console.error("Error fetching distance:", error);
+    return null;
+  }
 };
 
 export const getBeneficiaryTag = (beneficiary: string): string => {

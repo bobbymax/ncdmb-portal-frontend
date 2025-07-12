@@ -10,6 +10,7 @@ export const blockConfig: ConfigProp<BlockResponseData> = {
     "max_words",
     "type",
     "active",
+    "contents",
   ],
   associatedResources: [],
   state: {
@@ -20,6 +21,7 @@ export const blockConfig: ConfigProp<BlockResponseData> = {
     input_type: "ParagraphBlock",
     max_words: 0,
     type: "document",
+    contents: [],
     active: 0,
   },
   actions: [

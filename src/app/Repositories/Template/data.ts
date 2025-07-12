@@ -1,11 +1,30 @@
+import { ContentAreaProps } from "app/Hooks/useBuilder";
 import { BaseResponse } from "../BaseRepository";
 import { BlockResponseData } from "../Block/data";
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
+import { PermissionTypes } from "../ProgressTracker/data";
+
+export type TemplateProcessProps = {
+  process_type: "from" | "to" | "through" | "cc" | "bcc";
+  group: DataOptionsProps | null;
+  department: DataOptionsProps | null;
+  staff?: DataOptionsProps | null;
+  is_approving?: boolean;
+  permissions: PermissionTypes;
+};
+
+export type TemplateProcessConfigProps = {
+  subject: string;
+  recipients: DataOptionsProps[];
+  processes: TemplateProcessProps[];
+};
 
 export interface TemplateResponseData extends BaseResponse {
   document_category_id: number;
   name: string;
   header: "banner" | "memo" | "resource";
-  body?: any[];
+  config?: TemplateProcessConfigProps;
+  body?: ContentAreaProps[];
   footer: string;
   active: number;
   blocks?: BlockResponseData[];

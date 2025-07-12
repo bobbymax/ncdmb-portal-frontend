@@ -13,6 +13,8 @@ export const allowanceConfig: ConfigProp<AllowanceResponseData> = {
     "category",
     "selectedRemunerations",
     "component",
+    "payment_basis",
+    "payment_route",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -28,6 +30,8 @@ export const allowanceConfig: ConfigProp<AllowanceResponseData> = {
     days_required: 0,
     is_active: 0,
     description: "",
+    payment_basis: "days",
+    payment_route: "round-trip",
     category: "parent",
     component: "flight-non-resident",
     remunerations: [],

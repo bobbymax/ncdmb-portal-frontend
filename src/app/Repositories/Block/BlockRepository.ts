@@ -30,6 +30,7 @@ export default class BlockRepository extends BaseRepository {
       input_type: data.input_type ?? "ParagraphBlock",
       max_words: data.max_words ?? 0,
       type: data.type ?? "document",
+      contents: data.contents ?? [],
       active: data.active ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",

@@ -16,6 +16,7 @@ interface MultiSelectProps {
   isSearchable: boolean;
   isMulti?: boolean;
   isDisabled: boolean;
+  description?: string;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -27,12 +28,16 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   isSearchable,
   isMulti,
   isDisabled,
+  description,
 }) => {
   const animated = makeAnimated();
 
   return (
     <div className="storm-form-group flex column mb-3">
       {label && <label className="storm-form-label mb-2">{label}:</label>}
+      {description && (
+        <small className="label__description">{description}</small>
+      )}
 
       <Select
         components={animated}

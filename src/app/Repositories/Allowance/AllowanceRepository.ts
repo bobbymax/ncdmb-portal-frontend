@@ -28,6 +28,8 @@ export default class AllowanceRepository extends BaseRepository {
       is_active: data.is_active ?? 0,
       description: data.description ?? "",
       category: data.category ?? "parent",
+      payment_basis: data.payment_basis ?? "days",
+      payment_route: data.payment_route ?? "round-trip",
       component: data.component ?? "flight-non-resident",
       remunerations: data.remunerations ?? [],
       selectedRemunerations: data.selectedRemunerations ?? [],

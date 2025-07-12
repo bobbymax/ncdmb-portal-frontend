@@ -713,6 +713,10 @@ b {
   justify-content: space-between;
 }
 
+.evenly {
+  justify-content: space-evenly;
+}
+
 .gap-sm {
   gap: var(--flex-gap-s);
 }
@@ -930,6 +934,56 @@ b {
   overflow: hidden;
 }
 
+/* styles.css or global.css */
+.tiptap-editor {
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 200px;
+  background: #fff;
+  height: 360px;
+  overflow-y: auto;
+  max-height: 640px;
+}
+
+.editor-toolbar {
+  background: rgba(240, 240, 240, 0.4); /* light ashy gray with transparency */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* soft inner border */
+  box-shadow: inset 0 0 0.5px rgba(255, 255, 255, 0.4),
+    0 6px 12px rgba(0, 0, 0, 0.05); /* subtle shadow for lift */
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 32px;
+}
+
+.label__description {
+  margin-bottom: 12px;
+  color: #006400;
+  border: 1px solid #f0f0f0;
+  display: flex;
+  background: rgba(226, 255, 238, 0.7);
+  padding: var(--card-padding-md);
+  border-radius: 5px;
+  height: 60px;
+  max-height: 60px;
+  align-items: center;
+}
+
+.editor-toolbar button {
+  padding: 6px 12px;
+  border: none;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editor-toolbar button.active {
+  background: var(--color-ajacent);
+  color: white;
+}
+
 .glassy-card__title {
   color: var(--color-ajacent);
   letter-spacing: 1.3px;
@@ -1001,13 +1055,135 @@ b {
   justify-content: center;
 }
 
+.config__tab__section {
+  /* background-color: var(--color-white); */
+  /* padding: 24px; */
+  /* border: 1px solid var(--color-border); */
+  border-radius: 2px;
+  margin-bottom: 24px;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+}
+
+.config__tab__header {
+  overflow-x: auto;
+}
+
+.config__tab__header .tab__section__item img {
+  width: 52px;
+  height: 52px;
+  filter: saturate(0%);
+}
+
+.config__tab__header > div {
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+}
+
+/* Add right border only to the last child */
+.config__tab__header > div:last-child {
+  border-right: 1px solid #ccc;
+}
+
+.config__tab__header .tab__section__item {
+  padding: 26px 36px;
+  cursor: pointer;
+  background-color: var(--color-white);
+}
+
+.config__tab__header .tab__section__item:hover {
+  background-color: var(--color-border-lighter);
+}
+
+.config__tab__header .tab__section__item:hover img {
+  filter: saturate(100%);
+}
+
+.config__tab__content {
+  padding: 24px;
+  background-color: var(--color-white);
+  border-radius: 4px;
+  margin-top: 10px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
+  /* border: 1px solid var(--color-border); */
+}
+
+.config__tab__header .tab__section__item.active {
+  background-color: var(--color-primary);
+  p {
+    color: var(--color-white);
+  }
+}
+
+.config__tab__header .tab__section__item.active img {
+  filter: saturate(100%);
+}
+
 .template__page {
   background-color: var(--color-white);
-  padding: 20px 32px;
-  font-family: "Noto Sans", sans-serif;
-  letter-spacing: 0.4px;
+  padding: 52px 54px 64px 54px;
+  /* font-family: "Noto Sans", sans-serif; */
+  /* letter-spacing: 0.4px; */
   font-size: 12px;
+  margin: 0 auto;
+  border-radius: 4px;
   /* height: 100% !important; */
+}
+
+/* Event Card Styliing */
+.event__card i {
+  font-size: 18px;
+}
+
+.event__card h5 {
+  color: var(--color-ajacent-alternate);
+}
+
+.diiiiits small {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+}
+
+.signature__block {
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 12px 16px;
+  background-color: var(--color-white);
+  margin-bottom: 14px;
+}
+
+.signature__layer {
+  flex-wrap: wrap;
+}
+
+.signature__canvas__container {
+  position: relative;
+  max-width: 39.5%;
+  overflow: hidden;
+}
+
+.signature__canvas__container p {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.signature__canvas__container .line {
+  border-bottom: 1px dashed darkgray;
+}
+
+.signature__details p {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.event__card .mid__footer__event__card span {
+  /* font-style: italic; */
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 600;
 }
 
 .custom__table__style {
@@ -1020,10 +1196,130 @@ b {
   border-bottom: 1.2px solid #848080;
 }
 
+.memo_block_container {
+  padding: 20px 20px;
+  background-color: white;
+  border: 1.2px solid #ebebeb;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  overflow: hidden;
+  transition: height 0.5s ease-in-out, transform 0.4s ease, box-shadow 0.3s ease;
+  transform-origin: top center;
+}
+
+.memo_block_container h3 {
+  font-size: 13px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+/* Glossy Black Panel */
+.glossy-panel {
+  height: 90px;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 10, 10, 0.9) 0%,
+    rgba(30, 30, 30, 0.8) 40%,
+    rgba(0, 0, 0, 0.9) 100%
+  );
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7),
+    inset 0 0 8px rgba(255, 255, 255, 0.05),
+    inset 0 0 16px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 13px;
+}
+
+/* Glossy shine effect */
+.glossy-panel::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at top left,
+    rgba(255, 255, 255, 0.12),
+    transparent 60%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+}
+
+/* Glassy edge highlight */
+.glossy-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.block__toolbar {
+  border-top: 1px solid white;
+  border-right: 1px solid white;
+  width: 64px;
+  height: 64px;
+  /* padding: 6px 24px; */
+  border-radius: 4px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #eeeeee;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-image 0.3s ease;
+  overflow: hidden;
+  i {
+    font-size: 21px;
+  }
+
+  span {
+    font-size: 7px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+}
+
+.block__toolbar:hover {
+  transform: translateY(-6px) scale(1.02);
+  background-image: linear-gradient(#f5f5f5, #f5f5f5),
+    linear-gradient(to top, #00c851, #007e33 30%, transparent 100%);
+
+  box-shadow: -8px 8px 24px rgba(0, 128, 0, 0.3),
+    /* deeper bottom-left shadow */ 4px -4px 12px rgba(255, 255, 255, 0.4),
+    /* brighter top-right light */ 0 0 20px rgba(0, 128, 0, 0.4); /* outer glow */
+  cursor: pointer;
+  border-color: rgba(0, 255, 128, 0.4);
+}
+
+/* When collapsed */
+.memo_block_container.collapsed {
+  height: 88px; /* Minimum height, enough for collapse button */
+  transform: scale(0.98) translateY(-6px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* When expanded */
+.memo_block_container.expanded {
+  height: 100%; /* set to a high enough value */
+  transform: scale(1) translateY(0);
+}
+
 .custom__table__style tr td {
   border-left: 1.2px solid #848080;
   border-right: 1.2px solid #848080;
-  padding: 5px 9px;
+  padding: 9px 14px;
 }
 
 .top__banner img {

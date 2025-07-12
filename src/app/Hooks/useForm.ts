@@ -129,7 +129,10 @@ export const useForm = <T extends BaseRepository>(
           const response: ServerResponse = await execute(submitFn());
 
           if (response) {
-            setState({ ...repo.getState() });
+            setState((prev) => ({
+              ...prev,
+              ...repo.getState(),
+            }));
             onFormSubmit(response, action);
           }
         } catch (er) {
@@ -192,7 +195,10 @@ export const useForm = <T extends BaseRepository>(
             repo.destroy(view.server_url, state.id)
           );
 
-          setState(repo.getState());
+          setState((prev) => ({
+            ...prev,
+            ...repo.getState(),
+          }));
           onFormSubmit(response, "destroy");
           toast.success("Record deleted successfully!");
         } catch (er) {
@@ -211,7 +217,10 @@ export const useForm = <T extends BaseRepository>(
   // Fill form state with existing data
   const fill = useCallback(
     (data: JsonResponse) => {
-      setState(repo.fromJson(data));
+      setState((prev) => ({
+        ...prev,
+        ...repo.fromJson(data),
+      }));
     },
     [repo]
   );

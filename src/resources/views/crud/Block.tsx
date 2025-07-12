@@ -59,6 +59,7 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "training", label: "Training" },
             { value: "posting", label: "Staff Move" },
             { value: "bullet", label: "Bullet List" },
+            { value: "approval", label: "Approvals" },
           ]}
           size="sm"
         />

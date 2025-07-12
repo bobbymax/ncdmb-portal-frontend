@@ -28,6 +28,11 @@ export default class TemplateRepository extends BaseRepository {
       document_category_id: data.document_category_id ?? 0,
       name: data.name ?? "",
       header: data.header ?? "",
+      config: data.config ?? {
+        subject: "",
+        recipients: [],
+        processes: [],
+      },
       body: data.body ?? [],
       footer: data.footer ?? "",
       active: data.active ?? 0,

@@ -37,7 +37,7 @@ const useResolvers = () => {
       return null;
     }
   };
-  return { serviceBundle };
+  return { serviceBundle, toPascalCase };
 };
 
 export default useResolvers;

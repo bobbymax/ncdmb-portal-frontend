@@ -1,6 +1,7 @@
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
 import { RoleResponseData } from "../Role/data";
+import { RemunerationResponseData } from "../Remuneration/data";
 
 export interface UserResponseData extends BaseResponse {
   staff_no: string;
@@ -29,8 +30,10 @@ export interface UserResponseData extends BaseResponse {
     | "secondment"
     | "other";
   email: string;
+  grade_level?: string;
   password?: string;
   is_logged_in?: boolean;
   role: RoleResponseData | null;
+  remunerations?: RemunerationResponseData[];
   groups: DataOptionsProps[];
 }
