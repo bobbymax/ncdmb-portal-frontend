@@ -116,7 +116,7 @@ const ContentBlockView = ({
     [content]
   );
 
-  console.log("Content Block View", content);
+  // console.log("Content Block View", content);
 
   const renderCard = (param: keyof OptionsContentAreaProps) => {
     switch (param) {

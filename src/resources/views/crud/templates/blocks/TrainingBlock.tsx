@@ -25,6 +25,7 @@ import RowBlockModal, {
   CalculatorStateProps,
 } from "../../modals/blocks/RowBlockModal";
 import _ from "lodash";
+import { UserResponseData } from "@/app/Repositories/User/data";
 
 const trainingHeaders: TableContentAreaHeaderProps[] = [
   {

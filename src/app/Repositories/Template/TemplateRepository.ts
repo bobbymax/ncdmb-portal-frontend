@@ -13,6 +13,7 @@ import { templateRules } from "./rules";
 import { templateViews } from "./views";
 import { templateColumns } from "./columns";
 import { templateConfig } from "./config";
+import { ConfigState } from "resources/views/crud/ContentBuilder";
 
 export default class TemplateRepository extends BaseRepository {
   public fillables: Array<keyof TemplateResponseData> =
@@ -30,8 +31,7 @@ export default class TemplateRepository extends BaseRepository {
       header: data.header ?? "",
       config: data.config ?? {
         subject: "",
-        recipients: [],
-        processes: [],
+        process: {} as ConfigState,
       },
       body: data.body ?? [],
       footer: data.footer ?? "",

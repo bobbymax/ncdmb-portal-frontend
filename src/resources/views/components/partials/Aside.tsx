@@ -124,7 +124,33 @@ const Aside = ({
         {/* End Logo Section */}
         <div className="mb-4"></div>
         {/* Navigation Section */}
-        <div className="new__nav__container">{links}</div>
+        <div className="new__nav__container">
+          <div className="new__nav__item">
+            <div className={`parent__nav flex align between`}>
+              <div className="smaller__detais flex align gap-md">
+                <i className="ri-dashboard-line" />
+                <p>Insights</p>
+              </div>
+
+              {/* <i className="ri-arrow-down-s-line" /> */}
+            </div>
+
+            <div className="new__dropdown__menu__section">
+              <Link
+                to="/dashboard"
+                className={`child__nav__link ${
+                  activePath === "/dashboard" ? "active" : ""
+                }`}
+              >
+                <div className="smaller__detais flex align gap-md">
+                  <i className="ri-bank-line" />
+                  <p>Dashboard</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+          {links}
+        </div>
         {/* End Naviagtion Section */}
       </div>
     </aside>

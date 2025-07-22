@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ProcessTypeDependencies,
   TabConfigContentProps,
@@ -11,12 +11,17 @@ import MultiSelect, {
 import { ActionMeta } from "react-select";
 import useFormOnChangeEvents from "app/Hooks/useFormOnChangeEvents";
 import { formatOptions } from "app/Support/Helpers";
+import { GroupResponseData } from "app/Repositories/Group/data";
+import { isEqual } from "lodash";
 
 export type CCProcessProps = {
-  recipients: TemplateProcessProps[];
+  id: string;
+  recipient: TemplateProcessProps;
 };
 
-const CCStaffComponent: FC<TabConfigContentProps<"cc", CCProcessProps>> = ({
+const CCStaffComponent: FC<
+  TabConfigContentProps<"cc", TemplateProcessProps[]>
+> = ({
   value,
   icon,
   default: isDefault,
@@ -27,6 +32,7 @@ const CCStaffComponent: FC<TabConfigContentProps<"cc", CCProcessProps>> = ({
 }) => {
   const [isToggled, setIsToggled] = useState(false);
   const ccState: TemplateProcessProps = {
+    stage: null,
     process_type: value,
     group: null,
     department: null,
@@ -35,26 +41,100 @@ const CCStaffComponent: FC<TabConfigContentProps<"cc", CCProcessProps>> = ({
     permissions: "rw",
   };
 
-  const { state, setState, handleChange, handleMultiSelectChange } =
+  const { state, setState, handleMultiSelectChange } =
     useFormOnChangeEvents<TemplateProcessProps>(ccState);
 
+  const [accessibleGroups, setAccessibleGroups] = useState<DataOptionsProps[]>(
+    []
+  );
+  const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
+  const [recipients, setRecipients] = useState<CCProcessProps[]>([]);
+
   const {
-    users = [],
+    stages = [],
     groups = [],
-    departments = [],
+    users = [],
   } = useMemo(() => dependencies as ProcessTypeDependencies, [dependencies]);
 
+  const handleToggleAndStateUpdate = useCallback(
+    (key: "open" | "close") => {
+      setIsToggled((prev) => !prev); // Always toggle
+
+      if (key === "close") {
+        const isModified =
+          state.department !== null ||
+          state.group !== null ||
+          state.stage !== null;
+
+        // Only add if state has been modified
+        if (isModified) {
+          const recidentDetails: CCProcessProps = {
+            id: crypto.randomUUID(),
+            recipient: state,
+          };
+          setRecipients((prev) => [recidentDetails, ...prev]);
+          setState(ccState); // reset after adding
+        } else {
+          // Just close the modal, don't reset or add anything
+          console.log("State is unchanged — not saving");
+        }
+      }
+    },
+    [state, ccState]
+  );
+
   const handleStateChange = (
-    updatedValue: DataOptionsProps | DataOptionsProps[],
+    updatedValue: DataOptionsProps | DataOptionsProps[] | null,
     key: keyof TemplateProcessProps
   ) => {
-    console.log("Updated Value:", updatedValue);
-
     setState((prev) => ({
       ...prev,
       [key]: updatedValue,
     }));
   };
+
+  useEffect(() => {
+    if (recipients.length > 0) {
+      handleStateUpdate(
+        recipients.map((recip) => recip.recipient),
+        value
+      );
+    }
+  }, [recipients]);
+
+  useEffect(() => {
+    if (state.group && groups.length > 0) {
+      const group: GroupResponseData | undefined =
+        groups.find((grp) => grp.id === state.group?.value) ?? undefined;
+
+      if (!group) return;
+
+      const matchingIds = new Set(
+        users
+          .filter((user) => user.department_id === state.department?.value)
+          .map((user) => user.id)
+      );
+
+      const { users: staff = [] } = group;
+      const selectedUsers = staff.filter((option) =>
+        matchingIds.has(option.value)
+      );
+
+      const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
+      setSelectedUsers(matchUsers);
+    }
+  }, [state.group, groups, state.department, users]);
+
+  useEffect(() => {
+    if (state.stage && stages.length > 0) {
+      const stage = stages.find((stg) => stg.id === state.stage?.value) ?? null;
+
+      if (!stage) return;
+
+      setAccessibleGroups(formatOptions(stage.groups, "id", "name") ?? []);
+      handleStateChange(stage?.department ?? null, "department");
+    }
+  }, [state.stage, stages]);
 
   const renderMultiSelect = (
     label: string,
@@ -85,11 +165,37 @@ const CCStaffComponent: FC<TabConfigContentProps<"cc", CCProcessProps>> = ({
         <div className="flex align end">
           <Button
             label={`${isToggled ? "Add" : "CC"}`}
-            handleClick={() => setIsToggled(!isToggled)}
+            handleClick={() =>
+              handleToggleAndStateUpdate(!isToggled ? "open" : "close")
+            }
             icon={`${isToggled ? "ri-send-plane-fill" : "ri-broadcast-line"}`}
             size="xs"
             variant={`${isToggled ? "success" : "dark"}`}
           />
+        </div>
+      </div>
+      <div className="col-md-12 mb-3">
+        <div className="cc__list__container flex align gap-md">
+          {recipients.length > 0 ? (
+            recipients.map((recip, idx) => (
+              <div
+                className="cc__distribution__item flex align gap-md"
+                key={idx}
+              >
+                <p className="div__name">{recip?.recipient?.group?.label}</p>
+                <Button
+                  icon="ri-close-large-line"
+                  handleClick={() =>
+                    setRecipients(recipients.filter((rp) => rp.id !== recip.id))
+                  }
+                  variant="danger"
+                  size="xs"
+                />
+              </div>
+            ))
+          ) : (
+            <p>No Recipients have been added!!</p>
+          )}
         </div>
       </div>
       <div className="col-md-12 mb-3">
@@ -101,27 +207,27 @@ const CCStaffComponent: FC<TabConfigContentProps<"cc", CCProcessProps>> = ({
         >
           <div className="row">
             {renderMultiSelect(
-              "Staff",
-              formatOptions(users, "id", "name", true),
-              state.staff ?? null,
-              handleMultiSelectChange("staff", handleStateChange),
-              "Staff",
-              false,
-              12
+              "Desk",
+              formatOptions(stages, "id", "name"),
+              state.stage,
+              handleMultiSelectChange("stage", handleStateChange),
+              "Worflow Stage"
             )}
             {renderMultiSelect(
               "Group",
-              formatOptions(groups, "id", "name"),
+              accessibleGroups,
               state.group,
               handleMultiSelectChange("group", handleStateChange),
               "Group"
             )}
             {renderMultiSelect(
-              "Department",
-              formatOptions(departments, "id", "abv"),
-              state.department,
-              handleMultiSelectChange("department", handleStateChange),
-              "Department"
+              "Staff",
+              selectedUsers,
+              state.staff ?? null,
+              handleMultiSelectChange("staff", handleStateChange),
+              "Staff",
+              false,
+              12
             )}
           </div>
         </div>

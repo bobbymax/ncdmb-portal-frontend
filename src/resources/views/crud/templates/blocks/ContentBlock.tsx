@@ -5,14 +5,14 @@ import Textarea from "resources/views/components/forms/Textarea";
 import Button from "resources/views/components/forms/Button";
 import { BlockDataType } from "app/Repositories/Block/data";
 import _ from "lodash";
-import { BaseRepository } from "app/Repositories/BaseRepository";
+import { BaseRepository, BaseResponse } from "app/Repositories/BaseRepository";
 import {
   ContentAreaProps,
   OptionsContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
 
-const ContentBlock = <D extends BaseRepository>({
+const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
   repo,
   block,
   active,
@@ -20,8 +20,10 @@ const ContentBlock = <D extends BaseRepository>({
   remove,
   collapse,
   viewCard = false,
+  resource,
 }: {
   repo: D;
+  resource?: T | null;
   block: ContentAreaProps;
   active: boolean;
   resolve: (data: OptionsContentAreaProps, blockId: string) => void;
@@ -48,6 +50,7 @@ const ContentBlock = <D extends BaseRepository>({
     const Component = blockFormMap[block.type];
     return Component ? (
       <Component
+        resource={resource}
         localContentState={localContentState}
         updateLocal={updateLocalState}
       />

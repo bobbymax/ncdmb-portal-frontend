@@ -1,19 +1,18 @@
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import { CardPageComponentProps } from "bootstrap";
-import React, { useState } from "react";
+import React from "react";
 import TextInput from "../components/forms/TextInput";
 import FolderComponent from "../components/pages/FolderComponent";
 import useFilters from "app/Hooks/useFilters";
-import LoginTextInputWithIcon from "../components/forms/LoginTextInputWithIcon";
-import TextInputWithIcon from "../components/forms/TextInputWithIcon";
 import Select from "../components/forms/Select";
 import RangeSlider from "../components/forms/RangeSlider";
-import { formatAmountNoCurrency, formatCurrency } from "app/Support/Helpers";
+import { formatCurrency } from "app/Support/Helpers";
 import moment from "moment";
 import MultiSelect from "../components/forms/MultiSelect";
 import Button from "../components/forms/Button";
 import { useStateContext } from "app/Context/ContentContext";
+import ResourceLoader from "../components/loaders/ResourceLoader";
 
 const Folders: React.FC<
   CardPageComponentProps<DocumentResponseData, DocumentRepository>
@@ -53,22 +52,27 @@ const Folders: React.FC<
     }, 2000); // delay in milliseconds (e.g., 1500ms = 1.5s)
   };
 
-  // console.log(componentLoading);
-
   return (
     <div className="row">
       <div className="col-md-9 mb-3">
-        <div className="row">
-          {documents.map((document) => (
-            <div key={document.id} className="col-md-3 col-sm-12 mb-3">
-              <FolderComponent
-                loader={componentLoading}
-                document={document}
-                openFolder={handleOpenFolder}
-              />
-            </div>
-          ))}
-        </div>
+        <ResourceLoader
+          isLoading={isLoading || documents.length === 0}
+          message="Loading documents..."
+          variant="spinner"
+          size="large"
+        >
+          <div className="row">
+            {documents.map((document) => (
+              <div key={document.id} className="col-md-3 col-sm-12 mb-3">
+                <FolderComponent
+                  loader={componentLoading}
+                  document={document}
+                  openFolder={handleOpenFolder}
+                />
+              </div>
+            ))}
+          </div>
+        </ResourceLoader>
       </div>
       {/* Filters Section */}
       <div className="col-md-3 mb-3">

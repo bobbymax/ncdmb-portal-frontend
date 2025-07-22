@@ -24,7 +24,10 @@ const ParagraphBlock: React.FC<BlockContentComponentPorps> = ({
 
   useEffect(() => {
     if (localContentState?.paragraph) {
-      setState(localContentState.paragraph);
+      setState((prev) => ({
+        ...prev,
+        body: localContentState.paragraph?.body ?? "",
+      }));
     }
   }, [localContentState?.paragraph]);
 

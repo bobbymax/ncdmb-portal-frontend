@@ -17,6 +17,7 @@ import {
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
 import SignatureBlock from "./SignatureBlock";
+import { BaseResponse } from "@/app/Repositories/BaseRepository";
 
 export type BlockDataTypeMap = {
   paragraph: ParagraphContentAreaProps;
@@ -32,6 +33,7 @@ export type BlockDataTypeMap = {
 };
 
 export interface BlockContentComponentPorps {
+  resource?: unknown;
   localContentState: OptionsContentAreaProps;
   updateLocal: <T extends BlockDataType>(
     data: BlockDataTypeMap[T],

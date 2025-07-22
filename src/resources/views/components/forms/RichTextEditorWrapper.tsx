@@ -1,5 +1,5 @@
 // components/forms/RichTextEditorWrapper.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { EditorContent, useEditor, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -36,6 +36,13 @@ const RichTextEditorWrapper: React.FC<Props> = ({ value, onChange }) => {
       onChange(editor.getHTML());
     },
   });
+
+  // ✅ Sync external value to editor content
+  useEffect(() => {
+    if (editor && editor.getHTML() !== value) {
+      editor.commands.setContent(value, false); // false = don't emit update event
+    }
+  }, [value, editor]);
 
   if (!editor) return <p>Loading editor...</p>;
 

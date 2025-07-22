@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { ActionType, useForm } from "app/Hooks/useForm";
 import { useResourceActions } from "app/Hooks/useResourceActions";
 import { BaseRepository, JsonResponse } from "app/Repositories/BaseRepository";
@@ -55,8 +53,6 @@ const ManageResourcePage = ({
       const { success, errors } = validate(state);
       setIsDisabled(success);
       handleValidationErrors(errors);
-
-      // console.log(errors);
     };
 
     isValidated();

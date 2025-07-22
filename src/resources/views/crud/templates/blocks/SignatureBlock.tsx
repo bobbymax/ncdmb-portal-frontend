@@ -6,7 +6,6 @@ import {
   SignaturePadGroupProps,
 } from "app/Hooks/useBuilder";
 import { useAuth } from "app/Context/AuthContext";
-import TextInput from "resources/views/components/forms/TextInput";
 import Select from "resources/views/components/forms/Select";
 import Button from "resources/views/components/forms/Button";
 import { useModal } from "app/Context/ModalContext";
@@ -112,6 +111,8 @@ const SignatureBlock: React.FC<BlockContentComponentPorps> = ({
       originator_department_id: staff.department_id,
     }));
   }, [staff, localContentState?.approval]);
+
+  // console.log(localContentState);
 
   return (
     <div className="row">

@@ -13,7 +13,14 @@ import { DocketDataType } from "app/Hooks/useWorkflowEngine";
 
 const FileUpdateTab: React.FC<
   DocketDataType<DocumentResponseData, DocumentRepository>
-> = ({ document, currentDraft, Repo, hasAccessToOperate }) => {
+> = ({
+  document,
+  currentDraft,
+  Repo,
+  hasAccessToOperate,
+  workflow,
+  currentTracker,
+}) => {
   const [responses, setResponses] = useState<{ [key: number]: string }>({});
   const { isLoading, setIsLoading } = useStateContext();
   const [disableThread, setDisableThread] = useState<boolean>(false);

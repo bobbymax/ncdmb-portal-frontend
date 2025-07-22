@@ -1,17 +1,9 @@
 import moment from "moment";
 import logo from "../assets/images/logo.png";
 import { BlockDataType, BlockResponseData } from "app/Repositories/Block/data";
-
-type HandlerProps = {
-  user_id: number;
-  staff_name: string;
-  staff_id: string;
-  department_id: number;
-  group_id: number;
-  carder_id: number;
-  designation: string;
-  flag: "to" | "from" | "through";
-};
+import { TemplateProcessProps } from "app/Repositories/Template/data";
+import _ from "lodash";
+import { toSmartSingular } from "app/Support/Helpers";
 
 export const InternalMemoHeader = ({
   to,
@@ -21,9 +13,9 @@ export const InternalMemoHeader = ({
   date,
   title,
 }: {
-  to: HandlerProps | null;
-  from: HandlerProps | null;
-  through?: HandlerProps | null;
+  to: TemplateProcessProps | null;
+  from: TemplateProcessProps | null;
+  through?: TemplateProcessProps | null;
   ref: string | null;
   date: string | null;
   title: string | null;
@@ -38,10 +30,30 @@ export const InternalMemoHeader = ({
         <table className="custom__table__style">
           <tbody>
             <tr>
-              <td colSpan={2}>TO: {to?.designation}</td>
+              <td colSpan={2}>
+                TO:{" "}
+                {`${toSmartSingular(to?.group?.label ?? "")}, ${
+                  to?.department?.label ?? ""
+                }`}
+              </td>
             </tr>
+            {through && !_.isEmpty(through) && (
+              <tr>
+                <td colSpan={2}>
+                  THROUGH:{" "}
+                  {`${toSmartSingular(through?.group?.label ?? "")}, ${
+                    through?.department?.label ?? ""
+                  }`}
+                </td>
+              </tr>
+            )}
             <tr>
-              <td colSpan={2}>FROM: {from?.designation}</td>
+              <td colSpan={2}>
+                FROM:{" "}
+                {`${toSmartSingular(from?.group?.label ?? "")}, ${
+                  from?.department?.label ?? ""
+                }`}
+              </td>
             </tr>
             <tr>
               <td>REF: {ref}</td>

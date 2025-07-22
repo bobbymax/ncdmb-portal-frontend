@@ -1,3 +1,4 @@
+import { ConfigState } from "resources/views/crud/ContentBuilder";
 import { ConfigProp } from "../BaseRepository";
 import { TemplateResponseData } from "./data";
 
@@ -21,8 +22,7 @@ export const templateConfig: ConfigProp<TemplateResponseData> = {
     header: "memo",
     config: {
       subject: "",
-      recipients: [],
-      processes: [],
+      process: {} as ConfigState,
     },
     body: [],
     footer: "",

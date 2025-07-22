@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   ProcessTypeDependencies,
   TabConfigContentProps,
@@ -10,6 +10,7 @@ import MultiSelect, {
 } from "resources/views/components/forms/MultiSelect";
 import { ActionMeta } from "react-select";
 import { formatOptions } from "app/Support/Helpers";
+import { GroupResponseData } from "app/Repositories/Group/data";
 
 const FromStaffTabComponent: FC<
   TabConfigContentProps<"from", TemplateProcessProps>
@@ -23,6 +24,7 @@ const FromStaffTabComponent: FC<
   dependencies = {},
 }) => {
   const fromState: TemplateProcessProps = {
+    stage: null,
     process_type: value,
     group: null,
     department: null,
@@ -34,23 +36,64 @@ const FromStaffTabComponent: FC<
   const { state, setState, handleChange, handleMultiSelectChange } =
     useFormOnChangeEvents<TemplateProcessProps>(fromState);
 
+  const [accessibleGroups, setAccessibleGroups] = useState<DataOptionsProps[]>(
+    []
+  );
+  const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
+
   const {
-    users = [],
+    stages = [],
     groups = [],
-    departments = [],
+    users = [],
   } = useMemo(() => dependencies as ProcessTypeDependencies, [dependencies]);
 
   const handleStateChange = (
-    updatedValue: DataOptionsProps | DataOptionsProps[],
+    updatedValue: DataOptionsProps | DataOptionsProps[] | null,
     key: keyof TemplateProcessProps
   ) => {
-    console.log("Updated Value:", updatedValue);
-
     setState((prev) => ({
       ...prev,
       [key]: updatedValue,
     }));
   };
+
+  useEffect(() => {
+    handleStateUpdate(state, value);
+  }, [state]);
+
+  useEffect(() => {
+    if (state.group && groups.length > 0) {
+      const group: GroupResponseData | undefined =
+        groups.find((grp) => grp.id === state.group?.value) ?? undefined;
+
+      if (!group) return;
+
+      const matchingIds = new Set(
+        users
+          .filter((user) => user.department_id === state.department?.value)
+          .map((user) => user.id)
+      );
+
+      const { users: staff = [] } = group;
+      const selectedUsers = staff.filter((option) =>
+        matchingIds.has(option.value)
+      );
+
+      const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
+      setSelectedUsers(matchUsers);
+    }
+  }, [state.group, groups, state.department, users]);
+
+  useEffect(() => {
+    if (state.stage && stages.length > 0) {
+      const stage = stages.find((stg) => stg.id === state.stage?.value) ?? null;
+
+      if (!stage) return;
+
+      setAccessibleGroups(formatOptions(stage.groups, "id", "name") ?? []);
+      handleStateChange(stage?.department ?? null, "department");
+    }
+  }, [state.stage, stages]);
 
   const renderMultiSelect = (
     label: string,
@@ -79,27 +122,27 @@ const FromStaffTabComponent: FC<
   return (
     <div className="row">
       {renderMultiSelect(
-        "Staff",
-        formatOptions(users, "id", "name", true),
-        state.staff ?? null,
-        handleMultiSelectChange("staff", handleStateChange),
-        "Staff",
-        false,
-        12
+        "Desk",
+        formatOptions(stages, "id", "name"),
+        state.stage,
+        handleMultiSelectChange("stage", handleStateChange),
+        "Worflow Stage"
       )}
       {renderMultiSelect(
         "Group",
-        formatOptions(groups, "id", "name"),
+        accessibleGroups,
         state.group,
         handleMultiSelectChange("group", handleStateChange),
         "Group"
       )}
       {renderMultiSelect(
-        "Department",
-        formatOptions(departments, "id", "abv"),
-        state.department,
-        handleMultiSelectChange("department", handleStateChange),
-        "Department"
+        "Staff",
+        selectedUsers,
+        state.staff ?? null,
+        handleMultiSelectChange("staff", handleStateChange),
+        "Staff",
+        false,
+        12
       )}
     </div>
   );

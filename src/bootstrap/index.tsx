@@ -14,15 +14,13 @@ import {
 } from "app/Repositories/BaseRepository";
 import ResourceRawPage from "resources/views/pages/ResourceRawPage";
 import ManageResourcePage from "resources/views/pages/ManageResourcePage";
-import { AuthProvider } from "app/Context/AuthContext";
 import { ActionMeta } from "react-select";
 import CardPage from "resources/views/pages/CardPage";
 import ViewResourcePage from "resources/views/pages/ViewResourcePage";
-import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import FileDocket from "resources/views/pages/FileDocket";
-import { FileTemplateResponseData } from "app/Repositories/FileTemplate/data";
 import Builder from "resources/views/pages/Builder";
 import PageLoader from "resources/views/components/loaders/PageLoader";
+
 export interface ActionBttnProps {
   variant: string;
   name: string;
@@ -86,8 +84,6 @@ export interface BuilderComponentProps<
   D extends BaseRepository
 > {
   repo: D;
-  // components: TemplateItem[];
-  // orientation: "portrait" | "landscape";
   resource?: T | null;
   state: T;
   setState?: Dispatch<SetStateAction<T>>;

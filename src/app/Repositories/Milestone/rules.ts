@@ -1,0 +1,1 @@
+export const milestoneRules: { [key: string]: string } = {};

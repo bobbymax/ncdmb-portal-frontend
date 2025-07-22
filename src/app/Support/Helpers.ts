@@ -10,6 +10,7 @@ import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import { BaseResponse, TabOptionProps } from "app/Repositories/BaseRepository";
 import { TransactionResponseData } from "app/Repositories/Transaction/data";
 import axios from "axios";
+import pluralize from "pluralize";
 
 const GOOGLE_API_KEY = "AIzaSyAgfl2V6_4HkCuqMnDDLl_mUhmIaEY4yXk";
 
@@ -93,6 +94,13 @@ export const accessibleTabs: TabOptionProps[] = [
   //   sidebar: "PrintSidebar",
   // },
 ];
+
+export const toSmartSingular = (title: string): string => {
+  const words = title.trim().split(" ");
+  const last = words.pop() ?? "";
+  const singular = pluralize.singular(last);
+  return [...words, singular].join(" ");
+};
 
 export const extractFourDigitsAfterFirstChar = (input: string) => {
   const match = input.match(/^[A-Za-z](\d{4})/);

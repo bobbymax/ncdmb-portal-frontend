@@ -19,6 +19,7 @@ export interface WorkflowStageResponseData extends BaseResponse {
   category: "staff" | "third-party" | "system";
   stage_category: StageCategoryResponseData | null;
   groups: DataOptionsProps[];
+  department?: DataOptionsProps;
   recipients: DataOptionsProps[];
   actions: DataOptionsProps[];
   document_actions: DocumentActionResponseData[];

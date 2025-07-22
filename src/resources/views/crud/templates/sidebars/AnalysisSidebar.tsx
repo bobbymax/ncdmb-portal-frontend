@@ -1,3 +1,4 @@
+import { WorkflowResponseData } from "@/app/Repositories/Workflow/data";
 import { useAuth } from "app/Context/AuthContext";
 import { useFileDeskRoutePipelines } from "app/Hooks/useFileDeskRoutePipelines";
 import { DocketDataType } from "app/Hooks/useWorkflowEngine";
@@ -17,6 +18,7 @@ export interface SidebarProps<T extends BaseResponse> {
   resource: T;
   widget: WidgetResponseData;
   tracker: ProgressTrackerResponseData;
+  workflow: WorkflowResponseData;
   uploadCount: number;
   docType: DocumentTypeResponseData;
   document: DocumentResponseData;

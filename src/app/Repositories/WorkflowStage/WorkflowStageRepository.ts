@@ -35,6 +35,7 @@ export default class WorkflowStageRepository extends BaseRepository {
       can_appeal: data.can_appeal ?? 0,
       append_signature: data.append_signature ?? 0,
       document_actions: [],
+      department: data.department ?? undefined,
       groups: formatOptions(data.groups, "id", "name") ?? [],
       recipients: formatOptions(data.recipients, "id", "name") ?? [],
       actions: formatOptions(data.actions, "id", "name") ?? [],

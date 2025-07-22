@@ -3,6 +3,7 @@ import { CarderResponseData } from "app/Repositories/Carder/data";
 import { DepartmentResponseData } from "app/Repositories/Department/data";
 import { GroupResponseData } from "app/Repositories/Group/data";
 import { UserResponseData } from "app/Repositories/User/data";
+import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import React, { useCallback, useEffect, useState } from "react";
 
 type HasId = { id: string | number };
@@ -11,6 +12,7 @@ export interface AccessibleResourceMap {
   departments: DepartmentResponseData & HasId;
   groups: GroupResponseData & HasId;
   carders: CarderResponseData & HasId;
+  workflowStages: WorkflowStageResponseData & HasId;
 }
 
 const useDirectories = <
