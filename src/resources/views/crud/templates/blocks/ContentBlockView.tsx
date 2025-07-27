@@ -1,5 +1,7 @@
 import {
   EventContentAreaProps,
+  InvoiceContentAreaProps,
+  MilestoneContentAreaProps,
   OptionsContentAreaProps,
   ParagraphContentAreaProps,
   ResourceComputations,
@@ -8,28 +10,49 @@ import {
   SignatureContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DynamicTableBuilder, {
   ResourcesList,
 } from "../builders/DynamicTableBuilder";
 import moment from "moment";
 import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas";
+import { formatCurrency } from "app/Support/Helpers";
 
 export const ParagraphContent: React.FC<
-  ParagraphContentAreaProps & { title?: string; tagline?: string }
-> = ({ title, tagline, body }) => {
-  return (
+  ParagraphContentAreaProps & {
+    title?: string;
+    tagline?: string;
+    isPreview?: boolean;
+  }
+> = ({ title, tagline, body, isPreview = true }) => {
+  return isPreview ? (
     <div className="paragraph__container mb-4">
       <h4 className="mb-2">{title}</h4>
       <small>{tagline}</small>
       <p dangerouslySetInnerHTML={{ __html: body }} />
     </div>
+  ) : (
+    <div className="paragraph__container mb-4"></div>
   );
 };
 
 export const TableContent: React.FC<
-  TableContentAreaProps & { title?: string; tagline?: string }
-> = ({ title, tagline, filter, compute, source, type, headers, rows }) => {
+  TableContentAreaProps & {
+    title?: string;
+    tagline?: string;
+    isPreview?: boolean;
+  }
+> = ({
+  title,
+  tagline,
+  filter,
+  compute,
+  source,
+  type,
+  headers,
+  rows,
+  isPreview = true,
+}) => {
   return (
     <div className="dynamic__table mb-4">
       <DynamicTableBuilder headers={headers} rows={rows} />
@@ -37,13 +60,43 @@ export const TableContent: React.FC<
   );
 };
 
-export const SignatureContent: React.FC<SignatureContentAreaProps> = ({
+export const MilestoneContent: React.FC<
+  MilestoneContentAreaProps & { isPreview?: boolean }
+> = ({ project, milestones, isPreview = true }) => {
+  return (
+    <div className="milestone__container mb-4">
+      <table className="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Duration</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {milestones.map((milestone, idx) => (
+            <tr key={idx}>
+              <td>{milestone.description}</td>
+              <td>{`${milestone.duration} ${milestone.frequency}`}</td>
+              <td>{milestone.percentage_completion}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export const SignatureContent: React.FC<
+  SignatureContentAreaProps & { isPreview?: boolean }
+> = ({
   approvals,
   style,
   max_signatures,
   originator_id,
   originator_name,
   originator_department_id,
+  isPreview = true,
 }) => {
   return (
     <div
@@ -70,7 +123,9 @@ export const SignatureContent: React.FC<SignatureContentAreaProps> = ({
   );
 };
 
-export const EventContent: React.FC<EventContentAreaProps> = ({
+export const EventContent: React.FC<
+  EventContentAreaProps & { isPreview?: boolean }
+> = ({
   name,
   venue,
   start_date,
@@ -84,6 +139,7 @@ export const EventContent: React.FC<EventContentAreaProps> = ({
   estacode,
   source,
   vendor_name,
+  isPreview = true,
 }) => {
   return (
     <div className="event__card flex column gap-md mb-4 mt-5">
@@ -102,6 +158,72 @@ export const EventContent: React.FC<EventContentAreaProps> = ({
         <i className="ri-map-pin-line" />
         <p>{address}</p>
       </div>
+    </div>
+  );
+};
+
+export const InvoiceContent: React.FC<
+  InvoiceContentAreaProps & { isPreview?: boolean }
+> = ({
+  invoice,
+  isPreview = true,
+  markup,
+  currency,
+  vat,
+  service_charge,
+  total,
+  sub_total,
+}) => {
+  return (
+    <div className="milestone__container mb-4">
+      <table className="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>QTY</th>
+            <th>Unit Price</th>
+            <th>Total Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoice?.items.map((item, idx) => (
+            <tr key={idx}>
+              <td>{item.description}</td>
+              <td>{item.qty}</td>
+              <td>{formatCurrency(item.unit_price)}</td>
+              <td>{formatCurrency(item.total_amount)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td colSpan={3} className="table__data__value">
+              Sub Total:
+            </td>
+            <td className="table__data__value">{formatCurrency(sub_total)}</td>
+          </tr>
+          {markup > 0 && (
+            <tr>
+              <td colSpan={3} className="table__data__value">
+                Service Charge ({markup}%):
+              </td>
+              <td className="table__data__value">
+                {formatCurrency(service_charge)}
+              </td>
+            </tr>
+          )}
+          <tr>
+            <td colSpan={3} className="table__data__value">
+              VAT (7.5%):
+            </td>
+            <td className="table__data__value">{formatCurrency(vat)}</td>
+          </tr>
+          <tr>
+            <td colSpan={3} className="table__data__value">
+              Total:
+            </td>
+            <td className="table__data__value">{formatCurrency(total)}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -170,6 +292,27 @@ const ContentBlockView = ({
             originator_department_id={
               content.approval?.originator_department_id || 0
             }
+          />
+        );
+      case "milestone":
+        return (
+          <MilestoneContent
+            project={content.milestone?.project}
+            milestones={content.milestone?.milestones || []}
+          />
+        );
+      case "invoice":
+        return (
+          <InvoiceContent
+            invoice={content.invoice?.invoice || null}
+            project={content.invoice?.project || null}
+            items={content.invoice?.items || []}
+            sub_total={content.invoice?.sub_total || 0}
+            total={content.invoice?.total || 0}
+            vat={content.invoice?.vat || 0}
+            service_charge={content.invoice?.service_charge || 0}
+            markup={content.invoice?.markup || 0}
+            currency={content.invoice?.currency || "NGN"}
           />
         );
       default:

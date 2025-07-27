@@ -9,6 +9,8 @@ export interface FundResponseData extends BaseResponse {
   is_logistics: number;
   is_exhausted: number;
   type: "capital" | "recurrent" | "personnel";
+  total_commited_amount?: number;
+  total_actual_amount?: number;
   budget_code?: string;
   sub_budget_head?: string;
   owner?: string;

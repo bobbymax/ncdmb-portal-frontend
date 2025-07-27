@@ -11,21 +11,22 @@ import RedeploymentBlock from "./RedeploymentBlock";
 import ListBlock from "./ListBlock";
 import {
   EventContentAreaProps,
+  InvoiceContentAreaProps,
+  MilestoneContentAreaProps,
   OptionsContentAreaProps,
   ParagraphContentAreaProps,
   SignatureContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
 import SignatureBlock from "./SignatureBlock";
-import { BaseResponse } from "@/app/Repositories/BaseRepository";
 
 export type BlockDataTypeMap = {
   paragraph: ParagraphContentAreaProps;
   purchase: TableContentAreaProps;
   event: EventContentAreaProps;
-  milestone: unknown;
+  milestone: MilestoneContentAreaProps;
   estacode: TableContentAreaProps;
-  invoice: TableContentAreaProps;
+  invoice: InvoiceContentAreaProps;
   training: TableContentAreaProps;
   approval: SignatureContentAreaProps; // Assuming approval uses SignatureContentAreaProps
   posting: unknown;

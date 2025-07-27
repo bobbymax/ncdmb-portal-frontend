@@ -44,7 +44,7 @@ export interface BlockModalProps<P extends BlockDataType> {
   blockState: BlockDataTypeMap[P];
   data?: unknown;
   isUpdating: boolean;
-  addBlockComponent: (props: unknown) => void;
+  addBlockComponent: (props: unknown, mode?: "store" | "update") => void;
   dependencies?: {
     partials: any[];
     extras: unknown;

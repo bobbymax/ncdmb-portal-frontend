@@ -96,8 +96,6 @@ const SignatureBlockPad: React.FC<BlockModalProps<"approval">> = ({
     </div>
   );
 
-  console.log(state);
-
   return (
     <div className="approval__area">
       <div className="row">

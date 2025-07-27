@@ -1,4 +1,6 @@
 import { BaseResponse } from "../BaseRepository";
+import { InvoiceResponseData } from "../Invoice/data";
+import { MilestoneResponseData } from "../Milestone/data";
 
 export type ResourceFoundation = "staff" | "third-party";
 
@@ -24,6 +26,7 @@ export interface ProjectResponseData extends BaseResponse {
   proposed_end_date: string;
   type: ResourceFoundation;
   service_charge_percentage: number;
+  invoice?: InvoiceResponseData | null;
   status:
     | "pending"
     | "registered"
@@ -31,6 +34,7 @@ export interface ProjectResponseData extends BaseResponse {
     | "denied"
     | "kiv"
     | "discussed";
+  milestones?: MilestoneResponseData[];
   created_at?: string;
   updated_at?: string;
 }

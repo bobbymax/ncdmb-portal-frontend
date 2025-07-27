@@ -27,6 +27,7 @@ export default class DocumentRepository extends BaseRepository {
       id: data.id ?? 0,
       document_category_id: data.document_category_id ?? 0,
       document_type_id: data.document_type_id ?? 0,
+      document_reference_id: data.document_reference_id ?? 0,
       vendor_id: data.vendor_id ?? 0,
       amount: data.amount ?? 0,
       workflow_id: data.workflow_id ?? 0,

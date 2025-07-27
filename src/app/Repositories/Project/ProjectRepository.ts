@@ -43,8 +43,10 @@ export default class ProjectRepository extends BaseRepository {
       actual_end_date: data.actual_end_date ?? "",
       proposed_start_date: data.proposed_start_date ?? "",
       proposed_end_date: data.proposed_end_date ?? "",
+      invoice: data.invoice ?? null,
       type: data.type ?? "third-party",
       status: data.status ?? "pending",
+      milestones: data.milestones ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

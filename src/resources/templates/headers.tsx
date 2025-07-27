@@ -4,6 +4,7 @@ import { BlockDataType, BlockResponseData } from "app/Repositories/Block/data";
 import { TemplateProcessProps } from "app/Repositories/Template/data";
 import _ from "lodash";
 import { toSmartSingular } from "app/Support/Helpers";
+import { ProcessType } from "../views/crud/ContentBuilder";
 
 export const InternalMemoHeader = ({
   to,
@@ -12,6 +13,7 @@ export const InternalMemoHeader = ({
   ref,
   date,
   title,
+  modify,
 }: {
   to: TemplateProcessProps | null;
   from: TemplateProcessProps | null;
@@ -19,6 +21,7 @@ export const InternalMemoHeader = ({
   ref: string | null;
   date: string | null;
   title: string | null;
+  modify?: (data: TemplateProcessProps, key: ProcessType) => void;
 }) => {
   return (
     <div className="printable__page__header mb-4">

@@ -56,6 +56,7 @@ export interface DocumentResponseData extends BaseResponse {
   user_id?: number;
   department_id?: number;
   document_category_id: number;
+  document_reference_id: number;
   document_type_id: number;
   workflow_id: number;
   vendor_id?: number;

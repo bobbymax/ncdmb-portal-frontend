@@ -20,6 +20,10 @@ import ViewResourcePage from "resources/views/pages/ViewResourcePage";
 import FileDocket from "resources/views/pages/FileDocket";
 import Builder from "resources/views/pages/Builder";
 import PageLoader from "resources/views/components/loaders/PageLoader";
+import DocumentGenerator from "resources/views/pages/DocumentGenerator";
+import { TemplateResponseData } from "@/app/Repositories/Template/data";
+import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
+import { DocumentResponseData } from "@/app/Repositories/Document/data";
 
 export interface ActionBttnProps {
   variant: string;
@@ -89,6 +93,20 @@ export interface BuilderComponentProps<
   setState?: Dispatch<SetStateAction<T>>;
 }
 
+export interface DocumentGeneratorComponentProps<
+  D extends BaseRepository,
+  T extends BaseResponse
+> {
+  repo: D;
+  collection: T[];
+  state: DocumentResponseData;
+  setState: Dispatch<SetStateAction<DocumentResponseData>>;
+  plug: (data: T) => void;
+  service: string;
+  category: DocumentCategoryResponseData | null;
+  template: TemplateResponseData | null;
+}
+
 export interface PageProps<T extends BaseRepository> {
   Repository: T;
   view: ViewsProps;
@@ -98,6 +116,9 @@ export interface PageProps<T extends BaseRepository> {
   FileDocketComponent: React.ComponentType<FileDocketComponentProps>;
   BuilderComponent: React.ComponentType<
     BuilderComponentProps<JsonResponse, BaseRepository>
+  >;
+  DocumentGeneratorComponent: React.ComponentType<
+    DocumentGeneratorComponentProps<BaseRepository, BaseResponse>
   >;
 }
 
@@ -118,6 +139,7 @@ const renderRoute = <T extends BaseRepository>(
     ViewPageComponent: Component,
     FileDocketComponent: Component,
     BuilderComponent: Component,
+    DocumentGeneratorComponent: Component,
   };
 
   return (
@@ -136,6 +158,8 @@ const renderRoute = <T extends BaseRepository>(
             <ViewResourcePage {...componentProps} />
           ) : view.type === "builder" ? (
             <Builder {...componentProps} />
+          ) : view.type === "generator" ? (
+            <DocumentGenerator {...componentProps} />
           ) : view.type === "docket" ? (
             <FileDocket {...componentProps} />
           ) : (

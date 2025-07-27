@@ -3,28 +3,125 @@ import {
   OptionsContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
-import React from "react";
+import React, { useState } from "react";
 import DynamicTableBuilder from "./DynamicTableBuilder";
 import ContentBlockView from "../blocks/ContentBlockView";
+import { BaseResponse } from "@/app/Repositories/BaseRepository";
+import ContentEditor from "../blocks/ContentEditor";
+import { BlockDataTypeMap } from "../blocks";
+import { BlockDataType } from "@/app/Repositories/Block/data";
 
-type TemplateBuilderProps = {
+interface TemplateBuilderProps<T extends BaseResponse> {
   contents: ContentAreaProps[];
-};
+  resource?: T | null;
+  editor?: boolean;
+  isPreview?: boolean;
+  modify: <T extends BlockDataType>(
+    data: BlockDataTypeMap[T],
+    identifier: keyof OptionsContentAreaProps,
+    blockId: string | number
+  ) => void;
+  onReorder?: (reorderedContents: ContentAreaProps[]) => void;
+  onRemove?: (blockId: string) => void;
+}
 
-const TemplateBuilderView: React.FC<TemplateBuilderProps> = ({ contents }) => {
-  // block content [table,event,paragraph,chart,invoice,list]
+const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
+  resource,
+  contents,
+  editor = false,
+  isPreview = false,
+  modify,
+  onReorder,
+  onRemove,
+}) => {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/html", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const reorderedContents = [...contents];
+    const [draggedItem] = reorderedContents.splice(draggedIndex, 1);
+    reorderedContents.splice(dropIndex, 0, draggedItem);
+
+    // Update the order property for each content
+    const updatedContents = reorderedContents.map((content, index) => ({
+      ...content,
+      order: index + 1,
+    }));
+
+    if (onReorder) {
+      onReorder(updatedContents);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
     <div className="template__page__preview">
-      {contents.map((block) => {
-        // const sharedData = sharedContentMap[block.id] ?? {};
+      {contents.map((block, index) => {
         const content = block.content as OptionsContentAreaProps;
+        const isDragging = draggedIndex === index;
+        const isDragOver = dragOverIndex === index;
 
-        return (
-          <ContentBlockView
+        return editor && !isPreview ? (
+          <div
             key={block.id}
-            content={content}
-            // sharedData={sharedData}
-          />
+            draggable
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`draggable__content ${isDragging ? "dragging" : ""} ${
+              isDragOver ? "drag-over" : ""
+            }`}
+          >
+            <ContentEditor
+              resource={resource ?? null}
+              block={block}
+              content={content}
+              modify={modify}
+              onRemove={onRemove}
+            />
+          </div>
+        ) : (
+          <div
+            key={block.id}
+            className={`draggable__content ${isDragging ? "dragging" : ""} ${
+              isDragOver ? "drag-over" : ""
+            }`}
+          >
+            <ContentBlockView content={content} />
+          </div>
         );
       })}
     </div>

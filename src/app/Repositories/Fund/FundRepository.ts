@@ -27,6 +27,8 @@ export default class FundRepository extends BaseRepository {
       sub_budget_head_id: data.sub_budget_head_id ?? 0,
       department_id: data.department_id ?? 0,
       budget_code_id: data.budget_code_id ?? 0,
+      total_commited_amount: data.total_commited_amount ?? 0,
+      total_actual_amount: data.total_actual_amount ?? 0,
       total_approved_amount: data.total_approved_amount ?? 0,
       budget_year: data.budget_year ?? 0,
       is_exhausted: data.is_exhausted ?? 0,

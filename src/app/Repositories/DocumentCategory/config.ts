@@ -12,8 +12,10 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "selectedRequirements",
       "type",
       "selectedBlocks",
+      "service",
     ],
     associatedResources: [
+      { url: "apiServices", name: "services" },
       { name: "documentTypes", url: "documentTypes" },
       { name: "workflows", url: "workflows" },
       { name: "documentRequirements", url: "documentRequirements" },
@@ -26,6 +28,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       name: "",
       label: "",
       icon: "",
+      service: "",
       description: "",
       type: "staff",
       requirements: [],

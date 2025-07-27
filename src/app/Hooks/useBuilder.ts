@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { ResourcesList } from "resources/views/crud/templates/builders/DynamicTableBuilder";
 import isEqual from "fast-deep-equal";
+import { MilestoneResponseData } from "../Repositories/Milestone/data";
+import { ProjectResponseData } from "../Repositories/Project/data";
+import {
+  InvoiceItemResponseData,
+  InvoiceResponseData,
+} from "../Repositories/Invoice/data";
 
 export type InputFieldTypes =
   | "text"
@@ -112,6 +118,23 @@ export type SignatureContentAreaProps = {
   originator_department_id: number;
 };
 
+export type MilestoneContentAreaProps = {
+  milestones: MilestoneResponseData[];
+  project?: ProjectResponseData | null;
+};
+
+export type InvoiceContentAreaProps = {
+  invoice: InvoiceResponseData | null;
+  project?: ProjectResponseData | null;
+  items: InvoiceItemResponseData[];
+  sub_total: number;
+  total: number;
+  vat: number;
+  service_charge: number;
+  markup: number;
+  currency: "NGN" | "USD" | "EUR" | "GBP" | "NA";
+};
+
 export type OptionsContentAreaProps = {
   title: string;
   tagline: string;
@@ -119,6 +142,8 @@ export type OptionsContentAreaProps = {
   event?: EventContentAreaProps | undefined;
   paragraph?: ParagraphContentAreaProps | undefined;
   approval?: SignatureContentAreaProps | undefined;
+  milestone?: MilestoneContentAreaProps | undefined;
+  invoice?: InvoiceContentAreaProps | undefined;
 };
 
 export interface ContentAreaProps {

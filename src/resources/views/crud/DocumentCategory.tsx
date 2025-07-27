@@ -11,8 +11,10 @@ import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
 import { ActionMeta } from "react-select";
 import { BlockResponseData } from "app/Repositories/Block/data";
+import { toTitleCase } from "bootstrap/repositories";
 
 interface DependencyProps {
+  services: string[];
   documentTypes: DocumentTypeResponseData[];
   workflows: WorkflowResponseData[];
   documentRequirements: DocumentRequirementResponseData[];
@@ -36,23 +38,35 @@ const DocumentCategory: React.FC<
   const [documentRequirements, setDocumentRequirements] = useState<
     DocumentRequirementResponseData[]
   >([]);
+  const [services, setServices] = useState<DataOptionsProps[]>([]);
 
   const [selectedOptions, setSelectedOptions] = useState<{
     selectedBlocks: DataOptionsProps[];
     selectedRequirements: DataOptionsProps[];
+    service: DataOptionsProps | null;
   }>({
     selectedBlocks: [],
     selectedRequirements: [],
+    service: null,
   });
 
   const handleSelectionChange = useCallback(
     (key: keyof typeof selectedOptions) =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
-        const updatedValue = newValue as DataOptionsProps[];
+        const updatedValue =
+          key === "service"
+            ? (newValue as DataOptionsProps)
+            : (newValue as DataOptionsProps[]);
 
         // Update modal state dynamically
         if (setState) {
-          setState((prev) => ({ ...prev, [key]: updatedValue }));
+          setState((prev) => ({
+            ...prev,
+            [key]:
+              key === "service"
+                ? (updatedValue as DataOptionsProps).value
+                : updatedValue,
+          }));
         }
 
         setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
@@ -67,7 +81,15 @@ const DocumentCategory: React.FC<
         workflows = [],
         documentRequirements = [],
         blocks = [],
+        services = [],
       } = dependencies as DependencyProps;
+
+      const cleaned: DataOptionsProps[] = services.map((service) => ({
+        value: service.replace(/_/g, ""),
+        label: toTitleCase(service),
+      }));
+
+      setServices(cleaned);
       setDocTypes(documentTypes);
       setWorkflows(workflows);
       setDocumentRequirements(documentRequirements);
@@ -85,6 +107,8 @@ const DocumentCategory: React.FC<
         ...prev,
         selectedBlocks: state.selectedBlocks,
         selectedRequirements: state.selectedRequirements,
+        service:
+          services.find((service) => service.value === state.service) ?? null,
       }));
     }
   }, [mode, state.selectedRequirements, state.selectedBlocks]);
@@ -132,7 +156,7 @@ const DocumentCategory: React.FC<
         />
       </div>
 
-      <div className="col-md-3 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           label="Workflow"
           name="workflow_id"
@@ -147,7 +171,7 @@ const DocumentCategory: React.FC<
           size="sm"
         />
       </div>
-      <div className="col-md-3 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           label="Document Type"
           name="document_type_id"
@@ -160,6 +184,17 @@ const DocumentCategory: React.FC<
           defaultValue={0}
           defaultCheckDisabled
           size="sm"
+        />
+      </div>
+      <div className="col-md-4 mb-3">
+        <MultiSelect
+          label="Service"
+          options={services}
+          value={selectedOptions.service}
+          onChange={handleSelectionChange("service")}
+          placeholder="Service"
+          isSearchable
+          isDisabled={loading}
         />
       </div>
 
@@ -175,7 +210,7 @@ const DocumentCategory: React.FC<
           isDisabled={loading}
         />
       </div>
-      <div className="col-md-12 mb-3">
+      <div className="col-md-6 mb-3">
         <MultiSelect
           label="Template Blocks"
           options={formatOptions(blocks, "id", "title")}

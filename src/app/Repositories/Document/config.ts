@@ -12,6 +12,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     "is_archived",
     "workflow_id",
     "progress_tracker_id",
+    "document_reference_id",
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
@@ -22,6 +23,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     id: 0,
     document_category_id: 0,
     document_type_id: 0,
+    document_reference_id: 0,
     workflow_id: 0,
     vendor_id: 0,
     documentable_id: 0,
