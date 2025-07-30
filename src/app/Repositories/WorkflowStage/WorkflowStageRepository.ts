@@ -28,6 +28,8 @@ export default class WorkflowStageRepository extends BaseRepository {
       id: data.id ?? 0,
       workflow_stage_category_id: data.workflow_stage_category_id ?? 0,
       department_id: data.department_id ?? 0,
+      isDisplayed: data.isDisplayed ?? 1,
+      flow: data.flow ?? "process",
       fallback_stage_id: data.fallback_stage_id ?? 0,
       name: data.name ?? "",
       category: data.category ?? "system",

@@ -4,4 +4,6 @@ export const workflowStageRules: { [key: string]: string } = {
   actions: "required|array",
   recipients: "required|array",
   groups: "required|array",
+  isDisplayed: "required",
+  flow: "required|string",
 };

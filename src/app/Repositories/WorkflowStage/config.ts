@@ -13,6 +13,8 @@ export const workflowStageConfig: ConfigProp<WorkflowStageResponseData> = {
     "append_signature",
     "category",
     "actions",
+    "isDisplayed",
+    "flow",
   ],
   associatedResources: [
     { name: "departments", url: "departments" },
@@ -27,6 +29,8 @@ export const workflowStageConfig: ConfigProp<WorkflowStageResponseData> = {
     id: 0,
     name: "",
     workflow_stage_category_id: 0,
+    isDisplayed: 1,
+    flow: "process",
     fallback_stage_id: 0,
     department_id: 0,
     category: "system",

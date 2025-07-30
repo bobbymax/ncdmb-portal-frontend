@@ -18,6 +18,7 @@ interface ProcessFlowProps {
   configState: ConfigState;
   setConfigState: (state: ConfigState) => void;
   setActiveTab: (tab: ProcessTabsOption) => void;
+  isDisplay?: boolean;
 }
 
 type ProcessTypeDependencies = {
@@ -32,6 +33,7 @@ const DocumentProcessFlow = ({
   setActiveTab,
   configState,
   setConfigState,
+  isDisplay = false,
 }: ProcessFlowProps) => {
   const { collection: stages } = useDirectories(
     repo("workflow_stage"),
@@ -42,7 +44,18 @@ const DocumentProcessFlow = ({
 
   return (
     <div className="config__section">
-      <h4 className="mb-3">Configuration</h4>
+      <h5
+        style={{
+          textTransform: "uppercase",
+          fontWeight: 600,
+          letterSpacing: 1.5,
+          color: "green",
+          fontSize: 12,
+        }}
+        className="mb-3"
+      >
+        Document Process Flow
+      </h5>
 
       <div className="config__tab__section">
         <div className="config__tab__header flex align mt-4">
@@ -100,11 +113,15 @@ const DocumentProcessFlow = ({
                   }}
                   dependencies={
                     {
-                      stages,
+                      stages: stages.filter(
+                        (stage) =>
+                          stage.flow === "process" || stage.flow === "both"
+                      ),
                       groups,
                       users: staff,
                     } as ProcessTypeDependencies
                   }
+                  isDisplay={isDisplay}
                 />
               </div>
             );

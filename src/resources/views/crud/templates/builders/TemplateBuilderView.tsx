@@ -10,6 +10,7 @@ import { BaseResponse } from "@/app/Repositories/BaseRepository";
 import ContentEditor from "../blocks/ContentEditor";
 import { BlockDataTypeMap } from "../blocks";
 import { BlockDataType } from "@/app/Repositories/Block/data";
+import { ConfigState } from "../../ContentBuilder";
 
 interface TemplateBuilderProps<T extends BaseResponse> {
   contents: ContentAreaProps[];
@@ -23,6 +24,7 @@ interface TemplateBuilderProps<T extends BaseResponse> {
   ) => void;
   onReorder?: (reorderedContents: ContentAreaProps[]) => void;
   onRemove?: (blockId: string) => void;
+  configState: ConfigState;
 }
 
 const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
@@ -33,6 +35,7 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
   modify,
   onReorder,
   onRemove,
+  configState,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -95,22 +98,31 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
         return editor && !isPreview ? (
           <div
             key={block.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, index)}
-            onDragEnd={handleDragEnd}
             className={`draggable__content ${isDragging ? "dragging" : ""} ${
               isDragOver ? "drag-over" : ""
             }`}
           >
+            <div className="content__editor__header">
+              <div
+                className="drag__handle"
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+              >
+                <i className="ri-draggable"></i>
+                <span>Drag Me</span>
+              </div>
+            </div>
             <ContentEditor
               resource={resource ?? null}
               block={block}
               content={content}
               modify={modify}
               onRemove={onRemove}
+              configState={configState}
             />
           </div>
         ) : (

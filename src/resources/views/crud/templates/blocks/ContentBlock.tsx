@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { BlockDataTypeMap, blockFormMap } from ".";
 import TextInput from "resources/views/components/forms/TextInput";
 import Textarea from "resources/views/components/forms/Textarea";
@@ -11,6 +11,7 @@ import {
   OptionsContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
+import { ConfigState } from "../../ContentBuilder";
 
 const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
   repo,
@@ -21,6 +22,7 @@ const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
   collapse,
   viewCard = false,
   resource,
+  configState,
 }: {
   repo: D;
   resource?: T | null;
@@ -30,19 +32,23 @@ const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
   remove: (blockId: string) => void;
   collapse: (blockId: string, toggle: "collapse" | "expand") => void;
   viewCard?: boolean;
+  configState: ConfigState;
 }) => {
   const [localContentState, setLocalContentState] =
     useState<OptionsContentAreaProps>({} as OptionsContentAreaProps);
 
-  const updateLocalState = <T extends BlockDataType>(
-    data: BlockDataTypeMap[T],
-    identifier: keyof OptionsContentAreaProps
-  ) => {
-    setLocalContentState((prev) => ({
-      ...prev,
-      [identifier]: data,
-    }));
-  };
+  const updateLocalState = useCallback(
+    <T extends BlockDataType>(
+      data: BlockDataTypeMap[T],
+      identifier: keyof OptionsContentAreaProps
+    ) => {
+      setLocalContentState((prev) => ({
+        ...prev,
+        [identifier]: data,
+      }));
+    },
+    []
+  );
 
   const MemoBlockForm: JSX.Element | null = useMemo(() => {
     if (!localContentState) return null;
@@ -51,11 +57,12 @@ const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
     return Component ? (
       <Component
         resource={resource}
+        configState={configState}
         localContentState={localContentState}
         updateLocal={updateLocalState}
       />
     ) : null;
-  }, [localContentState]);
+  }, [localContentState, resource, block.type, updateLocalState]);
 
   // console.log(localContentState);
 
@@ -67,7 +74,7 @@ const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
         ...content,
       }));
     }
-  }, [block.content]);
+  }, [block.content, block.type]);
 
   return (
     <div

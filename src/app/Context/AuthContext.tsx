@@ -13,6 +13,7 @@ import { GroupResponseData } from "app/Repositories/Group/data";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 import { getLoggedInUser } from "app/init";
 import { CarderResponseData } from "app/Repositories/Carder/data";
+import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 
 export type AuthUserResponseData = {
   id: number;
@@ -20,6 +21,7 @@ export type AuthUserResponseData = {
   staff_no: string;
   grade_level_id: number;
   department_id: number;
+  department?: DataOptionsProps | null;
   location_id: number;
   carder: CarderResponseData;
   avatar: string;

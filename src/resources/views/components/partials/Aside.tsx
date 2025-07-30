@@ -1,9 +1,10 @@
 import { AuthPageResponseData } from "app/Repositories/Page/data";
 import { Link } from "react-router-dom";
 import CompanyLogo from "../pages/CompanyLogo";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import NewBrandLogo from "../pages/NewBrandLogo";
 import AlternateLogo from "../pages/AlternateLogo";
+import TextInput from "../forms/TextInput";
 
 interface SidebarProps {
   navigation: AuthPageResponseData[];
@@ -22,7 +23,14 @@ const Aside = ({
   handleLogout,
   activePath,
 }: SidebarProps) => {
-  // console.log(navigation);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const closeMobileSidebar = () => {
+    const sidebar = document.getElementById("sidebar-wrapper");
+    if (sidebar) {
+      sidebar.classList.remove("sidebar-open");
+    }
+  };
 
   const groupNavigation = (nav: NavigationItem[]): NavigationItem[] => {
     const map = new Map<
@@ -55,6 +63,37 @@ const Aside = ({
     // console.log(roots);
 
     return roots;
+  };
+
+  // Filter navigation based on search term
+  const filterNavigation = (
+    items: NavigationItem[],
+    search: string
+  ): NavigationItem[] => {
+    if (!search.trim()) return items;
+
+    const filtered: NavigationItem[] = [];
+
+    for (const item of items) {
+      const matchesSearch = item.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const hasChildren = item.children && item.children.length > 0;
+
+      if (hasChildren) {
+        const filteredChildren = filterNavigation(item.children || [], search);
+        if (matchesSearch || filteredChildren.length > 0) {
+          filtered.push({
+            ...item,
+            children: filteredChildren,
+          });
+        }
+      } else if (matchesSearch) {
+        filtered.push(item);
+      }
+    }
+
+    return filtered;
   };
 
   const renderNavigation = (
@@ -108,13 +147,31 @@ const Aside = ({
     }
 
     const grouped = groupNavigation(navigation);
+    const filtered = filterNavigation(grouped, searchTerm);
 
-    return renderNavigation(grouped, activePath);
-  }, [navigation, activePath]);
+    if (searchTerm.trim() && filtered.length === 0) {
+      return (
+        <div className="no-search-results">
+          <p>No navigation items found for &quot;{searchTerm}&quot;</p>
+        </div>
+      );
+    }
+
+    return renderNavigation(filtered, activePath);
+  }, [navigation, activePath, searchTerm]);
 
   return (
     <aside id="sidebar-wrapper">
       <div className="sidebar-box">
+        {/* Mobile Close Button */}
+        <button
+          className="sidebar-close-btn"
+          onClick={closeMobileSidebar}
+          aria-label="Close sidebar"
+        >
+          <i className="ri-close-line" />
+        </button>
+
         {/* Logo Section */}
         {/* <CompanyLogo color="primary" text /> */}
         <div className="brand-name">
@@ -123,6 +180,17 @@ const Aside = ({
         </div>
         {/* End Logo Section */}
         <div className="mb-4"></div>
+        <div className="mb-4">
+          {/* Search Bar */}
+          <TextInput
+            type="text"
+            placeholder="Search navigation..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            size="md"
+            width={100}
+          />
+        </div>
         {/* Navigation Section */}
         <div className="new__nav__container">
           <div className="new__nav__item">

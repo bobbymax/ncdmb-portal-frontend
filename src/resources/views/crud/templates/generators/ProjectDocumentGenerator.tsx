@@ -60,7 +60,7 @@ const ProjectDocumentGenerator: React.FC<
             options={formatOptions(projects, "id", "title")}
             value={selectedOptions.project}
             onChange={handleSelectionChange("project")}
-            placeholder="Resource"
+            placeholder="Project"
             isSearchable
             isDisabled={loading}
           />

@@ -5,6 +5,20 @@ import { TemplateProcessProps } from "app/Repositories/Template/data";
 import _ from "lodash";
 import { toSmartSingular } from "app/Support/Helpers";
 import { ProcessType } from "../views/crud/ContentBuilder";
+import { useAuth } from "app/Context/AuthContext";
+import { BaseResponse } from "@/app/Repositories/BaseRepository";
+
+export const ResourceHeader = <T extends BaseResponse>({
+  resource,
+  identifier,
+  icon,
+}: {
+  resource?: T | null;
+  identifier?: string;
+  icon?: string;
+}) => {
+  return <div>ResourceHeader</div>;
+};
 
 export const InternalMemoHeader = ({
   to,
@@ -14,6 +28,7 @@ export const InternalMemoHeader = ({
   date,
   title,
   modify,
+  isDisplay = false,
 }: {
   to: TemplateProcessProps | null;
   from: TemplateProcessProps | null;
@@ -22,6 +37,7 @@ export const InternalMemoHeader = ({
   date: string | null;
   title: string | null;
   modify?: (data: TemplateProcessProps, key: ProcessType) => void;
+  isDisplay?: boolean;
 }) => {
   return (
     <div className="printable__page__header mb-4">
@@ -34,36 +50,71 @@ export const InternalMemoHeader = ({
           <tbody>
             <tr>
               <td colSpan={2}>
-                TO:{" "}
-                {`${toSmartSingular(to?.group?.label ?? "")}, ${
-                  to?.department?.label ?? ""
-                }`}
+                <div className="flex align gap-md">
+                  <span>TO:</span>
+                  <span style={{ textTransform: "uppercase" }}>
+                    {`${to?.stage?.label ?? ""}${
+                      !isDisplay ? `, ${to?.department?.label ?? ""}` : ""
+                    }`}
+                  </span>
+                </div>
               </td>
             </tr>
             {through && !_.isEmpty(through) && (
               <tr>
                 <td colSpan={2}>
-                  THROUGH:{" "}
-                  {`${toSmartSingular(through?.group?.label ?? "")}, ${
-                    through?.department?.label ?? ""
-                  }`}
+                  <div className="flex align gap-md">
+                    <span>THROUGH:</span>
+                    <span style={{ textTransform: "uppercase" }}>
+                      {`${through?.stage?.label ?? ""}${
+                        isDisplay ? `, ${through?.department?.label ?? ""}` : ""
+                      }`}
+                    </span>
+                  </div>
                 </td>
               </tr>
             )}
             <tr>
               <td colSpan={2}>
-                FROM:{" "}
-                {`${toSmartSingular(from?.group?.label ?? "")}, ${
-                  from?.department?.label ?? ""
-                }`}
+                <div className="flex align gap-md">
+                  <span>FROM:</span>
+                  <span style={{ textTransform: "uppercase" }}>
+                    {`${from?.stage?.label ?? ""}${
+                      !isDisplay ? `, ${from?.department?.label ?? ""}` : ""
+                    }`}
+                  </span>
+                </div>
               </td>
             </tr>
             <tr>
-              <td>REF: {ref}</td>
-              <td>DATE: {date ? moment(date).format("LL") : ""}</td>
+              <td style={{ width: "50%" }}>
+                <div className="flex align gap-md">
+                  <span>REF:</span>
+                  <span style={{ textTransform: "uppercase" }}>{ref}</span>
+                </div>
+              </td>
+              <td style={{ width: "50%" }}>
+                <div className="flex align gap-md">
+                  <span>DATE:</span>
+                  <span style={{ textTransform: "uppercase" }}>
+                    {date ? moment(date).format("LL") : ""}
+                  </span>
+                </div>
+              </td>
             </tr>
             <tr>
-              <td colSpan={2}>SUBJECT: {title}</td>
+              <td colSpan={2}>
+                <div className="flex align gap-md">
+                  <span>SUBJECT:</span>
+                  <span
+                    style={{
+                      letterSpacing: 0.6,
+                    }}
+                  >
+                    {title?.toUpperCase()}
+                  </span>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>

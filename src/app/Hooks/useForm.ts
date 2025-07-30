@@ -34,7 +34,7 @@ export const useForm = <T extends BaseRepository>(
   view: ViewsProps,
   { onFormSubmit, handleValidationErrors }: UseFormProps
 ) => {
-  const repo = useMemo(() => Repository, [Repository]);
+  const repo = useMemo(() => Repository, []); // Remove Repository dependency to prevent infinite re-renders
   const [state, setState] = useState<JsonResponse>(() => ({
     ...repo.getState(),
   }));
@@ -239,7 +239,7 @@ export const useForm = <T extends BaseRepository>(
     if (Repository.associatedResources.length > 0) {
       getDependencies();
     }
-  }, [Repository]);
+  }, []); // Remove Repository dependency to prevent infinite re-renders
 
   return {
     state,

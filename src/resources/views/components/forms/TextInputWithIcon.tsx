@@ -29,7 +29,6 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
         </label>
       )}
       <div className="with-icon">
-        <i className={`ri-${icon}-line special-icon`} />
         <input
           type={type}
           id={name}
@@ -46,6 +45,7 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
           }}
           {...attributes}
         />
+        <i className={`ri-${icon}-line special-icon`} />
       </div>
     </div>
   );

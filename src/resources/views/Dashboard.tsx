@@ -1,13 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   BarChart,
-  Bar as ReBar,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as ReTooltip,
   Legend as ReLegend,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   Chart as ChartJS,
@@ -20,7 +27,7 @@ import {
   Legend,
   ChartOptions,
 } from "chart.js";
-import { Bar as ChartJsBar, Pie } from "react-chartjs-2";
+import { Bar as ChartJsBar, Doughnut } from "react-chartjs-2";
 import {
   extractModelName,
   repo,
@@ -40,115 +47,93 @@ ChartJS.register(
   Legend
 );
 
-const expenseData = [
-  { month: "Jan", Fixed: 5000, Variable: 2000 },
-  { month: "Feb", Fixed: 4800, Variable: 2500 },
-  { month: "Mar", Fixed: 5200, Variable: 2300 },
-  { month: "Apr", Fixed: 5100, Variable: 1900 },
+// Sample data for the dashboard widgets
+const websiteAnalyticsData = [
+  { name: "Jan", value: 400 },
+  { name: "Feb", value: 300 },
+  { name: "Mar", value: 600 },
+  { name: "Apr", value: 800 },
+  { name: "May", value: 500 },
+  { name: "Jun", value: 700 },
 ];
 
-const budgetData = [
-  { category: "Travel", Actual: 1400, Budget: 1000 },
-  { category: "Supplies", Actual: 800, Budget: 1200 },
-  { category: "Marketing", Actual: 2300, Budget: 2000 },
-  { category: "Utilities", Actual: 950, Budget: 950 },
+const salesData = [
+  { name: "Jan", sales: 4000 },
+  { name: "Feb", sales: 3000 },
+  { name: "Mar", sales: 2000 },
+  { name: "Apr", sales: 2780 },
+  { name: "May", sales: 1890 },
+  { name: "Jun", sales: 2390 },
 ];
 
-const accountsData = [
-  { range: "0-30 Days", Receivables: 12000, Payables: 9000 },
-  { range: "31-60 Days", Receivables: 8000, Payables: 7000 },
-  { range: "61-90 Days", Receivables: 5000, Payables: 3000 },
-  { range: ">90 Days", Receivables: 2000, Payables: 1000 },
+const earningData = [
+  { day: "Mo", earnings: 65 },
+  { day: "Tu", earnings: 59 },
+  { day: "We", earnings: 80 },
+  { day: "Th", earnings: 81 },
+  { day: "Fr", earnings: 56 },
+  { day: "Sa", earnings: 55 },
+  { day: "Su", earnings: 40 },
 ];
 
-const chartJsBudgetData = {
-  labels: budgetData.map((item) => item.category),
-  datasets: [
-    {
-      label: "Budget",
-      data: budgetData.map((item) => item.Budget),
-      backgroundColor: "#8884d8",
-    },
-    {
-      label: "Actual",
-      data: budgetData.map((item) => item.Actual),
-      backgroundColor: "#ff8042",
-    },
-  ],
-};
-
-const chartJsOptions: ChartOptions<"bar"> = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: "top" as const,
-    },
-    title: {
-      display: true,
-      text: "Budget vs Actual",
-    },
-  },
-};
-
-const tabs = [
-  { key: "expenses", label: "Expenses (Recharts)" },
-  { key: "budget", label: "Budget vs Actual (Chart.js)" },
-  { key: "accounts", label: "Accounts Aging (Recharts)" },
+const supportData = [
+  { name: "Completed", value: 85, fill: "#28c76f" },
+  { name: "Remaining", value: 15, fill: "#e0e0e0" },
 ];
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("expenses");
   const [documents, setDocuments] = useState<DocumentResponseData[]>([]);
-  const [noRecordFound, setNoRecordFound] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const documentRepo = useMemo(() => repo("document"), []);
+  const [noRecordFound, setNoRecordFound] = useState(false);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("month");
 
-  const groupedData = useMemo(() => {
-    if (documents.length < 1) return {};
-
-    return documents.reduce((acc, doc) => {
-      const type = extractModelName(doc.documentable_type);
-      const status = doc.status ?? "unknown";
-
-      if (!acc[type]) acc[type] = {};
-      if (!acc[type][status]) acc[type][status] = 0;
-
-      acc[type][status]++;
-      return acc;
-    }, {} as Record<string, Record<string, number>>);
-  }, [documents]);
+  const documentRepo = repo("Document");
 
   const groupedByStatus = useMemo(() => {
-    if (documents.length < 1) return {};
-
     return documents.reduce((acc, doc) => {
-      const status = doc.status ?? "unknown";
-
-      if (!acc[status]) acc[status] = 0;
-      acc[status]++;
+      const status = doc.status || "unknown";
+      acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
   }, [documents]);
 
-  const pieChartDataSets = Object.entries(groupedData).map(
-    ([type, statusCounts]) => {
-      const labels = Object.keys(statusCounts);
-      const data = Object.values(statusCounts);
+  const statusCards = useMemo(() => {
+    const total = documents.length;
+    return Object.entries(groupedByStatus).map(([status, count]) => ({
+      status,
+      count,
+      label: toTitleCase(status),
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      icon: getStatusIcon(status),
+      color: getStatusColor(status),
+    }));
+  }, [groupedByStatus, documents.length]);
 
-      return {
-        label: toTitleCase(type),
-        chartData: {
-          labels,
-          datasets: [
-            {
-              data,
-              backgroundColor: ["#4dc9f6", "#f67019", "#f53794", "#537bc4"],
-            },
-          ],
-        },
-      };
-    }
-  );
+  function getStatusIcon(status: string): string {
+    const iconMap: Record<string, string> = {
+      pending: "ri-time-line",
+      approved: "ri-check-line",
+      rejected: "ri-close-line",
+      processing: "ri-loader-line",
+      completed: "ri-check-double-line",
+      draft: "ri-file-line",
+      unknown: "ri-question-line",
+    };
+    return iconMap[status.toLowerCase()] || "ri-question-line";
+  }
+
+  function getStatusColor(status: string): string {
+    const colorMap: Record<string, string> = {
+      pending: "warning",
+      approved: "success",
+      rejected: "danger",
+      processing: "info",
+      completed: "success",
+      draft: "secondary",
+      unknown: "dark",
+    };
+    return colorMap[status.toLowerCase()] || "dark";
+  }
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -174,171 +159,282 @@ const Dashboard = () => {
     fetchDocs();
   }, []);
 
-  console.log(groupedByStatus);
-
   return (
-    <>
-      <ResourceLoader
-        isLoading={isLoading || (documents.length === 0 && !noRecordFound)}
-        message="Loading Insights..."
-        variant="spinner"
-        size="large"
-      >
-        <div className="insights mb-3">
-          <h1 className="mb-5">Insights</h1>
-          <div
-            className="flex align"
-            style={{
-              flexWrap: "wrap",
-            }}
-          >
-            {Object.entries(groupedByStatus).map(([status, count]) => (
-              <div
-                key={status}
-                className="chart__item insights__card mb-3 flex column align center"
-                style={{
-                  width: "25%",
-                }}
-              >
-                <h1 style={{ fontSize: 64 }}>{count}</h1>
-                <small
-                  style={{
-                    textTransform: "uppercase",
-                    letterSpacing: 1.5,
-                    fontSize: 10,
-                    display: "block",
-                  }}
-                  className="card__title"
-                >
-                  {toTitleCase(status)}
-                </small>
-              </div>
-            ))}
-          </div>
+    <div className="modern-dashboard">
+      {/* Header Section */}
+      <div className="dashboard-header">
+        <div className="header-content">
+          <h1 className="dashboard-title">
+            <i className="ri-dashboard-line"></i>
+            Analytics Dashboard
+          </h1>
+          <p className="dashboard-subtitle">
+            Real-time overview of your document management system
+          </p>
         </div>
-      </ResourceLoader>
-      <ResourceLoader
-        isLoading={isLoading || (documents.length === 0 && !noRecordFound)}
-        message="Loading Charts..."
-        variant="dots"
-        size="medium"
-      >
-        <div
-          className="flex align gap-lg"
-          style={{
-            flexWrap: "wrap",
-          }}
-        >
-          {pieChartDataSets.map((item) => (
-            <div key={item.label} className="chart__item mb-3">
-              <h5 className="chart__title">{pluralize.plural(item.label)}</h5>
-              <Pie
-                style={{
-                  marginTop: 15,
-                }}
-                data={item.chartData}
-                options={{
-                  plugins: {
-                    legend: {
-                      display: false,
-                      labels: {
-                        color: "#333",
-                        font: { size: 12 },
-                      },
-                      position: "right",
-                    },
-                    tooltip: {
-                      titleFont: { size: 14 },
-                      bodyFont: { size: 12 },
-                      backgroundColor: "#000",
-                      titleColor: "#fff",
-                      bodyColor: "#fff",
-                    },
-                  },
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </ResourceLoader>
-      {/** <div className="row">
-        <div className="flex gap-md mb-3">
-          {tabs.map((tab) => (
+
+        {/* Timeframe Selector */}
+        <div className="timeframe-selector">
+          {["week", "month", "quarter", "year"].map((timeframe) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: "0.5rem 1rem",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                background: activeTab === tab.key ? "#333" : "#fff",
-                color: activeTab === tab.key ? "#fff" : "#333",
-                cursor: "pointer",
-              }}
+              key={timeframe}
+              className={`timeframe-btn ${
+                selectedTimeframe === timeframe ? "active" : ""
+              }`}
+              onClick={() => setSelectedTimeframe(timeframe)}
             >
-              {tab.label}
+              {timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
             </button>
           ))}
         </div>
+      </div>
 
-        {activeTab === "expenses" && (
-          <div
-            className="col-md-6"
-            style={{ background: "#fff", padding: "1rem", borderRadius: "8px" }}
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={expenseData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ReTooltip />
-                <ReLegend />
-                <ReBar dataKey="Fixed" fill="#8884d8" />
-                <ReBar dataKey="Variable" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
+      {/* Main Dashboard Grid */}
+      <ResourceLoader
+        isLoading={isLoading || (documents.length === 0 && !noRecordFound)}
+        message="Loading Dashboard..."
+        variant="spinner"
+        size="large"
+      >
+        <div className="dashboard-grid">
+          {/* Website Analytics Widget */}
+          <div className="dashboard-widget website-analytics">
+            <div className="widget-header">
+              <div className="widget-title">
+                <h3>Website Analytics</h3>
+                <p>Total 28.5% Conversion Rate</p>
+              </div>
+              <div className="widget-visual">
+                <div className="analytics-sphere">
+                  <div className="sphere-cube"></div>
+                  <div className="sphere-cube"></div>
+                  <div className="sphere-cube"></div>
+                  <div className="sphere-cube"></div>
+                  <div className="sphere-cube"></div>
+                </div>
+              </div>
+            </div>
+            <div className="widget-content">
+              <div className="spending-metrics">
+                <div className="metric-item">
+                  <span className="metric-label">12h Spend</span>
+                  <span className="metric-value">$2,420</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">18 Order Size</span>
+                  <span className="metric-value">$156</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">127 Order</span>
+                  <span className="metric-value">$12,749</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">2.3k Items</span>
+                  <span className="metric-value">$45,230</span>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
 
-        {activeTab === "budget" && (
-          <div
-            className="col-md-6"
-            style={{ background: "#fff", padding: "1rem", borderRadius: "8px" }}
-          >
-            <ChartJsBar
-              options={chartJsOptions}
-              data={chartJsBudgetData}
-              height={300}
-            />
+          {/* Average Daily Sales Widget */}
+          <div className="dashboard-widget daily-sales">
+            <div className="widget-header">
+              <div className="widget-title">
+                <h3>Average Daily Sales</h3>
+                <p>Total Sales This Month</p>
+              </div>
+            </div>
+            <div className="widget-content">
+              <div className="sales-value">$28,450</div>
+              <div className="sales-chart">
+                <ResponsiveContainer width="100%" height={80}>
+                  <AreaChart data={salesData}>
+                    <defs>
+                      <linearGradient
+                        id="salesGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#28c76f"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#28c76f"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="#28c76f"
+                      fill="url(#salesGradient)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-        )}
 
-        {activeTab === "accounts" && (
-          <div
-            className="col-md-6"
-            style={{ background: "#fff", padding: "1rem", borderRadius: "8px" }}
-          >
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={accountsData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="range" />
-                <YAxis />
-                <ReTooltip />
-                <ReLegend />
-                <ReBar dataKey="Receivables" fill="#8884d8" />
-                <ReBar dataKey="Payables" fill="#ffc658" />
-              </BarChart>
-            </ResponsiveContainer>
+          {/* Sales Overview Widget */}
+          <div className="dashboard-widget sales-overview">
+            <div className="widget-header">
+              <div className="widget-title">
+                <h3>Sales Overview</h3>
+              </div>
+            </div>
+            <div className="widget-content">
+              <div className="sales-main-value">
+                $42.5k
+                <span className="sales-increase">+18.2%</span>
+              </div>
+              <div className="sales-comparison">
+                <div className="comparison-item">
+                  <span className="comparison-label">Order</span>
+                  <span className="comparison-value">62.2% (6,440)</span>
+                </div>
+                <div className="comparison-vs">VS</div>
+                <div className="comparison-item">
+                  <span className="comparison-label">Visits</span>
+                  <span className="comparison-value">25.5% (12,749)</span>
+                </div>
+              </div>
+              <div className="sales-progress">
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill order"
+                    style={{ width: "62.2%" }}
+                  ></div>
+                  <div
+                    className="progress-fill visits"
+                    style={{ width: "25.5%" }}
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>*/}
-    </>
+
+          {/* Earning Reports Widget */}
+          <div className="dashboard-widget earning-reports">
+            <div className="widget-header">
+              <div className="widget-title">
+                <h3>Earning Reports</h3>
+                <p>Weekly Earnings Overview</p>
+              </div>
+            </div>
+            <div className="widget-content">
+              <div className="earning-main">
+                <div className="earning-value">$468</div>
+                <div className="earning-increase">+4.2%</div>
+              </div>
+              <p className="earning-description">
+                You informed of this week compared to last week
+              </p>
+              <div className="earning-chart">
+                <ResponsiveContainer width="100%" height={100}>
+                  <BarChart data={earningData}>
+                    <Bar
+                      dataKey="earnings"
+                      fill="#28c76f"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="earning-metrics">
+                <div className="earning-metric">
+                  <span className="metric-label">Earnings</span>
+                  <span className="metric-value">$545.69</span>
+                  <div className="metric-progress">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "80%", backgroundColor: "#28c76f" }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="earning-metric">
+                  <span className="metric-label">Profit</span>
+                  <span className="metric-value">$256.34</span>
+                  <div className="metric-progress">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "60%", backgroundColor: "#28c76f" }}
+                    ></div>
+                  </div>
+                </div>
+                <div className="earning-metric">
+                  <span className="metric-label">Expense</span>
+                  <span className="metric-value">$74.19</span>
+                  <div className="metric-progress">
+                    <div
+                      className="progress-fill"
+                      style={{ width: "30%", backgroundColor: "#ea5455" }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Support Tracker Widget */}
+          <div className="dashboard-widget support-tracker">
+            <div className="widget-header">
+              <div className="widget-title">
+                <h3>Support Tracker</h3>
+                <p>Last 7 Days</p>
+              </div>
+            </div>
+            <div className="widget-content">
+              <div className="support-main">
+                <div className="support-total">164</div>
+                <div className="support-progress">
+                  <ResponsiveContainer width="100%" height={120}>
+                    <PieChart>
+                      <Pie
+                        data={supportData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={60}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {supportData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="progress-center">85%</div>
+                </div>
+                <div className="progress-label">Completed Task</div>
+              </div>
+              <div className="support-metrics">
+                <div className="support-metric">
+                  <span className="metric-label">New Tickets</span>
+                  <span className="metric-value">142</span>
+                </div>
+                <div className="support-metric">
+                  <span className="metric-label">Open Tickets</span>
+                  <span className="metric-value">28</span>
+                </div>
+                <div className="support-metric">
+                  <span className="metric-label">Response Time</span>
+                  <span className="metric-value">1 Day</span>
+                </div>
+              </div>
+              <button className="buy-now-btn">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </ResourceLoader>
+    </div>
   );
 };
 

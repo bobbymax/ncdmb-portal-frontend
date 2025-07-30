@@ -300,6 +300,41 @@ const WorkflowStage: React.FC<
         "Recipients",
         true
       )}
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Flow"
+          name="flow"
+          defaultValue=""
+          defaultCheckDisabled
+          valueKey="value"
+          labelKey="label"
+          value={state.flow}
+          onChange={handleChange}
+          options={[
+            { value: "process", label: "Process" },
+            { value: "tracker", label: "Tracker" },
+            { value: "both", label: "Both" },
+          ]}
+          size="sm"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          label="Is Displayed"
+          name="isDisplayed"
+          defaultValue={999}
+          defaultCheckDisabled
+          valueKey="value"
+          labelKey="label"
+          value={state.isDisplayed}
+          onChange={handleChange}
+          options={[
+            { value: 1, label: "Yes" },
+            { value: 0, label: "No" },
+          ]}
+          size="sm"
+        />
+      </div>
     </>
   );
 };

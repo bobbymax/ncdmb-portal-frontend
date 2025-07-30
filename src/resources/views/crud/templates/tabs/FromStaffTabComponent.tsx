@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState, useRef } from "react";
 import {
   ProcessTypeDependencies,
   TabConfigContentProps,
@@ -11,6 +11,7 @@ import MultiSelect, {
 import { ActionMeta } from "react-select";
 import { formatOptions } from "app/Support/Helpers";
 import { GroupResponseData } from "app/Repositories/Group/data";
+import { useAuth } from "app/Context/AuthContext";
 
 const FromStaffTabComponent: FC<
   TabConfigContentProps<"from", TemplateProcessProps>
@@ -22,7 +23,9 @@ const FromStaffTabComponent: FC<
   label,
   handleStateUpdate,
   dependencies = {},
+  isDisplay = false,
 }) => {
+  const { staff } = useAuth();
   const fromState: TemplateProcessProps = {
     stage: null,
     process_type: value,
@@ -40,6 +43,7 @@ const FromStaffTabComponent: FC<
     []
   );
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
+  const prevStateRef = useRef<TemplateProcessProps>(fromState);
 
   const {
     stages = [],
@@ -58,8 +62,32 @@ const FromStaffTabComponent: FC<
   };
 
   useEffect(() => {
-    handleStateUpdate(state, value);
-  }, [state]);
+    // Check if state has actually changed to prevent infinite loops
+    const hasChanged =
+      prevStateRef.current.stage?.value !== state.stage?.value ||
+      prevStateRef.current.group?.value !== state.group?.value ||
+      prevStateRef.current.department?.value !== state.department?.value ||
+      prevStateRef.current.staff?.value !== state.staff?.value;
+
+    if (hasChanged) {
+      const changedState: TemplateProcessProps = {
+        ...state,
+        department:
+          (state.department as DataOptionsProps)?.value < 1 && isDisplay
+            ? (staff?.department as DataOptionsProps | null)
+            : state.department,
+      };
+
+      handleStateUpdate(changedState, value);
+      prevStateRef.current = { ...state };
+    }
+  }, [
+    state.stage?.value,
+    state.group?.value,
+    state.department?.value,
+    state.staff?.value,
+    value,
+  ]);
 
   useEffect(() => {
     if (state.group && groups.length > 0) {

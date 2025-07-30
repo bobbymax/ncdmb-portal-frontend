@@ -60,7 +60,7 @@ const useDirectories = <
 
   useEffect(() => {
     fetchCollection();
-  }, [fetchCollection]);
+  }, [Repo, api]); // Use direct dependencies instead of fetchCollection
 
   return { collection, loading, error, resource, fetchRaw };
 };

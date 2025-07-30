@@ -89,15 +89,19 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
     };
   }, [state.items, state.markup, vatRate]);
 
-  // Update state with calculated totals
-  useEffect(() => {
-    const updatedState: InvoiceContentAreaProps = {
+  // Use calculated totals for display and parent updates
+  const displayState = useMemo(
+    () => ({
       ...state,
       ...calculatedTotals,
-    };
-    setState(updatedState);
-    updateLocal(updatedState, identifier);
-  }, [calculatedTotals]);
+    }),
+    [state, calculatedTotals]
+  );
+
+  // Update parent component with calculated totals when they change
+  useEffect(() => {
+    updateLocal(displayState, identifier);
+  }, [displayState, updateLocal, identifier]);
 
   const handleBlockChange = useCallback(
     (detail: unknown, mode?: "store" | "update") => {

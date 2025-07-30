@@ -74,13 +74,37 @@ const useDocumentGenerator = (params: unknown) => {
 
   useEffect(() => {
     if (template) {
-      setConfigState((prev) => ({
-        ...prev,
-        ...template.config?.process,
-      }));
+      // Only initialize configState from template if it hasn't been set yet
+      setConfigState((prev) => {
+        // Check if configState has already been initialized with template data
+        const hasTemplateData =
+          prev.from?.state?.stage?.value ||
+          prev.to?.state?.stage?.value ||
+          prev.through?.state?.stage?.value;
 
-      // Initialize editedContents with template contents when template loads
-      setEditedContents(template.body ?? []);
+        if (hasTemplateData) {
+          // Already initialized, don't overwrite user changes
+          return prev;
+        }
+
+        // First time loading template, initialize with template config
+        return {
+          ...prev,
+          ...template.config?.process,
+        };
+      });
+
+      // Only initialize editedContents if it hasn't been set yet
+      setEditedContents((prev) => {
+        // Check if editedContents has already been initialized
+        if (prev.length > 0) {
+          // Already initialized, don't overwrite user changes
+          return prev;
+        }
+
+        // First time loading template, initialize with template contents
+        return template.body ?? [];
+      });
     }
   }, [template]);
 

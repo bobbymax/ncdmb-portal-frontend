@@ -16,6 +16,8 @@ export interface WorkflowStageResponseData extends BaseResponse {
   name: string;
   can_appeal: number;
   append_signature: number;
+  isDisplayed: 1 | 0;
+  flow: "process" | "tracker" | "both";
   category: "staff" | "third-party" | "system";
   stage_category: StageCategoryResponseData | null;
   groups: DataOptionsProps[];

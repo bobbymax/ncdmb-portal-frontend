@@ -19,6 +19,7 @@ import {
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
 import SignatureBlock from "./SignatureBlock";
+import { ConfigState } from "../../ContentBuilder";
 
 export type BlockDataTypeMap = {
   paragraph: ParagraphContentAreaProps;
@@ -40,6 +41,7 @@ export interface BlockContentComponentPorps {
     data: BlockDataTypeMap[T],
     identifier: keyof OptionsContentAreaProps
   ) => void;
+  configState: ConfigState;
 }
 
 export const blockFormMap: Record<

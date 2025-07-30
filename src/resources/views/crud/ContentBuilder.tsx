@@ -37,6 +37,7 @@ export interface TabConfigContentProps<K extends ProcessType, S> {
   label: string;
   handleStateUpdate: (state: S | S[], value: K) => void;
   dependencies?: ProcessTypeDependencies;
+  isDisplay?: boolean;
 }
 
 export type ProcessComponentMap = {
@@ -138,6 +139,8 @@ const ContentBuilder: React.FC<
     }
   }, [contents, configState]);
 
+  console.log(template);
+
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -217,6 +220,7 @@ const ContentBuilder: React.FC<
                     contents={contents}
                     modify={() => {}}
                     editor
+                    configState={configState}
                   />
                 </div>
                 {/* End Block Content Area */}
@@ -248,6 +252,7 @@ const ContentBuilder: React.FC<
                   remove={handleRemoveFromSheet}
                   collapse={handleCollapseBlock}
                   resource={null}
+                  configState={configState}
                 />
               ))
             ) : (
