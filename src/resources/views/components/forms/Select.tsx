@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from "react";
 
 export interface SelectInputProps {
-  label: string;
+  label?: string;
   value?: number | string | undefined;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
@@ -13,21 +13,25 @@ export interface SelectInputProps {
   valueKey: string;
   labelKey: string;
   options: any[];
+  width?: number;
+  onBlur?: () => void;
 }
 
 const Select: React.FC<SelectInputProps> = ({
   label,
   value,
-  size = "md",
+  size = "lg",
   onChange,
   defaultValue,
   defaultText,
   name,
-  isDisabled,
+  isDisabled = false,
   valueKey,
   labelKey,
   options = [],
   defaultCheckDisabled = false,
+  width = 100,
+  onBlur,
   ...attributes
 }) => {
   return (
@@ -38,31 +42,38 @@ const Select: React.FC<SelectInputProps> = ({
         </label>
       )}
 
-      <select
-        name={name}
-        value={value}
-        onChange={onChange}
-        className={`form-select storm-select storm-select-${size}`}
-        id={name}
-        disabled={isDisabled}
-        {...attributes}
-      >
-        <option value={defaultValue} disabled={defaultCheckDisabled}>
-          {defaultText ?? `Select ${label}`}
-        </option>
-        {options.map((opt, i) => (
-          <option
-            key={i}
-            value={
-              typeof defaultValue === "number"
-                ? Number(opt[valueKey])
-                : opt[valueKey]
-            }
-          >
-            {opt[labelKey]}
+      <div className="select-wrapper">
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          className={`storm-form-control storm-form-${size} storm-select-control`}
+          id={name}
+          disabled={isDisabled}
+          style={{ width: `${width}%` }}
+          {...attributes}
+        >
+          <option value={defaultValue} disabled={defaultCheckDisabled}>
+            {defaultText ?? `Select ${label}`}
           </option>
-        ))}
-      </select>
+          {options.map((opt, i) => (
+            <option
+              key={i}
+              value={
+                typeof defaultValue === "number"
+                  ? Number(opt[valueKey])
+                  : opt[valueKey]
+              }
+            >
+              {opt[labelKey]}
+            </option>
+          ))}
+        </select>
+        <div className="select-arrow">
+          <i className="ri-arrow-down-s-line" />
+        </div>
+      </div>
     </div>
   );
 };

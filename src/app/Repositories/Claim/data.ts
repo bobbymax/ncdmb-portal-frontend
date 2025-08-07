@@ -46,6 +46,13 @@ export interface ClaimResponseData extends BaseResponse {
     email: string;
   } | null;
   claimant_signature: string;
+  resident_type?: "resident" | "non-resident";
+  distance?: number;
+  route?: "one-way" | "return";
+  mode?: "flight" | "road";
+  departure_city_id?: number;
+  destination_city_id?: number;
+  airport_id?: number;
   approval_signature: string;
   category_label?: string;
   created_at?: string;

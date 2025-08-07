@@ -15,6 +15,7 @@ const Builder = ({
     shouldFetch: false,
     hasParam: true,
   });
+  const [generatedData, setGeneratedData] = useState<unknown>({});
 
   const onFormSubmit = (response: ServerResponse, action: ActionType) => {
     // console.log(response);
@@ -55,6 +56,10 @@ const Builder = ({
           state={state}
           setState={setState}
           resource={raw}
+          generatedData={generatedData}
+          updateGlobalState={(generatorData, identifier) => {
+            setGeneratedData(generatorData);
+          }}
         />
       </div>
     </div>

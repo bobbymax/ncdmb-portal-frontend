@@ -239,14 +239,18 @@ const CustomDataTable = ({
         )}
       </div>
 
-      <div className="top-section mb-4 flex center-align space-between">
-        <div className="search-container" style={{ flexGrow: 1 }}>
+      <div className="top-section mb-4 flex align between">
+        <div
+          className="search-container"
+          style={{ flexGrow: 1, maxWidth: "400px" }}
+        >
           <TextInputWithIcon
-            placeholder="Search..."
+            placeholder="Search records..."
             value={searchTerm}
             onChange={handleSearch}
-            size="md"
-            icon="ri-search-line"
+            size="lg"
+            icon="search"
+            name="table-search"
           />
         </div>
         <div className="button-section flex gap-2">

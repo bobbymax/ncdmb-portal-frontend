@@ -58,7 +58,7 @@ const Folders: React.FC<
         <ResourceLoader
           isLoading={isLoading || documents.length === 0}
           message="Loading documents..."
-          variant="spinner"
+          variant="character"
           size="large"
         >
           <div className="row">

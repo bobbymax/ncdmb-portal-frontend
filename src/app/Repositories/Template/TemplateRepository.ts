@@ -13,7 +13,7 @@ import { templateRules } from "./rules";
 import { templateViews } from "./views";
 import { templateColumns } from "./columns";
 import { templateConfig } from "./config";
-import { ConfigState } from "resources/views/crud/ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 
 export default class TemplateRepository extends BaseRepository {
   public fillables: Array<keyof TemplateResponseData> =

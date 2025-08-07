@@ -73,7 +73,7 @@ const useEditableComponent = <D extends BaseRepository, T extends BaseResponse>(
             setEditor(person);
           }
         } catch (error) {
-          console.log(error);
+          // Error in editable component
         }
       };
 

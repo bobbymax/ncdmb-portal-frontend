@@ -6,8 +6,6 @@ import React from "react";
 const Ledgers: React.FC<
   CardPageComponentProps<LedgerResponseData, LedgerRepository>
 > = ({ Repository, collection, onManageRawData, View }) => {
-  console.log(collection);
-
   return (
     <>
       <div className="col-md-12 mb-3">

@@ -11,15 +11,19 @@ import RedeploymentBlock from "./RedeploymentBlock";
 import ListBlock from "./ListBlock";
 import {
   EventContentAreaProps,
+  ExpenseContentProps,
   InvoiceContentAreaProps,
   MilestoneContentAreaProps,
   OptionsContentAreaProps,
   ParagraphContentAreaProps,
   SignatureContentAreaProps,
   TableContentAreaProps,
+  TitleContentProps,
 } from "app/Hooks/useBuilder";
 import SignatureBlock from "./SignatureBlock";
-import { ConfigState } from "../../ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
+import ExpenseBlock from "./ExpenseBlock";
+import TitleBlock from "./TitleBlock";
 
 export type BlockDataTypeMap = {
   paragraph: ParagraphContentAreaProps;
@@ -29,9 +33,11 @@ export type BlockDataTypeMap = {
   estacode: TableContentAreaProps;
   invoice: InvoiceContentAreaProps;
   training: TableContentAreaProps;
-  approval: SignatureContentAreaProps; // Assuming approval uses SignatureContentAreaProps
+  approval: SignatureContentAreaProps;
   posting: unknown;
   bullet: unknown;
+  expense: ExpenseContentProps;
+  paper_title: TitleContentProps;
 };
 
 export interface BlockContentComponentPorps {
@@ -42,6 +48,7 @@ export interface BlockContentComponentPorps {
     identifier: keyof OptionsContentAreaProps
   ) => void;
   configState: ConfigState;
+  sharedState?: Record<string, any>;
 }
 
 export const blockFormMap: Record<
@@ -57,5 +64,7 @@ export const blockFormMap: Record<
   training: TrainingBlock,
   posting: RedeploymentBlock,
   bullet: ListBlock,
-  approval: SignatureBlock, // Assuming approval uses the same ListBlock for now
+  approval: SignatureBlock,
+  expense: ExpenseBlock,
+  paper_title: TitleBlock,
 };

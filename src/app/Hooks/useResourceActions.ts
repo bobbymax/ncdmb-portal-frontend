@@ -70,7 +70,7 @@ export const useResourceActions = <T extends BaseRepository>(
 
   const handleError = (err: unknown, signal?: AbortSignal) => {
     if (signal?.aborted) {
-      console.log("Fetch aborted");
+      // Fetch aborted
     } else {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch data.";

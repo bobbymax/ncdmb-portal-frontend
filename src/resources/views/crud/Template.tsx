@@ -34,8 +34,6 @@ const Template: React.FC<FormPageComponentProps<TemplateResponseData>> = ({
           ...prev,
           name: `${category.name} Template`,
         }));
-      } else {
-        console.log("what is wrong");
       }
     }
   }, [state.document_category_id, documentCategories]);

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ConfigState } from "resources/views/crud/ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 import { TemplateProcessProps } from "../Repositories/Template/data";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";

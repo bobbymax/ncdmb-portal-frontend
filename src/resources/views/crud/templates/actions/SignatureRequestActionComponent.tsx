@@ -94,8 +94,6 @@ const SignatureRequestActionComponent: React.FC<
     }
   }, [group, Repo]);
 
-  console.log(state);
-
   useEffect(() => {
     fetchAuthorisingStaff();
   }, [fetchAuthorisingStaff]);

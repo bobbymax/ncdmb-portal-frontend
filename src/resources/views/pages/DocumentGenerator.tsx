@@ -3,7 +3,7 @@ import {
   BaseResponse,
 } from "@/app/Repositories/BaseRepository";
 import { PageProps } from "@/bootstrap";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import TemplateBuilderView from "../crud/templates/builders/TemplateBuilderView";
 import { InternalMemoHeader } from "resources/templates/headers";
 import useDocumentGenerator from "app/Hooks/useDocumentGenerator";
@@ -33,6 +33,8 @@ import { FundResponseData } from "@/app/Repositories/Fund/data";
 import moment from "moment";
 import useWorkflowTransformer from "app/Hooks/useWorkflowTransformer";
 import WorkflowPreview from "../components/pages/WorkflowPreview";
+import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
+import { toast } from "react-toastify";
 
 const DocumentGenerator = ({
   Repository,
@@ -41,6 +43,7 @@ const DocumentGenerator = ({
 }: PageProps<BaseRepository>) => {
   const { staff } = useAuth();
   const params = useParams();
+
   const {
     configState,
     setConfigState,
@@ -53,6 +56,7 @@ const DocumentGenerator = ({
   } = useDocumentGenerator(params);
 
   const { blocks } = useBuilder(template);
+  const getTemplateHeader = useTemplateHeader(template);
 
   // Transform configState to WorkflowResponseData and ProgressTrackerResponseData
   const {
@@ -64,10 +68,6 @@ const DocumentGenerator = ({
     configState,
     category,
   });
-
-  // i need the editedContents, also the configState, resource,
-  // category, document state, uploads
-  // Design workflow path from configState
 
   const handleAddToSheet = useCallback(
     (block: any, type: string) => {
@@ -109,7 +109,6 @@ const DocumentGenerator = ({
     e.preventDefault();
     e.stopPropagation();
 
-    console.log("Drag start detected");
     setIsDraggingBlocks(true);
 
     const blocksArea = e.currentTarget.closest(
@@ -118,10 +117,6 @@ const DocumentGenerator = ({
     const parent = blocksArea?.parentElement;
 
     if (!blocksArea || !parent) {
-      console.log("Missing elements:", {
-        blocksArea: !!blocksArea,
-        parent: !!parent,
-      });
       return;
     }
 
@@ -129,13 +124,6 @@ const DocumentGenerator = ({
     const parentRect = parent.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
-
-    console.log("Initial positions:", {
-      currentPos: blocksAreaPosition,
-      offsetX,
-      offsetY,
-      parentRect: { width: parentRect.width, height: parentRect.height },
-    });
 
     let animationFrameId: number;
 
@@ -157,13 +145,6 @@ const DocumentGenerator = ({
         const constrainedX = Math.max(8, Math.min(newX, maxX));
         const constrainedY = Math.max(8, Math.min(newY, maxY));
 
-        // console.log("New position:", {
-        //   newX,
-        //   newY,
-        //   constrainedX,
-        //   constrainedY,
-        // });
-
         setBlocksAreaPosition({
           x: constrainedX,
           y: constrainedY,
@@ -173,7 +154,6 @@ const DocumentGenerator = ({
 
     const handleMouseUp = (e: MouseEvent) => {
       e.preventDefault();
-      console.log("Drag end, final position:", blocksAreaPosition);
       setIsDraggingBlocks(false);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -211,7 +191,11 @@ const DocumentGenerator = ({
   const [isDraggingBlocks, setIsDraggingBlocks] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>("");
+  const [isAttachingDocument, setIsAttachingDocument] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
+  const [generatedData, setGeneratedData] = useState<unknown>({});
+
+  // console.log(generatedData);
 
   // Helper function to convert File to data URL
   const convertFileToDataURL = (file: File): Promise<string> => {
@@ -227,28 +211,75 @@ const DocumentGenerator = ({
     });
   };
 
-  const generateDocument = useCallback(async () => {
-    console.log("Generate Document clicked");
+  const handleGeneratedData = useCallback(
+    (generatorData: unknown, identifier: string) => {
+      setGeneratedData(generatorData);
+    },
+    [generatedData]
+  );
 
+  // Functions to control the global overlay
+  const showOverlay = useCallback(() => {
+    const overlay = document.querySelector(
+      ".document__generator__loading__overlay"
+    );
+    if (overlay) {
+      (overlay as HTMLElement).style.display = "flex";
+    }
+  }, []);
+
+  const hideOverlay = useCallback(() => {
+    const overlay = document.querySelector(
+      ".document__generator__loading__overlay"
+    );
+    if (overlay) {
+      (overlay as HTMLElement).style.display = "none";
+    }
+  }, []);
+
+  const updateOverlayProgress = useCallback(
+    (progress: number, step: string) => {
+      const progressFill = document.getElementById("progress-fill");
+      const progressText = document.getElementById("progress-text");
+      const loadingStep = document.getElementById("loading-step");
+
+      if (progressFill) {
+        progressFill.style.width = `${progress}%`;
+      }
+      if (progressText) {
+        progressText.textContent = `${progress}%`;
+      }
+      if (loadingStep) {
+        loadingStep.textContent = step;
+      }
+    },
+    []
+  );
+
+  const generateDocument = useCallback(async () => {
     // Prevent multiple clicks
     if (isGenerating) {
-      console.log("Already generating document...");
       return;
     }
 
     setIsGenerating(true);
     setLoadingProgress(0);
     setLoadingStep("");
+    showOverlay();
 
     try {
       // Step 1: Creating workflow for this document
-      setLoadingStep("Creating workflow for this document");
+      const step1 = "Creating workflow for this document";
+      setLoadingStep(step1);
       setLoadingProgress(20);
+      updateOverlayProgress(20, step1);
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       // Step 2: Encrypting uploaded files
-      setLoadingStep("Encrypting uploaded files");
+      const step2 = "Encrypting uploaded files";
+      setLoadingStep(step2);
       setLoadingProgress(40);
+      updateOverlayProgress(40, step2);
 
       let uploadDataUrls: string[] = [];
       if (uploads.length > 0) {
@@ -256,10 +287,11 @@ const DocumentGenerator = ({
           uploadDataUrls = await Promise.all(
             uploads.map((file) => convertFileToDataURL(file))
           );
-          console.log("Files converted to data URLs:", uploadDataUrls.length);
         } catch (error) {
           console.error("Error converting files to data URLs:", error);
-          setLoadingStep("Error converting files to data URLs");
+          const errorStep = "Error converting files to data URLs";
+          setLoadingStep(errorStep);
+          updateOverlayProgress(40, errorStep);
           return;
         }
       }
@@ -267,13 +299,17 @@ const DocumentGenerator = ({
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       // Step 3: Gathering necessary data input for processing
-      setLoadingStep("Gathering necessary data input for processing");
+      const step3 = "Gathering necessary data input for processing";
+      setLoadingStep(step3);
       setLoadingProgress(60);
+      updateOverlayProgress(60, step3);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Step 4: Getting ready to send this data to our servers
-      setLoadingStep("Getting ready to send this data to our servers");
+      const step4 = "Getting ready to send this data to our servers";
+      setLoadingStep(step4);
       setLoadingProgress(80);
+      updateOverlayProgress(80, step4);
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       // Check for required dependencies
@@ -292,60 +328,121 @@ const DocumentGenerator = ({
         return;
       }
 
-      if (!resource) {
-        console.error("Resource is not available");
-        return;
-      }
+      // if (!resource) {
+      //   console.error("Resource is not available");
+      //   return;
+      // }
 
       if (!staff?.id) {
         console.error("Staff ID is not available");
         return;
       }
 
-      console.log("All dependencies available, generating document...");
+      // Find the page ID from staff's pages based on view's frontend_path
+      let pageId: number | null = null;
+      if (staff?.pages && view?.frontend_path) {
+        // Extract the first two path segments from frontend_path
+        const pathSegments = view.frontend_path
+          .split("/")
+          .filter((segment) => segment !== "");
+        const basePath =
+          pathSegments.length >= 2
+            ? `/${pathSegments[0]}/${pathSegments[1]}`
+            : view.frontend_path;
+
+        // Find the page that matches the base path
+        const matchingPage = staff.pages.find((page) => page.path === basePath);
+        if (matchingPage) {
+          pageId = matchingPage.id;
+          console.log(
+            "Found matching page:",
+            matchingPage.name,
+            "with ID:",
+            pageId,
+            "for path:",
+            basePath
+          );
+        } else {
+          // Try to find a partial match if exact match fails
+          const partialMatch = staff.pages.find(
+            (page) => page.path && view.frontend_path.startsWith(page.path)
+          );
+          if (partialMatch) {
+            pageId = partialMatch.id;
+            console.log(
+              "Found partial matching page:",
+              partialMatch.name,
+              "with ID:",
+              pageId,
+              "for path:",
+              partialMatch.path
+            );
+          } else {
+            console.log(
+              "No matching page found for path:",
+              basePath,
+              "Available pages:",
+              staff.pages.map((p) => ({ name: p.name, path: p.path }))
+            );
+          }
+        }
+      } else {
+        console.log("Missing required data for page lookup:", {
+          hasStaffPages: !!staff?.pages,
+          hasViewPath: !!view?.frontend_path,
+          viewPath: view?.frontend_path,
+        });
+      }
 
       const documentServerObject = {
         document: state,
-        resource_id: resource.id,
+        resource_id: resource?.id || 0,
         configState,
         uploads: uploadDataUrls, // Use the converted data URLs instead of File objects
         contents: editedContents,
-        fund_id: fund?.value || 0,
+        fund_id: fund?.value || null,
         document_reference_id: documentObject?.id,
         service: category?.service,
         user_id: staff?.id,
         department_id: staff?.department_id,
+        owner_department_id: staff?.department_id,
+        category: category,
         workflow: workflow, // Include the transformed workflow
         trackers: trackers, // Include the trackers
         isWorkflowValid: isWorkflowValid, // Include validation status
+        page_id: pageId, // Add the found page ID
       };
 
-      console.log("Document Server Object:", documentServerObject);
-
       // TODO: Add actual API call here
-      // const response = await Repository.create("documents", documentServerObject);
-      // const response = await Repository.store(
-      //   "generate/documents",
-      //   documentServerObject
-      // );
+      const response = await Repository.store(
+        "generate/documents",
+        documentServerObject
+      );
+
+      console.log("Document Server Object with page_id:", documentServerObject);
 
       // Simulate API call for now
-      setLoadingStep("Processing document on our servers");
+      const step5 = "Processing document on our servers";
+      setLoadingStep(step5);
       setLoadingProgress(90);
+      updateOverlayProgress(90, step5);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setLoadingStep("Document generated successfully!");
+      const step6 = "Document generated successfully!";
+      setLoadingStep(step6);
       setLoadingProgress(100);
+      updateOverlayProgress(100, step6);
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      console.log("Document generated successfully!");
     } catch (error) {
       console.error("Error generating document:", error);
-      setLoadingStep("Error occurred while generating document");
+      const errorStep = "Error occurred while generating document";
+      setLoadingStep(errorStep);
+      updateOverlayProgress(100, errorStep);
     } finally {
       setIsGenerating(false);
       setLoadingStep("");
       setLoadingProgress(0);
+      hideOverlay();
     }
   }, [
     Repository,
@@ -363,19 +460,18 @@ const DocumentGenerator = ({
     trackers,
     isWorkflowValid,
     isGenerating,
+    showOverlay,
+    hideOverlay,
+    updateOverlayProgress,
   ]);
+
+  // console.log(editedContents);
 
   const handleContentChange = <T extends BlockDataType>(
     data: BlockDataTypeMap[T],
     identifier: keyof OptionsContentAreaProps,
     blockId: string | number
   ) => {
-    console.log("handleContentChange called with:", {
-      data,
-      identifier,
-      blockId,
-    });
-
     // Find the content in editedContents (not contents from server)
     const content = editedContents.find((block) => block.id === blockId);
 
@@ -392,22 +488,62 @@ const DocumentGenerator = ({
       } as OptionsContentAreaProps,
     };
 
-    console.log("Updated content:", updatedContent);
     updateEditedContents(updatedContent);
   };
 
   const fetchParentDocument = useCallback(async () => {
-    if (!parentDocument || !Repository) return;
+    if (!parentDocument || !Repository) {
+      toast.error("Please enter a document reference");
+      return;
+    }
 
-    const encodedRef = encodeURIComponent(parentDocument);
+    if (parentDocument.trim() === "") {
+      toast.error("Please enter a document reference");
+      return;
+    }
 
-    const response = await Repository.show("documents/ref", encodedRef);
-    if (response.code === 200) {
-      setDocumentObject(response.data as DocumentResponseData);
-      setState((prev) => ({
-        ...prev,
-        document_reference_id: (response.data as DocumentResponseData).id,
-      }));
+    setIsAttachingDocument(true);
+
+    try {
+      const encodedRef = encodeURIComponent(parentDocument);
+
+      const response = await Repository.show("documents/ref", encodedRef);
+
+      // Check if the response is successful
+      if (response && response.code === 200 && response.data) {
+        setDocumentObject(response.data as DocumentResponseData);
+        setState((prev) => ({
+          ...prev,
+          document_reference_id: (response.data as DocumentResponseData).id,
+        }));
+        toast.success("Parent document attached successfully");
+      } else if (response && response.status === "error") {
+        // Document not found - RepositoryService returns error response instead of throwing
+        toast.error(
+          "Document not found. Please check the reference and try again."
+        );
+      } else {
+        // Invalid response structure
+        toast.error("Error fetching parent document. Please try again.");
+      }
+    } catch (error) {
+      // Handle unexpected errors (network issues, etc.)
+      if (error instanceof Error) {
+        if (
+          error.message.includes("network") ||
+          error.message.includes("fetch")
+        ) {
+          toast.error(
+            "Network error. Please check your connection and try again."
+          );
+        } else {
+          toast.error("Error fetching parent document. Please try again.");
+        }
+      } else {
+        toast.error("Error fetching parent document. Please try again.");
+      }
+    } finally {
+      setIsAttachingDocument(false);
     }
   }, [Repository, parentDocument]);
 
@@ -426,11 +562,13 @@ const DocumentGenerator = ({
     );
   };
 
+  // console.log(generatedData);
+
   useEffect(() => {
-    if (staff && resource && category) {
+    if (staff && category) {
       setState((prev) => ({
         ...prev,
-        documentable_id: resource.id,
+        documentable_id: resource?.id || 0,
         user_id: staff.id,
         department_id: staff.department_id,
         document_category_id: category.id,
@@ -440,47 +578,24 @@ const DocumentGenerator = ({
     }
   }, [staff, resource, category]);
 
-  //  configState, resource, category, state, uploads,
-  // contents: editedContents, fund, documentAttached
+  useEffect(() => {
+    console.log(generatedData);
+    // handleContentChange(generatedData, "expense", "expense");
+  }, [generatedData]);
 
   return (
     <div className="document__generator__container">
-      {/* Loading Overlay */}
-      {isGenerating && (
-        <div className="document__generator__loading__overlay">
-          <div className="loading__content">
-            <div className="loading__spinner">
-              <i className="ri-loader-4-line"></i>
-            </div>
-            <div className="loading__step">
-              <h3>Generating Document</h3>
-              <p>{loadingStep}</p>
-            </div>
-            <div className="loading__progress">
-              <div className="progress__bar">
-                <div
-                  className="progress__fill"
-                  style={{ width: `${loadingProgress}%` }}
-                ></div>
-              </div>
-              <span className="progress__text">{loadingProgress}%</span>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="row">
+        {/* Header Section */}
         <div className="col-md-12 mb-5">
-          <div className="flex align between gap-md">
-            <h4
+          <div className="titler flex align between gap-md">
+            <h5
               style={{
-                letterSpacing: 1.5,
-                textTransform: "uppercase",
-                fontWeight: 700,
-                color: "green",
+                fontSize: 26,
               }}
             >
               {category?.name} Generator
-            </h4>
+            </h5>
             <div className="flex align gap-md">
               <Button
                 label={isGenerating ? "Generating..." : "Generate Document"}
@@ -500,7 +615,8 @@ const DocumentGenerator = ({
             </div>
           </div>
         </div>
-        <div className="col-md-8 mb-3">
+        {/* Main Content Area - Document Builder */}
+        <div className="col-md-8 mb-4">
           <div className="template__page paper__container mb-4">
             <div
               className={`blocks__content__area ${
@@ -597,14 +713,12 @@ const DocumentGenerator = ({
               )}
             </div>
             <div className="paper__header">
-              <InternalMemoHeader
-                to={configState.to?.state ?? null}
-                from={configState.from?.state ?? null}
-                through={configState.through?.state ?? null}
-                ref={null}
-                date={moment().format()}
-                title={state.title}
-              />
+              {getTemplateHeader({
+                configState,
+                title: state.title,
+                date: moment().format(),
+                ref: null,
+              })}
             </div>
             <div className="paper__body">
               <TemplateBuilderView
@@ -619,13 +733,220 @@ const DocumentGenerator = ({
                   removeEditedContent(blockId);
                 }}
                 configState={configState}
+                generatedData={generatedData}
+                sharedState={generatedData as Record<string, any>}
               />
+            </div>
+
+            <div className="other__form__container">
+              <div
+                className="bottom__div"
+                style={{
+                  backgroundColor: "white",
+                  padding: "16px 10px",
+                  borderRadius: 3,
+                }}
+              >
+                <div className="row mb-3">
+                  {/* Fund Section */}
+                  <div className="col-md-12 mb-5 fund__section">
+                    <div className="fund__container">
+                      <MultiSelect
+                        label="Budget Heads"
+                        options={formatOptions(funds, "id", "name", true)}
+                        value={fund}
+                        onChange={handleFundChange}
+                        placeholder="Budget Head"
+                        isSearchable
+                        isDisabled={false}
+                      />
+                    </div>
+                    <div className="fund__display__card">
+                      {fundObject ? (
+                        <div className="fund__card">
+                          <div className="fund__card__header">
+                            <i className="ri-money-dollar-circle-line"></i>
+                            <span className="fund__card__title">
+                              Selected Budget Head
+                            </span>
+                          </div>
+                          <div className="fund__card__content">
+                            <div className="fund__card__name">
+                              <strong>Name:</strong> {fundObject.name || "N/A"}
+                            </div>
+                            <div className="fund__card__budget_code">
+                              <strong>Budget Code:</strong>{" "}
+                              {fundObject.budget_code || "N/A"}
+                            </div>
+                            <div className="fund__card__sub_budget_head">
+                              <strong>Sub Budget Head:</strong>{" "}
+                              {fundObject.sub_budget_head || "N/A"}
+                            </div>
+                            <div className="fund__card__type">
+                              <strong>Type:</strong>
+                              <span
+                                className={`type__badge type__${fundObject.type}`}
+                              >
+                                {fundObject.type}
+                              </span>
+                            </div>
+                            <div className="fund__card__amounts">
+                              <div className="fund__card__amount fund__card__amount--approved">
+                                <strong>Approved Amount:</strong>
+                                <span className="amount__value">
+                                  ₦
+                                  {Number(
+                                    fundObject.total_approved_amount
+                                  )?.toLocaleString() || "0"}
+                                </span>
+                              </div>
+                              <div className="fund__card__amount fund__card__amount--committed">
+                                <strong>Committed Amount:</strong>
+                                <span className="amount__value">
+                                  ₦
+                                  {fundObject.total_commited_amount?.toLocaleString() ||
+                                    "0"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="fund__card__year">
+                              <strong>Budget Year:</strong>{" "}
+                              {fundObject.budget_year || "N/A"}
+                            </div>
+                            <div className="fund__card__status">
+                              <strong>Status:</strong>
+                              <span
+                                className={`status__badge ${
+                                  fundObject.is_exhausted
+                                    ? "status__exhausted"
+                                    : "status__available"
+                                }`}
+                              >
+                                {fundObject.is_exhausted
+                                  ? "Exhausted"
+                                  : "Available"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="fund__card__empty">
+                          <i className="ri-money-dollar-circle-line"></i>
+                          <p>No budget head selected</p>
+                          <span>
+                            Select a budget head to allocate funds for this
+                            document
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* End Fund Section */}
+                  {/* Parent Document Section */}
+                  <div className="col-md-12 parent__document__section">
+                    <div className="mb-5">
+                      <TextInput
+                        label="Attach Parent Document"
+                        name="parent_document"
+                        value={parentDocument}
+                        onChange={(e) => setParentDocument(e.target.value)}
+                        placeholder="Enter Reference Number"
+                      />
+                      <Button
+                        label={isAttachingDocument ? "Attaching..." : "Attach"}
+                        handleClick={() => fetchParentDocument()}
+                        icon={
+                          isAttachingDocument
+                            ? "ri-loader-4-line"
+                            : "ri-attachment-line"
+                        }
+                        size="sm"
+                        variant="dark"
+                        isDisabled={!parentDocument || isAttachingDocument}
+                      />
+                    </div>
+                    <div className="reference__document__container">
+                      {documentObject ? (
+                        <div className="reference__document__card">
+                          <div className="reference__document__header">
+                            <i className="ri-file-text-line"></i>
+                            <span className="reference__document__title">
+                              Parent Document
+                            </span>
+                          </div>
+                          <div className="reference__document__content">
+                            <div className="reference__document__ref">
+                              <strong>Ref:</strong> {documentObject.ref}
+                            </div>
+                            <div className="reference__document__title_text">
+                              <strong>Title:</strong> {documentObject.title}
+                            </div>
+                            <div className="reference__document__description">
+                              <strong>Description:</strong>{" "}
+                              {documentObject.description || "No description"}
+                            </div>
+                            <div className="reference__document__status">
+                              <strong>Status:</strong>
+                              <span
+                                className={`status__badge status__${documentObject.status?.toLowerCase()}`}
+                              >
+                                {documentObject.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="reference__document__empty">
+                          <i className="ri-file-text-line"></i>
+                          <p>No parent document attached</p>
+                          <span>
+                            Attach a parent document to link this document
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* End Parent Document Section */}
+                </div>
+                {/* End Other Form Elements */}
+              </div>
             </div>
           </div>
         </div>
-        <div className="col-md-4 mb-3">
-          {/* Process Flow Container */}
-          <div className="process__flow__container mb-5">
+        {/* Sidebar - Configuration & Settings */}
+        <div className="col-md-4 mb-4">
+          {/* Document Configuration */}
+          <div className="document__config__section mb-4">
+            <div className="subject__block mb-3">
+              <TextInput
+                label="Document Title"
+                name="title"
+                value={state.title}
+                onChange={(e) =>
+                  setState((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Enter Document Title"
+              />
+            </div>
+
+            {/* Document Generator Component */}
+            <DocumentGeneratorComponent
+              repo={Repository}
+              collection={collection}
+              service={category?.service || ""}
+              state={state}
+              setState={setState}
+              plug={(data) => {
+                setResource(data);
+              }}
+              category={category}
+              template={template}
+              updateGlobalState={handleGeneratedData}
+            />
+          </div>
+
+          {/* Process Flow Configuration */}
+          <div className="process__flow__container mb-4">
             <DocumentProcessFlow
               processTypeOptions={processTypeOptions}
               activeTab={activeTab}
@@ -635,9 +956,9 @@ const DocumentGenerator = ({
               isDisplay
             />
           </div>
-          {/* End Process Flow Container */}
+
           {/* Workflow Preview */}
-          <div className="workflow__preview__section mb-5">
+          <div className="workflow__preview__section mb-4">
             <WorkflowPreview
               workflow={workflow}
               trackers={trackers}
@@ -645,262 +966,66 @@ const DocumentGenerator = ({
               errors={workflowErrors}
             />
           </div>
-          <div className="subject__block mb-4">
-            <TextInput
-              label="Document Title"
-              name="title"
-              value={state.title}
-              onChange={(e) =>
-                setState((prev) => ({ ...prev, title: e.target.value }))
-              }
-              placeholder="Enter Document Title"
-            />
-          </div>
-          <DocumentGeneratorComponent
-            repo={Repository}
-            collection={collection}
-            service={category?.service || ""}
-            state={state}
-            setState={setState}
-            plug={(data) => {
-              // console.log(data);
-              setResource(data);
-            }}
-            category={category}
-            template={template}
-          />
-        </div>
-        <div className="col-md-12 mb-3">
-          <div
-            className="bottom__div"
-            style={{
-              backgroundColor: "white",
-              padding: 32,
-              borderRadius: 3,
-              border: "1px solid lightgrey",
-            }}
-          >
-            {/* Other Form Elements */}
-            <div className="row mb-4">
-              {/* Fund Section */}
-              <div className="col-md-4 fund__section">
-                <div className="fund__container">
-                  <MultiSelect
-                    label="Budget Heads"
-                    options={formatOptions(funds, "id", "name", true)}
-                    value={fund}
-                    onChange={handleFundChange}
-                    placeholder="Budget Head"
-                    isSearchable
-                    isDisabled={false}
-                  />
-                </div>
-                <div className="fund__display__card">
-                  {fundObject ? (
-                    <div className="fund__card">
-                      <div className="fund__card__header">
-                        <i className="ri-money-dollar-circle-line"></i>
-                        <span className="fund__card__title">
-                          Selected Budget Head
+
+          {/* File Uploads */}
+          <div className="uploads__container__section">
+            <div className="uploads__container flex column gap-md">
+              <Dropzone
+                label="Upload Supporting Documents"
+                files={uploads}
+                setFiles={setUploads}
+              />
+              <div className="uploaded__files__container">
+                {uploads.length > 0 ? (
+                  uploads.map((upload, index) => {
+                    const isPdf = upload.name.toLowerCase().endsWith(".pdf");
+                    return (
+                      <div
+                        key={upload.name}
+                        className={`uploaded__file__item ${
+                          isPdf
+                            ? "uploaded__file__pdf"
+                            : "uploaded__file__image"
+                        }`}
+                      >
+                        <i
+                          className={
+                            isPdf ? "ri-file-pdf-2-line" : "ri-file-image-line"
+                          }
+                        ></i>
+                        <span className="uploaded__file__name">
+                          {upload.name}
                         </span>
+                        <button
+                          className="uploaded__file__remove"
+                          onClick={() => {
+                            const newUploads = uploads.filter(
+                              (_, i) => i !== index
+                            );
+                            setUploads(newUploads);
+                          }}
+                          title="Remove file"
+                        >
+                          <i className="ri-close-line"></i>
+                        </button>
                       </div>
-                      <div className="fund__card__content">
-                        <div className="fund__card__name">
-                          <strong>Name:</strong> {fundObject.name || "N/A"}
-                        </div>
-                        <div className="fund__card__budget_code">
-                          <strong>Budget Code:</strong>{" "}
-                          {fundObject.budget_code || "N/A"}
-                        </div>
-                        <div className="fund__card__sub_budget_head">
-                          <strong>Sub Budget Head:</strong>{" "}
-                          {fundObject.sub_budget_head || "N/A"}
-                        </div>
-                        <div className="fund__card__type">
-                          <strong>Type:</strong>
-                          <span
-                            className={`type__badge type__${fundObject.type}`}
-                          >
-                            {fundObject.type}
-                          </span>
-                        </div>
-                        <div className="fund__card__amounts">
-                          <div className="fund__card__amount fund__card__amount--approved">
-                            <strong>Approved Amount:</strong>
-                            <span className="amount__value">
-                              ₦
-                              {Number(
-                                fundObject.total_approved_amount
-                              )?.toLocaleString() || "0"}
-                            </span>
-                          </div>
-                          <div className="fund__card__amount fund__card__amount--committed">
-                            <strong>Committed Amount:</strong>
-                            <span className="amount__value">
-                              ₦
-                              {fundObject.total_commited_amount?.toLocaleString() ||
-                                "0"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="fund__card__year">
-                          <strong>Budget Year:</strong>{" "}
-                          {fundObject.budget_year || "N/A"}
-                        </div>
-                        <div className="fund__card__status">
-                          <strong>Status:</strong>
-                          <span
-                            className={`status__badge ${
-                              fundObject.is_exhausted
-                                ? "status__exhausted"
-                                : "status__available"
-                            }`}
-                          >
-                            {fundObject.is_exhausted
-                              ? "Exhausted"
-                              : "Available"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="fund__card__empty">
-                      <i className="ri-money-dollar-circle-line"></i>
-                      <p>No budget head selected</p>
-                      <span>
-                        Select a budget head to allocate funds for this document
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* End Fund Section */}
-              {/* Parent Document Section */}
-              <div className="col-md-4 parent__document__section">
-                <div className="mb-5">
-                  <TextInput
-                    label="Attach Parent Document"
-                    name="parent_document"
-                    value={parentDocument}
-                    onChange={(e) => setParentDocument(e.target.value)}
-                    placeholder="Enter Reference Number"
-                  />
-                  <Button
-                    label="Attach"
-                    handleClick={() => fetchParentDocument()}
-                    icon="ri-attachment-line"
-                    size="sm"
-                    variant="dark"
-                    isDisabled={!parentDocument}
-                  />
-                </div>
-                <div className="reference__document__container">
-                  {documentObject ? (
-                    <div className="reference__document__card">
-                      <div className="reference__document__header">
-                        <i className="ri-file-text-line"></i>
-                        <span className="reference__document__title">
-                          Parent Document
-                        </span>
-                      </div>
-                      <div className="reference__document__content">
-                        <div className="reference__document__ref">
-                          <strong>Ref:</strong> {documentObject.ref}
-                        </div>
-                        <div className="reference__document__title_text">
-                          <strong>Title:</strong> {documentObject.title}
-                        </div>
-                        <div className="reference__document__description">
-                          <strong>Description:</strong>{" "}
-                          {documentObject.description || "No description"}
-                        </div>
-                        <div className="reference__document__status">
-                          <strong>Status:</strong>
-                          <span
-                            className={`status__badge status__${documentObject.status?.toLowerCase()}`}
-                          >
-                            {documentObject.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="reference__document__empty">
-                      <i className="ri-file-text-line"></i>
-                      <p>No parent document attached</p>
-                      <span>
-                        Attach a parent document to link this document
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* End Parent Document Section */}
-              {/* Uploads Section */}
-              <div className="col-md-4 uploads__container__section">
-                <div className="uploads__container flex column gap-md">
-                  <Dropzone
-                    label="Upload Supporting Documents"
-                    files={uploads}
-                    setFiles={setUploads}
-                  />
-                  <div className="uploaded__files__container">
-                    {uploads.length > 0 ? (
-                      uploads.map((upload, index) => {
-                        const isPdf = upload.name
-                          .toLowerCase()
-                          .endsWith(".pdf");
-                        return (
-                          <div
-                            key={upload.name}
-                            className={`uploaded__file__item ${
-                              isPdf
-                                ? "uploaded__file__pdf"
-                                : "uploaded__file__image"
-                            }`}
-                          >
-                            <i
-                              className={
-                                isPdf
-                                  ? "ri-file-pdf-2-line"
-                                  : "ri-file-image-line"
-                              }
-                            ></i>
-                            <span className="uploaded__file__name">
-                              {upload.name}
-                            </span>
-                            <button
-                              className="uploaded__file__remove"
-                              onClick={() => {
-                                const newUploads = uploads.filter(
-                                  (_, i) => i !== index
-                                );
-                                setUploads(newUploads);
-                              }}
-                              title="Remove file"
-                            >
-                              <i className="ri-close-line"></i>
-                            </button>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="uploaded__files__empty">
-                        <i className="ri-folder-open-line"></i>
-                        <p>No files uploaded</p>
-                        <span>
-                          Upload supporting documents to attach to this document
-                        </span>
-                      </div>
-                    )}
+                    );
+                  })
+                ) : (
+                  <div className="uploaded__files__empty">
+                    <i className="ri-folder-open-line"></i>
+                    <p>No files uploaded</p>
+                    <span>
+                      Upload supporting documents to attach to this document
+                    </span>
                   </div>
-                </div>
+                )}
               </div>
-              {/* End Uploads Section */}
             </div>
-            {/* End Other Form Elements */}
           </div>
         </div>
+        {/* Bottom Section - Additional Settings */}
+        <div className="col-md-12 mb-3"></div>
       </div>
     </div>
   );

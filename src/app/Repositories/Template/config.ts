@@ -1,4 +1,4 @@
-import { ConfigState } from "resources/views/crud/ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 import { ConfigProp } from "../BaseRepository";
 import { TemplateResponseData } from "./data";
 

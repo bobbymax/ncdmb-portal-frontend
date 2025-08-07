@@ -152,7 +152,6 @@ const DocumentCategory: React.FC<
           ]}
           defaultValue=""
           defaultCheckDisabled
-          size="sm"
         />
       </div>
 
@@ -168,7 +167,6 @@ const DocumentCategory: React.FC<
           options={workflows}
           defaultValue={0}
           defaultCheckDisabled
-          size="sm"
         />
       </div>
       <div className="col-md-4 mb-3">
@@ -183,7 +181,6 @@ const DocumentCategory: React.FC<
           options={docTypes}
           defaultValue={0}
           defaultCheckDisabled
-          size="sm"
         />
       </div>
       <div className="col-md-4 mb-3">

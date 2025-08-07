@@ -26,7 +26,14 @@ export interface AllowanceResponseData extends BaseResponse {
   description: string;
   category: "parent" | "item";
   payment_route: "one-off" | "round-trip" | "computable";
-  payment_basis: "weekdays" | "days" | "nights" | "fixed" | "km";
+  payment_basis:
+    | "weekdays"
+    | "days"
+    | "nights"
+    | "fixed"
+    | "km"
+    | "input"
+    | "other";
   remunerations: RemunerationResponseData[];
   selectedRemunerations: ResponseSubmitData[];
   component: ComponentEnumValues;

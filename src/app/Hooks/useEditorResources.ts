@@ -46,7 +46,7 @@ const useEditorResources = <D extends BaseRepository>(Repo: D) => {
                 return response.data;
               }
             } catch (error) {
-              console.log(error);
+              // Error fetching editor resources
             }
           }
         }

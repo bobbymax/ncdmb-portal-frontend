@@ -11,7 +11,7 @@ export const documentTypeViews: ViewsProps[] = [
     mode: "list",
   },
   {
-    title: "Create DocumentType",
+    title: "Create Document Type",
     server_url: "documentTypes",
     component: "DocumentType",
     frontend_path: "/specifications/document-types/create",

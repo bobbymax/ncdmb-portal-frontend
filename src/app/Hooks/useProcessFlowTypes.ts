@@ -11,20 +11,24 @@ import sent_from from "resources/assets/images/processes/forward.png";
 import sent_to from "resources/assets/images/processes/sent_to.png";
 import sent_through from "resources/assets/images/processes/forward.png";
 import sent_cc from "resources/assets/images/processes/cc.png";
+import sent_approvers from "resources/assets/images/stages/signature.png";
+import ApproversComponent from "resources/views/crud/templates/tabs/ApproversComponent";
 
 const useProcessFlowTypes = () => {
-  const processTypes = ["from", "to", "through", "cc"] as const;
+  const processTypes = ["from", "to", "through", "cc", "approvers"] as const;
   const processIcons: Record<ProcessType, string> = {
     from: sent_from,
     to: sent_to,
     through: sent_through,
     cc: sent_cc,
+    approvers: sent_approvers,
   };
   const processComponents: ProcessComponentMap = {
     from: FromStaffTabComponent,
     to: ToStaffTabComponent,
     through: ThroughStaffComponent,
     cc: CCStaffComponent,
+    approvers: ApproversComponent,
   };
   const processTypeOptions: ProcessTabsOption[] = processTypes.map((type) => ({
     value: type,

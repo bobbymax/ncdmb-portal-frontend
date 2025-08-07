@@ -63,7 +63,6 @@ const useGenerateTemplateImages = (
     if (draftTemplates.length > 0) {
       const handleCapture = async () => {
         const urls = await captureTemplatesToImages();
-        console.log("Captured:", urls);
       };
 
       handleCapture();

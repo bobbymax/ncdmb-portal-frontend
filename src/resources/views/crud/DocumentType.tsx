@@ -99,7 +99,6 @@ const DocumentType: React.FC<
           defaultValue={999}
           defaultCheckDisabled
           isDisabled={loading}
-          size="sm"
         />
       </div>
       <div className="col-md-12 mb-3">

@@ -70,7 +70,6 @@ const WorkflowTimelineExample: React.FC = () => {
   );
 
   const handleTrackerClick = (tracker: WorkflowTracker) => {
-    console.log("Clicked tracker:", tracker);
     // You can implement navigation or modal opening here
     alert(
       `Clicked: ${tracker.name}\nStatus: ${tracker.status}\nAssigned to: ${tracker.assigned_to}`

@@ -8,18 +8,20 @@ import {
 } from "app/Hooks/useBuilder";
 import {
   EventContent,
+  ExpenseContent,
   InvoiceContent,
   MilestoneContent,
   ParagraphContent,
   SignatureContent,
   TableContent,
+  TitleContent,
 } from "./ContentBlockView";
 import { ResourcesList } from "../builders/DynamicTableBuilder";
 import { BaseResponse } from "@/app/Repositories/BaseRepository";
 import { BlockDataTypeMap, blockFormMap } from ".";
 import { BlockDataType } from "@/app/Repositories/Block/data";
 import Button from "resources/views/components/forms/Button";
-import { ConfigState } from "../../ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 
 const ContentEditor = ({
   content,
@@ -28,6 +30,7 @@ const ContentEditor = ({
   resource,
   onRemove,
   configState,
+  sharedState,
 }: {
   resource: BaseResponse | null;
   block: ContentAreaProps;
@@ -39,6 +42,7 @@ const ContentEditor = ({
   ) => void;
   onRemove?: (blockId: string) => void;
   configState: ConfigState;
+  sharedState?: Record<string, any>;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localContentState, setLocalContentState] =
@@ -61,12 +65,6 @@ const ContentEditor = ({
   }, [content]);
 
   const handleSave = () => {
-    console.log("ContentEditor handleSave called with:", {
-      localContentState,
-      blockType: block.type,
-      blockId: block.id,
-    });
-
     // Propagate changes to parent
     modify(
       localContentState as OptionsContentAreaProps,
@@ -104,6 +102,7 @@ const ContentEditor = ({
         } else {
           newValue = data;
         }
+
         return {
           ...prev,
           [identifier]: newValue,
@@ -116,6 +115,8 @@ const ContentEditor = ({
   const MemoBlockForm: JSX.Element | null = useMemo(() => {
     if (!localContentState) return null;
 
+    // console.log(block.type);
+
     const Component = blockFormMap[block.type];
     return Component ? (
       <Component
@@ -123,9 +124,16 @@ const ContentEditor = ({
         configState={configState}
         localContentState={localContentState}
         updateLocal={updateContentState}
+        sharedState={sharedState}
       />
     ) : null;
-  }, [localContentState, block.type, resource, updateContentState]);
+  }, [
+    localContentState,
+    block.type,
+    resource,
+    updateContentState,
+    sharedState,
+  ]);
 
   const renderCard = (param: keyof OptionsContentAreaProps) => {
     switch (param) {
@@ -202,6 +210,19 @@ const ContentEditor = ({
             currency={localContentState.invoice?.currency || "NGN"}
           />
         );
+      case "expense":
+        return (
+          <ExpenseContent
+            loaded_type={localContentState.expense?.loaded_type || "claim"}
+            expenses={localContentState.expense?.expenses || []}
+            claimState={localContentState.expense?.claimState || null}
+            headers={localContentState.expense?.headers || []}
+          />
+        );
+      case "paper_title":
+        return (
+          <TitleContent title={localContentState.paper_title?.title || ""} />
+        );
       default:
         return <div>Unsupported content type</div>;
     }
@@ -210,32 +231,15 @@ const ContentEditor = ({
   return (
     <div className="card__block__container">
       <div className="card__block__header flex align between">
-        <div
-          className="header__draggable flex align gap-sm"
-          style={{
-            cursor: "pointer",
-          }}
-        >
-          <i
-            className="ri-drag-move-line"
-            style={{
-              color: "white",
-              cursor: "grab",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.cursor = "grabbing")}
-            onMouseLeave={(e) => (e.currentTarget.style.cursor = "grab")}
-          />
+        <div className="header__draggable flex align gap-sm">
+          <i className="ri-drag-move-line" />
           <small>{block.type}</small>
         </div>
         <div className="header__actions flex align gap-sm">
           <i
             className="ri-settings-3-line"
             onClick={() => setIsEditing(true)}
-            style={{
-              color: "white",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
+            title="Edit block"
           />
           <i
             className="ri-subtract-line"
@@ -243,11 +247,6 @@ const ContentEditor = ({
               if (onRemove) {
                 onRemove(block.id);
               }
-            }}
-            style={{
-              color: "white",
-              cursor: "pointer",
-              fontSize: "16px",
             }}
             title="Remove block"
           />

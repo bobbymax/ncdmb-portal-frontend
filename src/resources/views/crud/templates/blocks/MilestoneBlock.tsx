@@ -47,8 +47,6 @@ const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
       milestones: updatedMilestones,
     };
 
-    console.log(updatedState);
-
     setState((prev) => ({
       ...prev,
       milestones: updatedMilestones,

@@ -24,6 +24,7 @@ import DocumentGenerator from "resources/views/pages/DocumentGenerator";
 import { TemplateResponseData } from "@/app/Repositories/Template/data";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
+import { BlockDataType } from "@/app/Repositories/Block/data";
 
 export interface ActionBttnProps {
   variant: string;
@@ -91,6 +92,11 @@ export interface BuilderComponentProps<
   resource?: T | null;
   state: T;
   setState?: Dispatch<SetStateAction<T>>;
+  generatedData: unknown;
+  updateGlobalState: (
+    generatorData: unknown,
+    identifier: BlockDataType
+  ) => void;
 }
 
 export interface DocumentGeneratorComponentProps<
@@ -105,6 +111,10 @@ export interface DocumentGeneratorComponentProps<
   service: string;
   category: DocumentCategoryResponseData | null;
   template: TemplateResponseData | null;
+  updateGlobalState: (
+    generatorData: unknown,
+    identifier: BlockDataType
+  ) => void;
 }
 
 export interface PageProps<T extends BaseRepository> {

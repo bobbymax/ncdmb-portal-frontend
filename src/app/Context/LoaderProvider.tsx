@@ -35,9 +35,7 @@ export const LoaderProvider: React.FC<{
   const [stopped, setStopped] = useState(false);
   const [content, setContent] = useState<ReactNode | null>(null);
 
-  const close = () => {
-    console.log("I have been clicked!!");
-  };
+  const close = () => {};
 
   const openLoader = (
     Component: React.ComponentType<LoaderProps>,

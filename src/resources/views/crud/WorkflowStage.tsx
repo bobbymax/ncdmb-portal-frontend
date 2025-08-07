@@ -109,8 +109,6 @@ const WorkflowStage: React.FC<
 
       const listOfDepartments = formatOptions(departments, "id", "abv");
 
-      console.log(stages);
-
       setStageCategories(stageCategories);
       setActions(formatOptions(actions, "id", "name"));
       setRecipients(formatOptions(recipients, "id", "name"));

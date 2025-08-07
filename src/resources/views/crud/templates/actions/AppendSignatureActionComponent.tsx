@@ -87,7 +87,6 @@ const AppendSignatureActionComponent: React.FC<
               ...state,
               signature: currentSig,
             });
-            console.log("✏️ Signature updated.");
           }
         }
       }, 300);

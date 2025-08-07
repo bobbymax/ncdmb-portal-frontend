@@ -163,6 +163,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
             isDisabled={isLoading}
             valueKey="id"
             labelKey="name"
+            size="xl"
           />
         </div>
         <div className="col-md-6 mb-3">
@@ -177,6 +178,7 @@ const ExpenseModal: React.FC<ModalValueProps> = ({
             isDisabled={isLoading || state.parent_id === 0}
             valueKey="value"
             labelKey="label"
+            size="xl"
           />
         </div>
         <div className="col-md-4 mb-3">

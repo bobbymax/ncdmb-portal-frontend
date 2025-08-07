@@ -11,6 +11,8 @@ import { BaseResponse, TabOptionProps } from "app/Repositories/BaseRepository";
 import { TransactionResponseData } from "app/Repositories/Transaction/data";
 import axios from "axios";
 import pluralize from "pluralize";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
+import { SignaturePadGroupProps } from "../Hooks/useBuilder";
 
 const GOOGLE_API_KEY = "AIzaSyAgfl2V6_4HkCuqMnDDLl_mUhmIaEY4yXk";
 
@@ -28,19 +30,6 @@ export const accessibleTabs: TabOptionProps[] = [
     status: "draft",
     sidebar: "AnalysisSidebar",
   },
-  // {
-  //   title: "Pages",
-  //   label: "pages",
-  //   component: "LinkedDocumentsTab",
-  //   icon: "ri-links-line",
-  //   variant: "info",
-  //   endpoint: "serviceWorkers",
-  //   hasFile: false,
-  //   appendSignature: false,
-  //   isDefault: false,
-  //   status: "draft",
-  //   sidebar: "AnalysisSidebar",
-  // },
   {
     title: "Uploads",
     label: "uploads",
@@ -80,19 +69,6 @@ export const accessibleTabs: TabOptionProps[] = [
     status: "draft",
     sidebar: "AdminSidebar",
   },
-  // {
-  //   title: "Print Document",
-  //   label: "print",
-  //   component: "PrintDocumentTab",
-  //   icon: "ri-printer-line",
-  //   variant: "dark",
-  //   endpoint: "serviceWorkers",
-  //   hasFile: false,
-  //   appendSignature: false,
-  //   isDefault: false,
-  //   status: "draft",
-  //   sidebar: "PrintSidebar",
-  // },
 ];
 
 export const toSmartSingular = (title: string): string => {
@@ -105,6 +81,99 @@ export const toSmartSingular = (title: string): string => {
 export const extractFourDigitsAfterFirstChar = (input: string) => {
   const match = input.match(/^[A-Za-z](\d{4})/);
   return match ? match[1] : null;
+};
+
+export const generateApprovalsFromConfig = (
+  config: ConfigState
+): SignaturePadGroupProps[] => {
+  // console.log("generateApprovalsFromConfig called with:", config);
+
+  const approvals: SignaturePadGroupProps[] = [];
+  let order = 1;
+
+  // Add "from" as initiator (first signatory)
+  if (config.from?.state) {
+    const fromState = config.from.state;
+    // console.log("Processing from state:", fromState);
+    if (fromState.staff || fromState.group || fromState.department) {
+      approvals.push({
+        group: fromState.group,
+        fallback_group: null,
+        approver: fromState.staff || null,
+        department: fromState.department,
+        carder_id: 0, // You might want to get this from staff data
+        signatory: null,
+        approval_type: "initiator",
+        identifier: crypto.randomUUID(),
+        is_signed: false,
+        can_override: false,
+        make_comment: 0,
+        order: order++,
+        meta_data: {
+          process_type: "from",
+          stage: fromState.stage,
+          permissions: fromState.permissions,
+        },
+      });
+    }
+  }
+
+  // Add "through" states as intermediate signatories
+  if (config.through?.state) {
+    const throughState = config.through.state;
+    // console.log("Processing through state:", throughState);
+    if (throughState.staff || throughState.group || throughState.department) {
+      approvals.push({
+        group: throughState.group,
+        fallback_group: null,
+        approver: throughState.staff || null,
+        department: throughState.department,
+        carder_id: 0,
+        signatory: null,
+        approval_type: throughState.is_approving ? "approval" : "witness",
+        identifier: crypto.randomUUID(),
+        is_signed: false,
+        can_override: false,
+        make_comment: 0,
+        order: order++,
+        meta_data: {
+          process_type: "through",
+          stage: throughState.stage,
+          permissions: throughState.permissions,
+        },
+      });
+    }
+  }
+
+  // Add "to" as final approver
+  if (config.to?.state) {
+    const toState = config.to.state;
+    // console.log("Processing to state:", toState);
+    if (toState.staff || toState.group || toState.department) {
+      approvals.push({
+        group: toState.group,
+        fallback_group: null,
+        approver: toState.staff || null,
+        department: toState.department,
+        carder_id: 0,
+        signatory: null,
+        approval_type: "approval",
+        identifier: crypto.randomUUID(),
+        is_signed: false,
+        can_override: false,
+        make_comment: 0,
+        order: order++,
+        meta_data: {
+          process_type: "to",
+          stage: toState.stage,
+          permissions: toState.permissions,
+        },
+      });
+    }
+  }
+
+  // console.log("Generated approvals:", approvals);
+  return approvals;
 };
 
 export const getDistanceInKm = async (

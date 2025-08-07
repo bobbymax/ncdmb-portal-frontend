@@ -58,14 +58,13 @@ const SignatureBlockPad: React.FC<BlockModalProps<"approval">> = ({
       make_comment: 0,
       is_signed: false,
       can_override: false,
+      signatory: null,
     });
 
   const handleStateChange = (
     updatedValue: DataOptionsProps | DataOptionsProps[],
     key: keyof SignaturePadGroupProps
   ) => {
-    console.log("Updated Value:", updatedValue);
-
     setState((prev) => ({
       ...prev,
       [key]: updatedValue,
@@ -156,7 +155,6 @@ const SignatureBlockPad: React.FC<BlockModalProps<"approval">> = ({
             ]}
             defaultValue=""
             defaultCheckDisabled
-            size="sm"
           />
         </div>
         <div className="col-md-4 mb-3">
@@ -170,7 +168,6 @@ const SignatureBlockPad: React.FC<BlockModalProps<"approval">> = ({
             options={carders}
             defaultValue=""
             defaultCheckDisabled
-            size="sm"
           />
         </div>
         <div className="col-md-4 mb-3">
@@ -187,7 +184,6 @@ const SignatureBlockPad: React.FC<BlockModalProps<"approval">> = ({
             ]}
             defaultValue=""
             defaultCheckDisabled
-            size="sm"
           />
         </div>
         <div className="col-md-12 mb-3">

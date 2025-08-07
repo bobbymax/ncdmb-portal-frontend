@@ -267,7 +267,6 @@ export class TripExpenseGenerator {
     const remuneration = this.getRemuneration(allowance.id);
 
     if (remuneration) {
-      console.log(useDistance ? remuneration.amount : "nothing");
       expenses.push({
         id: 0,
         identifier: generateUniqueString(32),

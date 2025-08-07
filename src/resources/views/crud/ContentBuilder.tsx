@@ -5,7 +5,6 @@ import {
 import TemplateRepository from "app/Repositories/Template/TemplateRepository";
 import { BuilderComponentProps } from "bootstrap";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { InternalMemoHeader } from "resources/templates/headers";
 import ContentBlock from "./templates/blocks/ContentBlock";
 import useBuilder from "app/Hooks/useBuilder";
 import TemplateBuilderView from "./templates/builders/TemplateBuilderView";
@@ -22,8 +21,14 @@ import { toast } from "react-toastify";
 import BlockNavigationBar from "./BlockNavigationBar";
 import DocumentProcessFlow from "../components/tabs/DocumentProcessFlow";
 import useProcessFlowTypes from "app/Hooks/useProcessFlowTypes";
+import { BaseResponse } from "@/app/Repositories/BaseRepository";
+import {
+  useTemplateHeader,
+  ConfigState,
+  HeaderProps,
+} from "app/Hooks/useTemplateHeader";
 
-export type ProcessType = "from" | "to" | "through" | "cc";
+export type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 export type ProcessTypeDependencies = {
   stages: WorkflowStageResponseData[];
   groups: GroupResponseData[];
@@ -33,6 +38,7 @@ export interface TabConfigContentProps<K extends ProcessType, S> {
   value: K;
   icon: string;
   default: boolean;
+  configState: ConfigState;
   data?: S | S[] | null;
   label: string;
   handleStateUpdate: (state: S | S[], value: K) => void;
@@ -45,6 +51,9 @@ export type ProcessComponentMap = {
   to: React.FC<TabConfigContentProps<"to", TemplateProcessProps>>;
   through: React.FC<TabConfigContentProps<"through", TemplateProcessProps>>;
   cc: React.FC<TabConfigContentProps<"cc", TemplateProcessProps[]>>;
+  approvers: React.FC<
+    TabConfigContentProps<"approvers", TemplateProcessProps[]>
+  >;
 };
 
 export type ProcessTabsOption = {
@@ -60,13 +69,7 @@ export type ProcessStateMap = {
   to: TemplateProcessProps;
   through: TemplateProcessProps;
   cc: TemplateProcessProps[];
-};
-
-export type ConfigState = {
-  [K in ProcessType]: {
-    key: K;
-    state: ProcessStateMap[K];
-  };
+  approvers: TemplateProcessProps[];
 };
 
 // Declare the generic component properly
@@ -77,15 +80,17 @@ const ContentBuilder: React.FC<
   resource: template,
   state,
   setState,
+  generatedData,
 }): React.ReactElement => {
   const navigate = useNavigate();
   const { setIsLoading } = useStateContext();
-  const [configState, setConfigState] = useState<ConfigState>({
+  const [configState, setConfigState] = useState<ConfigState>(() => ({
     from: { key: "from", state: {} as TemplateProcessProps },
     to: { key: "to", state: {} as TemplateProcessProps },
     through: { key: "through", state: {} as TemplateProcessProps },
-    cc: { key: "cc", state: [] },
-  });
+    cc: { key: "cc", state: [] as TemplateProcessProps[] },
+    approvers: { key: "approvers", state: [] as TemplateProcessProps[] },
+  }));
   const {
     blocks,
     activeBlockId,
@@ -102,6 +107,9 @@ const ContentBuilder: React.FC<
       processTypeOptions.find((option) => option.default) ||
       processTypeOptions[0]
   );
+
+  const getTemplateHeader = useTemplateHeader(template);
+
   const buildTemplate = useCallback(
     (data: TemplateResponseData) => {
       Alert.flash(
@@ -125,26 +133,19 @@ const ContentBuilder: React.FC<
     [repository]
   );
 
+  const configStateRef = useRef(configState);
+
+  // Update ref when configState changes
   useEffect(() => {
-    if (setState) {
-      setState((prev) => ({
-        ...prev,
-        config: {
-          ...prev.config,
-          subject: "",
-          process: configState,
-        },
-        body: contents,
-      }));
-    }
-  }, [contents, configState]);
+    configStateRef.current = configState;
+  }, [configState]);
 
-  console.log(template);
-
+  // Initialize content and config state from template data
   const initialized = useRef(false);
 
   useEffect(() => {
     if (initialized.current) return;
+
     if ((state.body ?? [])?.length > 0) {
       setContents(state.body ?? []);
 
@@ -178,6 +179,12 @@ const ContentBuilder: React.FC<
                 merged[ccKey] = entry as ConfigState[typeof ccKey];
                 break;
               }
+              case "approvers": {
+                const approversKey = "approvers" as const;
+                merged[approversKey] =
+                  entry as ConfigState[typeof approversKey];
+                break;
+              }
             }
           });
 
@@ -188,6 +195,25 @@ const ContentBuilder: React.FC<
       initialized.current = true;
     }
   }, [state.config, state.body]);
+
+  // Remove the problematic useEffect that was causing the infinite loop
+  // The parent state will be updated when needed through other mechanisms
+
+  const memoizedSetConfigState = useCallback(
+    (newState: ConfigState | ((prev: ConfigState) => ConfigState)) => {
+      if (typeof newState === "function") {
+        setConfigState((prev) => {
+          const result = newState(prev);
+          configStateRef.current = result;
+          return result;
+        });
+      } else {
+        configStateRef.current = newState;
+        setConfigState(newState);
+      }
+    },
+    [setConfigState] // Depend on setConfigState to get the latest function
+  );
 
   return (
     <div className="row mt-4">
@@ -205,14 +231,7 @@ const ContentBuilder: React.FC<
             <div className="col-md-12 mb-3">
               {/* Page Component */}
               <div className="template__page">
-                <InternalMemoHeader
-                  to={configState.to.state}
-                  from={configState.from.state}
-                  through={configState.through.state}
-                  ref={null}
-                  date={null}
-                  title={null}
-                />
+                {getTemplateHeader({ configState })}
                 {/* Block Content Area */}
                 {/* The Template should be here!!! */}
                 <div className="block__placeholders">
@@ -221,6 +240,7 @@ const ContentBuilder: React.FC<
                     modify={() => {}}
                     editor
                     configState={configState}
+                    generatedData={generatedData}
                   />
                 </div>
                 {/* End Block Content Area */}
@@ -236,7 +256,7 @@ const ContentBuilder: React.FC<
             processTypeOptions={processTypeOptions}
             activeTab={activeTab}
             configState={configState}
-            setConfigState={setConfigState}
+            setConfigState={memoizedSetConfigState}
             setActiveTab={setActiveTab}
           />
 

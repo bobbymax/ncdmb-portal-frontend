@@ -21,7 +21,7 @@ const WorkflowPreview: React.FC<WorkflowPreviewProps> = ({
     return (
       <div className="workflow__preview__container">
         <div className="workflow__preview__header">
-          <h4>Workflow Preview</h4>
+          <h5>Workflow Preview</h5>
           <div className="workflow__preview__loading">
             <i className="ri-loader-4-line"></i>
             <span>Generating workflow...</span>
@@ -34,7 +34,7 @@ const WorkflowPreview: React.FC<WorkflowPreviewProps> = ({
   return (
     <div className="workflow__preview__container">
       <div className="workflow__preview__header">
-        <h4>Workflow Preview</h4>
+        <h5>Workflow Preview</h5>
         <div
           className={`workflow__preview__status ${
             isValid ? "valid" : "invalid"

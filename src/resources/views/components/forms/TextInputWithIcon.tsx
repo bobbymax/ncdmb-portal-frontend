@@ -18,7 +18,7 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
   min,
   max,
   icon,
-  width = 30,
+  width = 100,
   ...attributes
 }) => {
   return (
@@ -28,24 +28,28 @@ const TextInputWithIcon: React.FC<WithIcon> = ({
           {label}:
         </label>
       )}
-      <div className="with-icon">
-        <input
-          type={type}
-          id={name}
-          value={value}
-          onChange={onChange}
-          className={`custom-storm-form-control storm-form-${size} storm-control-with-icon`}
-          placeholder={placeholder}
-          disabled={isDisabled}
-          name={name}
-          min={min}
-          max={max}
-          style={{
-            width: `${width}%`,
-          }}
-          {...attributes}
-        />
-        <i className={`ri-${icon}-line special-icon`} />
+      <div className="search-input-container">
+        <div className="search-input-wrapper">
+          <input
+            type={type}
+            id={name}
+            value={value}
+            onChange={onChange}
+            className={`search-input search-input-${size}`}
+            placeholder={placeholder}
+            disabled={isDisabled}
+            name={name}
+            min={min}
+            max={max}
+            style={{
+              width: `${width}%`,
+            }}
+            {...attributes}
+          />
+          <div className="search-icon">
+            <i className={`ri-${icon}-line`} />
+          </div>
+        </div>
       </div>
     </div>
   );

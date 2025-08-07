@@ -105,8 +105,6 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
 
   const handleBlockChange = useCallback(
     (detail: unknown, mode?: "store" | "update") => {
-      console.log(detail);
-
       try {
         // if (!isInvoiceItem(detail)) {
         //   console.error("Invalid invoice item data received");

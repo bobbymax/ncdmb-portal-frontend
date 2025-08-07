@@ -10,6 +10,10 @@ import {
   InvoiceItemResponseData,
   InvoiceResponseData,
 } from "../Repositories/Invoice/data";
+import { SignatoryResponseData } from "../Repositories/Signatory/data";
+import { ExpenseResponseData } from "../Repositories/Expense/data";
+import { ClaimResponseData } from "../Repositories/Claim/data";
+import { ColumnData } from "@/resources/views/components/tables/CustomDataTable";
 
 export type InputFieldTypes =
   | "text"
@@ -58,6 +62,17 @@ export type TableContentAreaProps = {
   rows: TableContentAreaRowProps[];
 };
 
+export type TitleContentProps = {
+  title: string;
+};
+
+export interface ExpenseContentProps {
+  loaded_type: "claim" | "touring-advance" | "other";
+  expenses: ExpenseResponseData[];
+  claimState: ClaimResponseData | null;
+  headers: ColumnData[];
+}
+
 export type EventContentAreaProps = {
   name: string;
   venue: string;
@@ -91,6 +106,7 @@ export type SignaturePadGroupProps = {
   approver: DataOptionsProps | null;
   department: DataOptionsProps | null;
   carder_id: number;
+  signatory: SignatoryResponseData | null;
   approval_type:
     | "initiator"
     | "witness"
@@ -144,6 +160,8 @@ export type OptionsContentAreaProps = {
   approval?: SignatureContentAreaProps | undefined;
   milestone?: MilestoneContentAreaProps | undefined;
   invoice?: InvoiceContentAreaProps | undefined;
+  expense?: ExpenseContentProps | undefined;
+  paper_title?: TitleContentProps | undefined;
 };
 
 export interface ContentAreaProps {

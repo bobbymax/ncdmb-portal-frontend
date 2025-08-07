@@ -23,8 +23,11 @@ export const authenticate = async (username: string, password: string) => {
     await initializeCsrfToken();
     await accessPoint.post("/api/login", { username, password });
   } catch (error) {
-    console.log(error);
+    // Error in service initialization
   }
 };
 
 export default accessPoint;
+
+// AI Service exports
+export { default as AIService } from "./AIService";

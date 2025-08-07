@@ -3,7 +3,6 @@ import { FormPageComponentProps } from "bootstrap";
 import React from "react";
 import TextInput from "../components/forms/TextInput";
 import Select from "../components/forms/Select";
-// import Button from "../components/forms/Button";
 
 const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
   state,
@@ -60,8 +59,9 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "posting", label: "Staff Move" },
             { value: "bullet", label: "Bullet List" },
             { value: "approval", label: "Approvals" },
+            { value: "expense", label: "Expense" },
+            { value: "paper_title", label: "Paper Title" },
           ]}
-          size="sm"
         />
       </div>
 
@@ -84,8 +84,9 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "TableBlock", label: "Table Block" },
             { value: "SignatureBlock", label: "Signature Block" },
             { value: "ListBlock", label: "List Block" },
+            { value: "ExpenseBlock", label: "Expense Block" },
+            { value: "TitleBlock", label: "Title Block" },
           ]}
-          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -104,7 +105,6 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "third-party", label: "Third Party" },
             { value: "document", label: "Document" },
           ]}
-          size="sm"
         />
       </div>
       <div className="col-md-3 mb-3">
@@ -122,26 +122,8 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: 0, label: "Yes" },
             { value: 1, label: "No" },
           ]}
-          size="sm"
         />
       </div>
-      {/* <div className="col-md-12 mt-3 mb">
-        <small className="tip">
-          If this block is a table, Please add the table headers here!!
-        </small>
-
-        <div className="row">
-          <div className="col-md-12 mb-3">
-            <Button
-              label="Add Header Option"
-              handleClick={() => {}}
-              icon="ri-grid-line"
-              variant="info"
-              size="sm"
-            />
-          </div>
-        </div>
-      </div> */}
     </>
   );
 };

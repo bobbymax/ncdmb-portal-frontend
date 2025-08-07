@@ -1,5 +1,6 @@
 import {
   EventContentAreaProps,
+  ExpenseContentProps,
   InvoiceContentAreaProps,
   MilestoneContentAreaProps,
   OptionsContentAreaProps,
@@ -8,7 +9,9 @@ import {
   ResourceFetchType,
   ResourceFilterTypes,
   SignatureContentAreaProps,
+  SignaturePadGroupProps,
   TableContentAreaProps,
+  TitleContentProps,
 } from "app/Hooks/useBuilder";
 import React, { useEffect, useMemo, useState } from "react";
 import DynamicTableBuilder, {
@@ -16,7 +19,12 @@ import DynamicTableBuilder, {
 } from "../builders/DynamicTableBuilder";
 import moment from "moment";
 import SignatureCanvas from "resources/views/components/capsules/SignatureCanvas";
-import { formatCurrency } from "app/Support/Helpers";
+import {
+  formatCurrency,
+  generateApprovalsFromConfig,
+} from "app/Support/Helpers";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
+import { ExpenseResponseData } from "@/app/Repositories/Expense/data";
 
 export const ParagraphContent: React.FC<
   ParagraphContentAreaProps & {
@@ -228,15 +236,129 @@ export const InvoiceContent: React.FC<
   );
 };
 
+export const ExpenseContent: React.FC<
+  ExpenseContentProps & { isPreview?: boolean }
+> = React.memo(
+  ({ loaded_type, isPreview = true, expenses, claimState, headers }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [displayedExpenses, setDisplayedExpenses] = useState(expenses);
+
+    // Handle loading state when expenses change
+    useEffect(() => {
+      if (JSON.stringify(expenses) !== JSON.stringify(displayedExpenses)) {
+        setIsLoading(true);
+
+        // Simulate loading time
+        const timer = setTimeout(() => {
+          setDisplayedExpenses(expenses);
+          setIsLoading(false);
+        }, 800);
+
+        return () => clearTimeout(timer);
+      }
+    }, [expenses, displayedExpenses]);
+
+    return (
+      <div className="expense__container mb-4">
+        <h5>Expenses</h5>
+
+        {isLoading ? (
+          <div className="expense__loading">
+            <div className="loading__spinner">
+              <i className="ri-loader-4-line"></i>
+            </div>
+            <p>Calculating expenses...</p>
+          </div>
+        ) : (
+          <table className="table table-bordered table-striped expense__table">
+            <thead>
+              <tr>
+                {headers.map((header) => (
+                  <th key={header.accessor}>{header.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {displayedExpenses.map((expense, idx) => (
+                <tr key={idx} className="expense__row">
+                  {headers.map((header) => (
+                    <td key={header.accessor} className="expense__cell">
+                      <span className="expense-table-text">
+                        {header.type === "date"
+                          ? `${moment(expense.start_date).format(
+                              "LL"
+                            )} - ${moment(expense.end_date).format("LL")}`
+                          : header.type === "currency"
+                          ? formatCurrency(
+                              expense[
+                                header.accessor as keyof ExpenseResponseData
+                              ] as number
+                            )
+                          : expense[
+                              header.accessor as keyof ExpenseResponseData
+                            ] ?? ""}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  }
+);
+
+export const TitleContent: React.FC<
+  TitleContentProps & { isPreview?: boolean }
+> = ({ title, isPreview = true }) => {
+  return (
+    <div className="title__container mb-4">
+      <small
+        style={{
+          display: "block",
+          textTransform: "uppercase",
+          letterSpacing: 1.5,
+          fontSize: 11,
+          fontWeight: 600,
+          color: "green",
+        }}
+      >
+        Purpose
+      </small>
+      <h5>{title}</h5>
+    </div>
+  );
+};
+
 const ContentBlockView = ({
   content,
+  configState,
+  generatedData,
 }: {
   content: OptionsContentAreaProps;
+  configState: ConfigState;
+  generatedData?: unknown;
 }) => {
   const objectKeys = useMemo(
     () => Object.keys(content) as (keyof OptionsContentAreaProps)[],
     [content]
   );
+
+  const [approvals, setApprovals] = useState<SignaturePadGroupProps[]>([]);
+
+  // Update approvals when configState changes
+  useEffect(() => {
+    if (configState) {
+      const generatedApprovals = generateApprovalsFromConfig(configState);
+
+      // Only update if there are generated approvals and they're different from current
+      if (generatedApprovals.length > 0) {
+        setApprovals(generatedApprovals);
+      }
+    }
+  }, [configState]);
 
   // console.log("Content Block View", content);
 
@@ -284,7 +406,7 @@ const ContentBlockView = ({
       case "approval":
         return (
           <SignatureContent
-            approvals={content.approval?.approvals || []}
+            approvals={approvals || []}
             style={content.approval?.style || "basic"}
             max_signatures={content.approval?.max_signatures || 6}
             originator_id={content.approval?.originator_id || 0}
@@ -315,6 +437,48 @@ const ContentBlockView = ({
             currency={content.invoice?.currency || "NGN"}
           />
         );
+      case "expense": {
+        // Default headers for expense table
+        const defaultHeaders = [
+          {
+            accessor: "description",
+            label: "Description",
+            type: "text" as const,
+          },
+          {
+            accessor: "start_date",
+            label: "Date Range",
+            type: "date" as const,
+          },
+          {
+            accessor: "total_amount_spent",
+            label: "Amount",
+            type: "currency" as const,
+          },
+        ];
+
+        const sharedClaimState = (generatedData as any)?.claimState;
+        const expenses =
+          sharedClaimState?.expenses || content.expense?.expenses || [];
+
+        // Check if any expenses have been manually edited
+        const hasManualEdits = sharedClaimState?.manualEditFunctions
+          ? true
+          : false;
+
+        return (
+          <ExpenseContent
+            key={`expense-${sharedClaimState?.route}-${expenses.length}-${hasManualEdits}`}
+            loaded_type={content.expense?.loaded_type || "claim"}
+            expenses={expenses}
+            claimState={sharedClaimState || content.expense?.claimState || null}
+            headers={content.expense?.headers || defaultHeaders}
+          />
+        );
+      }
+
+      case "paper_title":
+        return <TitleContent title={content.paper_title?.title || ""} />;
       default:
         return <div>Unsupported content type</div>;
     }

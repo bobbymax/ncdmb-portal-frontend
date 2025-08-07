@@ -26,7 +26,7 @@ export const claimViews: ViewsProps[] = [
     title: "Register Claim",
     server_url: "claims",
     component: "Claim",
-    frontend_path: "/hub/claims/:categoryId/create",
+    frontend_path: "/hub/claims/create",
     type: "form",
     tag: "",
     mode: "store",

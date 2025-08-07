@@ -10,7 +10,7 @@ import { BaseResponse } from "@/app/Repositories/BaseRepository";
 import ContentEditor from "../blocks/ContentEditor";
 import { BlockDataTypeMap } from "../blocks";
 import { BlockDataType } from "@/app/Repositories/Block/data";
-import { ConfigState } from "../../ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 
 interface TemplateBuilderProps<T extends BaseResponse> {
   contents: ContentAreaProps[];
@@ -25,6 +25,8 @@ interface TemplateBuilderProps<T extends BaseResponse> {
   onReorder?: (reorderedContents: ContentAreaProps[]) => void;
   onRemove?: (blockId: string) => void;
   configState: ConfigState;
+  generatedData: unknown;
+  sharedState?: Record<string, any>;
 }
 
 const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
@@ -36,7 +38,11 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
   onReorder,
   onRemove,
   configState,
+  generatedData,
+  sharedState,
 }) => {
+  // console.log(generatedData);
+
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -123,6 +129,7 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
               modify={modify}
               onRemove={onRemove}
               configState={configState}
+              sharedState={generatedData as Record<string, unknown>}
             />
           </div>
         ) : (
@@ -132,7 +139,11 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
               isDragOver ? "drag-over" : ""
             }`}
           >
-            <ContentBlockView content={content} />
+            <ContentBlockView
+              content={content}
+              configState={configState}
+              generatedData={generatedData}
+            />
           </div>
         );
       })}

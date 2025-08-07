@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ContentAreaProps } from "./useBuilder";
-import { ConfigState } from "resources/views/crud/ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 import {
   TemplateProcessProps,
   TemplateResponseData,
@@ -20,7 +20,9 @@ const useDocumentGenerator = (params: unknown) => {
     to: { key: "to", state: {} as TemplateProcessProps },
     through: { key: "through", state: {} as TemplateProcessProps },
     cc: { key: "cc", state: [] },
+    approvers: { key: "approvers", state: [] },
   });
+
   const contents: ContentAreaProps[] = useMemo(
     () => template?.body ?? [],
     [template]

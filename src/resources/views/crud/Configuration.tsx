@@ -55,7 +55,7 @@ const Configuration: React.FC<
         toast.success("Data uploaded successfully!!");
       }
     } catch (error) {
-      console.log(error);
+      // Error in configuration
     }
   };
 

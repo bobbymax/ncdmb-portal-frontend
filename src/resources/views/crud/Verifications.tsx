@@ -13,8 +13,6 @@ const Verifications: React.FC<
 > = ({ Repository, collection, onManageRawData, View }) => {
   const [searchValue, setSearchValue] = useState<string>("");
 
-  console.log(collection);
-
   return (
     <div className="row">
       <div className="col-md-12 mb-3">

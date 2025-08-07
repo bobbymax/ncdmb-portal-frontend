@@ -245,7 +245,6 @@ export const FileProcessorProvider = ({
             );
           }
         } catch (error) {
-          console.log("Something went wrong: ", error);
           toast.error("Something went wrong!!");
         }
       }
@@ -283,7 +282,6 @@ export const FileProcessorProvider = ({
               );
             }
           } catch (error) {
-            console.log("Something went wrong: ", error);
             toast.error("Something went wrong!!");
           }
         }

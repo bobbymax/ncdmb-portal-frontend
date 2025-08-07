@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import useRepo from "./useRepo";
 import { repo } from "bootstrap/repositories";
 import {
@@ -6,8 +6,6 @@ import {
   ComponentEnumValues,
 } from "app/Repositories/Allowance/data";
 import { CityResponseData } from "app/Repositories/City/data";
-import { UserResponseData } from "app/Repositories/User/data";
-import useDirectories from "./useDirectories";
 import { formatCurrency, getDistanceInKm } from "app/Support/Helpers";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
@@ -55,7 +53,8 @@ interface AllowanceWithMeta extends AllowanceResponseData {
 }
 
 const useClaimCalculator = () => {
-  const claimRepo = repo("claim");
+  // Memoize the repo call to prevent useRepo from re-fetching on every render
+  const claimRepo = useMemo(() => repo("claim"), []);
   const { dependencies } = useRepo(claimRepo);
   const [allowances, setAllowances] = useState<AllowanceResponseData[]>([]);
   const [cities, setCities] = useState<CityResponseData[]>([]);
@@ -242,6 +241,22 @@ const useClaimCalculator = () => {
       route: "one-way" | "return",
       airport: DataOptionsProps | null
     ): ExpenseResponseData[] => {
+      // console.log("calculate function called with:", {
+      //   remsCount: rems.length,
+      //   grade_level_id,
+      //   startDate,
+      //   endDate,
+      //   takeoff,
+      //   destination,
+      //   modeOfTransportation,
+      //   isResident,
+      //   distance,
+      //   route,
+      //   airport,
+      //   citiesCount: cities.length,
+      //   allowancesCount: allowances.length,
+      // });
+
       const computableAllowances: AllowanceWithMeta[] = [];
 
       const eventStartDate = moment(startDate);
@@ -256,8 +271,13 @@ const useClaimCalculator = () => {
         allowances.length < 1 ||
         !takeoff ||
         !destination
-      )
+      ) {
+        // TODO: Add error handling
+        // console.log(
+        //   "calculate function returning empty array due to missing data"
+        // );
         return [];
+      }
 
       let shuttle: AllowanceResponseData;
 
@@ -467,6 +487,11 @@ const useClaimCalculator = () => {
         airport ? airport.label : ""
       );
 
+      // console.log(
+      //   "calculate function returning expenses:",
+      //   constructedExpenses
+      // );
+
       return constructedExpenses;
     },
     [cities, allowances]
@@ -496,6 +521,12 @@ const useClaimCalculator = () => {
   useEffect(() => {
     const { allowances = [], cities = [] } = dependencies as DependencyProps;
 
+    // console.log("useClaimCalculator dependencies:", {
+    //   allowancesCount: allowances.length,
+    //   citiesCount: cities.length,
+    //   dependencies: dependencies,
+    // });
+
     setAllowances(allowances);
     setCities(cities);
   }, [dependencies]);
@@ -506,6 +537,8 @@ const useClaimCalculator = () => {
     setLoading,
     getDistance,
     cities,
+    allowances,
+    countWeekdays,
   };
 };
 

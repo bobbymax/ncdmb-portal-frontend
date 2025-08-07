@@ -88,7 +88,7 @@ const useAccountingTransactions = () => {
 
         // console.log(users);
       } catch (error) {
-        console.log(error);
+        // Error fetching dependencies
         return;
       }
     };

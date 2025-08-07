@@ -18,7 +18,7 @@ const useFunnels = () => {
     try {
       return Repo.update("service-workers", service, draftState);
     } catch (error) {
-      console.log("Error processing file state: ", error);
+      // Error processing file state
       return;
     }
   };

@@ -277,27 +277,25 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       </div>
       <div className="col-md-12 mb-5">
         <div className="flex align gap-md">
-          {category && category?.label === "trips" && (
-            <Button
-              label="Add Trip"
-              handleClick={() =>
-                openModal(
-                  Trip,
-                  "trip",
-                  {
-                    title: "Add Trip",
-                    isUpdating: false,
-                    onSubmit,
-                    dependencies: [allowances, cities, tripCategories],
-                  },
-                  tripRepo.getState()
-                )
-              }
-              variant="dark"
-              size="sm"
-              icon="ri-route-line"
-            />
-          )}
+          <Button
+            label="Add Trip"
+            handleClick={() =>
+              openModal(
+                Trip,
+                "trip",
+                {
+                  title: "Add Trip",
+                  isUpdating: false,
+                  onSubmit,
+                  dependencies: [allowances, cities, tripCategories],
+                },
+                tripRepo.getState()
+              )
+            }
+            variant="dark"
+            size="sm"
+            icon="ri-route-line"
+          />
           <Button
             label="Add Expense"
             handleClick={() =>

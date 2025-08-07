@@ -37,7 +37,6 @@ const useFileActions = ({
       return byteArray;
     } catch (error) {
       console.error("Failed to fetch or decode file:", error);
-      console.log(error);
       return null;
     }
   };

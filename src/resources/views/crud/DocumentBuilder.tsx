@@ -11,6 +11,7 @@ import {
   BaseResponse,
 } from "@/app/Repositories/BaseRepository";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
+import { BlockDataType } from "@/app/Repositories/Block/data";
 
 export interface DocumentBuilderComponentProps<
   D extends BaseRepository,
@@ -22,12 +23,25 @@ export interface DocumentBuilderComponentProps<
   state: DocumentResponseData;
   setState: Dispatch<SetStateAction<DocumentResponseData>>;
   plug: (data: T) => void;
+  updateGlobalState: (
+    generatorData: unknown,
+    identifier: BlockDataType
+  ) => void;
   category: DocumentCategoryResponseData;
 }
 
 const DocumentBuilder: React.FC<
   DocumentGeneratorComponentProps<DocumentCategoryRepository, BaseResponse>
-> = ({ repo, service, collection, plug, category, state, setState }) => {
+> = ({
+  repo,
+  service,
+  collection,
+  plug,
+  category,
+  state,
+  setState,
+  updateGlobalState,
+}) => {
   // Memoized lazy component loader based on service
   const LazyServiceComponent = useMemo(() => {
     if (!service) return null;
@@ -68,6 +82,7 @@ const DocumentBuilder: React.FC<
         category={category}
         state={state}
         setState={setState}
+        updateGlobalState={updateGlobalState}
       />
     </React.Suspense>
   );

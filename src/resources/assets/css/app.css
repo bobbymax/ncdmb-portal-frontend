@@ -610,34 +610,137 @@ body {
 /* End Content Styles */
 
 #login-wrapper {
-  /* display: grid; */
-  margin: 0 auto;
-  /* grid-template-columns: 45vw auto; */
-  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* Workspace Background Vectors */
+#login-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Vector Elements */
+#login-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    /* Desk */ linear-gradient(
+      45deg,
+      transparent 40%,
+      rgba(100, 116, 139, 0.08) 40%,
+      rgba(100, 116, 139, 0.08) 60%,
+      transparent 60%
+    ),
+    /* Monitor */
+      radial-gradient(
+        circle at 85% 15%,
+        rgba(100, 116, 139, 0.06) 0%,
+        transparent 50%
+      ),
+    /* Keyboard */
+      linear-gradient(
+        90deg,
+        transparent 20%,
+        rgba(100, 116, 139, 0.05) 20%,
+        rgba(100, 116, 139, 0.05) 80%,
+        transparent 80%
+      ),
+    /* Mouse */
+      radial-gradient(
+        circle at 35% 80%,
+        rgba(100, 116, 139, 0.04) 0%,
+        transparent 30%
+      ),
+    /* Plant */
+      radial-gradient(
+        ellipse at 10% 25%,
+        rgba(100, 116, 139, 0.03) 0%,
+        transparent 40%
+      ),
+    /* Lamp */
+      linear-gradient(
+        180deg,
+        transparent 10%,
+        rgba(100, 116, 139, 0.04) 10%,
+        rgba(100, 116, 139, 0.04) 15%,
+        transparent 15%
+      ),
+    /* Papers */
+      linear-gradient(
+        45deg,
+        transparent 75%,
+        rgba(100, 116, 139, 0.03) 75%,
+        rgba(100, 116, 139, 0.03) 85%,
+        transparent 85%
+      ),
+    /* Coffee */
+      radial-gradient(
+        circle at 80% 85%,
+        rgba(100, 116, 139, 0.05) 0%,
+        transparent 25%
+      );
+  background-size: 200px 120px, 80px 60px, 140px 8px, 20px 30px, 40px 60px,
+    8px 80px, 60px 80px, 30px 40px;
+  background-position: 5% 90%, 85% 15%, 20% 75%, 35% 80%, 10% 25%, 25% 10%,
+    75% 40%, 80% 85%;
+  background-repeat: no-repeat;
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
 }
 
 .login-form {
-  background-image: url("../images/bg_try.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  overflow: hidden;
+  z-index: 10;
 }
 
 .login__card {
-  max-width: 32%;
-  /* background-color: rgba(0, 0, 0, 0.3); */
-  backdrop-filter: blur(8px);
-  background: rgba(0, 0, 0, 0.4);
-  padding: 58px 49px;
-  border-radius: 12px;
+  max-width: 450px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.login__card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
 }
 
 a {
@@ -646,12 +749,15 @@ a {
 }
 
 .password-forgot {
-  color: rgba(255, 255, 255, 0.55);
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
 .password-forgot:hover {
-  color: var(--color-secondary-alternate);
-  opacity: 0.7;
+  color: #3b82f6;
+  transform: translateX(5px);
 }
 
 img {
@@ -690,7 +796,6 @@ h4 {
 h5 {
   font-size: var(--h5);
 }
-
 small {
   font-size: 12px;
 }
@@ -717,7 +822,6 @@ b {
 .block {
   display: block !important;
 }
-
 .hide {
   display: none !important;
 }
@@ -1420,6 +1524,12 @@ b {
   height: 78px;
 }
 
+.icon__container img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
 .block__item i {
   color: whitesmoke;
   font-size: 3rem;
@@ -1471,7 +1581,6 @@ p.claim-description {
     color: var(--color-bttn-danger-variant);
   }
 }
-
 .uploaded__documents {
   display: flex;
   align-items: center;
@@ -2985,7 +3094,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
 }
-
 /* End Content Styles */
 
 #login-wrapper {
@@ -2994,20 +3102,6 @@ body {
   /* grid-template-columns: 45vw auto; */
   height: 100vh;
   position: relative;
-}
-
-.login-form {
-  background-image: url("../images/bg_try.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
 }
 
 .login__card {
@@ -3798,7 +3892,6 @@ b {
   width: 78px;
   height: 78px;
 }
-
 .block__item i {
   color: whitesmoke;
   font-size: 3rem;
@@ -5351,7 +5444,6 @@ p.claim-description {
   bottom: 35px;
   left: 65px;
 }
-
 .invoice-section {
   display: flex;
   flex-direction: column;
@@ -6137,7 +6229,6 @@ p.claim-description {
   transform: none;
   box-shadow: none;
 }
-
 /* Enhanced Table Filter Inputs */
 .data-table thead th .storm-form-control {
   background: linear-gradient(
@@ -6292,7 +6383,11 @@ p.claim-description {
   gap: 12px;
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-tetiary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -6301,7 +6396,11 @@ p.claim-description {
 
 .dashboard-title i {
   font-size: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-tetiary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -6337,14 +6436,18 @@ p.claim-description {
 }
 
 .timeframe-btn:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: rgba(0, 77, 64, 0.1);
+  color: var(--color-primary);
 }
 
 .timeframe-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-tetiary) 100%
+  );
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 77, 64, 0.3);
 }
 
 /* Section Headers */
@@ -6925,7 +7028,6 @@ p.claim-description {
   width: 85%;
   height: auto;
 }
-
 .custom__signature__pad {
   background-color: var(--color-light);
   display: flex;
@@ -7720,7 +7822,6 @@ p.claim-description {
   letter-spacing: 1px;
   color: var(--color-adjacent-alternate);
 }
-
 .tracker__container .workflow_section .workflow_section_header h3 {
   font-size: 1.3rem;
   font-weight: 500;
@@ -8520,7 +8621,6 @@ p.little-badge {
     font-size: 0.78rem;
   }
 }
-
 .ledger-title {
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -8871,6 +8971,15 @@ p.little-badge {
   .login__card {
     max-width: 100%;
     width: 100%;
+  }
+
+  #login-wrapper {
+    padding: 1rem;
+  }
+
+  #login-wrapper::after {
+    background-size: 150px 90px, 60px 45px, 100px 6px, 15px 22px, 30px 45px,
+      6px 60px, 45px 60px, 22px 30px;
   }
 
   .more-avatars {
@@ -9295,7 +9404,6 @@ p.little-badge {
   width: 10px;
   height: 10px;
 }
-
 .timeline__content {
   flex: 1;
   padding: 0.5rem 0;
@@ -9311,7 +9419,6 @@ p.little-badge {
   align-items: center;
   width: 100%;
 }
-
 .timeline__title {
   margin: 0;
   font-size: 14px;
@@ -10094,7 +10201,6 @@ p.little-badge {
   background: #fff3cd;
   color: #856404;
 }
-
 .reference__document__empty {
   background: #f8f9fa;
   border: 2px dashed #dee2e6;
@@ -10109,7 +10215,6 @@ p.little-badge {
   border-color: #adb5bd;
   background: #e9ecef;
 }
-
 .reference__document__empty i {
   font-size: 2rem;
   color: #adb5bd;
@@ -10555,7 +10660,7 @@ p.little-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 999999;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -10884,7 +10989,6 @@ p.little-badge {
   background: var(--hover-bg);
   color: var(--text-primary);
 }
-
 /* Updated Header Styles */
 .main__top__header {
   background: var(--header-bg);
@@ -10909,7 +11013,6 @@ p.little-badge {
   align-items: center;
   gap: 1.5rem;
 }
-
 /* Search Input Styles */
 .search-container {
   position: relative;
@@ -11279,7 +11382,7 @@ p.little-badge {
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   padding: 1.5rem;
 }
@@ -11326,6 +11429,7 @@ p.little-badge {
 
 .widget-content {
   color: var(--text-primary);
+  width: 100%;
 }
 
 /* Website Analytics Widget */
@@ -11584,7 +11688,7 @@ p.little-badge {
 /* Responsive Design */
 @media (max-width: 1200px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .daily-sales,
@@ -11683,7 +11787,6 @@ p.little-badge {
 [data-theme="dark"] * {
   scrollbar-color: rgba(216, 216, 216, 0.4) rgba(64, 64, 64, 0.4); /* Light grey thumb, dark grey track with 0.4 opacity */
 }
-
 /* Specific scrollbar improvements for common elements */
 .table-container::-webkit-scrollbar,
 .data-table::-webkit-scrollbar,
@@ -11707,7 +11810,6 @@ p.little-badge {
 html {
   scroll-behavior: smooth;
 }
-
 /* Improve overflow elements */
 .overflow-auto,
 .overflow-scroll {
@@ -12145,6 +12247,7 @@ html {
 
 [data-theme="dark"] .widget-content {
   color: var(--text-primary);
+  width: 100%;
 }
 
 /* Dark Mode for specific widget content */
@@ -12234,4 +12337,497 @@ html {
 
 [data-theme="dark"] .text-blue-500 {
   color: var(--color-primary) !important;
+}
+
+/* Dark Mode Login Styles */
+[data-theme="dark"] #login-wrapper {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+[data-theme="dark"] .login__card {
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] #login-wrapper::after {
+  background-image: 
+    /* Desk */ linear-gradient(
+      45deg,
+      transparent 40%,
+      rgba(148, 163, 184, 0.08) 40%,
+      rgba(148, 163, 184, 0.08) 60%,
+      transparent 60%
+    ),
+    /* Monitor */
+      radial-gradient(
+        circle at 85% 15%,
+        rgba(148, 163, 184, 0.06) 0%,
+        transparent 50%
+      ),
+    /* Keyboard */
+      linear-gradient(
+        90deg,
+        transparent 20%,
+        rgba(148, 163, 184, 0.05) 20%,
+        rgba(148, 163, 184, 0.05) 80%,
+        transparent 80%
+      ),
+    /* Mouse */
+      radial-gradient(
+        circle at 35% 80%,
+        rgba(148, 163, 184, 0.04) 0%,
+        transparent 30%
+      ),
+    /* Plant */
+      radial-gradient(
+        ellipse at 10% 25%,
+        rgba(148, 163, 184, 0.03) 0%,
+        transparent 40%
+      ),
+    /* Lamp */
+      linear-gradient(
+        180deg,
+        transparent 10%,
+        rgba(148, 163, 184, 0.04) 10%,
+        rgba(148, 163, 184, 0.04) 15%,
+        transparent 15%
+      ),
+    /* Papers */
+      linear-gradient(
+        45deg,
+        transparent 75%,
+        rgba(148, 163, 184, 0.03) 75%,
+        rgba(148, 163, 184, 0.03) 85%,
+        transparent 85%
+      ),
+    /* Coffee */
+      radial-gradient(
+        circle at 80% 85%,
+        rgba(148, 163, 184, 0.05) 0%,
+        transparent 25%
+      );
+}
+
+[data-theme="dark"] .password-forgot {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .password-forgot:hover {
+  color: #60a5fa;
+}
+
+/* ===== LOGIN FORM BUTTON FIXES ===== */
+
+/* Make login button always visible and styled - Icon Only */
+.login-form-card .custom-button,
+.login-form-card button,
+.login-form-card .storm-bttn,
+.login-form-card .btn,
+.login-form-card [type="submit"],
+.login-form-card .card-bttn,
+.login-form-card .storm-bttn-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  width: 56px !important;
+  height: 56px !important;
+  padding: 0 !important;
+  font-size: 20px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+  margin: 0 auto !important;
+}
+
+/* Hide button text, show only icon */
+.login-form-card .custom-button span,
+.login-form-card button span,
+.login-form-card .storm-bttn span,
+.login-form-card .btn span,
+.login-form-card [type="submit"] span,
+.login-form-card .card-bttn span,
+.login-form-card .storm-bttn-success span {
+  display: none !important;
+}
+
+/* Style the icon - Right Arrow */
+.login-form-card .custom-button i,
+.login-form-card button i,
+.login-form-card .storm-bttn i,
+.login-form-card .btn i,
+.login-form-card [type="submit"] i,
+.login-form-card .card-bttn i,
+.login-form-card .storm-bttn-success i {
+  font-size: 20px !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure right arrow icon is used (but not for spinner) */
+.login-form-card .custom-button i:not(.ri-loader-4-line)::before,
+.login-form-card button i:not(.ri-loader-4-line)::before,
+.login-form-card .storm-bttn i:not(.ri-loader-4-line)::before,
+.login-form-card .btn i:not(.ri-loader-4-line)::before,
+.login-form-card [type="submit"] i:not(.ri-loader-4-line)::before,
+.login-form-card .card-bttn i:not(.ri-loader-4-line)::before,
+.login-form-card .storm-bttn-success i:not(.ri-loader-4-line)::before {
+  content: "→" !important;
+  font-family: inherit !important;
+}
+
+.login-form-card .custom-button:hover,
+.login-form-card button:hover,
+.login-form-card .storm-bttn:hover,
+.login-form-card .btn:hover,
+.login-form-card .card-bttn:hover,
+.login-form-card .storm-bttn-success:hover {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.login-form-card .custom-button:active,
+.login-form-card button:active,
+.login-form-card .storm-bttn:active,
+.login-form-card .btn:active,
+.login-form-card .card-bttn:active,
+.login-form-card .storm-bttn-success:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Add a subtle glow effect on focus */
+.login-form-card .custom-button:focus,
+.login-form-card button:focus,
+.login-form-card .storm-bttn:focus,
+.login-form-card .btn:focus,
+.login-form-card .card-bttn:focus,
+.login-form-card .storm-bttn-success:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3),
+    0 4px 12px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Make login input fields look like form elements - Well Structured */
+.login-form-card input[type="text"],
+.login-form-card input[type="password"],
+.login-form-card input[type="email"],
+.login-form-card input[type="number"],
+.login-form-card input[type="search"],
+.login-form-card input[type="tel"],
+.login-form-card input[type="url"],
+.login-form-card input[type="username"],
+.login-form-card input:not([type]),
+.login-form-card .login-form-control,
+.login-form-card .storm-form-control,
+.login-form-card .storm-form-control.storm-control-with-icon {
+  background: #fff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px 16px 52px !important;
+  font-size: 16px !important;
+  color: #334155 !important;
+  outline: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease !important;
+  margin-bottom: 1rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  line-height: 1.5 !important;
+}
+
+/* Input field focus state */
+.login-form-card input[type="text"]:focus,
+.login-form-card input[type="password"]:focus,
+.login-form-card input[type="email"]:focus,
+.login-form-card input[type="number"]:focus,
+.login-form-card input[type="search"]:focus,
+.login-form-card input[type="tel"]:focus,
+.login-form-card input[type="url"]:focus,
+.login-form-card input[type="username"]:focus,
+.login-form-card input:not([type]):focus,
+.login-form-card .login-form-control:focus,
+.login-form-card .storm-form-control:focus,
+.login-form-card .storm-form-control.storm-control-with-icon:focus {
+  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Well-structured icon positioning */
+.login-form-card .with-icon,
+.login-form-card .icon-item,
+.login-form-card .storm-form-control.storm-control-with-icon {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Icon styling and positioning - Perfectly aligned with placeholder */
+.login-form-card .with-icon i,
+.login-form-card .icon-item i,
+.login-form-card .storm-form-control.storm-control-with-icon i {
+  position: absolute !important;
+  left: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #64748b !important;
+  font-size: 18px !important;
+  z-index: 2 !important;
+  pointer-events: none !important;
+  transition: color 0.3s ease !important;
+  line-height: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 20px !important;
+  width: 20px !important;
+}
+
+/* Icon color change on focus */
+.login-form-card input:focus + i,
+.login-form-card .storm-form-control:focus + i,
+.login-form-card .with-icon input:focus ~ i,
+.login-form-card .icon-item input:focus ~ i,
+.login-form-card .storm-form-control.storm-control-with-icon:focus i {
+  color: #3b82f6 !important;
+}
+
+/* Input container structure */
+.login-form-card .login-from-group-inputs,
+.login-form-card .form-group {
+  position: relative !important;
+  margin-bottom: 1.5rem !important;
+  width: 100% !important;
+}
+
+/* Perfect alignment for placeholder and icon */
+.login-form-card input::placeholder {
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  font-weight: 400 !important;
+  vertical-align: middle !important;
+  transform: translateY(0) !important;
+}
+
+/* Ensure input text aligns with placeholder */
+.login-form-card input[type="text"],
+.login-form-card input[type="password"],
+.login-form-card input[type="email"],
+.login-form-card input[type="number"],
+.login-form-card input[type="search"],
+.login-form-card input[type="tel"],
+.login-form-card input[type="url"],
+.login-form-card input[type="username"],
+.login-form-card input:not([type]),
+.login-form-card .login-form-control,
+.login-form-card .storm-form-control,
+.login-form-card .storm-form-control.storm-control-with-icon {
+  vertical-align: middle !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Ensure consistent vertical alignment */
+.login-form-card .with-icon,
+.login-form-card .icon-item,
+.login-form-card .storm-form-control.storm-control-with-icon {
+  display: flex !important;
+  align-items: center !important;
+  position: relative !important;
+}
+
+/* Fine-tune icon vertical alignment */
+.login-form-card .with-icon i,
+.login-form-card .icon-item i,
+.login-form-card .storm-form-control.storm-control-with-icon i {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 20px !important;
+  width: 20px !important;
+}
+
+.login-form-card input[type="text"]:focus,
+.login-form-card input[type="password"]:focus,
+.login-form-card input[type="email"]:focus,
+.login-form-card input[type="number"]:focus,
+.login-form-card input[type="search"]:focus,
+.login-form-card input[type="tel"]:focus,
+.login-form-card input[type="url"]:focus,
+.login-form-card input[type="username"]:focus,
+.login-form-card input:not([type]):focus,
+.login-form-card .login-form-control:focus {
+  border: 1.5px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08) !important;
+}
+
+/* Remove old icon styling to avoid conflicts */
+
+/* Make sure the login-form-card has a white background and padding */
+.login-form-card {
+  background: #fff !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 24px rgba(30, 41, 59, 0.06) !important;
+  padding: 2.5rem 2rem !important;
+  z-index: 2 !important;
+}
+
+/* Responsive fix for small screens */
+@media (max-width: 600px) {
+  .login-form-card {
+    padding: 1.25rem 0.5rem !important;
+  }
+}
+
+/* ===== LOGIN LOADING STATES ===== */
+
+/* Button Animation Keyframes */
+@keyframes buttonShake {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  10% {
+    transform: translateX(-2px) translateY(-1px) scale(1.02);
+  }
+  20% {
+    transform: translateX(2px) translateY(1px) scale(1.04);
+  }
+  30% {
+    transform: translateX(-3px) translateY(-2px) scale(1.06);
+  }
+  40% {
+    transform: translateX(3px) translateY(2px) scale(1.08);
+  }
+  50% {
+    transform: translateX(-4px) translateY(-3px) scale(1.1);
+  }
+  60% {
+    transform: translateX(4px) translateY(3px) scale(1.12);
+  }
+  70% {
+    transform: translateX(-5px) translateY(-4px) scale(1.14);
+  }
+  80% {
+    transform: translateX(5px) translateY(4px) scale(1.16);
+  }
+  90% {
+    transform: translateX(-6px) translateY(-5px) scale(1.18);
+  }
+}
+
+@keyframes buttonLaunch {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(0) translateY(-10px) scale(1.3);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(-50px) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Button animation classes */
+.login-form-card .button-wrapper.animating .custom-button,
+.login-form-card .button-wrapper.animating button,
+.login-form-card .button-wrapper.animating .storm-bttn,
+.login-form-card .button-wrapper.animating .btn,
+.login-form-card .button-wrapper.animating [type="submit"],
+.login-form-card .button-wrapper.animating .card-bttn,
+.login-form-card .button-wrapper.animating .storm-bttn-success {
+  animation: buttonShake 0.8s ease-in-out,
+    buttonLaunch 0.6s ease-out 0.8s forwards !important;
+  pointer-events: none !important;
+}
+
+/* Disabled input fields */
+.login-form-card input:disabled,
+.login-form-card .storm-form-control:disabled,
+.login-form-card .storm-form-control.storm-control-with-icon:disabled {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* Disabled button styles */
+.login-form-card .custom-button:disabled,
+.login-form-card button:disabled,
+.login-form-card .storm-bttn:disabled,
+.login-form-card .btn:disabled,
+.login-form-card [type="submit"]:disabled,
+.login-form-card .card-bttn:disabled,
+.login-form-card .storm-bttn-success:disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Spinner animation for loading state */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Loading spinner icon - Proper spinner animation */
+.login-form-card .custom-button i.ri-loader-4-line,
+.login-form-card button i.ri-loader-4-line,
+.login-form-card .storm-bttn i.ri-loader-4-line,
+.login-form-card .btn i.ri-loader-4-line,
+.login-form-card [type="submit"] i.ri-loader-4-line,
+.login-form-card .card-bttn i.ri-loader-4-line,
+.login-form-card .storm-bttn-success i.ri-loader-4-line {
+  animation: spin 1s linear infinite !important;
+  font-size: 20px !important;
+  color: #ffffff !important;
+}
+
+/* Override the right arrow content for spinner */
+.login-form-card .custom-button i.ri-loader-4-line::before,
+.login-form-card button i.ri-loader-4-line::before,
+.login-form-card .storm-bttn i.ri-loader-4-line::before,
+.login-form-card .btn i.ri-loader-4-line::before,
+.login-form-card [type="submit"] i.ri-loader-4-line::before,
+.login-form-card .card-bttn i.ri-loader-4-line::before,
+.login-form-card .storm-bttn-success i.ri-loader-4-line::before {
+  content: "" !important;
+  font-family: inherit !important;
+}
+
+/* Disabled icon color */
+.login-form-card input:disabled + i,
+.login-form-card .storm-form-control:disabled + i,
+.login-form-card .with-icon input:disabled ~ i,
+.login-form-card .icon-item input:disabled ~ i,
+.login-form-card .storm-form-control.storm-control-with-icon:disabled i {
+  color: #94a3b8 !important;
+  opacity: 0.6 !important;
 }

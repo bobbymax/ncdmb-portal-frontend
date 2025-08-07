@@ -51,6 +51,34 @@ const Protected = ({ children }: ProtectedProps) => {
         onClick={closeMobileSidebar}
       />
 
+      {/* Document Generator Loading Overlay - Positioned at root level */}
+      <div
+        className="document__generator__loading__overlay"
+        style={{ display: "none" }}
+      >
+        <div className="loading__content">
+          <div className="loading__spinner">
+            <i className="ri-loader-4-line"></i>
+          </div>
+          <div className="loading__step">
+            <h3>Generating Document</h3>
+            <p id="loading-step">Initializing...</p>
+          </div>
+          <div className="loading__progress">
+            <div className="progress__bar">
+              <div
+                className="progress__fill"
+                id="progress-fill"
+                style={{ width: "0%" }}
+              ></div>
+            </div>
+            <span className="progress__text" id="progress-text">
+              0%
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Right Layout */}
       <main id="content">
         {/* Top Header */}
@@ -76,9 +104,9 @@ const Protected = ({ children }: ProtectedProps) => {
             </div>
           </div>
           <div className="header-right flex align gap-xl">
-            <i className="topheadericon ri-code-s-slash-line" />
+            {/* <i className="topheadericon ri-code-s-slash-line" /> */}
             <ThemeToggle />
-            <i className="topheadericon ri-grid-line" />
+            {/* <i className="topheadericon ri-grid-line" /> */}
             <i className="topheadericon ri-notification-2-line" />
             <div className="profile-section flex align gap-md">
               <div className="profile-avatar">

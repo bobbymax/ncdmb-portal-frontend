@@ -110,7 +110,6 @@ const TrackerModal: React.FC<ModalValueProps> = ({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    console.log(state);
 
     onSubmit(state, "update");
   };

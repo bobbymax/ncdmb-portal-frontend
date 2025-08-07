@@ -65,7 +65,6 @@ const ClaimAppendSignature: React.FC<
           }
         } catch (error) {
           toast.error("Something has gone wrong");
-          console.log(error);
         }
       }
     });

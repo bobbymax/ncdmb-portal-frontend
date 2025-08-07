@@ -12,7 +12,7 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
       const response = await repo.dependencies();
       setDependencies(response);
     } catch (error) {
-      console.log("Error fetching dependencies: ", error);
+      // Error fetching dependencies
     }
   };
 
@@ -23,7 +23,7 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
         setGroups(response.data as GroupResponseData[]);
       }
     } catch (error) {
-      console.log("Error fetching groups");
+      // Error fetching groups
     }
   };
 
@@ -33,7 +33,7 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
       return response.data;
       // console.log(response);
     } catch (error) {
-      console.log("Error fetching resource ", error);
+      // Error fetching resource
     }
   };
 
@@ -42,7 +42,7 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
       const response = await Repo.show("committment/funds", fundId);
       return response.data;
     } catch (error) {
-      console.log("Error fetching committments ", error);
+      // Error fetching commitments
     }
   };
 

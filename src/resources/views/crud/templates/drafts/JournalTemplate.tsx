@@ -23,8 +23,6 @@ const JournalTemplate: React.FC<
     DocumentResponseData[]
   >([]);
 
-  console.log(documentHistory);
-
   useEffect(() => {
     if (document && journalRepo) {
       const fetchLinkedDocuments = async () => {
@@ -35,7 +33,7 @@ const JournalTemplate: React.FC<
             setDocumentHistory(response.data as DocumentResponseData[]);
           }
         } catch (error) {
-          console.log(error);
+          // Error fetching document history
         }
       };
 

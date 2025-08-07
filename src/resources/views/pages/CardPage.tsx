@@ -39,7 +39,7 @@ const CardPage = ({
           <Button
             label={view.tag}
             icon="ri-function-add-line"
-            handleClick={() => navigate(url)}
+            handleClick={() => navigate(`${view.frontend_path}/create`)}
             variant="success"
             size="sm"
           />

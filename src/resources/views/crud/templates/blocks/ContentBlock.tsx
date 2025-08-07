@@ -11,7 +11,7 @@ import {
   OptionsContentAreaProps,
   TableContentAreaProps,
 } from "app/Hooks/useBuilder";
-import { ConfigState } from "../../ContentBuilder";
+import { ConfigState } from "app/Hooks/useTemplateHeader";
 
 const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
   repo,

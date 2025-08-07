@@ -43,7 +43,7 @@ const PaymentBatch: React.FC<
           setExpenditures(response.data as ExpenditureResponseData[]);
         }
       } catch (error) {
-        console.log(error);
+        // Error processing payment batch
       }
     };
 

@@ -3,21 +3,64 @@ import logo from "../assets/images/logo.png";
 import { BlockDataType, BlockResponseData } from "app/Repositories/Block/data";
 import { TemplateProcessProps } from "app/Repositories/Template/data";
 import _ from "lodash";
-import { toSmartSingular } from "app/Support/Helpers";
-import { ProcessType } from "../views/crud/ContentBuilder";
-import { useAuth } from "app/Context/AuthContext";
-import { BaseResponse } from "@/app/Repositories/BaseRepository";
+import defaultIcon from "../assets/images/apps/template.png";
+import { ConfigState, ProcessType } from "app/Hooks/useTemplateHeader";
 
-export const ResourceHeader = <T extends BaseResponse>({
-  resource,
-  identifier,
+export const ResourceHeader = ({
+  code,
+  configState,
+  tagline,
+  title,
+  date,
+  ref,
   icon,
 }: {
-  resource?: T | null;
-  identifier?: string;
+  code?: string | null;
+  configState: ConfigState;
+  tagline?: string | null;
+  title?: string | null;
+  date?: string | null;
+  ref?: string | null;
   icon?: string;
 }) => {
-  return <div>ResourceHeader</div>;
+  return (
+    <div className="printable__page__header mb-4">
+      <div className="flex between align">
+        <div className="top__banner flex align gap-lg start">
+          <img src={logo} alt="page header logo" />
+          <div className="flex column">
+            <h3 style={{ fontSize: 21, lineHeight: 1.1, fontWeight: 700 }}>
+              Nigerian Content Development <br />
+              &amp; Monitoring Board
+            </h3>
+            <small
+              style={{
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                fontSize: 10,
+                fontWeight: 400,
+              }}
+            >
+              {tagline ?? "Tagline not set"}
+            </small>
+          </div>
+        </div>
+        <div className="icon__container flex align column gap-sm">
+          <img src={icon ?? defaultIcon} alt="default icon" />
+          <small
+            style={{
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              fontSize: 10,
+              fontWeight: 400,
+            }}
+          >
+            {code ?? "Code"}
+          </small>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export const InternalMemoHeader = ({

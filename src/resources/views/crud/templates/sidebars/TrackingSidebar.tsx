@@ -60,7 +60,6 @@ const TrackingSidebar: React.FC<SidebarProps<DocumentResponseData>> = ({
   }, [trackers, tracker, document]);
 
   const handleTrackerClick = (clickedTracker: WorkflowTracker) => {
-    console.log("Tracker clicked:", clickedTracker);
     // You can implement navigation or modal opening here
     // For example, show tracker details, open edit modal, etc.
   };
