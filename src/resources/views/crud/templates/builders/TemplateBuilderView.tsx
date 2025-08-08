@@ -11,37 +11,23 @@ import ContentEditor from "../blocks/ContentEditor";
 import { BlockDataTypeMap } from "../blocks";
 import { BlockDataType } from "@/app/Repositories/Block/data";
 import { ConfigState } from "app/Hooks/useTemplateHeader";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 interface TemplateBuilderProps<T extends BaseResponse> {
-  contents: ContentAreaProps[];
   resource?: T | null;
   editor?: boolean;
   isPreview?: boolean;
-  modify: <T extends BlockDataType>(
-    data: BlockDataTypeMap[T],
-    identifier: keyof OptionsContentAreaProps,
-    blockId: string | number
-  ) => void;
-  onReorder?: (reorderedContents: ContentAreaProps[]) => void;
-  onRemove?: (blockId: string) => void;
-  configState: ConfigState;
-  generatedData: unknown;
-  sharedState?: Record<string, any>;
 }
 
 const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
   resource,
-  contents,
   editor = false,
   isPreview = false,
-  modify,
-  onReorder,
-  onRemove,
-  configState,
-  generatedData,
-  sharedState,
 }) => {
-  // console.log(generatedData);
+  const { state, actions } = useTemplateBoard();
+  const contents = state.contents;
+
+  // console.log(contents);
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -81,9 +67,7 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
       order: index + 1,
     }));
 
-    if (onReorder) {
-      onReorder(updatedContents);
-    }
+    actions.reorderContents(updatedContents);
 
     setDraggedIndex(null);
     setDragOverIndex(null);
@@ -93,6 +77,8 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
+
+  // console.log(state.contents);
 
   return (
     <div className="template__page__preview">
@@ -122,15 +108,7 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
                 <span>Drag Me</span>
               </div>
             </div>
-            <ContentEditor
-              resource={resource ?? null}
-              block={block}
-              content={content}
-              modify={modify}
-              onRemove={onRemove}
-              configState={configState}
-              sharedState={generatedData as Record<string, unknown>}
-            />
+            <ContentEditor resource={resource ?? null} block={block} />
           </div>
         ) : (
           <div
@@ -139,11 +117,7 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
               isDragOver ? "drag-over" : ""
             }`}
           >
-            <ContentBlockView
-              content={content}
-              configState={configState}
-              generatedData={generatedData}
-            />
+            <ContentBlockView blockId={block.id} />
           </div>
         );
       })}

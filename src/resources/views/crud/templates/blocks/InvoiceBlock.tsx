@@ -12,6 +12,7 @@ import InvoiceBlockModal from "../../modals/blocks/InvoiceBlockModal";
 import Button from "resources/views/components/forms/Button";
 import TextInput from "resources/views/components/forms/TextInput";
 import { formatCurrency } from "app/Support/Helpers";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 // Type guards for better type safety
 const isProject = (resource: unknown): resource is ProjectResponseData => {
@@ -33,13 +34,20 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
   resource,
   localContentState,
   updateLocal,
+  blockId,
 }) => {
+  const { state, actions } = useTemplateBoard();
   const { openBlock, closeModal } = useModal();
   const vatRate = 0.075;
   const identifier: BlockDataType = "invoice";
   const [project, setProject] = useState<ProjectResponseData | null>(null);
 
-  const [state, setState] = useState<InvoiceContentAreaProps>({
+  // Find the current block content from global state
+  const currentBlock = state.contents.find((content) => content.id === blockId);
+  const currentContent = currentBlock?.content
+    ?.invoice as InvoiceContentAreaProps;
+
+  const [localState, setLocalState] = useState<InvoiceContentAreaProps>({
     invoice: project?.invoice ?? null,
     project,
     items: project?.invoice?.items ?? [],
@@ -55,7 +63,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
 
   // Calculate totals whenever items or markup changes
   const calculatedTotals = useMemo(() => {
-    if (!state.items || state.items.length === 0) {
+    if (!localState.items || localState.items.length === 0) {
       return {
         sub_total: 0,
         total: 0,
@@ -67,15 +75,15 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
     let vat_amount: number = 0;
     let service_charge_amount: number = 0;
 
-    const sub_total = state.items.reduce(
+    const sub_total = localState.items.reduce(
       (acc, item) => acc + (item.total_amount || 0),
       0
     );
 
-    if (state.markup === 0) {
+    if (localState.markup === 0) {
       vat_amount = sub_total * vatRate;
-    } else if (state.markup > 0) {
-      service_charge_amount = sub_total * (state.markup / 100);
+    } else if (localState.markup > 0) {
+      service_charge_amount = sub_total * (localState.markup / 100);
       vat_amount = service_charge_amount * vatRate;
     }
 
@@ -87,31 +95,32 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
       vat: vat_amount,
       service_charge: service_charge_amount,
     };
-  }, [state.items, state.markup, vatRate]);
+  }, [localState.items, localState.markup, vatRate]);
 
   // Use calculated totals for display and parent updates
   const displayState = useMemo(
     () => ({
-      ...state,
+      ...localState,
       ...calculatedTotals,
     }),
-    [state, calculatedTotals]
+    [localState, calculatedTotals]
   );
 
   // Update parent component with calculated totals when they change
   useEffect(() => {
+    // Update global state
+    if (blockId) {
+      actions.updateContent(blockId, displayState, "invoice");
+    }
+
+    // Also update local state for backward compatibility
     updateLocal(displayState, identifier);
-  }, [displayState, updateLocal, identifier]);
+  }, [displayState, updateLocal, identifier, blockId, actions]);
 
   const handleBlockChange = useCallback(
     (detail: unknown, mode?: "store" | "update") => {
       try {
-        // if (!isInvoiceItem(detail)) {
-        //   console.error("Invalid invoice item data received");
-        //   return;
-        // }
-
-        setState((prev) => {
+        setLocalState((prev) => {
           const currentItems = prev.items ?? [];
 
           const newItems =
@@ -138,6 +147,11 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
             } as InvoiceResponseData,
           };
 
+          // Update global state
+          if (blockId) {
+            actions.updateContent(blockId, updatedState, "invoice");
+          }
+
           // Update parent component immediately with the new state
           updateLocal(updatedState, identifier);
 
@@ -149,7 +163,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
         console.error("Error updating invoice:", error);
       }
     },
-    [updateLocal, identifier, closeModal]
+    [updateLocal, identifier, closeModal, blockId, actions]
   );
 
   const handleInvoiceChange = useCallback(
@@ -165,7 +179,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
           {
             title: item ? "Update Invoice Item" : "Add Invoice Item",
             type: identifier,
-            blockState: state,
+            blockState: localState,
             data: item,
             isUpdating: !!item,
             addBlockComponent: handleBlockChange,
@@ -182,43 +196,61 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
         console.error("Error opening invoice modal:", error);
       }
     },
-    [project, identifier, state, handleBlockChange, openBlock]
+    [project, identifier, localState, handleBlockChange, openBlock]
   );
 
   const handleMarkupChange = useCallback(
     (value: number) => {
       const updatedState: InvoiceContentAreaProps = {
-        ...state,
+        ...localState,
         markup: value,
       };
-      setState(updatedState);
+      setLocalState(updatedState);
+
+      // Update global state
+      if (blockId) {
+        actions.updateContent(blockId, updatedState, "invoice");
+      }
+
       updateLocal(updatedState, identifier);
     },
-    [state, updateLocal, identifier]
+    [localState, updateLocal, identifier, blockId, actions]
   );
 
   const handleRemoveItem = useCallback(
     (itemId: number) => {
       const updatedState: InvoiceContentAreaProps = {
-        ...state,
-        items: state.items.filter((item) => item.id !== itemId),
+        ...localState,
+        items: localState.items.filter((item) => item.id !== itemId),
       };
-      setState(updatedState);
+      setLocalState(updatedState);
+
+      // Update global state
+      if (blockId) {
+        actions.updateContent(blockId, updatedState, "invoice");
+      }
+
       updateLocal(updatedState, identifier);
     },
-    [state, updateLocal, identifier]
+    [localState, updateLocal, identifier, blockId, actions]
   );
 
   useEffect(() => {
-    if (project) {
-      setState((prev) => ({
+    if (currentContent) {
+      setLocalState((prev) => ({
+        ...prev,
+        ...currentContent,
+        project: currentContent.project ?? project,
+      }));
+    } else if (project) {
+      setLocalState((prev) => ({
         ...prev,
         invoice: project.invoice ?? prev.invoice,
         items: project.invoice?.items ?? prev.items,
         project,
       }));
     }
-  }, [project]);
+  }, [currentContent, project]);
 
   useEffect(() => {
     if (resource) {
@@ -255,7 +287,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
       <div className="col-md-4 mb-3">
         <TextInput
           label="Service Charge %"
-          value={state.markup}
+          value={localState.markup}
           onChange={(e) => handleMarkupChange(Number(e.target.value))}
           type="number"
           min={0}
@@ -264,7 +296,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
       </div>
       <div className="col-md-12 mb-3">
         <div className="invoice__items">
-          {state.items.map((item) => (
+          {localState.items.map((item) => (
             <div key={item.id} className="invoice__item__card">
               <div className="invoice__item__content">
                 <div className="invoice__item__description">
@@ -273,7 +305,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
                 <div className="invoice__item__amount">
                   {formatCurrency(
                     item.total_amount,
-                    state.currency as "NGN" | "USD" | "GBP" | undefined
+                    localState.currency as "NGN" | "USD" | "GBP" | undefined
                   )}
                 </div>
               </div>
@@ -288,7 +320,7 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
               </div>
             </div>
           ))}
-          {state.items.length === 0 && (
+          {localState.items.length === 0 && (
             <div className="invoice__item__empty">
               <p>No invoice items added yet.</p>
             </div>
@@ -298,18 +330,20 @@ const InvoiceBlock: React.FC<BlockContentComponentPorps> = ({
       <div className="col-md-12 mb-3">
         <div className="invoice-summary">
           <p>
-            <strong>Sub Total:</strong> {state.currency}{" "}
-            {state.sub_total.toFixed(2)}
+            <strong>Sub Total:</strong> {localState.currency}{" "}
+            {localState.sub_total.toFixed(2)}
           </p>
           <p>
-            <strong>Service Charge ({state.markup}%):</strong> {state.currency}{" "}
-            {state.service_charge.toFixed(2)}
+            <strong>Service Charge ({localState.markup}%):</strong>{" "}
+            {localState.currency} {localState.service_charge.toFixed(2)}
           </p>
           <p>
-            <strong>VAT:</strong> {state.currency} {state.vat.toFixed(2)}
+            <strong>VAT:</strong> {localState.currency}{" "}
+            {localState.vat.toFixed(2)}
           </p>
           <p>
-            <strong>Total:</strong> {state.currency} {state.total.toFixed(2)}
+            <strong>Total:</strong> {localState.currency}{" "}
+            {localState.total.toFixed(2)}
           </p>
         </div>
       </div>

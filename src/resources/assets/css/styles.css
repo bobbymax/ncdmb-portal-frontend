@@ -7198,12 +7198,8 @@ body,
 
 /* Expense Content Styling */
 .expense__container {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
+  background: transparent;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .expense__container h5 {
@@ -7264,42 +7260,43 @@ body,
 /* Expense Table Styling */
 .expense__table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-collapse: collapse;
+  background: transparent;
 }
 
 .expense__table thead {
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  background: transparent;
+  border-bottom: 2px solid #f3f4f6;
 }
 
 .expense__table th {
-  padding: 1rem;
+  padding: 1.25rem 1rem 0.75rem;
   font-weight: 600;
-  color: #374151;
-  border-bottom: 2px solid #e5e7eb;
+  color: #6b7280;
+  border: none;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .expense__table tbody tr {
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .expense__table tbody tr:hover {
-  background: rgba(16, 185, 129, 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(59, 130, 246, 0.02);
+}
+
+.expense__table tbody tr:last-child {
+  border-bottom: none;
 }
 
 .expense__cell {
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 1.25rem 1.5rem;
+  border: none;
   vertical-align: middle;
 }
 
@@ -7308,8 +7305,47 @@ body,
   position: relative;
   color: #374151;
   font-weight: 500;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.4;
   opacity: 0;
   animation: fadeInText 0.8s ease-out forwards;
+}
+
+/* Currency values styling - soft green */
+.expense__cell:has(.expense-table-text:contains("₦")) .expense-table-text {
+  color: #059669;
+  font-weight: 600;
+}
+
+/* Date values styling - classy calendar appearance */
+.expense__cell:nth-child(1) .expense-table-text {
+  color: #7c3aed;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+}
+
+.expense__cell:nth-child(1) .expense-table-text::before {
+  content: "📅";
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-right: 0.25rem;
+}
+
+.expense__cell:nth-child(1) .expense-table-text:hover {
+  color: #5b21b6;
+  transform: translateY(-1px);
+}
+
+/* Description text styling - soft blue-gray */
+.expense__cell:first-child .expense-table-text {
+  color: #4b5563;
+  font-weight: 500;
 }
 
 /* Typewriter Animation */
@@ -7359,8 +7395,7 @@ body,
 
 /* Dark theme support */
 [data-theme="dark"] .expense__container {
-  background: rgba(31, 41, 55, 0.95);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
 
 [data-theme="dark"] .expense__container h5 {
@@ -7368,29 +7403,53 @@ body,
 }
 
 [data-theme="dark"] .expense__table {
-  background: #374151;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: transparent;
 }
 
 [data-theme="dark"] .expense__table thead {
-  background: linear-gradient(135deg, #4b5563, #374151);
+  background: transparent;
+  border-bottom-color: #4b5563;
 }
 
 [data-theme="dark"] .expense__table th {
-  color: #f9fafb;
-  border-bottom-color: #4b5563;
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .expense__table tbody tr {
+  border-bottom-color: #374151;
 }
 
 [data-theme="dark"] .expense__table tbody tr:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 [data-theme="dark"] .expense__cell {
-  border-bottom-color: #4b5563;
+  border: none;
 }
 
 [data-theme="dark"] .expense-table-text {
   color: #e5e7eb;
+}
+
+/* Dark theme currency styling */
+[data-theme="dark"]
+  .expense__cell:has(.expense-table-text:contains("₦"))
+  .expense-table-text {
+  color: #34d399;
+}
+
+/* Dark theme date styling */
+[data-theme="dark"] .expense__cell:nth-child(1) .expense-table-text {
+  color: #a78bfa;
+}
+
+[data-theme="dark"] .expense__cell:nth-child(1) .expense-table-text:hover {
+  color: #c4b5fd;
+}
+
+/* Dark theme description styling */
+[data-theme="dark"] .expense__cell:first-child .expense-table-text {
+  color: #9ca3af;
 }
 
 [data-theme="dark"] .expense__loading p {
@@ -7401,15 +7460,6 @@ body,
 @media (max-width: 768px) {
   .expense__container {
     padding: 1rem;
-  }
-
-  .expense__table {
-    font-size: 0.875rem;
-  }
-
-  .expense__table th,
-  .expense__table td {
-    padding: 0.75rem 0.5rem;
   }
 
   .loading__spinner i {
@@ -7701,4 +7751,54 @@ body,
   50% {
     opacity: 0.7;
   }
+}
+
+/* Luxury styling for expense total row */
+.expense__total__row {
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d) !important;
+  border-top: 2px solid #000 !important;
+  margin-top: 1rem;
+  position: relative;
+}
+
+.expense__total__row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  opacity: 0.3;
+}
+
+.expense__total__row td {
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  padding: 1.5rem 1rem !important;
+  border: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.expense__total__row:hover {
+  background: linear-gradient(135deg, #000000, #1a1a1a) !important;
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.expense__total__row:hover td {
+  background: linear-gradient(135deg, #000000, #1a1a1a) !important;
+}
+
+.expense__total__row span {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.expense__total__row:hover span {
+  color: #f8f9fa !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }

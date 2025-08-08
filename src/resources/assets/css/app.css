@@ -9,6 +9,7 @@
 @import "custom-animations.css";
 @import "menu.css";
 @import "modal.css";
+@import "workflow-preview.css";
 
 :root {
   --color-primary: #004d40;
@@ -1266,7 +1267,7 @@ b {
 
 .template__page {
   background-color: var(--color-white);
-  padding: 52px 54px 64px 54px;
+  padding: 15px;
   /* font-family: "Noto Sans", sans-serif; */
   /* letter-spacing: 0.4px; */
   font-size: 12px;
@@ -1285,7 +1286,7 @@ b {
 }
 
 .paper__container {
-  padding: 72px;
+  padding: 15px;
 }
 
 /* Event Card Styliing */
@@ -3635,7 +3636,7 @@ b {
 
 .template__page {
   background-color: var(--color-white);
-  padding: 52px 54px 64px 54px;
+  padding: 20px 10px;
   /* font-family: "Noto Sans", sans-serif; */
   /* letter-spacing: 0.4px; */
   font-size: 12px;
@@ -3651,10 +3652,6 @@ b {
   color: green !important;
   text-transform: capitalize;
   text-align: right;
-}
-
-.paper__container {
-  padding: 72px;
 }
 
 /* Event Card Styliing */

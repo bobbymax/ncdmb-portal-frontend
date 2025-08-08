@@ -15,10 +15,12 @@ import React, {
   SetStateAction,
   ComponentType,
   FormEvent,
+  useCallback,
 } from "react";
 import { ProcessedDataProps } from "./FileProcessorProvider";
 import { BlockDataType } from "app/Repositories/Block/data";
 import { BlockDataTypeMap } from "resources/views/crud/templates/blocks";
+import { toast } from "react-toastify";
 
 type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers
@@ -141,8 +143,6 @@ export const ModalProvider: React.FC<{
     initialData?: BaseResponse,
     Repo?: BaseRepository
   ) => {
-    // console.log(content);
-
     setContent(<Component {...props} />);
     setCurrentIdentifier(identifier);
     setTitle(props.title);
@@ -232,20 +232,28 @@ export const ModalProvider: React.FC<{
     response: JsonResponse,
     mode: "store" | "update" | "destroy"
   ) => {
-    // console.log(response);
+    if (response.success) {
+      toast.success(response.message);
+      closeModal();
+    } else {
+      toast.error(response.message);
+    }
   };
 
-  const updateModalState = (
-    identifier: string,
-    newState: Partial<BaseResponse>
-  ) => {
-    setModalState((prevState) => ({
-      ...prevState,
-      [identifier]: { ...prevState[identifier], ...newState },
-    }));
-  };
+  const updateModalState = useCallback(
+    (identifier: string, newState: Partial<BaseResponse>) => {
+      setModalState((prevState) => ({
+        ...prevState,
+        [identifier]: { ...prevState[identifier], ...newState },
+      }));
+    },
+    []
+  );
 
-  const getModalState = (identifier: string) => modalState[identifier] || {};
+  const getModalState = useCallback(
+    (identifier: string) => modalState[identifier] || {},
+    [modalState]
+  );
 
   return (
     <ModalContext.Provider

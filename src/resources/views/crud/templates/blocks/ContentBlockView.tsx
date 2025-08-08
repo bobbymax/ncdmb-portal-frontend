@@ -25,19 +25,31 @@ import {
 } from "app/Support/Helpers";
 import { ConfigState } from "app/Hooks/useTemplateHeader";
 import { ExpenseResponseData } from "@/app/Repositories/Expense/data";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
+import { ColumnData } from "@/resources/views/components/tables/CustomDataTable";
 
 export const ParagraphContent: React.FC<
   ParagraphContentAreaProps & {
     title?: string;
     tagline?: string;
     isPreview?: boolean;
+    blockId?: string;
   }
-> = ({ title, tagline, body, isPreview = true }) => {
+> = ({ title, tagline, body, isPreview = true, blockId }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.paragraph
+    : null;
+  const displayBody = globalContent?.body || body;
+
   return isPreview ? (
     <div className="paragraph__container mb-4">
       <h4 className="mb-2">{title}</h4>
       <small>{tagline}</small>
-      <p dangerouslySetInnerHTML={{ __html: body }} />
+      <p dangerouslySetInnerHTML={{ __html: displayBody }} />
     </div>
   ) : (
     <div className="paragraph__container mb-4"></div>
@@ -49,6 +61,7 @@ export const TableContent: React.FC<
     title?: string;
     tagline?: string;
     isPreview?: boolean;
+    blockId?: string;
   }
 > = ({
   title,
@@ -60,17 +73,41 @@ export const TableContent: React.FC<
   headers,
   rows,
   isPreview = true,
+  blockId,
 }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.table
+    : null;
+  const displayHeaders = globalContent?.headers || headers;
+  const displayRows = globalContent?.rows || rows;
+
   return (
     <div className="dynamic__table mb-4">
-      <DynamicTableBuilder headers={headers} rows={rows} />
+      <DynamicTableBuilder headers={displayHeaders} rows={displayRows} />
     </div>
   );
 };
 
 export const MilestoneContent: React.FC<
-  MilestoneContentAreaProps & { isPreview?: boolean }
-> = ({ project, milestones, isPreview = true }) => {
+  MilestoneContentAreaProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
+> = ({ project, milestones, isPreview = true, blockId }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.milestone
+    : null;
+  const displayMilestones = globalContent?.milestones || milestones;
+  const displayProject = globalContent?.project || project;
+
   return (
     <div className="milestone__container mb-4">
       <table className="table table-bordered table-striped">
@@ -82,7 +119,7 @@ export const MilestoneContent: React.FC<
           </tr>
         </thead>
         <tbody>
-          {milestones.map((milestone, idx) => (
+          {displayMilestones.map((milestone, idx) => (
             <tr key={idx}>
               <td>{milestone.description}</td>
               <td>{`${milestone.duration} ${milestone.frequency}`}</td>
@@ -96,7 +133,10 @@ export const MilestoneContent: React.FC<
 };
 
 export const SignatureContent: React.FC<
-  SignatureContentAreaProps & { isPreview?: boolean }
+  SignatureContentAreaProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
 > = ({
   approvals,
   style,
@@ -105,15 +145,28 @@ export const SignatureContent: React.FC<
   originator_name,
   originator_department_id,
   isPreview = true,
+  blockId,
 }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.approval
+    : null;
+  const displayApprovals = globalContent?.approvals || approvals;
+  const displayStyle = globalContent?.style || style;
+
+  // console.log(approvals);
+
   return (
     <div
       className={`signature__layer flex align gap-md ${
-        approvals.length === 2 ? "between" : ""
+        displayApprovals.length === 2 ? "between" : ""
       }`}
     >
-      {approvals.length > 0 ? (
-        approvals.map((approval, idx) => (
+      {displayApprovals.length > 0 ? (
+        displayApprovals.map((approval, idx) => (
           <div key={idx} className="signature__canvas__container flex column">
             <SignatureCanvas
               signatureUrl={approval?.meta_data?.signature || ""}
@@ -132,7 +185,10 @@ export const SignatureContent: React.FC<
 };
 
 export const EventContent: React.FC<
-  EventContentAreaProps & { isPreview?: boolean }
+  EventContentAreaProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
 > = ({
   name,
   venue,
@@ -148,30 +204,49 @@ export const EventContent: React.FC<
   source,
   vendor_name,
   isPreview = true,
+  blockId,
 }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.event
+    : null;
+
+  const displayName = globalContent?.name || name;
+  const displayVenue = globalContent?.venue || venue;
+  const displayStartDate = globalContent?.start_date || start_date;
+  const displayEndDate = globalContent?.end_date || end_date;
+  const displayStartTime = globalContent?.start_time || start_time;
+  const displayAddress = globalContent?.address || address;
+
   return (
     <div className="event__card flex column gap-md mb-4 mt-5">
       <div className="top__head flex align gap-md">
         <i className="ri-calendar-2-line" />
         <div className="diiiiits" style={{ lineHeight: 1 }}>
-          <h5 style={{ fontSize: 15 }}>{name}</h5>
+          <h5 style={{ fontSize: 15 }}>{displayName}</h5>
           <small>
-            {venue} - From: {moment(start_date).format("ll")} | To:{" "}
-            {moment(end_date).format("ll")} - Time:{" "}
-            {moment(start_time, "HH:mm").format("h:mm A")}
+            {displayVenue} - From: {moment(displayStartDate).format("ll")} | To:{" "}
+            {moment(displayEndDate).format("ll")} - Time:{" "}
+            {moment(displayStartTime, "HH:mm").format("h:mm A")}
           </small>
         </div>
       </div>
       <div className="mid__secch flex align gap-md">
         <i className="ri-map-pin-line" />
-        <p>{address}</p>
+        <p>{displayAddress}</p>
       </div>
     </div>
   );
 };
 
 export const InvoiceContent: React.FC<
-  InvoiceContentAreaProps & { isPreview?: boolean }
+  InvoiceContentAreaProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
 > = ({
   invoice,
   isPreview = true,
@@ -181,7 +256,24 @@ export const InvoiceContent: React.FC<
   service_charge,
   total,
   sub_total,
+  blockId,
 }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.invoice
+    : null;
+  const displayInvoice = globalContent?.invoice || invoice;
+  const displayItems = globalContent?.items || displayInvoice?.items || [];
+  const displaySubTotal = globalContent?.sub_total || sub_total;
+  const displayTotal = globalContent?.total || total;
+  const displayVat = globalContent?.vat || vat;
+  const displayServiceCharge = globalContent?.service_charge || service_charge;
+  const displayMarkup = globalContent?.markup || markup;
+  const displayCurrency = globalContent?.currency || currency;
+
   return (
     <div className="milestone__container mb-4">
       <table className="table table-bordered table-striped">
@@ -194,7 +286,7 @@ export const InvoiceContent: React.FC<
           </tr>
         </thead>
         <tbody>
-          {invoice?.items.map((item, idx) => (
+          {displayItems.map((item, idx) => (
             <tr key={idx}>
               <td>{item.description}</td>
               <td>{item.qty}</td>
@@ -206,15 +298,17 @@ export const InvoiceContent: React.FC<
             <td colSpan={3} className="table__data__value">
               Sub Total:
             </td>
-            <td className="table__data__value">{formatCurrency(sub_total)}</td>
+            <td className="table__data__value">
+              {formatCurrency(displaySubTotal)}
+            </td>
           </tr>
-          {markup > 0 && (
+          {displayMarkup > 0 && (
             <tr>
               <td colSpan={3} className="table__data__value">
-                Service Charge ({markup}%):
+                Service Charge ({displayMarkup}%):
               </td>
               <td className="table__data__value">
-                {formatCurrency(service_charge)}
+                {formatCurrency(displayServiceCharge)}
               </td>
             </tr>
           )}
@@ -222,13 +316,15 @@ export const InvoiceContent: React.FC<
             <td colSpan={3} className="table__data__value">
               VAT (7.5%):
             </td>
-            <td className="table__data__value">{formatCurrency(vat)}</td>
+            <td className="table__data__value">{formatCurrency(displayVat)}</td>
           </tr>
           <tr>
             <td colSpan={3} className="table__data__value">
               Total:
             </td>
-            <td className="table__data__value">{formatCurrency(total)}</td>
+            <td className="table__data__value">
+              {formatCurrency(displayTotal)}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -237,26 +333,64 @@ export const InvoiceContent: React.FC<
 };
 
 export const ExpenseContent: React.FC<
-  ExpenseContentProps & { isPreview?: boolean }
+  ExpenseContentProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
 > = React.memo(
-  ({ loaded_type, isPreview = true, expenses, claimState, headers }) => {
+  ({
+    loaded_type,
+    isPreview = true,
+    expenses,
+    claimState,
+    headers,
+    blockId,
+  }) => {
+    const { state } = useTemplateBoard();
     const [isLoading, setIsLoading] = useState(false);
     const [displayedExpenses, setDisplayedExpenses] = useState(expenses);
 
+    // Get content from global state if blockId is provided
+    const globalContent = blockId
+      ? state.contents.find((content) => content.id === blockId)?.content
+          ?.expense
+      : null;
+
+    const globalExpenses = globalContent?.expenses || expenses;
+    const globalHeaders = [
+      {
+        accessor: "start_date",
+        label: "Duration",
+        type: "date",
+      },
+      {
+        accessor: "description",
+        label: "Narration",
+        type: "text",
+      },
+      {
+        accessor: "total_amount_spent",
+        label: "Spent",
+        type: "currency",
+      },
+    ] as ColumnData[];
+
     // Handle loading state when expenses change
     useEffect(() => {
-      if (JSON.stringify(expenses) !== JSON.stringify(displayedExpenses)) {
+      if (
+        JSON.stringify(globalExpenses) !== JSON.stringify(displayedExpenses)
+      ) {
         setIsLoading(true);
 
         // Simulate loading time
         const timer = setTimeout(() => {
-          setDisplayedExpenses(expenses);
+          setDisplayedExpenses(globalExpenses);
           setIsLoading(false);
         }, 800);
 
         return () => clearTimeout(timer);
       }
-    }, [expenses, displayedExpenses]);
+    }, [globalExpenses, displayedExpenses]);
 
     return (
       <div className="expense__container mb-4">
@@ -273,7 +407,7 @@ export const ExpenseContent: React.FC<
           <table className="table table-bordered table-striped expense__table">
             <thead>
               <tr>
-                {headers.map((header) => (
+                {globalHeaders.map((header) => (
                   <th key={header.accessor}>{header.label}</th>
                 ))}
               </tr>
@@ -281,8 +415,16 @@ export const ExpenseContent: React.FC<
             <tbody>
               {displayedExpenses.map((expense, idx) => (
                 <tr key={idx} className="expense__row">
-                  {headers.map((header) => (
-                    <td key={header.accessor} className="expense__cell">
+                  {globalHeaders.map((header) => (
+                    <td
+                      key={header.accessor}
+                      style={{
+                        textAlign: `${
+                          header.type === "currency" ? "right" : "left"
+                        }`,
+                      }}
+                      className="expense__cell"
+                    >
                       <span className="expense-table-text">
                         {header.type === "date"
                           ? `${moment(expense.start_date).format(
@@ -302,6 +444,38 @@ export const ExpenseContent: React.FC<
                   ))}
                 </tr>
               ))}
+              <tr>
+                <td colSpan={2} className="table__data__value">
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: 1.5,
+                      fontSize: 14,
+                      color: "#1a1a1a",
+                    }}
+                  >
+                    Total Amount Spent:
+                  </span>
+                </td>
+                <td className="table__data__value">
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: "#1a1a1a",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {formatCurrency(
+                      displayedExpenses.reduce(
+                        (acc, curr) => acc + curr.total_amount_spent,
+                        0
+                      )
+                    )}
+                  </span>
+                </td>
+              </tr>
             </tbody>
           </table>
         )}
@@ -311,8 +485,20 @@ export const ExpenseContent: React.FC<
 );
 
 export const TitleContent: React.FC<
-  TitleContentProps & { isPreview?: boolean }
-> = ({ title, isPreview = true }) => {
+  TitleContentProps & {
+    isPreview?: boolean;
+    blockId?: string;
+  }
+> = ({ title, isPreview = true, blockId }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content from global state if blockId is provided
+  const globalContent = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+        ?.content?.paper_title
+    : null;
+  const displayTitle = globalContent?.title || title;
+
   return (
     <div className="title__container mb-4">
       <small
@@ -327,114 +513,127 @@ export const TitleContent: React.FC<
       >
         Purpose
       </small>
-      <h5>{title}</h5>
+      <h5>{displayTitle}</h5>
     </div>
   );
 };
 
 const ContentBlockView = ({
   content,
-  configState,
-  generatedData,
+  blockId,
 }: {
-  content: OptionsContentAreaProps;
-  configState: ConfigState;
-  generatedData?: unknown;
+  content?: OptionsContentAreaProps;
+  blockId?: string;
 }) => {
+  const { state } = useTemplateBoard();
+
+  // Get content directly from global state if blockId is provided
+  const globalBlock = blockId
+    ? state.contents.find((content) => content.block_id === Number(blockId))
+    : null;
+  const globalContent = globalBlock?.content as OptionsContentAreaProps;
+
+  // Use global content if available, otherwise fall back to props
+  const displayContent = globalContent || content;
+
   const objectKeys = useMemo(
-    () => Object.keys(content) as (keyof OptionsContentAreaProps)[],
-    [content]
+    () => Object.keys(displayContent) as (keyof OptionsContentAreaProps)[],
+    [displayContent]
   );
 
   const [approvals, setApprovals] = useState<SignaturePadGroupProps[]>([]);
 
   // Update approvals when configState changes
   useEffect(() => {
-    if (configState) {
-      const generatedApprovals = generateApprovalsFromConfig(configState);
+    if (state.configState) {
+      const generatedApprovals = generateApprovalsFromConfig(state.configState);
 
       // Only update if there are generated approvals and they're different from current
       if (generatedApprovals.length > 0) {
         setApprovals(generatedApprovals);
       }
     }
-  }, [configState]);
-
-  // console.log("Content Block View", content);
+  }, [state.configState]);
 
   const renderCard = (param: keyof OptionsContentAreaProps) => {
     switch (param) {
       case "paragraph":
         return (
           <ParagraphContent
-            title={content.title}
-            tagline={content.tagline}
-            body={content.paragraph?.body || ""}
+            title={displayContent.title}
+            tagline={displayContent.tagline}
+            body={displayContent.paragraph?.body || ""}
+            blockId={blockId}
           />
         );
       case "table":
         return (
           <TableContent
-            title={content.title}
-            tagline={content.tagline}
-            headers={content.table?.headers || []}
-            rows={content.table?.rows || []}
-            filter={content.table?.filter as ResourceFilterTypes}
-            compute={content.table?.compute as ResourceComputations}
-            type={content.table?.type as ResourceFetchType}
-            source={content.table?.source as ResourcesList}
+            title={displayContent.title}
+            tagline={displayContent.tagline}
+            headers={displayContent.table?.headers || []}
+            rows={displayContent.table?.rows || []}
+            filter={displayContent.table?.filter as ResourceFilterTypes}
+            compute={displayContent.table?.compute as ResourceComputations}
+            type={displayContent.table?.type as ResourceFetchType}
+            source={displayContent.table?.source as ResourcesList}
+            blockId={blockId}
           />
         );
       case "event":
         return (
           <EventContent
-            name={content.event?.name || ""}
-            venue={content.event?.venue || ""}
-            start_date={content.event?.start_date || ""}
-            end_date={content.event?.end_date || ""}
-            start_time={content.event?.start_time || ""}
-            address={content.event?.address || ""}
-            location={content.event?.location || ""}
-            type={content.event?.type || "local"}
-            country={content.event?.country || ""}
-            currency={content.event?.currency || "NGN"}
-            estacode={content.event?.estacode || "USD"}
-            source={content.event?.source}
-            vendor_name={content.event?.vendor_name || ""}
+            name={displayContent.event?.name || ""}
+            venue={displayContent.event?.venue || ""}
+            start_date={displayContent.event?.start_date || ""}
+            end_date={displayContent.event?.end_date || ""}
+            start_time={displayContent.event?.start_time || ""}
+            address={displayContent.event?.address || ""}
+            location={displayContent.event?.location || ""}
+            type={displayContent.event?.type || "local"}
+            country={displayContent.event?.country || ""}
+            currency={displayContent.event?.currency || "NGN"}
+            estacode={displayContent.event?.estacode || "USD"}
+            source={displayContent.event?.source}
+            vendor_name={displayContent.event?.vendor_name || ""}
+            blockId={blockId}
           />
         );
       case "approval":
         return (
           <SignatureContent
             approvals={approvals || []}
-            style={content.approval?.style || "basic"}
-            max_signatures={content.approval?.max_signatures || 6}
-            originator_id={content.approval?.originator_id || 0}
-            originator_name={content.approval?.originator_name || ""}
+            style={displayContent.approval?.style || "basic"}
+            max_signatures={displayContent.approval?.max_signatures || 6}
+            originator_id={displayContent.approval?.originator_id || 0}
+            originator_name={displayContent.approval?.originator_name || ""}
             originator_department_id={
-              content.approval?.originator_department_id || 0
+              displayContent.approval?.originator_department_id || 0
             }
+            blockId={blockId}
           />
         );
       case "milestone":
         return (
           <MilestoneContent
-            project={content.milestone?.project}
-            milestones={content.milestone?.milestones || []}
+            project={displayContent.milestone?.project}
+            milestones={displayContent.milestone?.milestones || []}
+            blockId={blockId}
           />
         );
       case "invoice":
         return (
           <InvoiceContent
-            invoice={content.invoice?.invoice || null}
-            project={content.invoice?.project || null}
-            items={content.invoice?.items || []}
-            sub_total={content.invoice?.sub_total || 0}
-            total={content.invoice?.total || 0}
-            vat={content.invoice?.vat || 0}
-            service_charge={content.invoice?.service_charge || 0}
-            markup={content.invoice?.markup || 0}
-            currency={content.invoice?.currency || "NGN"}
+            invoice={displayContent.invoice?.invoice || null}
+            project={displayContent.invoice?.project || null}
+            items={displayContent.invoice?.items || []}
+            sub_total={displayContent.invoice?.sub_total || 0}
+            total={displayContent.invoice?.total || 0}
+            vat={displayContent.invoice?.vat || 0}
+            service_charge={displayContent.invoice?.service_charge || 0}
+            markup={displayContent.invoice?.markup || 0}
+            currency={displayContent.invoice?.currency || "NGN"}
+            blockId={blockId}
           />
         );
       case "expense": {
@@ -457,9 +656,9 @@ const ContentBlockView = ({
           },
         ];
 
-        const sharedClaimState = (generatedData as any)?.claimState;
+        const sharedClaimState = (state.resource as any)?.claimState;
         const expenses =
-          sharedClaimState?.expenses || content.expense?.expenses || [];
+          sharedClaimState?.expenses || displayContent.expense?.expenses || [];
 
         // Check if any expenses have been manually edited
         const hasManualEdits = sharedClaimState?.manualEditFunctions
@@ -469,16 +668,24 @@ const ContentBlockView = ({
         return (
           <ExpenseContent
             key={`expense-${sharedClaimState?.route}-${expenses.length}-${hasManualEdits}`}
-            loaded_type={content.expense?.loaded_type || "claim"}
+            loaded_type={displayContent.expense?.loaded_type || "claim"}
             expenses={expenses}
-            claimState={sharedClaimState || content.expense?.claimState || null}
-            headers={content.expense?.headers || defaultHeaders}
+            claimState={
+              sharedClaimState || displayContent.expense?.claimState || null
+            }
+            headers={displayContent.expense?.headers || defaultHeaders}
+            blockId={blockId}
           />
         );
       }
 
       case "paper_title":
-        return <TitleContent title={content.paper_title?.title || ""} />;
+        return (
+          <TitleContent
+            title={displayContent.paper_title?.title || ""}
+            blockId={blockId}
+          />
+        );
       default:
         return <div>Unsupported content type</div>;
     }
@@ -486,7 +693,7 @@ const ContentBlockView = ({
 
   return (
     <div className="template__view__page">
-      {content &&
+      {displayContent &&
         objectKeys.length > 0 &&
         objectKeys.map((param, ix) => (
           <div key={ix} className="content-block-view">

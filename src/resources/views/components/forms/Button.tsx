@@ -3,7 +3,14 @@ import React from "react";
 export interface ButtonProps {
   label?: string | number;
   style?: React.CSSProperties;
-  variant?: "primary" | "success" | "info" | "warning" | "danger" | "dark";
+  variant?:
+    | "primary"
+    | "success"
+    | "info"
+    | "warning"
+    | "danger"
+    | "dark"
+    | "outline";
   type?: "submit" | "button";
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   icon?: string;

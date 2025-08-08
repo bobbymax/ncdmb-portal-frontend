@@ -37,7 +37,7 @@ export const useProcessState = <
     group: null,
     department: null,
     staff: null,
-    is_approving: false,
+    is_approving: { label: "No", value: 0 },
     permissions: "rw",
   };
 
@@ -129,7 +129,7 @@ export const useProcessState = <
       );
 
       const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
-      setSelectedUsers(matchUsers);
+      setSelectedUsers([{ label: "None", value: 0 }, ...matchUsers]);
     }
   }, [state.group, groups, state.department, users]);
 
@@ -140,7 +140,9 @@ export const useProcessState = <
 
       if (!stage) return;
 
-      setAccessibleGroups(formatOptions(stage.groups, "id", "name") ?? []);
+      setAccessibleGroups(
+        formatOptions(stage.groups, "id", "name", true) ?? []
+      );
       handleStateChange(stage?.department ?? null, "department");
     }
   }, [state.stage, stages, handleStateChange]);

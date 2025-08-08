@@ -86,11 +86,60 @@ export const extractFourDigitsAfterFirstChar = (input: string) => {
 export const generateApprovalsFromConfig = (
   config: ConfigState
 ): SignaturePadGroupProps[] => {
-  // console.log("generateApprovalsFromConfig called with:", config);
-
   const approvals: SignaturePadGroupProps[] = [];
   let order = 1;
 
+  // Check if we should use approvers array (when stage/group values are 0)
+  const shouldUseApprovers =
+    config.from?.state?.stage?.value === 0 ||
+    config.from?.state?.group?.value === 0 ||
+    config.through?.state?.stage?.value === 0 ||
+    config.through?.state?.group?.value === 0 ||
+    config.to?.state?.stage?.value === 0 ||
+    config.to?.state?.group?.value === 0;
+
+  // If approvers array exists and we should use it, generate from approvers
+  if (
+    shouldUseApprovers &&
+    config.approvers?.state &&
+    Array.isArray(config.approvers.state)
+  ) {
+    const approversArray = config.approvers.state;
+
+    approversArray.forEach((approver, index) => {
+      if (approver.staff || approver.group || approver.department) {
+        approvals.push({
+          group: approver.group,
+          fallback_group: null,
+          approver: approver.staff || null,
+          department: approver.department,
+          carder_id: 0,
+          signatory: null,
+          approval_type:
+            index === 0
+              ? "initiator"
+              : approver.is_approving
+              ? "approval"
+              : "witness",
+          identifier: crypto.randomUUID(),
+          is_signed: false,
+          can_override: false,
+          make_comment: 0,
+          order: order++,
+          meta_data: {
+            process_type: "approver",
+            stage: approver.stage,
+            permissions: approver.permissions,
+            approver_index: index,
+          },
+        });
+      }
+    });
+
+    return approvals;
+  }
+
+  // Original logic for from, through, to
   // Add "from" as initiator (first signatory)
   if (config.from?.state) {
     const fromState = config.from.state;
@@ -172,7 +221,7 @@ export const generateApprovalsFromConfig = (
     }
   }
 
-  // console.log("Generated approvals:", approvals);
+  console.log("✅ Generated approvals:", approvals);
   return approvals;
 };
 

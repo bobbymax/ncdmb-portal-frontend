@@ -189,7 +189,7 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
               group: null,
               department: null,
               staff: null,
-              is_approving: false,
+              is_approving: null,
               permissions: "rw",
             });
           }
@@ -336,7 +336,19 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
                 handleMultiSelectChange("staff", handleStateChange),
                 "Staff",
                 false,
-                12
+                7
+              )}
+              {renderMultiSelect(
+                "Should Sign",
+                [
+                  { label: "Yes", value: true },
+                  { label: "No", value: false },
+                ],
+                state.is_approving ?? null,
+                handleMultiSelectChange("is_approving", handleStateChange),
+                "Signature",
+                false,
+                5
               )}
             </div>
           </div>

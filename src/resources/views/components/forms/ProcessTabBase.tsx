@@ -137,7 +137,7 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
       >
         {renderMultiSelect(
           "Desk",
-          formatOptions(stages, "id", "name"),
+          formatOptions(stages, "id", "name", true),
           state.stage,
           handleMultiSelectChange("stage", handleStateChange),
           "Workflow Stage",

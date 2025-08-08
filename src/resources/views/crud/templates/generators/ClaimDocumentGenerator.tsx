@@ -22,6 +22,7 @@ import TextInput from "resources/views/components/forms/TextInput";
 import Select from "resources/views/components/forms/Select";
 import Box from "resources/views/components/forms/Box";
 import { ExpenseResponseData } from "@/app/Repositories/Expense/data";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 const ClaimDocumentGenerator: React.FC<
   DocumentBuilderComponentProps<ClaimRepository, ClaimResponseData>
@@ -44,6 +45,7 @@ const ClaimDocumentGenerator: React.FC<
   );
   const { staff } = useAuth();
   const { getDistance, calculate, cities, allowances } = useClaimCalculator();
+  const { state: templateState, actions } = useTemplateBoard();
   const identifier: BlockDataType = "expense";
 
   // Use ref to store getDistance to prevent infinite API calls
@@ -104,22 +106,29 @@ const ClaimDocumentGenerator: React.FC<
             ? newClaimStateOrUpdater(prev)
             : newClaimStateOrUpdater;
 
-        // If there's a way to update shared state, call it here
-        // This would typically be passed down from a parent component
+        // Update both the local generatedData and template context
+        const expenseData = {
+          claimState: newClaimState,
+          expenses: newClaimState.expenses ?? [],
+        };
+
+        // Update generatedData (existing functionality)
         if (updateGlobalStateRef.current) {
-          updateGlobalStateRef.current(
-            {
-              claimState: newClaimState,
-              expenses: newClaimState.expenses ?? [],
-            },
-            "expense"
-          );
+          updateGlobalStateRef.current(expenseData, "expense");
+        }
+
+        // Update template context
+        const expenseContent = templateState.contents.find(
+          (content) => content.type === "expense"
+        );
+        if (expenseContent) {
+          actions.updateContent(expenseContent.id, expenseData, identifier);
         }
 
         return newClaimState;
       });
     },
-    [updateGlobalStateRef] // Add the ref as dependency
+    [updateGlobalStateRef] // Remove template context dependencies to prevent infinite loops
   );
 
   // Use ref to store the latest updateSharedClaimState function
@@ -187,7 +196,7 @@ const ClaimDocumentGenerator: React.FC<
   );
 
   useEffect(() => {
-    const shouldRun =
+    const shouldRun = !!(
       claimStateRef.current.start_date &&
       claimStateRef.current.end_date &&
       claimStateRef.current.departure_city_id &&
@@ -199,23 +208,8 @@ const ClaimDocumentGenerator: React.FC<
       staff &&
       selectedOptions.departure_city &&
       selectedOptions.destination_city &&
-      selectedOptions.airport;
-
-    // console.log("Expense calculation check:", {
-    //   shouldRun,
-    //   start_date: claimStateRef.current.start_date,
-    //   end_date: claimStateRef.current.end_date,
-    //   departure_city_id: claimStateRef.current.departure_city_id,
-    //   destination_city_id: claimStateRef.current.destination_city_id,
-    //   airport_id: claimStateRef.current.airport_id,
-    //   resident_type: claimStateRef.current.resident_type,
-    //   distance: claimStateRef.current.distance,
-    //   mode: claimStateRef.current.mode,
-    //   staff: !!staff,
-    //   departure_city: !!selectedOptions.departure_city,
-    //   destination_city: !!selectedOptions.destination_city,
-    //   airport: !!selectedOptions.airport,
-    // });
+      selectedOptions.airport
+    );
 
     if (!shouldRun) return;
 
@@ -277,8 +271,9 @@ const ClaimDocumentGenerator: React.FC<
   ]);
 
   useEffect(() => {
-    const shouldRun =
-      selectedOptions.departure_city && selectedOptions.destination_city;
+    const shouldRun = !!(
+      selectedOptions.departure_city && selectedOptions.destination_city
+    );
     if (!shouldRun) return;
 
     getDistanceRef
@@ -304,28 +299,37 @@ const ClaimDocumentGenerator: React.FC<
 
   // Share the manual edit functions with child components
   useEffect(() => {
-    if (updateGlobalStateRef.current) {
-      updateGlobalStateRef.current(
-        {
-          claimState: {
-            ...claimStateRef.current,
-            manualEditFunctions: {
-              updateManualEdits,
-              removeManualEdit,
-              addManualExpense,
-              removeManualExpense,
-            },
-          },
+    const manualEditData = {
+      claimState: {
+        ...claimStateRef.current,
+        manualEditFunctions: {
+          updateManualEdits,
+          removeManualEdit,
+          addManualExpense,
+          removeManualExpense,
         },
-        "expense"
-      );
+      },
+      expenses: claimStateRef.current.expenses,
+    };
+
+    // Update generatedData (existing functionality)
+    if (updateGlobalStateRef.current) {
+      updateGlobalStateRef.current(manualEditData, "expense");
+    }
+
+    // Update template context
+    const expenseContent = templateState.contents.find(
+      (content) => content.type === "expense"
+    );
+    if (expenseContent) {
+      actions.updateContent(expenseContent.id, manualEditData, "expense");
     }
   }, [
     updateManualEdits,
     removeManualEdit,
     addManualExpense,
     removeManualExpense,
-    // Remove updateGlobalState from dependencies
+    // Remove template context dependencies to prevent infinite loops
   ]);
 
   return (

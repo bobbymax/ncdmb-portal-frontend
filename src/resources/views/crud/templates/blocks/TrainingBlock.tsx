@@ -26,6 +26,7 @@ import RowBlockModal, {
 } from "../../modals/blocks/RowBlockModal";
 import _ from "lodash";
 import { UserResponseData } from "@/app/Repositories/User/data";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 const trainingHeaders: TableContentAreaHeaderProps[] = [
   {
@@ -96,13 +97,20 @@ export type RemunerationResultProp = {
 const TrainingBlock: React.FC<BlockContentComponentPorps> = ({
   localContentState,
   updateLocal,
+  blockId,
 }) => {
+  const { state, actions } = useTemplateBoard();
   const userRepo = repo("user");
   const { openBlock, closeModal } = useModal();
   const { collection: users } = useDirectories(userRepo, "users");
   const { cities } = useClaimCalculator();
   const identifier: BlockDataType = "training";
-  const [state, setState] = useState<TableContentAreaProps>({
+
+  // Find the current block content from global state
+  const currentBlock = state.contents.find((content) => content.id === blockId);
+  const currentContent = currentBlock?.content?.table as TableContentAreaProps;
+
+  const [localState, setLocalState] = useState<TableContentAreaProps>({
     filter: "none",
     compute: "remunerations",
     type: "input",
@@ -130,13 +138,23 @@ const TrainingBlock: React.FC<BlockContentComponentPorps> = ({
   );
 
   const handleBlockChange = (detail: unknown) => {
-    const updatedRows = [detail as TableContentAreaRowProps, ...state.rows];
+    const updatedRows = [
+      detail as TableContentAreaRowProps,
+      ...localState.rows,
+    ];
     const updatedState: TableContentAreaProps = {
-      ...state,
+      ...localState,
       rows: updatedRows,
     };
 
-    setState(updatedState);
+    setLocalState(updatedState);
+
+    // Update global state directly
+    if (currentBlock) {
+      actions.updateContent(currentBlock.id, updatedState, "table");
+    }
+
+    // Also update local state in parent for compatibility
     updateLocal(updatedState, "table");
 
     closeModal();
@@ -148,7 +166,7 @@ const TrainingBlock: React.FC<BlockContentComponentPorps> = ({
       {
         title: "Nominate Staff",
         type: identifier,
-        blockState: state,
+        blockState: localState,
         isUpdating: false,
         addBlockComponent: handleBlockChange,
         dependencies: {
@@ -165,20 +183,28 @@ const TrainingBlock: React.FC<BlockContentComponentPorps> = ({
   };
 
   useEffect(() => {
-    setState((prev) => ({
+    setLocalState((prev) => ({
       ...prev,
       headers: trainingHeaders,
     }));
   }, []);
 
   useEffect(() => {
-    if (localContentState?.table && !_.isEmpty(localContentState.table)) {
-      setState((prev) => ({
+    if (currentContent) {
+      setLocalState((prev) => ({
+        ...prev,
+        ...currentContent,
+      }));
+    } else if (
+      localContentState?.table &&
+      !_.isEmpty(localContentState.table)
+    ) {
+      setLocalState((prev) => ({
         ...prev,
         ...localContentState.table,
       }));
     }
-  }, [localContentState?.table]);
+  }, [currentContent, localContentState?.table]);
 
   const renderMultiSelect = (
     label: string,
@@ -203,8 +229,6 @@ const TrainingBlock: React.FC<BlockContentComponentPorps> = ({
       />
     </div>
   );
-
-  // console.log(state.rows);
 
   return (
     <div className="table__block__area mt-4 mb-4">

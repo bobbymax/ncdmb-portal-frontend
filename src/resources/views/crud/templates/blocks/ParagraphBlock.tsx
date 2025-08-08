@@ -3,38 +3,61 @@ import { BlockContentComponentPorps } from ".";
 import { BlockDataType } from "app/Repositories/Block/data";
 import RichTextEditorWrapper from "resources/views/components/forms/RichTextEditorWrapper";
 import { ParagraphContentAreaProps } from "app/Hooks/useBuilder";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 const ParagraphBlock: React.FC<BlockContentComponentPorps> = ({
   localContentState,
   updateLocal,
+  blockId,
 }) => {
+  const { state, actions } = useTemplateBoard();
   const identifier: BlockDataType = "paragraph";
-  const [state, setState] = useState<ParagraphContentAreaProps>({
+
+  // Find the current block content from global state
+  const currentBlock = state.contents.find((content) => content.id === blockId);
+  const currentContent = currentBlock?.content
+    ?.paragraph as ParagraphContentAreaProps;
+
+  const [localState, setLocalState] = useState<ParagraphContentAreaProps>({
     body: "<p>Write your text here!!</p>",
   });
 
   const handleResult = (data: string) => {
-    setState((prev) => ({
-      ...prev,
-      body: data,
-    }));
+    const newState = { body: data };
 
-    updateLocal({ body: data }, identifier);
+    setLocalState(newState);
+
+    // Update global state directly
+    if (currentBlock) {
+      actions.updateContent(currentBlock.id, newState, identifier);
+    }
+
+    // Also update local state in parent for compatibility
+    updateLocal(newState, identifier);
   };
 
   useEffect(() => {
-    if (localContentState?.paragraph) {
-      setState((prev) => ({
+    if (currentContent) {
+      setLocalState((prev) => ({
         ...prev,
-        body: localContentState.paragraph?.body ?? "",
+        body: currentContent.body ?? "<p>Write your text here!!</p>",
+      }));
+    } else if (localContentState?.paragraph) {
+      setLocalState((prev) => ({
+        ...prev,
+        body:
+          localContentState.paragraph?.body ?? "<p>Write your text here!!</p>",
       }));
     }
-  }, [localContentState?.paragraph]);
+  }, [currentContent, localContentState?.paragraph]);
 
   return (
     <div className="row">
       <div className="col-md-12 mb-3">
-        <RichTextEditorWrapper value={state.body} onChange={handleResult} />
+        <RichTextEditorWrapper
+          value={localState.body}
+          onChange={handleResult}
+        />
       </div>
     </div>
   );

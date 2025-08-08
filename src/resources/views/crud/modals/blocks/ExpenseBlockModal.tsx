@@ -44,7 +44,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
 }) => {
   const { staff } = useAuth();
   const { getModalState, updateModalState } = useModal();
-  const { calculate, cities, allowances, countWeekdays } = useClaimCalculator();
+  const { allowances, countWeekdays } = useClaimCalculator();
   const { isLoading } = useStateContext();
   const state: ExpenseResponseData = getModalState(type);
   const [claimState, setClaimState] = useState<ClaimResponseData>(
@@ -64,6 +64,17 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
     no_of_days: state.no_of_days,
     unit_price: state.unit_price,
   });
+
+  // Track previous allowance to prevent unnecessary setAllowance calls
+  const prevAllowanceRef = useRef<AllowanceResponseData | null>(null);
+
+  // Memoize the update function to prevent infinite loops
+  const updateModalStateStable = useCallback(
+    (updates: Partial<ExpenseResponseData>) => {
+      updateModalState(type, updates);
+    },
+    [updateModalState, type]
+  );
 
   // Validation function
   const validateForm = useCallback((): boolean => {
@@ -94,10 +105,6 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
       if (endDate.isBefore(startDate)) {
         newErrors.end_date = "End date cannot be before start date";
       }
-
-      //   if (startDate.isBefore(moment(), "day")) {
-      //     newErrors.start_date = "Start date cannot be in the past";
-      //   }
     }
 
     // Amount validation
@@ -171,7 +178,12 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
       const currentAllowance = allowances.find(
         (allowance) => allowance.id === Number(state.allowance_id)
       );
-      setAllowance(currentAllowance ?? null);
+
+      // Only update allowance if it actually changed to prevent infinite loops
+      if (currentAllowance?.id !== prevAllowanceRef.current?.id) {
+        setAllowance(currentAllowance ?? null);
+        prevAllowanceRef.current = currentAllowance ?? null;
+      }
 
       // Handle date and amount calculations
       if (staff && state.start_date && state.end_date && currentAllowance) {
@@ -193,7 +205,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
 
           const spentAmount =
             currentAllowance.payment_basis === "km"
-              ? Number(remuneration?.amount ?? 0) * (claimState.distance ?? 0)
+              ? Number(remuneration?.amount ?? 0) * (claimState?.distance ?? 0)
               : currentAllowance.payment_basis !== "fixed"
               ? Number(remuneration?.amount ?? 0) * Number(state.no_of_days)
               : Number(remuneration?.amount ?? 0);
@@ -206,7 +218,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
                 )
               : noOfDays;
 
-          updateModalState(type, {
+          updateModalStateStable({
             no_of_days: calculatedDays,
             unit_price: remuneration?.amount ?? 0,
             total_amount_spent: spentAmount ?? 0,
@@ -229,7 +241,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
         const calculatedAmount =
           Number(state.no_of_days) * Number(state.unit_price);
 
-        updateModalState(type, {
+        updateModalStateStable({
           total_amount_spent: calculatedAmount,
         });
 
@@ -245,14 +257,15 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
     }
   }, [
     state.allowance_id,
-    allowances,
     state.start_date,
     state.end_date,
     state.no_of_days,
     state.unit_price,
+    staff,
+    allowances,
+    claimState?.distance,
     countWeekdays,
-    updateModalState,
-    type,
+    updateModalStateStable,
   ]);
 
   // Handle data initialization
@@ -260,7 +273,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
     if (data) {
       try {
         const expense = data as ExpenseResponseData;
-        updateModalState(type, {
+        updateModalStateStable({
           ...state,
           ...expense,
         });
@@ -271,7 +284,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
         });
       }
     }
-  }, [data, type, updateModalState]);
+  }, [data, updateModalStateStable]);
 
   // Handle dependencies
   useEffect(() => {
@@ -438,7 +451,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
             name="start_date"
             value={state.start_date}
             onChange={handleInputChange}
-            min={claimState.start_date}
+            min={claimState?.start_date}
             isDisabled={isLoading || isSubmitting}
           />
           {errors.start_date && (
@@ -452,7 +465,7 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
             name="end_date"
             value={state.end_date}
             onChange={handleInputChange}
-            min={state.start_date || claimState.end_date}
+            min={state.start_date || claimState?.end_date}
             isDisabled={isLoading || isSubmitting}
           />
           {errors.end_date && (
@@ -497,12 +510,12 @@ const ExpenseBlockModal: React.FC<BlockModalProps<"expense">> = ({
             <small className="text-danger">{errors.total_amount_spent}</small>
           )}
         </div>
-        {claimState.distance && (
+        {claimState?.distance && (
           <div className="col-md-4 mb-3">
             <TextInput
               label="Total Distance Covered"
               name="total_distance_covered"
-              value={claimState.distance}
+              value={claimState?.distance}
               onChange={handleInputChange}
               isDisabled={
                 isLoading || isSubmitting || (claimState?.distance ?? 0) > 0

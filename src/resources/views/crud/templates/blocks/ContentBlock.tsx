@@ -60,11 +60,10 @@ const ContentBlock = <D extends BaseRepository, T extends BaseResponse>({
         configState={configState}
         localContentState={localContentState}
         updateLocal={updateLocalState}
+        blockId={block.id}
       />
     ) : null;
-  }, [localContentState, resource, block.type, updateLocalState]);
-
-  // console.log(localContentState);
+  }, [localContentState, resource, block.type, updateLocalState, block.id]);
 
   useEffect(() => {
     if (block.content && _.has(block.content, block.type)) {

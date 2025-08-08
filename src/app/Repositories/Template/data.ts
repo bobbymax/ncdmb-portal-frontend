@@ -11,7 +11,7 @@ export type TemplateProcessProps = {
   group: DataOptionsProps | null;
   department: DataOptionsProps | null;
   staff?: DataOptionsProps | null;
-  is_approving?: boolean;
+  is_approving?: DataOptionsProps | null;
   permissions: PermissionTypes;
 };
 

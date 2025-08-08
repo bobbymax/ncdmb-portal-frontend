@@ -27,6 +27,8 @@ import {
   ConfigState,
   HeaderProps,
 } from "app/Hooks/useTemplateHeader";
+import TemplateBoardErrorBoundary from "app/Context/TemplateBoardErrorBoundary";
+import { TemplateBoardProvider } from "app/Context/TemplateBoardProvider";
 
 export type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 export type ProcessTypeDependencies = {
@@ -216,91 +218,89 @@ const ContentBuilder: React.FC<
   );
 
   return (
-    <div className="row mt-4">
-      <div className="col-md-7 mb-3">
-        <div className="custom-card file__card desk__office">
-          <div className="row">
-            <div className="col-md-12 mb-3">
-              <div className="block__navigation mb-3">
-                <BlockNavigationBar
-                  blocks={blocks}
-                  handleAddToSheet={handleAddToSheet}
-                />
-              </div>
-            </div>
-            <div className="col-md-12 mb-3">
-              {/* Page Component */}
-              <div className="template__page">
-                {getTemplateHeader({ configState })}
-                {/* Block Content Area */}
-                {/* The Template should be here!!! */}
-                <div className="block__placeholders">
-                  <TemplateBuilderView
-                    contents={contents}
-                    modify={() => {}}
-                    editor
-                    configState={configState}
-                    generatedData={generatedData}
-                  />
+    <TemplateBoardErrorBoundary>
+      <TemplateBoardProvider>
+        <div className="row mt-4">
+          <div className="col-md-7 mb-3">
+            <div className="custom-card file__card desk__office">
+              <div className="row">
+                <div className="col-md-12 mb-3">
+                  <div className="block__navigation mb-3">
+                    <BlockNavigationBar
+                      blocks={blocks}
+                      handleAddToSheet={handleAddToSheet}
+                    />
+                  </div>
                 </div>
-                {/* End Block Content Area */}
+                <div className="col-md-12 mb-3">
+                  {/* Page Component */}
+                  <div className="template__page">
+                    {getTemplateHeader({ configState })}
+                    {/* Block Content Area */}
+                    {/* The Template should be here!!! */}
+                    <div className="block__placeholders">
+                      <TemplateBuilderView resource={null} editor />
+                    </div>
+                    {/* End Block Content Area */}
+                  </div>
+                  {/* End Page Component */}
+                </div>
               </div>
-              {/* End Page Component */}
+            </div>
+          </div>
+          <div className="col-md-5 mb-3">
+            <div className="custom-card file__card desk__office">
+              <DocumentProcessFlow
+                processTypeOptions={processTypeOptions}
+                activeTab={activeTab}
+                configState={configState}
+                setConfigState={memoizedSetConfigState}
+                setActiveTab={setActiveTab}
+              />
+
+              <div className="block__content__area mb-3">
+                {contents.length > 0 ? (
+                  contents.map((memoBlock) => (
+                    <ContentBlock
+                      repo={repository}
+                      key={memoBlock.id}
+                      block={memoBlock}
+                      active={activeBlockId === memoBlock.id}
+                      resolve={handleResolve}
+                      remove={handleRemoveFromSheet}
+                      collapse={handleCollapseBlock}
+                      resource={null}
+                      configState={configState}
+                    />
+                  ))
+                ) : (
+                  <p>Empty</p>
+                )}
+              </div>
+
+              <div className="form__submit mt-5 flex align gap-md">
+                <Button
+                  label="Build Template"
+                  handleClick={() => buildTemplate(state)}
+                  icon="ri-webhook-line"
+                  size="md"
+                  variant="success"
+                  isDisabled={contents.length < 1 || !configState}
+                />
+                <Button
+                  label="Reset State"
+                  handleClick={() => {}}
+                  icon="ri-refresh-line"
+                  size="md"
+                  variant="danger"
+                  isDisabled
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="col-md-5 mb-3">
-        <div className="custom-card file__card desk__office">
-          <DocumentProcessFlow
-            processTypeOptions={processTypeOptions}
-            activeTab={activeTab}
-            configState={configState}
-            setConfigState={memoizedSetConfigState}
-            setActiveTab={setActiveTab}
-          />
-
-          <div className="block__content__area mb-3">
-            {contents.length > 0 ? (
-              contents.map((memoBlock) => (
-                <ContentBlock
-                  repo={repository}
-                  key={memoBlock.id}
-                  block={memoBlock}
-                  active={activeBlockId === memoBlock.id}
-                  resolve={handleResolve}
-                  remove={handleRemoveFromSheet}
-                  collapse={handleCollapseBlock}
-                  resource={null}
-                  configState={configState}
-                />
-              ))
-            ) : (
-              <p>Empty</p>
-            )}
-          </div>
-
-          <div className="form__submit mt-5 flex align gap-md">
-            <Button
-              label="Build Template"
-              handleClick={() => buildTemplate(state)}
-              icon="ri-webhook-line"
-              size="md"
-              variant="success"
-              isDisabled={contents.length < 1 || !configState}
-            />
-            <Button
-              label="Reset State"
-              handleClick={() => {}}
-              icon="ri-refresh-line"
-              size="md"
-              variant="danger"
-              isDisabled
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      </TemplateBoardProvider>
+    </TemplateBoardErrorBoundary>
   );
 };
 

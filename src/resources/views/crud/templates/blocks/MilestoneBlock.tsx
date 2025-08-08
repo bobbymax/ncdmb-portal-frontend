@@ -7,12 +7,15 @@ import { useModal } from "app/Context/ModalContext";
 import { MilestoneResponseData } from "@/app/Repositories/Milestone/data";
 import { BlockDataType } from "@/app/Repositories/Block/data";
 import MilestoneBlockModal from "../../modals/blocks/MilestoneBlockModal";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
   resource,
   localContentState,
   updateLocal,
+  blockId,
 }) => {
+  const { state, actions } = useTemplateBoard();
   const { openBlock, closeModal } = useModal();
   const identifier: BlockDataType = "milestone";
   const project = useMemo(
@@ -20,7 +23,12 @@ const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
     [resource]
   );
 
-  const [state, setState] = useState<MilestoneContentAreaProps>({
+  // Find the current block content from global state
+  const currentBlock = state.contents.find((content) => content.id === blockId);
+  const currentContent = currentBlock?.content
+    ?.milestone as MilestoneContentAreaProps;
+
+  const [localState, setLocalState] = useState<MilestoneContentAreaProps>({
     milestones: project?.milestones ?? [],
     project,
   });
@@ -32,26 +40,32 @@ const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
     const updatedMilestones =
       mode === "store"
         ? [
-            ...state.milestones,
+            ...localState.milestones,
             {
               ...updatedMilestone,
-              id: state.milestones.length + 1,
+              id: localState.milestones.length + 1,
             },
           ]
-        : state.milestones.map((milestone) =>
+        : localState.milestones.map((milestone) =>
             milestone.id === updatedMilestone.id ? updatedMilestone : milestone
           );
 
     const updatedState: MilestoneContentAreaProps = {
-      ...state,
+      ...localState,
       milestones: updatedMilestones,
     };
 
-    setState((prev) => ({
+    setLocalState((prev) => ({
       ...prev,
       milestones: updatedMilestones,
     }));
 
+    // Update global state
+    if (blockId) {
+      actions.updateContent(blockId, updatedState, "milestone");
+    }
+
+    // Also update local state for backward compatibility
     updateLocal(updatedState, "milestone");
     closeModal();
   };
@@ -62,7 +76,7 @@ const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
       {
         title: milestone ? "Update Milestone" : "Add Milestone",
         type: identifier,
-        blockState: state,
+        blockState: localState,
         data: milestone,
         isUpdating: milestone ? true : false,
         addBlockComponent: handleBlockChange,
@@ -78,24 +92,28 @@ const MilestoneBlock: React.FC<BlockContentComponentPorps> = ({
     );
   };
 
-  // console.log(state);
-
   useEffect(() => {
-    if (project) {
-      setState((prev) => ({
+    if (currentContent) {
+      setLocalState((prev) => ({
+        ...prev,
+        milestones: currentContent.milestones ?? [],
+        project: currentContent.project ?? project,
+      }));
+    } else if (project) {
+      setLocalState((prev) => ({
         ...prev,
         milestones: project.milestones ?? [],
         project,
       }));
     }
-  }, [project]);
+  }, [currentContent, project]);
 
   useEffect(() => {
-    const total = state.milestones.reduce((acc, milestone) => {
+    const total = localState.milestones.reduce((acc, milestone) => {
       return acc + milestone.percentage_completion;
     }, 0);
     setTotalPercentage(total);
-  }, [state.milestones]);
+  }, [localState.milestones]);
 
   return (
     <div className="row">

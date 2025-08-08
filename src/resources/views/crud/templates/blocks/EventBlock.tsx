@@ -5,13 +5,21 @@ import { BlockDataType } from "app/Repositories/Block/data";
 import TextInput from "resources/views/components/forms/TextInput";
 import Textarea from "resources/views/components/forms/Textarea";
 import Select from "resources/views/components/forms/Select";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 const EventBlock: React.FC<BlockContentComponentPorps> = ({
   localContentState,
   updateLocal,
+  blockId,
 }) => {
+  const { state, actions } = useTemplateBoard();
   const identifier: BlockDataType = "event";
-  const [state, setState] = useState<EventContentAreaProps>({
+
+  // Find the current block content from global state
+  const currentBlock = state.contents.find((content) => content.id === blockId);
+  const currentContent = currentBlock?.content?.event as EventContentAreaProps;
+
+  const [localState, setLocalState] = useState<EventContentAreaProps>({
     name: "",
     venue: "",
     start_date: "",
@@ -28,22 +36,33 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
   });
 
   const handleResult = (data: EventContentAreaProps) => {
-    setState((prev) => ({
+    setLocalState((prev) => ({
       ...prev,
       ...data,
     }));
 
+    // Update global state directly
+    if (currentBlock) {
+      actions.updateContent(currentBlock.id, data, identifier);
+    }
+
+    // Also update local state in parent for compatibility
     updateLocal(data, identifier);
   };
 
   useEffect(() => {
-    if (localContentState?.event) {
-      setState((prev) => ({
+    if (currentContent) {
+      setLocalState((prev) => ({
+        ...prev,
+        ...currentContent,
+      }));
+    } else if (localContentState?.event) {
+      setLocalState((prev) => ({
         ...prev,
         ...localContentState.event,
       }));
     }
-  }, [localContentState?.event]);
+  }, [currentContent, localContentState?.event]);
 
   return (
     <div className="row">
@@ -51,8 +70,10 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
         <TextInput
           label="Event Name"
           name="name"
-          value={state.name}
-          onChange={(e) => handleResult({ ...state, name: e.target.value })}
+          value={localState.name}
+          onChange={(e) =>
+            handleResult({ ...localState, name: e.target.value })
+          }
           placeholder="Enter the name of the event"
         />
       </div>
@@ -60,8 +81,10 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
         <TextInput
           label="Venue"
           name="venue"
-          value={state.venue}
-          onChange={(e) => handleResult({ ...state, venue: e.target.value })}
+          value={localState.venue}
+          onChange={(e) =>
+            handleResult({ ...localState, venue: e.target.value })
+          }
           placeholder="Enter the venue of the event"
         />
       </div>
@@ -70,9 +93,9 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
           label="Start Date"
           name="start_date"
           type="date"
-          value={state.start_date}
+          value={localState.start_date}
           onChange={(e) =>
-            handleResult({ ...state, start_date: e.target.value })
+            handleResult({ ...localState, start_date: e.target.value })
           }
         />
       </div>
@@ -81,8 +104,10 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
           label="End Date"
           name="end_date"
           type="date"
-          value={state.end_date}
-          onChange={(e) => handleResult({ ...state, end_date: e.target.value })}
+          value={localState.end_date}
+          onChange={(e) =>
+            handleResult({ ...localState, end_date: e.target.value })
+          }
         />
       </div>
       <div className="col-md-4 mb-2">
@@ -90,9 +115,9 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
           label="Time"
           name="start_time"
           type="time"
-          value={state.start_time}
+          value={localState.start_time}
           onChange={(e) =>
-            handleResult({ ...state, start_time: e.target.value })
+            handleResult({ ...localState, start_time: e.target.value })
           }
         />
       </div>
@@ -100,9 +125,9 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
         <TextInput
           label="Vendor"
           name="vendor_name"
-          value={state.vendor_name}
+          value={localState.vendor_name}
           onChange={(e) =>
-            handleResult({ ...state, vendor_name: e.target.value })
+            handleResult({ ...localState, vendor_name: e.target.value })
           }
           placeholder="Enter Vendor Name"
         />
@@ -111,12 +136,12 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
         <Select
           label="Currency"
           name="currency"
-          value={state.currency}
+          value={localState.currency}
           valueKey="value"
           labelKey="label"
           onChange={(e) =>
             handleResult({
-              ...state,
+              ...localState,
               currency: e.target.value as "NGN" | "USD" | "EUR" | "GBP" | "NA",
             })
           }
@@ -136,12 +161,12 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
         <Select
           label="Estacode"
           name="estacode"
-          value={state.estacode}
+          value={localState.estacode}
           valueKey="value"
           labelKey="label"
           onChange={(e) =>
             handleResult({
-              ...state,
+              ...localState,
               estacode: e.target.value as "NGN" | "USD" | "EUR" | "GBP" | "NA",
             })
           }
@@ -162,8 +187,10 @@ const EventBlock: React.FC<BlockContentComponentPorps> = ({
           label="Address"
           name="address"
           rows={3}
-          value={state.address}
-          onChange={(e) => handleResult({ ...state, address: e.target.value })}
+          value={localState.address}
+          onChange={(e) =>
+            handleResult({ ...localState, address: e.target.value })
+          }
           placeholder="Enter the address of the event"
         />
       </div>

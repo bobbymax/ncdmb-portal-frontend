@@ -49,6 +49,7 @@ export interface BlockContentComponentPorps {
   ) => void;
   configState: ConfigState;
   sharedState?: Record<string, any>;
+  blockId?: string;
 }
 
 export const blockFormMap: Record<
