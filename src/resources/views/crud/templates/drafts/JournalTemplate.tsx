@@ -16,7 +16,6 @@ const JournalTemplate: React.FC<
   signatures,
   document,
 }) => {
-  //   console.log(journal);
   const journalRepo = repo("journal");
   const linkedUri = "linked/documents";
   const [documentHistory, setDocumentHistory] = useState<

@@ -236,10 +236,6 @@ export const templateBoardReducer = (
           ...action.payload,
         },
       };
-      // console.log(
-      //   `✅ TemplateBoardReducer: New configState:`,
-      //   newState.configState
-      // );
       return newState;
     }
 
@@ -270,6 +266,18 @@ export const templateBoardReducer = (
         parentDocument: action.payload,
       };
 
+    case "SET_DOCUMENT_OWNER":
+      return {
+        ...state,
+        document_owner: action.payload,
+      };
+
+    case "SET_DEPARTMENT_OWNER":
+      return {
+        ...state,
+        department_owner: action.payload,
+      };
+
     case "ADD_UPLOAD": {
       const newState = {
         ...state,
@@ -279,18 +287,10 @@ export const templateBoardReducer = (
     }
 
     case "REMOVE_UPLOAD": {
-      console.log(
-        "🔄 TemplateBoardReducer: Removing upload at index:",
-        action.payload
-      );
       const newState = {
         ...state,
         uploads: state.uploads.filter((_, index) => index !== action.payload),
       };
-      console.log(
-        "✅ TemplateBoardReducer: Uploads after remove:",
-        newState.uploads.length
-      );
       return newState;
     }
 
@@ -488,10 +488,39 @@ export const templateBoardReducer = (
         buildStep: action.payload.step ?? state.buildStep,
       };
 
+    case "INITIALIZE_FROM_DOCUMENT": {
+      const doc = action.payload;
+
+      return {
+        ...state, // Start with current state
+        category: state.category,
+        template: state.template,
+        contents: state.contents,
+        configState: state.configState,
+        documentState: state.documentState,
+        document_owner: state.document_owner,
+        department_owner: state.department_owner,
+        workflow: state.workflow,
+        trackers: state.trackers,
+        fund: state.fund,
+        parentDocument: state.parentDocument,
+        // Don't initialize uploads - let user re-upload if needed
+        uploads: [],
+        // Reset generation state
+        isGenerating: false,
+        loadingProgress: 0,
+        loadingStep: "",
+        isValid: true, // Assume existing document is valid
+        errors: [],
+      };
+    }
+
     case "RESET_STATE":
       return {
         category: null,
         template: null,
+        document_owner: null,
+        department_owner: null,
         contents: [],
         configState: {
           from: {

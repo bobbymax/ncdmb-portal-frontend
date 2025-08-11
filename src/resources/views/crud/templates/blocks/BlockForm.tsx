@@ -42,7 +42,6 @@ const BlockForm: React.FC<BlockFormProps> = ({
   // Initialize local state from global state
   useEffect(() => {
     if (globalContent) {
-      //   console.log("Global content:", globalContent);
       // Initialize from global state
       setLocalContentState((prev) => {
         const blockType = block.type as keyof OptionsContentAreaProps;

@@ -29,6 +29,7 @@ import {
 } from "app/Hooks/useTemplateHeader";
 import TemplateBoardErrorBoundary from "app/Context/TemplateBoardErrorBoundary";
 import { TemplateBoardProvider } from "app/Context/TemplateBoardProvider";
+import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 
 export type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 export type ProcessTypeDependencies = {
@@ -86,13 +87,6 @@ const ContentBuilder: React.FC<
 }): React.ReactElement => {
   const navigate = useNavigate();
   const { setIsLoading } = useStateContext();
-  const [configState, setConfigState] = useState<ConfigState>(() => ({
-    from: { key: "from", state: {} as TemplateProcessProps },
-    to: { key: "to", state: {} as TemplateProcessProps },
-    through: { key: "through", state: {} as TemplateProcessProps },
-    cc: { key: "cc", state: [] as TemplateProcessProps[] },
-    approvers: { key: "approvers", state: [] as TemplateProcessProps[] },
-  }));
   const {
     blocks,
     activeBlockId,
@@ -135,170 +129,132 @@ const ContentBuilder: React.FC<
     [repository]
   );
 
-  const configStateRef = useRef(configState);
+  // Inner component that uses the context after provider is rendered
+  const ContentBuilderInner = () => {
+    const { state: contextState, actions } = useTemplateBoard();
 
-  // Update ref when configState changes
-  useEffect(() => {
-    configStateRef.current = configState;
-  }, [configState]);
+    // Initialize content and config state from template data
+    const initialized = useRef(false);
 
-  // Initialize content and config state from template data
-  const initialized = useRef(false);
+    useEffect(() => {
+      if (initialized.current) return;
 
-  useEffect(() => {
-    if (initialized.current) return;
+      if ((state.body ?? [])?.length > 0) {
+        // Update context contents
+        actions.reorderContents(state.body ?? []);
 
-    if ((state.body ?? [])?.length > 0) {
-      setContents(state.body ?? []);
+        const incoming = state.config?.process;
+        if (incoming) {
+          // Update context config state
+          actions.updateConfigState(incoming);
+        }
 
-      const incoming = state.config?.process;
-      if (incoming) {
-        setConfigState((prev) => {
-          const merged = { ...prev };
-
-          (Object.keys(incoming) as ProcessType[]).forEach((key) => {
-            const entry = incoming[key];
-            if (!entry?.state) return;
-
-            switch (key) {
-              case "from": {
-                const fromKey = "from" as const;
-                merged[fromKey] = entry as ConfigState[typeof fromKey];
-                break;
-              }
-              case "to": {
-                const toKey = "to" as const;
-                merged[toKey] = entry as ConfigState[typeof toKey];
-                break;
-              }
-              case "through": {
-                const throughKey = "through" as const;
-                merged[throughKey] = entry as ConfigState[typeof throughKey];
-                break;
-              }
-              case "cc": {
-                const ccKey = "cc" as const;
-                merged[ccKey] = entry as ConfigState[typeof ccKey];
-                break;
-              }
-              case "approvers": {
-                const approversKey = "approvers" as const;
-                merged[approversKey] =
-                  entry as ConfigState[typeof approversKey];
-                break;
-              }
-            }
-          });
-
-          return merged;
-        });
+        initialized.current = true;
       }
+    }, [state.config, state.body, actions]);
 
-      initialized.current = true;
-    }
-  }, [state.config, state.body]);
-
-  // Remove the problematic useEffect that was causing the infinite loop
-  // The parent state will be updated when needed through other mechanisms
-
-  const memoizedSetConfigState = useCallback(
-    (newState: ConfigState | ((prev: ConfigState) => ConfigState)) => {
-      if (typeof newState === "function") {
-        setConfigState((prev) => {
-          const result = newState(prev);
-          configStateRef.current = result;
-          return result;
-        });
-      } else {
-        configStateRef.current = newState;
-        setConfigState(newState);
-      }
-    },
-    [setConfigState] // Depend on setConfigState to get the latest function
-  );
-
-  return (
-    <TemplateBoardErrorBoundary>
-      <TemplateBoardProvider>
-        <div className="row mt-4">
-          <div className="col-md-7 mb-3">
-            <div className="custom-card file__card desk__office">
-              <div className="row">
-                <div className="col-md-12 mb-3">
-                  <div className="block__navigation mb-3">
-                    <BlockNavigationBar
-                      blocks={blocks}
-                      handleAddToSheet={handleAddToSheet}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-12 mb-3">
-                  {/* Page Component */}
-                  <div className="template__page">
-                    {getTemplateHeader({ configState })}
-                    {/* Block Content Area */}
-                    {/* The Template should be here!!! */}
-                    <div className="block__placeholders">
-                      <TemplateBuilderView resource={null} editor />
-                    </div>
-                    {/* End Block Content Area */}
-                  </div>
-                  {/* End Page Component */}
+    return (
+      <div className="row mt-4">
+        <div className="col-md-7 mb-3">
+          <div className="custom-card file__card desk__office">
+            <div className="row">
+              <div className="col-md-12 mb-3">
+                <div className="block__navigation mb-3">
+                  <BlockNavigationBar
+                    blocks={blocks}
+                    handleAddToSheet={handleAddToSheet}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="col-md-5 mb-3">
-            <div className="custom-card file__card desk__office">
-              <DocumentProcessFlow
-                processTypeOptions={processTypeOptions}
-                activeTab={activeTab}
-                configState={configState}
-                setConfigState={memoizedSetConfigState}
-                setActiveTab={setActiveTab}
-              />
-
-              <div className="block__content__area mb-3">
-                {contents.length > 0 ? (
-                  contents.map((memoBlock) => (
-                    <ContentBlock
-                      repo={repository}
-                      key={memoBlock.id}
-                      block={memoBlock}
-                      active={activeBlockId === memoBlock.id}
-                      resolve={handleResolve}
-                      remove={handleRemoveFromSheet}
-                      collapse={handleCollapseBlock}
-                      resource={null}
-                      configState={configState}
-                    />
-                  ))
-                ) : (
-                  <p>Empty</p>
-                )}
-              </div>
-
-              <div className="form__submit mt-5 flex align gap-md">
-                <Button
-                  label="Build Template"
-                  handleClick={() => buildTemplate(state)}
-                  icon="ri-webhook-line"
-                  size="md"
-                  variant="success"
-                  isDisabled={contents.length < 1 || !configState}
-                />
-                <Button
-                  label="Reset State"
-                  handleClick={() => {}}
-                  icon="ri-refresh-line"
-                  size="md"
-                  variant="danger"
-                  isDisabled
-                />
+              <div className="col-md-12 mb-3">
+                {/* Page Component */}
+                <div className="template__page">
+                  {getTemplateHeader({
+                    configState: contextState.configState,
+                  })}
+                  {/* Block Content Area */}
+                  {/* The Template should be here!!! */}
+                  <div className="block__placeholders">
+                    <TemplateBuilderView resource={null} editor />
+                  </div>
+                  {/* End Block Content Area */}
+                </div>
+                {/* End Page Component */}
               </div>
             </div>
           </div>
         </div>
+        <div className="col-md-5 mb-3">
+          <div className="custom-card file__card desk__office">
+            <DocumentProcessFlow
+              processTypeOptions={processTypeOptions}
+              activeTab={activeTab}
+              configState={contextState.configState}
+              setConfigState={(newConfig) => {
+                actions.updateConfigState(newConfig);
+              }}
+              setActiveTab={setActiveTab}
+            />
+
+            <div className="block__content__area mb-3">
+              {contents.length > 0 ? (
+                contents.map((memoBlock) => (
+                  <ContentBlock
+                    repo={repository}
+                    key={memoBlock.id}
+                    block={memoBlock}
+                    active={activeBlockId === memoBlock.id}
+                    resolve={handleResolve}
+                    remove={handleRemoveFromSheet}
+                    collapse={handleCollapseBlock}
+                    resource={null}
+                    configState={contextState.configState}
+                  />
+                ))
+              ) : (
+                <p>Empty</p>
+              )}
+            </div>
+
+            <div className="form__submit mt-5 flex align gap-md">
+              <Button
+                label="Build Template"
+                handleClick={() => {
+                  // Merge the original state with updated context state
+                  const mergedState = {
+                    ...state,
+                    config: {
+                      ...state.config,
+                      process: contextState.configState,
+                      subject: state.config?.subject || "", // Ensure subject is always a string
+                    },
+                  };
+                  buildTemplate(mergedState);
+                }}
+                icon="ri-webhook-line"
+                size="md"
+                variant="success"
+                isDisabled={contents.length < 1 || !contextState.configState}
+              />
+              <Button
+                label="Reset State"
+                handleClick={() => {}}
+                icon="ri-refresh-line"
+                size="md"
+                variant="danger"
+                isDisabled
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <TemplateBoardErrorBoundary>
+      <TemplateBoardProvider>
+        <ContentBuilderInner />
       </TemplateBoardProvider>
     </TemplateBoardErrorBoundary>
   );

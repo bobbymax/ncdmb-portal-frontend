@@ -60,8 +60,6 @@ const Aside = ({
       }
     }
 
-    // console.log(roots);
-
     return roots;
   };
 

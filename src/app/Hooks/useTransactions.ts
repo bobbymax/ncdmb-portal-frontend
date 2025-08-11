@@ -52,8 +52,6 @@ const useTransactions = (payment: PaymentResponseData) => {
         if (!response) return;
 
         setDependencies(response as unknown as DependencyProps);
-
-        // console.log(users);
       } catch (error) {
         // Error fetching dependencies
         return;

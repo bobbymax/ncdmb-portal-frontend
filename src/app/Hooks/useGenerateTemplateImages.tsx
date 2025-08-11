@@ -69,8 +69,6 @@ const useGenerateTemplateImages = (
     }
   }, [draftTemplates]);
 
-  // console.log(draftTemplates);
-
   const hiddenRender = (
     <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
       {draftTemplates.map(({ id, component: DraftTemplate }) => (

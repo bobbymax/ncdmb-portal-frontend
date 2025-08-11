@@ -161,8 +161,6 @@ const ClaimEditableComponent: React.FC<
     );
   }, [bulk, liveExpenses]);
 
-  // console.log(bulk);
-
   const handleCheckbox = (isChecked: boolean, expense: ExpenseResponseData) => {
     if (isChecked && !bulk.includes(expense.id)) {
       setBulk((prev) => [...prev, expense.id]);

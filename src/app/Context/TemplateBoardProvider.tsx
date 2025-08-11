@@ -37,6 +37,8 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
   const initialState: TemplateBoardState = {
     category: null,
     template: null,
+    document_owner: null,
+    department_owner: null,
     contents: [],
     configState: {
       from: {
@@ -146,172 +148,231 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
     }
   }, [transformedWorkflow, transformedTrackers]);
 
-  // Actions
+  // Actions using useCallback for individual functions
+  const setCategory = useCallback(
+    (category: DocumentCategoryResponseData | null) => {
+      dispatch({ type: "SET_CATEGORY", payload: category });
+    },
+    []
+  );
+
+  const setTemplate = useCallback((template: TemplateResponseData | null) => {
+    dispatch({ type: "SET_TEMPLATE", payload: template });
+  }, []);
+
+  const addContent = useCallback(
+    (block: BlockResponseData, type: BlockDataType) => {
+      dispatch({ type: "ADD_CONTENT", payload: { block, type } });
+    },
+    []
+  );
+
+  const updateContent = useCallback(
+    (blockId: string, data: any, identifier: string) => {
+      dispatch({
+        type: "UPDATE_CONTENT",
+        payload: { blockId, data, identifier },
+      });
+    },
+    []
+  );
+
+  const removeContent = useCallback((blockId: string) => {
+    dispatch({ type: "REMOVE_CONTENT", payload: blockId });
+  }, []);
+
+  const reorderContents = useCallback((contents: ContentAreaProps[]) => {
+    dispatch({ type: "REORDER_CONTENTS", payload: contents });
+  }, []);
+
+  const updateConfigState = useCallback((config: Partial<ConfigState>) => {
+    dispatch({ type: "UPDATE_CONFIG_STATE", payload: config });
+  }, []);
+
+  const updateDocumentState = useCallback(
+    (updates: Partial<DocumentResponseData>) => {
+      dispatch({ type: "UPDATE_DOCUMENT_STATE", payload: updates });
+    },
+    []
+  );
+
+  const setResource = useCallback((resource: BaseResponse) => {
+    dispatch({ type: "SET_RESOURCE", payload: resource });
+  }, []);
+
+  const setFund = useCallback((fund: DataOptionsProps | null) => {
+    dispatch({ type: "SET_FUND", payload: fund });
+  }, []);
+
+  const setParentDocument = useCallback(
+    (document: DocumentResponseData | null) => {
+      dispatch({ type: "SET_PARENT_DOCUMENT", payload: document });
+    },
+    []
+  );
+
+  const setDocumentOwner = useCallback((owner: DataOptionsProps | null) => {
+    dispatch({ type: "SET_DOCUMENT_OWNER", payload: owner });
+  }, []);
+
+  const setDepartmentOwner = useCallback(
+    (department: DataOptionsProps | null) => {
+      dispatch({ type: "SET_DEPARTMENT_OWNER", payload: department });
+    },
+    []
+  );
+
+  const addUpload = useCallback((file: File) => {
+    dispatch({ type: "ADD_UPLOAD", payload: file });
+  }, []);
+
+  const removeUpload = useCallback((index: number) => {
+    dispatch({ type: "REMOVE_UPLOAD", payload: index });
+  }, []);
+
+  const setGenerationState = useCallback(
+    (isGenerating: boolean, progress?: number, step?: string) => {
+      dispatch({
+        type: "SET_GENERATION_STATE",
+        payload: { isGenerating, progress, step },
+      });
+    },
+    []
+  );
+
+  const setWorkflow = useCallback(
+    (
+      workflow: WorkflowResponseData,
+      trackers: ProgressTrackerResponseData[]
+    ) => {
+      dispatch({
+        type: "SET_WORKFLOW",
+        payload: { workflow, trackers },
+      });
+    },
+    []
+  );
+
+  const setProcessType = useCallback((processType: ProcessTabsOption) => {
+    dispatch({ type: "SET_PROCESS_TYPE", payload: processType });
+  }, []);
+
+  const validateState = useCallback(() => {
+    const errors: string[] = [];
+
+    // Validate state structure using migration utility
+    const structureValidation = TemplateBoardMigration.validateState(state);
+    if (!structureValidation.isValid) {
+      errors.push(...structureValidation.errors);
+    }
+
+    if (!state.category) {
+      errors.push("Document category is required");
+    }
+
+    if (!state.template) {
+      errors.push("Template is required");
+    }
+
+    if (state.contents.length === 0) {
+      errors.push("At least one content block is required");
+    }
+
+    if (!isWorkflowValid) {
+      errors.push(...workflowErrors);
+    }
+
+    const isValid = errors.length === 0;
+    dispatch({ type: "SET_VALIDATION", payload: { isValid, errors } });
+
+    return isValid;
+  }, [state, isWorkflowValid, workflowErrors]);
+
+  const resetState = useCallback(() => {
+    dispatch({ type: "RESET_STATE" });
+  }, []);
+
+  const initializeFromDocument = useCallback(
+    (document: DocumentResponseData) => {
+      dispatch({ type: "INITIALIZE_FROM_DOCUMENT", payload: document });
+    },
+    []
+  );
+
+  // ContentBuilder Specific Actions
+  const setBlocks = useCallback((blocks: BlockResponseData[]) => {
+    dispatch({ type: "SET_BLOCKS", payload: blocks });
+  }, []);
+
+  const setActiveBlock = useCallback((blockId: string | null) => {
+    dispatch({ type: "SET_ACTIVE_BLOCK", payload: blockId });
+  }, []);
+
+  const addBlockToSheet = useCallback(
+    (block: BlockResponseData, type: BlockDataType) => {
+      dispatch({ type: "ADD_BLOCK_TO_SHEET", payload: { block, type } });
+    },
+    []
+  );
+
+  const removeBlockFromSheet = useCallback((blockId: string) => {
+    dispatch({ type: "REMOVE_BLOCK_FROM_SHEET", payload: blockId });
+  }, []);
+
+  const collapseBlock = useCallback((blockId: string) => {
+    dispatch({ type: "COLLAPSE_BLOCK", payload: blockId });
+  }, []);
+
+  const resolveBlock = useCallback(
+    (data: OptionsContentAreaProps, blockId: string) => {
+      dispatch({ type: "RESOLVE_BLOCK", payload: { data, blockId } });
+    },
+    []
+  );
+
+  const setBuildingState = useCallback(
+    (isBuilding: boolean, progress?: number, step?: string) => {
+      dispatch({
+        type: "SET_BUILDING_STATE",
+        payload: { isBuilding, progress, step },
+      });
+    },
+    []
+  );
+
+  // Actions object - memoize with empty dependency array since all functions are stable
   const actions = useMemo(
     () => ({
-      setCategory: (category: DocumentCategoryResponseData | null) => {
-        dispatch({ type: "SET_CATEGORY", payload: category });
-      },
-
-      setTemplate: (template: TemplateResponseData | null) => {
-        dispatch({ type: "SET_TEMPLATE", payload: template });
-      },
-
-      addContent: (block: BlockResponseData, type: BlockDataType) => {
-        dispatch({ type: "ADD_CONTENT", payload: { block, type } });
-      },
-
-      updateContent: (blockId: string, data: any, identifier: string) => {
-        dispatch({
-          type: "UPDATE_CONTENT",
-          payload: { blockId, data, identifier },
-        });
-      },
-
-      removeContent: (blockId: string) => {
-        dispatch({ type: "REMOVE_CONTENT", payload: blockId });
-      },
-
-      reorderContents: (contents: ContentAreaProps[]) => {
-        dispatch({ type: "REORDER_CONTENTS", payload: contents });
-      },
-
-      updateConfigState: (config: Partial<ConfigState>) => {
-        dispatch({ type: "UPDATE_CONFIG_STATE", payload: config });
-      },
-
-      updateDocumentState: (updates: Partial<DocumentResponseData>) => {
-        dispatch({ type: "UPDATE_DOCUMENT_STATE", payload: updates });
-      },
-
-      setResource: (resource: BaseResponse) => {
-        dispatch({ type: "SET_RESOURCE", payload: resource });
-      },
-
-      setFund: (fund: DataOptionsProps | null) => {
-        dispatch({ type: "SET_FUND", payload: fund });
-      },
-
-      setParentDocument: (document: DocumentResponseData | null) => {
-        dispatch({ type: "SET_PARENT_DOCUMENT", payload: document });
-      },
-
-      addUpload: (file: File) => {
-        console.log("📥 TemplateBoardProvider: Adding upload:", file.name);
-        dispatch({ type: "ADD_UPLOAD", payload: file });
-      },
-
-      removeUpload: (index: number) => {
-        console.log(
-          "📥 TemplateBoardProvider: Removing upload at index:",
-          index
-        );
-        dispatch({ type: "REMOVE_UPLOAD", payload: index });
-      },
-
-      setGenerationState: (
-        isGenerating: boolean,
-        progress?: number,
-        step?: string
-      ) => {
-        dispatch({
-          type: "SET_GENERATION_STATE",
-          payload: { isGenerating, progress, step },
-        });
-      },
-
-      setWorkflow: (
-        workflow: WorkflowResponseData,
-        trackers: ProgressTrackerResponseData[]
-      ) => {
-        dispatch({
-          type: "SET_WORKFLOW",
-          payload: { workflow, trackers },
-        });
-      },
-
-      setProcessType: (processType: ProcessTabsOption) => {
-        dispatch({ type: "SET_PROCESS_TYPE", payload: processType });
-      },
-
-      validateState: () => {
-        const errors: string[] = [];
-
-        // Validate state structure using migration utility
-        const structureValidation = TemplateBoardMigration.validateState(state);
-        if (!structureValidation.isValid) {
-          errors.push(...structureValidation.errors);
-        }
-
-        if (!state.category) {
-          errors.push("Document category is required");
-        }
-
-        if (!state.template) {
-          errors.push("Template is required");
-        }
-
-        if (state.contents.length === 0) {
-          errors.push("At least one content block is required");
-        }
-
-        if (!isWorkflowValid) {
-          errors.push(...workflowErrors);
-        }
-
-        const isValid = errors.length === 0;
-        dispatch({ type: "SET_VALIDATION", payload: { isValid, errors } });
-
-        return isValid;
-      },
-
-      resetState: () => {
-        dispatch({ type: "RESET_STATE" });
-      },
-
-      // ContentBuilder Specific Actions
-      setBlocks: (blocks: BlockResponseData[]) => {
-        dispatch({ type: "SET_BLOCKS", payload: blocks });
-      },
-
-      setActiveBlock: (blockId: string | null) => {
-        dispatch({ type: "SET_ACTIVE_BLOCK", payload: blockId });
-      },
-
-      addBlockToSheet: (block: BlockResponseData, type: BlockDataType) => {
-        dispatch({ type: "ADD_BLOCK_TO_SHEET", payload: { block, type } });
-      },
-
-      removeBlockFromSheet: (blockId: string) => {
-        dispatch({ type: "REMOVE_BLOCK_FROM_SHEET", payload: blockId });
-      },
-
-      collapseBlock: (blockId: string) => {
-        dispatch({ type: "COLLAPSE_BLOCK", payload: blockId });
-      },
-
-      resolveBlock: (data: OptionsContentAreaProps, blockId: string) => {
-        dispatch({ type: "RESOLVE_BLOCK", payload: { data, blockId } });
-      },
-
-      setBuildingState: (
-        isBuilding: boolean,
-        progress?: number,
-        step?: string
-      ) => {
-        dispatch({
-          type: "SET_BUILDING_STATE",
-          payload: { isBuilding, progress, step },
-        });
-      },
+      setCategory,
+      setTemplate,
+      addContent,
+      updateContent,
+      removeContent,
+      reorderContents,
+      updateConfigState,
+      updateDocumentState,
+      setResource,
+      setFund,
+      setParentDocument,
+      setDocumentOwner,
+      setDepartmentOwner,
+      addUpload,
+      removeUpload,
+      setGenerationState,
+      setWorkflow,
+      setProcessType,
+      validateState,
+      resetState,
+      initializeFromDocument,
+      setBlocks,
+      setActiveBlock,
+      addBlockToSheet,
+      removeBlockFromSheet,
+      collapseBlock,
+      resolveBlock,
+      setBuildingState,
     }),
-    [
-      state.category,
-      state.template,
-      state.contents,
-      isWorkflowValid,
-      workflowErrors,
-    ]
+    []
   );
 
   const contextValue: TemplateBoardContextType = useMemo(

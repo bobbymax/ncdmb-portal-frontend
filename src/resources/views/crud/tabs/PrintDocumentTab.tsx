@@ -13,8 +13,6 @@ const PrintDocumentTab: React.FC<
     draftTemplates ?? []
   );
 
-  // console.log(draftTemplates);
-
   return (
     <>
       <div className="print__area">

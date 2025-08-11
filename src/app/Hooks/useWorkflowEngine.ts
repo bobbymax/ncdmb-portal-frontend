@@ -224,7 +224,6 @@ export const useWorkflowEngine = (
 
   const hasAccessToOperate = useMemo(() => {
     if (!currentTracker || !loggedInStaff || !currentDraft) {
-      // console.log("🔴 Access Denied: No current tracker or logged-in staff.");
       return false;
     }
 
@@ -235,12 +234,6 @@ export const useWorkflowEngine = (
 
     let canOperate = isUserInGroup && isUserInDepartment;
 
-    if (!canOperate) {
-      // console.log(
-      //   `🔴 Access Denied: User is not in required group or department.`
-      // );
-    }
-
     // If draft is "attention", only the document owner can respond
     if (
       currentDraft?.type === "attention" ||
@@ -248,11 +241,6 @@ export const useWorkflowEngine = (
     ) {
       // canOperate = loggedInStaff.id === document.owner?.id;
       canOperate = false;
-      if (!canOperate) {
-        // console.log(
-        //   `🔴 Access Denied: Only the document owner (${document.owner?.id}) can respond.`
-        // );
-      }
     }
 
     // If the draft is already responded to, allow workflow to continue
@@ -261,12 +249,8 @@ export const useWorkflowEngine = (
       ["response", "paper"].includes(currentDraft?.type ?? "")
     ) {
       canOperate = true;
-      // console.log("✅ Access Granted: Document has already been responded to.");
     }
 
-    // console.log(
-    //   `ℹ️ Final Access Decision: ${canOperate ? "GRANTED ✅" : "DENIED ❌"}`
-    // );
     return canOperate;
   }, [
     currentTracker,

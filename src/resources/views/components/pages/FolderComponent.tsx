@@ -24,8 +24,6 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
   const [currentTracker, setCurrentTracker] =
     useState<ProgressTrackerResponseData>({} as ProgressTrackerResponseData);
 
-  // console.log(document);
-
   useEffect(() => {
     if (document && document.drafts && document.drafts.length > 0) {
       const approvalsMap = new Map<string | number, AuthorisingOfficerProps>();

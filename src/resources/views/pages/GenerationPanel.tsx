@@ -1,49 +1,42 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTemplateBoard } from "app/Context/TemplateBoardContext";
 import { BaseRepository } from "app/Repositories/BaseRepository";
 import { useAuth } from "app/Context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "resources/views/components/forms/Button";
 import { toast } from "react-toastify";
+import { AuthPageResponseData } from "@/app/Repositories/Page/data";
 
 interface GenerationPanelProps {
   Repository: BaseRepository;
   DocumentGeneratorComponent?: React.ComponentType<any> | null;
   generatedData?: unknown;
+  mode?: "store" | "update";
+  documentReference?: string;
 }
 
 const GenerationPanel: React.FC<GenerationPanelProps> = ({
   Repository,
   DocumentGeneratorComponent,
   generatedData,
+  mode = "store",
+  documentReference,
 }) => {
   const { state, actions } = useTemplateBoard();
   const { staff } = useAuth();
   const navigate = useNavigate();
-
-  console.log(state);
+  const { pathname } = useLocation();
+  const [page, setPage] = useState<AuthPageResponseData | null>(null);
 
   // Helper function to convert File to data URL
   const convertFileToDataURL = (file: File): Promise<string> => {
-    // console.log(
-    //   "🔄 convertFileToDataURL: Converting file:",
-    //   file.name,
-    //   file.size
-    // );
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        // console.log(
-        //   "✅ convertFileToDataURL: Successfully converted",
-        //   file.name,
-        //   "to data URL, length:",
-        //   result.length
-        // );
         resolve(result);
       };
       reader.onerror = () => {
-        // console.error("❌ convertFileToDataURL: Failed to convert", file.name);
         reject(new Error(`Failed to read file: ${file.name}`));
       };
       reader.readAsDataURL(file);
@@ -93,14 +86,6 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
     if (state.isGenerating) {
       return;
     }
-
-    // Validate state before generation
-    // if (!actions.validateState()) {
-    //   toast.error(
-    //     "Please fix the validation errors before generating the document"
-    //   );
-    //   return;
-    // }
 
     actions.setGenerationState(true, 0, "");
     showOverlay();
@@ -171,6 +156,7 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
       }
 
       const documentServerObject = {
+        page,
         document: state.documentState,
         resource_id: state.resource?.id || 0,
         configState: state.configState,
@@ -181,39 +167,46 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
         service: state.category?.service,
         user_id: staff?.id,
         department_id: staff?.department_id,
-        owner_department_id: staff?.department_id,
         category: state.category,
         workflow: state.workflow,
         trackers: state.trackers,
         isWorkflowValid: state.isValid,
         page_id: pageId,
+        document_owner: state.document_owner,
+        department_owner: state.department_owner,
+        template_id: state.template?.id,
       };
 
+      // Use different endpoints based on mode
+      const endpoint =
+        mode === "update"
+          ? `documents/${documentReference}/update`
+          : "generate/documents";
+
       // TODO: Add actual API call here
+      // const response = await Repository.store(endpoint, documentServerObject);
 
-      if (documentServerObject.uploads.length > 0) {
-        // console.log(
-        //   "🔍 GenerationPanel: First upload item type:",
-        //   typeof documentServerObject.uploads[0]
-        // );
-        // console.log(
-        //   "🔍 GenerationPanel: First upload item sample:",
-        //   documentServerObject.uploads[0]?.substring(0, 100) + "..."
-        // );
-      }
-
-      // Simulate API call for now
-      const step5 = "Processing document on our servers";
+      const step5 =
+        mode === "update"
+          ? "Updating document on our servers"
+          : "Processing document on our servers";
       actions.setGenerationState(true, 90, step5);
       updateOverlayProgress(90, step5);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const step6 = "Document generated successfully!";
+      const step6 =
+        mode === "update"
+          ? "Document updated successfully!"
+          : "Document generated successfully!";
       actions.setGenerationState(true, 100, step6);
       updateOverlayProgress(100, step6);
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      toast.success("Document generated successfully!");
+      toast.success(
+        mode === "update"
+          ? "Document updated successfully!"
+          : "Document generated successfully!"
+      );
 
       // Navigate back or to the generated document
       // navigate(-1);
@@ -236,7 +229,19 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
     showOverlay,
     hideOverlay,
     updateOverlayProgress,
+    mode,
+    documentReference,
   ]);
+
+  useEffect(() => {
+    if (staff?.pages && pathname) {
+      const firstTwo = pathname.split("/").slice(0, 3).join("/");
+      const page = staff.pages.find((page) => page.path === firstTwo);
+      if (page) {
+        setPage(page);
+      }
+    }
+  }, [pathname, staff?.pages, actions]);
 
   const handleGoBack = useCallback(() => {
     navigate(-1);
@@ -247,10 +252,25 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
       {/* Header Section */}
       <div className="generation__panel__header">
         <div className="titler flex align between gap-md">
-          <h5 style={{ fontSize: 26 }}>{state.category?.name} Generator</h5>
+          <h5 style={{ fontSize: 26 }}>
+            {mode === "update" ? "Update" : "Generate"} {state.category?.name}
+            {mode === "update" && documentReference && (
+              <small className="text-muted d-block" style={{ fontSize: 14 }}>
+                Reference: {documentReference}
+              </small>
+            )}
+          </h5>
           <div className="flex align gap-md">
             <Button
-              label={state.isGenerating ? "Generating..." : "Generate Document"}
+              label={
+                state.isGenerating
+                  ? mode === "update"
+                    ? "Updating..."
+                    : "Generating..."
+                  : mode === "update"
+                  ? "Update Document"
+                  : "Generate Document"
+              }
               handleClick={generateDocument}
               icon={state.isGenerating ? "ri-loader-4-line" : "ri-links-line"}
               size="md"

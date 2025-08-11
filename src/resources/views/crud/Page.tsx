@@ -101,8 +101,6 @@ const Page: React.FC<FormPageComponentProps<AuthPageResponseData>> = ({
     }
   }, [selectedRoles, setState]);
 
-  // console.log(mode);
-
   useEffect(() => {
     if (
       mode === "update" &&

@@ -16,4 +16,9 @@ export const gradeLevelColumns: ColumnData[] = [
     accessor: "type",
     type: "text",
   },
+  {
+    label: "Rank",
+    accessor: "rank",
+    type: "text",
+  },
 ];

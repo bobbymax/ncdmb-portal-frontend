@@ -143,7 +143,7 @@ export const generateApprovalsFromConfig = (
   // Add "from" as initiator (first signatory)
   if (config.from?.state) {
     const fromState = config.from.state;
-    // console.log("Processing from state:", fromState);
+
     if (fromState.staff || fromState.group || fromState.department) {
       approvals.push({
         group: fromState.group,
@@ -170,7 +170,7 @@ export const generateApprovalsFromConfig = (
   // Add "through" states as intermediate signatories
   if (config.through?.state) {
     const throughState = config.through.state;
-    // console.log("Processing through state:", throughState);
+
     if (throughState.staff || throughState.group || throughState.department) {
       approvals.push({
         group: throughState.group,
@@ -197,7 +197,7 @@ export const generateApprovalsFromConfig = (
   // Add "to" as final approver
   if (config.to?.state) {
     const toState = config.to.state;
-    // console.log("Processing to state:", toState);
+
     if (toState.staff || toState.group || toState.department) {
       approvals.push({
         group: toState.group,
@@ -221,7 +221,6 @@ export const generateApprovalsFromConfig = (
     }
   }
 
-  console.log("✅ Generated approvals:", approvals);
   return approvals;
 };
 

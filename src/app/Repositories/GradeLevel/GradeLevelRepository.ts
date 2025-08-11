@@ -24,6 +24,7 @@ export default class GradeLevelRepository extends BaseRepository {
       name: data.name ?? "",
       key: data.key ?? "",
       type: data.type ?? "board",
+      rank: data.rank ?? 0,
       carder: data.carder ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",

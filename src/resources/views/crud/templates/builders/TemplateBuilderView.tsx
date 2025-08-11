@@ -27,8 +27,6 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
   const { state, actions } = useTemplateBoard();
   const contents = state.contents;
 
-  // console.log(contents);
-
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
@@ -77,8 +75,6 @@ const TemplateBuilderView: React.FC<TemplateBuilderProps<BaseResponse>> = ({
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
-
-  // console.log(state.contents);
 
   return (
     <div className="template__page__preview">

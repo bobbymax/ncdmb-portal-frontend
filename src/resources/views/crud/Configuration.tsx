@@ -29,8 +29,6 @@ const Configuration: React.FC<
     setResource(value);
   };
 
-  // console.log(RESOURCE_MAPPINGS);
-
   const handleFileSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -45,8 +43,6 @@ const Configuration: React.FC<
         `configuration/imports/${resource?.value}`,
         body
       );
-
-      // console.log(response);
 
       if (response) {
         setUploading(false);

@@ -12,6 +12,8 @@ import { ProcessTabsOption } from "resources/views/crud/ContentBuilder";
 import { TemplateProcessProps } from "@/app/Repositories/Template/data";
 import { repo } from "bootstrap/repositories";
 import { ConfigState, ProcessStateMap } from "@/app/Hooks/useTemplateHeader";
+import { useAuth } from "app/Context/AuthContext";
+import { useAccessControl } from "app/Hooks/useAccessControl";
 
 type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 interface ProcessFlowProps {
@@ -95,6 +97,8 @@ const DocumentProcessFlow = ({
   isDisplay = false,
 }: ProcessFlowProps) => {
   const { stages, groups, users, loading, error } = useStableDirectories();
+
+  // const { filteredResources } = useAccessControl(users);
 
   // Check if all dependencies are loaded
   const hasData = stages.length > 0 && groups.length > 0 && users.length > 0;

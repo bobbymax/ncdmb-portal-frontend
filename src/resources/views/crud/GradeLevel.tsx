@@ -47,7 +47,7 @@ const GradeLevel: React.FC<FormPageComponentProps<GradeLevelResponseData>> = ({
           placeholder="Enter Grade Level ABV"
         />
       </div>
-      <div className="col-md-6 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           label="Carder"
           name="carder_id"
@@ -61,7 +61,7 @@ const GradeLevel: React.FC<FormPageComponentProps<GradeLevelResponseData>> = ({
           options={carders}
         />
       </div>
-      <div className="col-md-6 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           label="Type"
           name="type"
@@ -76,6 +76,19 @@ const GradeLevel: React.FC<FormPageComponentProps<GradeLevelResponseData>> = ({
             { label: "Board", value: "board" },
             { label: "System", value: "system" },
           ]}
+        />
+      </div>
+      <div className="col-md-4 mb-3">
+        <TextInput
+          label="Rank"
+          name="rank"
+          value={state.rank}
+          onChange={handleChange}
+          isDisabled={loading}
+          placeholder="Enter Grade Level Rank"
+          type="number"
+          min={0}
+          max={13}
         />
       </div>
     </>

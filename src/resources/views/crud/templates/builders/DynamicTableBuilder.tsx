@@ -24,8 +24,6 @@ const Row = ({
   headers: TableContentAreaHeaderProps[];
   row: TableContentAreaRowProps;
 }) => {
-  // console.log(`Row: `, row);
-
   return (
     <tr className="hover:bg-gray-50">
       {headers.map((header) => (

@@ -189,8 +189,6 @@ const usePaymentProcessor = (
     }));
   };
 
-  // console.log(state);
-
   // useEffect(() => {
   //   if (property && document && tracker && payment && staff && currentDraft) {
   //     const body: Partial<

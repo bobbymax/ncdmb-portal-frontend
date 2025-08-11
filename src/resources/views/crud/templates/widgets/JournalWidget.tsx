@@ -109,8 +109,6 @@ const JournalWidget: React.FC<SidebarProps<PaymentResponseData>> = ({
     }
   }, [transactions, adjusted]);
 
-  //   console.log(transactions, adjusted);
-
   return (
     <>
       <div className="row">

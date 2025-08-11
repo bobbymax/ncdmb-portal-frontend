@@ -31,7 +31,6 @@ const useRepo = <D extends BaseRepository>(Repo: D) => {
     try {
       const response = await Repo.show(url, id);
       return response.data;
-      // console.log(response);
     } catch (error) {
       // Error fetching resource
     }

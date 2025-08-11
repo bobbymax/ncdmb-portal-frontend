@@ -65,8 +65,6 @@ const Trip: React.FC<ModalValueProps> = ({
     [updateModalState]
   );
 
-  // console.log(tripType);
-
   useEffect(() => {
     if (state.destination_city_id > 0) {
       const city = cities.find((city) => city.id === state.destination_city_id);

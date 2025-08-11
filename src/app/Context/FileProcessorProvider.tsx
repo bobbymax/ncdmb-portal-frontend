@@ -149,8 +149,6 @@ export const FileProcessorProvider = ({
     paymentTransactions: [] as Partial<TransactionResponseData>[],
   });
 
-  // console.log(state.serverSideProcessedData);
-
   const updateState = (patch: Partial<typeof state>) => {
     setState((prev) => ({ ...prev, ...patch }));
   };
@@ -288,8 +286,6 @@ export const FileProcessorProvider = ({
       }
     );
   };
-
-  // console.log(state);
 
   const updateServerProcessedData = <T extends BaseResponse>(
     props: Partial<ServerSideProcessedDataProps<T>>

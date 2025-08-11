@@ -20,6 +20,8 @@ export interface TemplateBoardState {
   // Primary Requirements
   category: DocumentCategoryResponseData | null;
   template: TemplateResponseData | null;
+  document_owner: DataOptionsProps | null;
+  department_owner: DataOptionsProps | null;
 
   // Template Building
   contents: ContentAreaProps[];
@@ -75,6 +77,8 @@ export type TemplateBoardAction =
   | { type: "SET_RESOURCE"; payload: BaseResponse }
   | { type: "SET_FUND"; payload: DataOptionsProps | null }
   | { type: "SET_PARENT_DOCUMENT"; payload: DocumentResponseData | null }
+  | { type: "SET_DOCUMENT_OWNER"; payload: DataOptionsProps | null }
+  | { type: "SET_DEPARTMENT_OWNER"; payload: DataOptionsProps | null }
   | { type: "ADD_UPLOAD"; payload: File }
   | { type: "REMOVE_UPLOAD"; payload: number }
   | {
@@ -90,6 +94,7 @@ export type TemplateBoardAction =
     }
   | { type: "SET_PROCESS_TYPE"; payload: ProcessTabsOption }
   | { type: "SET_VALIDATION"; payload: { isValid: boolean; errors: string[] } }
+  | { type: "INITIALIZE_FROM_DOCUMENT"; payload: DocumentResponseData }
   // ContentBuilder Specific Actions
   | { type: "SET_BLOCKS"; payload: BlockResponseData[] }
   | { type: "SET_ACTIVE_BLOCK"; payload: string | null }
@@ -124,6 +129,8 @@ export interface TemplateBoardContextType {
     setResource: (resource: BaseResponse) => void;
     setFund: (fund: DataOptionsProps | null) => void;
     setParentDocument: (document: DocumentResponseData | null) => void;
+    setDocumentOwner: (owner: DataOptionsProps | null) => void;
+    setDepartmentOwner: (department: DataOptionsProps | null) => void;
     addUpload: (file: File) => void;
     removeUpload: (index: number) => void;
     setGenerationState: (
@@ -138,6 +145,7 @@ export interface TemplateBoardContextType {
     setProcessType: (processType: ProcessTabsOption) => void;
     validateState: () => boolean;
     resetState: () => void;
+    initializeFromDocument: (document: DocumentResponseData) => void;
     // ContentBuilder Specific Actions
     setBlocks: (blocks: BlockResponseData[]) => void;
     setActiveBlock: (blockId: string | null) => void;
@@ -158,6 +166,8 @@ const initialState: TemplateBoardState = {
   category: null,
   template: null,
   contents: [],
+  document_owner: null,
+  department_owner: null,
   configState: {
     from: {
       key: "from",

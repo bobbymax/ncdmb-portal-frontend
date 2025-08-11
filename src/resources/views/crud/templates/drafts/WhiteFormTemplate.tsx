@@ -56,8 +56,6 @@ const WhiteFormTemplate: React.FC<
     );
   }, [actions]);
 
-  // console.log(canSign);
-
   const approvals = signatories?.map((signatory, index) => ({
     signatory,
     label:

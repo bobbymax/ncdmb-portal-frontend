@@ -78,8 +78,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
     return resources?.tripCategories ?? [];
   }, [dependencies]);
 
-  // console.log(tripCategories);
-
   const [uploads, setUploads] = useState<File[]>([]);
   const [category, setCategory] = useState<
     DocumentCategoryResponseData | undefined
@@ -211,8 +209,6 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       }));
     }
   }, [earliestDate, latestDate, setState, expenses, totalMoneySpent]);
-
-  // console.log(dependencies, pathname, pages);
 
   useEffect(() => {
     if (dependencies && pathname !== "" && pages.length > 0) {

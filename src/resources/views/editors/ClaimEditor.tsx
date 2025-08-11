@@ -219,7 +219,6 @@ const ClaimEditor: React.FC<
       setCannotConfirmAll(true);
     }
     // Close Modal
-    // console.log("modified");
 
     closeModal();
   };

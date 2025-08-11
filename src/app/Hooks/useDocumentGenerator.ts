@@ -110,8 +110,6 @@ const useDocumentGenerator = (params: unknown) => {
     }
   }, [template]);
 
-  // console.log("Contents", contents);
-
   return {
     category,
     template,

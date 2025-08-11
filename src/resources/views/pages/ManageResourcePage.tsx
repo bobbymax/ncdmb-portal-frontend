@@ -18,7 +18,6 @@ const ManageResourcePage = ({
   });
 
   const onFormSubmit = (response: ServerResponse, action: ActionType) => {
-    // console.log(response);
     toast.success(response.message);
     redirectTo(view.index_path ?? "/");
   };

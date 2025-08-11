@@ -40,8 +40,6 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({
     [actions]
   );
 
-  //   console.log(state.contents);
-
   // Helper to group blocks by input_type
   const groupBlocksByType = (blocks: BlockResponseData[]) => {
     return blocks.reduce((acc, block) => {

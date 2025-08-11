@@ -77,7 +77,6 @@ const RowBlockModal: React.FC<BlockModalProps<"training">> = ({
     []
   );
 
-  // console.log(rows);
   useEffect(() => {
     const shouldRun = rowState.takeoff && calcState.destination;
     if (!shouldRun) return;

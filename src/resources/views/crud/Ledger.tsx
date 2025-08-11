@@ -74,8 +74,6 @@ const Ledger: React.FC<FormPageComponentProps<LedgerResponseData>> = ({
     [setState, groups]
   );
 
-  // console.log(state);
-
   useEffect(() => {
     if (dependencies) {
       const { groups = [] } = dependencies as DependencyProps;

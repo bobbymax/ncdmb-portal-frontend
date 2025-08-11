@@ -2,7 +2,7 @@ import { ConfigProp } from "../BaseRepository";
 import { GradeLevelResponseData } from "./data";
 
 export const gradeLevelConfig: ConfigProp<GradeLevelResponseData> = {
-  fillables: ["key", "name", "type", "carder_id"],
+  fillables: ["key", "name", "type", "carder_id", "rank"],
   associatedResources: [{ name: "carders", url: "carders" }],
   state: {
     id: 0,
@@ -11,6 +11,7 @@ export const gradeLevelConfig: ConfigProp<GradeLevelResponseData> = {
     key: "",
     type: "board",
     carder: null,
+    rank: 0,
   },
   actions: [
     {

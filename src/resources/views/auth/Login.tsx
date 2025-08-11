@@ -66,8 +66,6 @@ const Login = () => {
           (page) => page.id === staff.data.data.default_page_id
         );
 
-        // console.log(staff.data.data);
-
         if (defaultPage) {
           // defaultPage.path;
           navigate(defaultPage.path);

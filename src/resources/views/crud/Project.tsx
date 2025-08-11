@@ -81,8 +81,6 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
         maximumFractionDigits: 2,
       });
 
-      //   console.log(formatter.format(vatValue));
-
       if (setState) {
         setState((prev) => ({
           ...prev,

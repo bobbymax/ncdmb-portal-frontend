@@ -77,8 +77,6 @@ const ResourceEditor: React.FC<
         label: toTitleCase(service),
       }));
 
-      //   console.log(cleaned);
-
       setSevices(cleaned);
       setGroups(groups);
       setWorkflows(workflows);

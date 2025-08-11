@@ -1,7 +1,4 @@
-import {
-  BaseRepository,
-  BaseResponse,
-} from "@/app/Repositories/BaseRepository";
+import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import { PageProps } from "@/bootstrap";
 import { useParams } from "react-router-dom";
 import useDocumentGenerator from "app/Hooks/useDocumentGenerator";
@@ -13,17 +10,108 @@ import DocumentConfigurator from "./DocumentConfigurator";
 import GenerationPanel from "./GenerationPanel";
 import DocumentGeneratorWrapper from "./DocumentGeneratorWrapper";
 import DocumentSections from "./DocumentSections";
+import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
+import { useAuth } from "app/Context/AuthContext";
+import { useEffect } from "react";
+import useDocumentLoader from "app/Hooks/useDocumentLoader";
 
 // Inner component that can use the context
 const DocumentGeneratorContent: React.FC<{
   Repository: BaseRepository;
   DocumentGeneratorComponent: React.ComponentType<any>;
-  category: any;
+  category: DocumentCategoryResponseData | null;
   editedContents: any;
-}> = ({ Repository, DocumentGeneratorComponent, category, editedContents }) => {
-  const { state } = useTemplateBoard();
+  mode: "store" | "update";
+  documentReference?: string;
+}> = ({ Repository, DocumentGeneratorComponent, mode, documentReference }) => {
+  const { state, actions } = useTemplateBoard();
+  const { staff } = useAuth();
 
-  // console.log(state.configState);
+  // Load document data for update mode
+  const { documentData, loading, error } = useDocumentLoader(
+    Repository,
+    mode === "update" ? documentReference : undefined
+  );
+
+  // Initialize from document data when in update mode
+  useEffect(() => {
+    if (mode === "update" && documentData && !loading && !error) {
+      actions.initializeFromDocument(documentData);
+    }
+  }, [mode, documentData, loading, error, actions]);
+
+  // TODO: Add document owner and department owner to the state
+  // Apply Code Here!
+  useEffect(() => {
+    if (staff) {
+      // Check if configState.from.state.staff exists and is different from current staff
+      const configStaff = state.configState.from?.state?.staff;
+
+      if (configStaff && configStaff.value !== staff.id) {
+        // Use the staff from configState if it exists and is different
+        actions.setDocumentOwner(configStaff);
+      } else {
+        // Use the current staff
+        actions.setDocumentOwner({
+          value: staff.id,
+          label: staff.name,
+        });
+      }
+
+      // Only set department_owner if it's not already set (allow user overrides)
+      if (staff.department && !state.department_owner) {
+        actions.setDepartmentOwner(staff.department);
+      }
+    } else {
+      // Clear both if no staff
+      actions.setDocumentOwner(null);
+      actions.setDepartmentOwner(null);
+    }
+  }, [
+    staff,
+    actions,
+    state.configState.from?.state?.staff,
+    state.department_owner,
+  ]);
+
+  // Show loading state for update mode
+  if (mode === "update" && loading) {
+    return (
+      <div className="document__generator__container">
+        <div className="text-center p-5">
+          <div className="spinner-border" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-3">Loading document for editing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state for update mode
+  if (mode === "update" && error) {
+    return (
+      <div className="document__generator__container">
+        <div className="alert alert-danger text-center p-4">
+          <div className="mb-3">
+            <i
+              className="ri-error-warning-line"
+              style={{ fontSize: "3rem" }}
+            ></i>
+          </div>
+          <h5>Error Loading Document</h5>
+          <p>{error}</p>
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => window.history.back()}
+          >
+            <i className="ri-arrow-left-line me-1"></i>
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="document__generator__container">
@@ -34,6 +122,8 @@ const DocumentGeneratorContent: React.FC<{
             Repository={Repository}
             DocumentGeneratorComponent={null}
             generatedData={{}}
+            mode={mode}
+            documentReference={documentReference}
           />
         </div>
 
@@ -70,6 +160,11 @@ const DocumentGenerator = ({
 }: PageProps<BaseRepository>) => {
   const params = useParams();
 
+  // Determine mode based on URL parameters
+  const isUpdateMode = !!params.documentReference;
+  const documentReference = params.documentReference;
+  const categoryId = params.categoryId;
+
   const { category, editedContents } = useDocumentGenerator(params);
 
   return (
@@ -80,6 +175,8 @@ const DocumentGenerator = ({
           DocumentGeneratorComponent={DocumentGeneratorComponent}
           category={category}
           editedContents={editedContents}
+          mode={isUpdateMode ? "update" : "store"}
+          documentReference={documentReference}
         />
       </TemplateBoardProvider>
     </TemplateBoardErrorBoundary>

@@ -23,8 +23,6 @@ const ClaimSummaryWidget: React.FC<SidebarProps<ClaimResponseData>> = ({
     return (resource as ClaimResponseData) ?? ({} as ClaimResponseData);
   }, [resource]);
 
-  //   console.log(claim);
-
   return (
     <div className="widget claim">
       <div className="widget__title flex align gap-md">

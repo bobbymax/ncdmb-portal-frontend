@@ -6,6 +6,7 @@ import { GroupResponseData } from "app/Repositories/Group/data";
 import { formatOptions } from "app/Support/Helpers";
 import { useAuth } from "app/Context/AuthContext";
 import useFormOnChangeEvents from "./useFormOnChangeEvents";
+import { useAccessControl } from "./useAccessControl";
 
 interface UseProcessStateProps<
   K extends "from" | "to" | "through" | "cc" | "approvers"
@@ -59,6 +60,7 @@ export const useProcessState = <
   }, [configState, handleStateUpdate]);
 
   const { stages = [], groups = [], users = [] } = dependencies;
+  const { filteredResources } = useAccessControl(users);
 
   // Memoize handleStateChange to prevent infinite loops
   const handleStateChange = useCallback(
@@ -118,7 +120,7 @@ export const useProcessState = <
       if (!group) return;
 
       const matchingIds = new Set(
-        users
+        filteredResources
           .filter((user) => user.department_id === state.department?.value)
           .map((user) => user.id)
       );
@@ -131,7 +133,7 @@ export const useProcessState = <
       const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
       setSelectedUsers([{ label: "None", value: 0 }, ...matchUsers]);
     }
-  }, [state.group, groups, state.department, users]);
+  }, [state.group, groups, state.department, filteredResources]);
 
   // Handle stage changes and set accessible groups
   useEffect(() => {

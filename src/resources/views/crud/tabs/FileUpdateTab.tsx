@@ -68,8 +68,6 @@ const FileUpdateTab: React.FC<
     ) => {
       setIsLoading(true);
 
-      // console.log(data, draftId, updateId, message);
-
       try {
         const response = await Repo.update("documentUpdates", updateId, {
           message,

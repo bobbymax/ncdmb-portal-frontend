@@ -139,7 +139,6 @@ export abstract class RepositoryService implements IRepository {
         body
       );
       const code = response.status;
-      // console.log(response);
 
       return { code, ...response.data };
     } catch (error) {

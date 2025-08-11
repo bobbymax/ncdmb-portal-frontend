@@ -29,8 +29,6 @@ const RemunerationModal: React.FC<ModalValueProps> = ({
   const [selectedGrades, setSelectedGrades] = useState<DataOptionsProps[]>([]);
   const [amount, setAmount] = useState("");
 
-  //   console.log(state);
-
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement

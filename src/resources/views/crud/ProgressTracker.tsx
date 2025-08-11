@@ -77,8 +77,6 @@ const ProgressTracker: React.FC<
     workflow: null,
   });
 
-  // console.log(state);
-
   const handleAddToQueue = (stage: WorkflowStageResponseData) => {
     const response: ServerTrackerData = {
       id: 0,
@@ -118,8 +116,6 @@ const ProgressTracker: React.FC<
     );
     closeModal();
   };
-
-  // console.log(queue);
 
   const manageTracker = (tracker: ServerTrackerData) => {
     const stage = stages.find((raw) => raw.id === tracker.workflow_stage_id);

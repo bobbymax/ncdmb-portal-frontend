@@ -86,8 +86,6 @@ const Allowance: React.FC<FormPageComponentProps<AllowanceResponseData>> = ({
     closeModal();
   };
 
-  // console.log(state);
-
   const onManageRaw = (raw: JsonResponse) => {
     openModal(
       RemunerationModal,

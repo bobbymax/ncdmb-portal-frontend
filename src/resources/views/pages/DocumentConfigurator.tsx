@@ -94,39 +94,17 @@ const DocumentConfigurator: React.FC<DocumentConfiguratorProps> = ({
 
   const handleUploadsChange = useCallback(
     (files: File[] | ((prevFiles: File[]) => File[])) => {
-      // console.log("🔍 DocumentConfigurator: handleUploadsChange called");
-      // console.log(
-      //   "🔍 DocumentConfigurator: Current state.uploads:",
-      //   state.uploads
-      // );
-
       const newFiles =
         typeof files === "function" ? files(state.uploads) : files;
 
-      console.log("🔍 DocumentConfigurator: New files to add:", newFiles);
-
-      // Clear existing uploads by removing them one by one
-      // This preserves all other state while only managing uploads
       const currentUploadsCount = state.uploads.length;
-      console.log(
-        "🔍 DocumentConfigurator: Clearing",
-        currentUploadsCount,
-        "existing uploads"
-      );
 
       for (let i = currentUploadsCount - 1; i >= 0; i--) {
         actions.removeUpload(i);
       }
 
       // Add new files
-      console.log(
-        "🔍 DocumentConfigurator: Adding",
-        newFiles.length,
-        "new files"
-      );
       newFiles.forEach((file) => actions.addUpload(file));
-
-      console.log("🔍 DocumentConfigurator: Uploads change completed");
     },
     [actions, state.uploads]
   );

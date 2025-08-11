@@ -81,8 +81,6 @@ export const useForm = <T extends BaseRepository>(
           (field) => !data.has(field)
         );
 
-        // console.log(requiredFields);
-
         if (requiredFields.length > 0) {
           return {
             success: false,

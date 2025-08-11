@@ -23,6 +23,8 @@ export default class GroupRepository extends BaseRepository {
       label: data.label ?? "",
       carderIds: data.carderIds ?? [],
       users: data.users ?? [],
+      rank: data.rank ?? 0,
+      scope: data.scope ?? "department",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

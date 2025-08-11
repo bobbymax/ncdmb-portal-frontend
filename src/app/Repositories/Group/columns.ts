@@ -6,4 +6,14 @@ export const groupColumns: ColumnData[] = [
     label: "Name",
     type: "text",
   },
+  {
+    accessor: "rank",
+    label: "Rank",
+    type: "text",
+  },
+  {
+    accessor: "scope",
+    label: "Scope",
+    type: "text",
+  },
 ];

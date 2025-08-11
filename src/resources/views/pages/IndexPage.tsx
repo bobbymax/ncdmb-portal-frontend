@@ -27,8 +27,6 @@ const IndexPage = ({
     {}
   );
 
-  // console.log(collection);
-
   const onSubmit = (
     response: string | object,
     mode: "store" | "update" | "destroy" | "generate"

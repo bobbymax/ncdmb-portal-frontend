@@ -12,8 +12,6 @@ const ExpenditureCardTemplate: React.FC<
   const { staff } = useAuth();
   const { current, last } = useDraft(draftId, drafts);
 
-  // console.log(expenditure);
-
   return (
     <div className="row">
       <div className="col-md-12">

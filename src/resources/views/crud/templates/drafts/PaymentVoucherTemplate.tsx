@@ -123,8 +123,6 @@ const PaymentVoucherTemplate: React.FC<
     signatories
   );
 
-  // console.log(approvals);
-
   const [transactions, setTransactions] = useState<TransactionResponseData[]>(
     []
   );
@@ -166,8 +164,6 @@ const PaymentVoucherTemplate: React.FC<
 
     const fallback = hasTransactions && !audited;
 
-    // console.log(fallback);
-
     setTransactions((prevLocal) =>
       syncPartialIntoLocal(
         fallback ? payment_voucher.transactions ?? [] : paymentTransactions,
@@ -198,8 +194,6 @@ const PaymentVoucherTemplate: React.FC<
   useEffect(() => {
     setEnableSigning(document.status === "processing");
   }, [document]);
-
-  // console.log(transactions);
 
   const hasValidTransactions =
     transactions.length > 0 && totalAmountPayable > 0;

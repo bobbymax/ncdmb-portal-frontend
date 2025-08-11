@@ -14,6 +14,7 @@ import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 import { getLoggedInUser } from "app/init";
 import { CarderResponseData } from "app/Repositories/Carder/data";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
+import { GradeLevelResponseData } from "../Repositories/GradeLevel/data";
 
 export type AuthUserResponseData = {
   id: number;
@@ -33,6 +34,7 @@ export type AuthUserResponseData = {
   groups: GroupResponseData[];
   default_page_id: number;
   remunerations: RemunerationResponseData[];
+  grade_level_object: GradeLevelResponseData | null;
 };
 
 export interface AuthState {
@@ -80,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsAuthenticated(false);
         setStaff(undefined);
       }
-      // console.log(response);
     } catch (error) {
       setIsAuthenticated(false);
     }

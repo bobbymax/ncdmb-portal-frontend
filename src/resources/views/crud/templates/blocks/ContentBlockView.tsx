@@ -157,8 +157,6 @@ export const SignatureContent: React.FC<
   const displayApprovals = globalContent?.approvals || approvals;
   const displayStyle = globalContent?.style || style;
 
-  // console.log(approvals);
-
   return (
     <div
       className={`signature__layer flex align gap-md ${

@@ -97,8 +97,6 @@ const useWorkflow = (document: DocumentResponseData | null) => {
     }
   }, [document]);
 
-  // console.log(document);
-
   return {
     workflow,
     currentTracker,

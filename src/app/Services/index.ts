@@ -12,7 +12,6 @@ const accessPoint = axios.create({
 export const initializeCsrfToken = async (): Promise<void> => {
   try {
     await accessPoint.get("/sanctum/csrf-cookie");
-    // console.log(Cookies.get.length);
   } catch (error) {
     console.error("Failed to get CSRF cookie:", error);
   }

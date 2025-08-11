@@ -28,8 +28,6 @@ const useSignatures = (
     return signatories.find((s) => s.id === tracker.signatory_id);
   }, [tracker, signatories]);
 
-  // console.log(stageSingatory);
-
   const canSignDocument = useCallback(() => {
     // Guard clauses to ensure required data is available
     if (

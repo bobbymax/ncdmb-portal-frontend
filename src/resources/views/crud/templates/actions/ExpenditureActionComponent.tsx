@@ -135,8 +135,6 @@ const ExpenditureActionComponent: React.FC<
     }
   }, [expoDependencies]);
 
-  // console.log(file, state);
-
   return (
     <form onSubmit={handleFormSubmit}>
       <div className="row">

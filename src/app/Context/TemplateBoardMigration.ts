@@ -100,6 +100,8 @@ export class TemplateBoardMigration {
     return {
       category: null,
       template: null,
+      document_owner: null,
+      department_owner: null,
       contents: [],
       configState: {
         from: {
