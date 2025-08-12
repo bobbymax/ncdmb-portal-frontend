@@ -4,7 +4,13 @@ import {
 } from "app/Repositories/Template/data";
 import TemplateRepository from "app/Repositories/Template/TemplateRepository";
 import { BuilderComponentProps } from "bootstrap";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 import ContentBlock from "./templates/blocks/ContentBlock";
 import useBuilder from "app/Hooks/useBuilder";
 import TemplateBuilderView from "./templates/builders/TemplateBuilderView";
@@ -87,16 +93,7 @@ const ContentBuilder: React.FC<
 }): React.ReactElement => {
   const navigate = useNavigate();
   const { setIsLoading } = useStateContext();
-  const {
-    blocks,
-    activeBlockId,
-    contents,
-    setContents,
-    handleAddToSheet,
-    handleCollapseBlock,
-    handleRemoveFromSheet,
-    handleResolve,
-  } = useBuilder(template);
+  const { blocks } = useBuilder(template);
   const { processTypeOptions } = useProcessFlowTypes();
   const [activeTab, setActiveTab] = useState<ProcessTabsOption>(
     () =>
@@ -133,6 +130,27 @@ const ContentBuilder: React.FC<
   const ContentBuilderInner = () => {
     const { state: contextState, actions } = useTemplateBoard();
 
+    // Memoize configState to prevent unnecessary re-renders of DocumentProcessFlow
+    const memoizedConfigState = useMemo(
+      () => contextState.configState,
+      [contextState.configState]
+    );
+
+    // Synchronize activeTab with global state to prevent state loss
+    useEffect(() => {
+      if (
+        contextState?.processType?.value &&
+        contextState.processType.value !== activeTab.value
+      ) {
+        const globalTab = processTypeOptions.find(
+          (option) => option.value === contextState.processType.value
+        );
+        if (globalTab) {
+          setActiveTab(globalTab);
+        }
+      }
+    }, [contextState?.processType?.value, processTypeOptions, activeTab.value]);
+
     // Initialize content and config state from template data
     const initialized = useRef(false);
 
@@ -149,9 +167,14 @@ const ContentBuilder: React.FC<
           actions.updateConfigState(incoming);
         }
 
+        // Initialize blocks if available
+        if (blocks && blocks.length > 0) {
+          actions.setBlocks(blocks);
+        }
+
         initialized.current = true;
       }
-    }, [state.config, state.body, actions]);
+    }, [state.config, state.body, actions, blocks]);
 
     return (
       <div className="row mt-4">
@@ -162,7 +185,9 @@ const ContentBuilder: React.FC<
                 <div className="block__navigation mb-3">
                   <BlockNavigationBar
                     blocks={blocks}
-                    handleAddToSheet={handleAddToSheet}
+                    handleAddToSheet={(block, type) => {
+                      actions.addBlockToSheet(block, type);
+                    }}
                   />
                 </div>
               </div>
@@ -170,7 +195,7 @@ const ContentBuilder: React.FC<
                 {/* Page Component */}
                 <div className="template__page">
                   {getTemplateHeader({
-                    configState: contextState.configState,
+                    configState: memoizedConfigState,
                   })}
                   {/* Block Content Area */}
                   {/* The Template should be here!!! */}
@@ -189,26 +214,42 @@ const ContentBuilder: React.FC<
             <DocumentProcessFlow
               processTypeOptions={processTypeOptions}
               activeTab={activeTab}
-              configState={contextState.configState}
+              configState={memoizedConfigState}
               setConfigState={(newConfig) => {
                 actions.updateConfigState(newConfig);
               }}
-              setActiveTab={setActiveTab}
+              setActiveTab={(tab) => {
+                setActiveTab(tab);
+                // Also update global state to keep them in sync
+                actions.setProcessType(tab);
+              }}
+              onStateUpdate={(key, state) => {
+                // Context-specific state update for ContentBuilder
+                actions.updateConfigState({
+                  [key]: { key, state },
+                });
+              }}
             />
 
             <div className="block__content__area mb-3">
-              {contents.length > 0 ? (
-                contents.map((memoBlock) => (
+              {contextState.contents.length > 0 ? (
+                contextState.contents.map((memoBlock) => (
                   <ContentBlock
                     repo={repository}
                     key={memoBlock.id}
                     block={memoBlock}
-                    active={activeBlockId === memoBlock.id}
-                    resolve={handleResolve}
-                    remove={handleRemoveFromSheet}
-                    collapse={handleCollapseBlock}
+                    active={contextState.activeBlockId === memoBlock.id}
+                    resolve={(data, blockId) => {
+                      actions.resolveBlock(data, blockId);
+                    }}
+                    remove={(blockId) => {
+                      actions.removeBlockFromSheet(blockId);
+                    }}
+                    collapse={(blockId) => {
+                      actions.collapseBlock(blockId);
+                    }}
                     resource={null}
-                    configState={contextState.configState}
+                    configState={memoizedConfigState}
                   />
                 ))
               ) : (
@@ -223,6 +264,7 @@ const ContentBuilder: React.FC<
                   // Merge the original state with updated context state
                   const mergedState = {
                     ...state,
+                    body: contextState.body, // Use synced body from context
                     config: {
                       ...state.config,
                       process: contextState.configState,
@@ -234,7 +276,9 @@ const ContentBuilder: React.FC<
                 icon="ri-webhook-line"
                 size="md"
                 variant="success"
-                isDisabled={contents.length < 1 || !contextState.configState}
+                isDisabled={
+                  contextState.contents.length < 1 || !memoizedConfigState
+                }
               />
               <Button
                 label="Reset State"

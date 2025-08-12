@@ -40,14 +40,14 @@ export const ParagraphContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.paragraph
+    ? state.contents.find((content) => content.id === blockId)?.content
+        ?.paragraph
     : null;
   const displayBody = globalContent?.body || body;
 
   return isPreview ? (
     <div className="paragraph__container mb-4">
-      <h4 className="mb-2">{title}</h4>
+      {/* <h4 className="mb-2">{title}</h4> */}
       <small>{tagline}</small>
       <p dangerouslySetInnerHTML={{ __html: displayBody }} />
     </div>
@@ -79,8 +79,7 @@ export const TableContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.table
+    ? state.contents.find((content) => content.id === blockId)?.content?.table
     : null;
   const displayHeaders = globalContent?.headers || headers;
   const displayRows = globalContent?.rows || rows;
@@ -102,8 +101,8 @@ export const MilestoneContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.milestone
+    ? state.contents.find((content) => content.id === blockId)?.content
+        ?.milestone
     : null;
   const displayMilestones = globalContent?.milestones || milestones;
   const displayProject = globalContent?.project || project;
@@ -151,8 +150,8 @@ export const SignatureContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.approval
+    ? state.contents.find((content) => content.id === blockId)?.content
+        ?.approval
     : null;
   const displayApprovals = globalContent?.approvals || approvals;
   const displayStyle = globalContent?.style || style;
@@ -208,8 +207,7 @@ export const EventContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.event
+    ? state.contents.find((content) => content.id === blockId)?.content?.event
     : null;
 
   const displayName = globalContent?.name || name;
@@ -260,17 +258,18 @@ export const InvoiceContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.invoice
+    ? state.contents.find((content) => content.id === blockId)?.content?.invoice
     : null;
+
+  // Since globalContent IS the InvoiceContentAreaProps object, access properties directly
   const displayInvoice = globalContent?.invoice || invoice;
   const displayItems = globalContent?.items || displayInvoice?.items || [];
-  const displaySubTotal = globalContent?.sub_total || sub_total;
-  const displayTotal = globalContent?.total || total;
-  const displayVat = globalContent?.vat || vat;
-  const displayServiceCharge = globalContent?.service_charge || service_charge;
-  const displayMarkup = globalContent?.markup || markup;
-  const displayCurrency = globalContent?.currency || currency;
+  const displaySubTotal = globalContent?.sub_total ?? 0;
+  const displayTotal = globalContent?.total ?? 0;
+  const displayVat = globalContent?.vat ?? 0;
+  const displayServiceCharge = globalContent?.service_charge ?? 0;
+  const displayMarkup = globalContent?.markup ?? 0;
+  const displayCurrency = globalContent?.currency || "NGN";
 
   return (
     <div className="milestone__container mb-4">
@@ -467,7 +466,7 @@ export const ExpenseContent: React.FC<
                   >
                     {formatCurrency(
                       displayedExpenses.reduce(
-                        (acc, curr) => acc + curr.total_amount_spent,
+                        (acc, curr) => acc + Number(curr.total_amount_spent),
                         0
                       )
                     )}
@@ -492,8 +491,8 @@ export const TitleContent: React.FC<
 
   // Get content from global state if blockId is provided
   const globalContent = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
-        ?.content?.paper_title
+    ? state.contents.find((content) => content.id === blockId)?.content
+        ?.paper_title
     : null;
   const displayTitle = globalContent?.title || title;
 
@@ -527,7 +526,7 @@ const ContentBlockView = ({
 
   // Get content directly from global state if blockId is provided
   const globalBlock = blockId
-    ? state.contents.find((content) => content.block_id === Number(blockId))
+    ? state.contents.find((content) => content.id === blockId)
     : null;
   const globalContent = globalBlock?.content as OptionsContentAreaProps;
 
@@ -654,12 +653,12 @@ const ContentBlockView = ({
           },
         ];
 
-        const sharedClaimState = (state.resource as any)?.claimState;
+        const sharedClaimState = displayContent.expense?.claimState;
         const expenses =
           sharedClaimState?.expenses || displayContent.expense?.expenses || [];
 
         // Check if any expenses have been manually edited
-        const hasManualEdits = sharedClaimState?.manualEditFunctions
+        const hasManualEdits = (sharedClaimState as any)?.manualEditFunctions
           ? true
           : false;
 

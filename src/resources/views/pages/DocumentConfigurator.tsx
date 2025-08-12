@@ -127,6 +127,12 @@ const DocumentConfigurator: React.FC<DocumentConfiguratorProps> = ({
           setConfigState={actions.updateConfigState}
           setActiveTab={actions.setProcessType}
           isDisplay
+          onStateUpdate={(key, state) => {
+            // Context-specific state update for DocumentGenerator
+            actions.updateConfigState({
+              [key]: { key, state },
+            });
+          }}
         />
       </div>
 

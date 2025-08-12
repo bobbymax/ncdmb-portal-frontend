@@ -98,6 +98,7 @@ export class TemplateBoardMigration {
    */
   static createFallbackState(): TemplateBoardState {
     return {
+      body: [],
       category: null,
       template: null,
       document_owner: null,

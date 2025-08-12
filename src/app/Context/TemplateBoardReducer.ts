@@ -4,6 +4,17 @@ import {
   TemplateBoardAction,
 } from "./TemplateBoardContext";
 import { BlockDataType } from "@/app/Repositories/Block/data";
+import { ContentAreaProps } from "@/app/Hooks/useBuilder";
+
+// Helper function to sync body with contents
+const syncBodyWithContents = (
+  contents: ContentAreaProps[]
+): ContentAreaProps[] => {
+  return contents.map((content, index) => ({
+    ...content,
+    order: index + 1, // Ensure order is always sequential
+  }));
+};
 
 export const templateBoardReducer = (
   state: TemplateBoardState,
@@ -17,6 +28,7 @@ export const templateBoardReducer = (
         // Reset template when category changes
         template: null,
         contents: [],
+        body: [],
         configState: {
           from: {
             key: "from",
@@ -157,76 +169,89 @@ export const templateBoardReducer = (
         order: state.contents.length + 1,
       };
 
+      const updatedContents = [...state.contents, newContent];
       return {
         ...state,
-        contents: [...state.contents, newContent],
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
       };
     }
 
-    case "UPDATE_CONTENT":
-      return {
-        ...state,
-        contents: state.contents.map((content) => {
-          if (content.id === action.payload.blockId) {
-            // Handle nested updates properly
-            let updatedContentData;
-            if (action.payload.identifier.includes(".")) {
-              // Handle nested property updates (e.g., "paper_title.title")
-              const [parentKey, childKey] =
-                action.payload.identifier.split(".");
-              const parentContent =
-                content.content?.[parentKey as keyof typeof content.content];
+    case "UPDATE_CONTENT": {
+      const updatedContents = state.contents.map((content) => {
+        if (content.id === action.payload.blockId) {
+          // Handle nested updates properly
+          let updatedContentData;
+          if (action.payload.identifier.includes(".")) {
+            // Handle nested property updates (e.g., "paper_title.title")
+            const [parentKey, childKey] = action.payload.identifier.split(".");
+            const parentContent =
+              content.content?.[parentKey as keyof typeof content.content];
 
-              // Ensure we don't duplicate the parent object
-              updatedContentData = {
-                ...content.content,
-                [parentKey]: {
-                  ...(parentContent as any),
-                  [childKey]: action.payload.data,
-                },
-              };
-            } else {
-              // Handle direct property updates
-              // Check if the data is already nested under the identifier
-              const dataToSet =
-                action.payload.data[action.payload.identifier] ||
-                action.payload.data;
-
-              updatedContentData = {
-                ...content.content,
-                [action.payload.identifier]: dataToSet,
-              };
-            }
-
-            const updatedContent = {
-              ...content,
-              content: updatedContentData as any,
+            // Ensure we don't duplicate the parent object
+            updatedContentData = {
+              ...content.content,
+              [parentKey]: {
+                ...(parentContent as any),
+                [childKey]: action.payload.data,
+              },
             };
-            return updatedContent;
+          } else {
+            // Handle direct property updates
+            // Check if the data is already nested under the identifier
+            const dataToSet =
+              action.payload.data[action.payload.identifier] ||
+              action.payload.data;
+
+            updatedContentData = {
+              ...content.content,
+              [action.payload.identifier]: dataToSet,
+            };
           }
-          return content;
-        }),
-      };
 
-    case "REMOVE_CONTENT":
-      return {
-        ...state,
-        contents: state.contents
-          .filter((content) => content.id !== action.payload)
-          .map((content, index) => ({
+          const updatedContent = {
             ...content,
-            order: index + 1,
-          })),
-      };
+            content: updatedContentData as any,
+          };
+          return updatedContent;
+        }
+        return content;
+      });
 
-    case "REORDER_CONTENTS":
       return {
         ...state,
-        contents: action.payload.map((content, index) => ({
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
+      };
+    }
+
+    case "REMOVE_CONTENT": {
+      const updatedContents = state.contents
+        .filter((content) => content.id !== action.payload)
+        .map((content, index) => ({
           ...content,
           order: index + 1,
-        })),
+        }));
+
+      return {
+        ...state,
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
       };
+    }
+
+    case "REORDER_CONTENTS": {
+      const updatedContents = action.payload.map((content, index) => ({
+        ...content,
+        order: index + 1,
+      }));
+
+      return {
+        ...state,
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
+      };
+    }
 
     case "UPDATE_CONFIG_STATE": {
       const newState = {
@@ -433,25 +458,31 @@ export const templateBoardReducer = (
         order: state.contents.length + 1,
       };
 
+      const updatedContents = [...state.contents, newContent];
       return {
         ...state,
-        contents: [...state.contents, newContent],
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
         activeBlockId: newContent.id,
       };
     }
 
-    case "REMOVE_BLOCK_FROM_SHEET":
+    case "REMOVE_BLOCK_FROM_SHEET": {
+      const updatedContents = state.contents
+        .filter((content) => content.id !== action.payload)
+        .map((content, index) => ({
+          ...content,
+          order: index + 1,
+        }));
+
       return {
         ...state,
-        contents: state.contents
-          .filter((content) => content.id !== action.payload)
-          .map((content, index) => ({
-            ...content,
-            order: index + 1,
-          })),
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
         activeBlockId:
           state.activeBlockId === action.payload ? null : state.activeBlockId,
       };
+    }
 
     case "COLLAPSE_BLOCK":
       return {
@@ -464,21 +495,25 @@ export const templateBoardReducer = (
         activeBlockId: null,
       };
 
-    case "RESOLVE_BLOCK":
+    case "RESOLVE_BLOCK": {
+      const updatedContents = state.contents.map((content) =>
+        content.id === action.payload.blockId
+          ? {
+              ...content,
+              content: action.payload.data,
+              isCollapsed: true,
+              isBeingEdited: false,
+            }
+          : content
+      );
+
       return {
         ...state,
-        contents: state.contents.map((content) =>
-          content.id === action.payload.blockId
-            ? {
-                ...content,
-                content: action.payload.data,
-                isCollapsed: true,
-                isBeingEdited: false,
-              }
-            : content
-        ),
+        contents: updatedContents,
+        body: syncBodyWithContents(updatedContents), // Sync body with contents
         activeBlockId: null,
       };
+    }
 
     case "SET_BUILDING_STATE":
       return {
@@ -496,6 +531,7 @@ export const templateBoardReducer = (
         category: state.category,
         template: state.template,
         contents: state.contents,
+        body: syncBodyWithContents(state.contents), // Sync body with contents
         configState: state.configState,
         documentState: state.documentState,
         document_owner: state.document_owner,
@@ -522,6 +558,7 @@ export const templateBoardReducer = (
         document_owner: null,
         department_owner: null,
         contents: [],
+        body: [],
         configState: {
           from: {
             key: "from",

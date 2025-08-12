@@ -31,10 +31,13 @@ const ContentEditor = ({
   const { state, actions } = useTemplateBoard();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Get content from global context
-  const globalContent = state.contents.find(
-    (content) => content.id === block.id
-  )?.content as OptionsContentAreaProps;
+  // Get content from global context - memoize to prevent infinite loops
+  const globalContent = useMemo(
+    () =>
+      state.contents.find((content) => content.id === block.id)
+        ?.content as OptionsContentAreaProps,
+    [state.contents, block.id]
+  );
 
   const MemoBlockForm = useMemo(() => {
     return (
@@ -50,6 +53,8 @@ const ContentEditor = ({
   const renderCard = (param: keyof OptionsContentAreaProps) => {
     // Use globalContent for display (source of truth)
     const displayContent = globalContent;
+
+    // console.log(displayContent);
 
     switch (param) {
       case "paragraph":

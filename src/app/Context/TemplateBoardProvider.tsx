@@ -40,6 +40,7 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
     document_owner: null,
     department_owner: null,
     contents: [],
+    body: [],
     configState: {
       from: {
         key: "from",
@@ -108,16 +109,21 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
     template: urlTemplate,
   } = useDocumentGenerator(params);
 
-  // Transform workflow data
+  // Transform workflow data from configState
+  const workflowTransformerInput = useMemo(
+    () => ({
+      configState: state.configState,
+      category: state.category,
+    }),
+    [state.configState, state.category]
+  );
+
   const {
     workflow: transformedWorkflow,
     trackers: transformedTrackers,
     isValid: isWorkflowValid,
     errors: workflowErrors,
-  } = useWorkflowTransformer({
-    configState: state.configState,
-    category: state.category,
-  });
+  } = useWorkflowTransformer(workflowTransformerInput);
 
   // Initialize state from URL params
   useEffect(() => {
@@ -131,22 +137,52 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
       dispatch({ type: "REORDER_CONTENTS", payload: urlEditedContents });
     }
     if (urlConfigState && Object.keys(urlConfigState).length > 0) {
-      dispatch({ type: "UPDATE_CONFIG_STATE", payload: urlConfigState });
+      // Only update if configState is actually different to prevent infinite loops
+      const currentConfigState = state.configState;
+      if (
+        JSON.stringify(urlConfigState) !== JSON.stringify(currentConfigState)
+      ) {
+        dispatch({ type: "UPDATE_CONFIG_STATE", payload: urlConfigState });
+      }
     }
-  }, [urlCategory, urlTemplate, urlEditedContents, urlConfigState]);
+  }, [
+    urlCategory,
+    urlTemplate,
+    urlEditedContents,
+    urlConfigState,
+    state.category,
+    state.template,
+    state.contents,
+    state.configState,
+  ]);
 
   // Update workflow when configState changes
   useEffect(() => {
     if (transformedWorkflow && transformedTrackers) {
-      dispatch({
-        type: "SET_WORKFLOW",
-        payload: {
-          workflow: transformedWorkflow,
-          trackers: transformedTrackers,
-        },
-      });
+      // Only update if the workflow has actually changed to prevent infinite loops
+      const currentWorkflow = state.workflow;
+      const currentTrackers = state.trackers;
+
+      if (
+        JSON.stringify(transformedWorkflow) !==
+          JSON.stringify(currentWorkflow) ||
+        JSON.stringify(transformedTrackers) !== JSON.stringify(currentTrackers)
+      ) {
+        dispatch({
+          type: "SET_WORKFLOW",
+          payload: {
+            workflow: transformedWorkflow,
+            trackers: transformedTrackers,
+          },
+        });
+      }
     }
-  }, [transformedWorkflow, transformedTrackers]);
+  }, [
+    transformedWorkflow,
+    transformedTrackers,
+    state.workflow,
+    state.trackers,
+  ]);
 
   // Actions using useCallback for individual functions
   const setCategory = useCallback(
@@ -340,7 +376,7 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
     []
   );
 
-  // Actions object - memoize with empty dependency array since all functions are stable
+  // Actions object - create once and never recreate
   const actions = useMemo(
     () => ({
       setCategory,
@@ -372,7 +408,7 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
       resolveBlock,
       setBuildingState,
     }),
-    []
+    [] // Empty dependency array - create once and never recreate
   );
 
   const contextValue: TemplateBoardContextType = useMemo(

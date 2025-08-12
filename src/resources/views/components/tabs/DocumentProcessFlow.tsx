@@ -23,6 +23,11 @@ interface ProcessFlowProps {
   setConfigState: (state: ConfigState) => void;
   setActiveTab: (tab: ProcessTabsOption) => void;
   isDisplay?: boolean;
+  // Context-agnostic props - no direct context usage
+  onStateUpdate?: (
+    key: ProcessType,
+    state: TemplateProcessProps | TemplateProcessProps[]
+  ) => void;
 }
 
 type ProcessTypeDependencies = {
@@ -37,7 +42,6 @@ const useStableDirectories = () => {
     stages: [] as WorkflowStageResponseData[],
     groups: [] as GroupResponseData[],
     users: [] as UserResponseData[],
-    loading: true,
     error: null as string | null,
   });
 
@@ -48,8 +52,6 @@ const useStableDirectories = () => {
 
     const fetchData = async () => {
       try {
-        setData((prev) => ({ ...prev, loading: true, error: null }));
-
         const workflowStageRepo = repo("workflow_stage");
         const groupRepo = repo("group");
         const userRepo = repo("user");
@@ -65,14 +67,12 @@ const useStableDirectories = () => {
           stages: (stagesResponse.data as WorkflowStageResponseData[]) || [],
           groups: (groupsResponse.data as GroupResponseData[]) || [],
           users: (usersResponse.data as UserResponseData[]) || [],
-          loading: false,
           error: null,
         });
       } catch (error) {
         console.error("Error fetching directories:", error);
         setData((prev) => ({
           ...prev,
-          loading: false,
           error:
             error instanceof Error
               ? error.message
@@ -95,8 +95,40 @@ const DocumentProcessFlow = ({
   configState,
   setConfigState,
   isDisplay = false,
+  onStateUpdate,
 }: ProcessFlowProps) => {
-  const { stages, groups, users, loading, error } = useStableDirectories();
+  const { stages, groups, users, error } = useStableDirectories();
+
+  // Performance monitoring
+  const renderStartTime = useRef<number>(Date.now());
+  const tabSwitchCount = useRef<number>(0);
+
+  // Track performance metrics
+  useEffect(() => {
+    const renderTime = Date.now() - renderStartTime.current;
+    if (renderTime > 100) {
+      // Log slow renders
+      console.warn(`DocumentProcessFlow render took ${renderTime}ms`);
+    }
+    renderStartTime.current = Date.now();
+  });
+
+  // Track tab switching performance
+  const handleTabSwitch = useCallback(
+    (newTab: ProcessTabsOption) => {
+      const startTime = Date.now();
+      setActiveTab(newTab);
+      tabSwitchCount.current++;
+
+      // Log tab switch performance
+      const switchTime = Date.now() - startTime;
+      if (switchTime > 50) {
+        // Log slow tab switches
+        console.warn(`Tab switch to ${newTab.value} took ${switchTime}ms`);
+      }
+    },
+    [setActiveTab]
+  );
 
   // const { filteredResources } = useAccessControl(users);
 
@@ -156,12 +188,21 @@ const DocumentProcessFlow = ({
             state: updatedState as ProcessStateMap[typeof key], // TS-safe
           },
         };
-        setConfigState(newConfigState);
+
+        // Update the ref immediately to ensure consistency
+        configStateRef.current = newConfigState;
+
+        // Use the prop callback if provided, otherwise fall back to setConfigState
+        if (onStateUpdate) {
+          onStateUpdate(key, updatedState);
+        } else {
+          setConfigState(newConfigState);
+        }
       } catch (error) {
         console.error("Error updating config state:", error);
       }
     },
-    [setConfigState] // Include setConfigState dependency
+    [setConfigState, onStateUpdate] // Include both dependencies
   );
 
   // Memoize the dependencies to prevent unnecessary re-renders
@@ -177,7 +218,7 @@ const DocumentProcessFlow = ({
     [stages, groups, users]
   );
 
-  // Filter tabs when in display mode - only show tabs with actual state values
+  // Memoize filtered process type options to prevent unnecessary re-renders
   const filteredProcessTypeOptions = useMemo(() => {
     if (!isDisplay) {
       return processTypeOptions;
@@ -236,22 +277,8 @@ const DocumentProcessFlow = ({
     }
   }, [processTypeOptions, activeTab, isDisplay, setActiveTab]);
 
-  // Show loading state if data is not ready
-  if (loading || !hasData) {
-    return (
-      <div className="process__flow__section">
-        <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-        <div className="process__flow__loading text-center p-4">
-          <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-          <p className="process__flow__loading__text mt-2">
-            Loading process configuration...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Silent loading - show component structure immediately, data loads in background
+  // No more intrusive loading spinner!
 
   // Show error state if there was an error loading data
   if (error) {
@@ -304,11 +331,11 @@ const DocumentProcessFlow = ({
                 activeTab.value === option.value ? "active" : ""
               }`}
               key={idx}
-              onClick={() => setActiveTab(option)}
+              onClick={() => handleTabSwitch(option)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  setActiveTab(option);
+                  handleTabSwitch(option);
                 }
               }}
               role="tab"
@@ -356,6 +383,9 @@ const DocumentProcessFlow = ({
           })}
         </div>
       </div>
+
+      {/* Completely silent loading - no visual indicators, just loads in background */}
+      {/* Loading state is completely invisible to maintain clean UI */}
     </div>
   );
 };

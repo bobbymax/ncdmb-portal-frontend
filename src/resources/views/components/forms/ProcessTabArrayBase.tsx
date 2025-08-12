@@ -53,17 +53,18 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if dependencies are ready
+  // Check if dependencies are ready - optimized to prevent excessive re-evaluation
   const isDependenciesReady = useMemo(() => {
-    return (
-      dependencies.stages &&
-      dependencies.groups &&
-      dependencies.users &&
-      dependencies.stages.length > 0 &&
-      dependencies.groups.length > 0 &&
-      dependencies.users.length > 0
-    );
-  }, [dependencies.stages, dependencies.groups, dependencies.users]);
+    const hasStages = dependencies.stages && dependencies.stages.length > 0;
+    const hasGroups = dependencies.groups && dependencies.groups.length > 0;
+    const hasUsers = dependencies.users && dependencies.users.length > 0;
+
+    return hasStages && hasGroups && hasUsers;
+  }, [
+    dependencies.stages?.length,
+    dependencies.groups?.length,
+    dependencies.users?.length,
+  ]);
 
   const {
     state,
@@ -84,23 +85,32 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
     configState,
   });
 
-  // Handle loading state
+  // Handle loading state with debouncing to prevent excessive loading changes
   useEffect(() => {
     if (!isDependenciesReady) {
-      setIsLoading(true);
+      // Only show loading if dependencies aren't ready after a short delay
+      const loadingTimeout = setTimeout(() => {
+        setIsLoading(true);
+      }, 200); // 200ms delay to prevent flash loading
+
+      return () => clearTimeout(loadingTimeout);
     } else {
+      // Immediately hide loading when dependencies are ready
       setIsLoading(false);
     }
   }, [isDependenciesReady]);
 
-  // Handle errors
+  // Handle errors - optimized to prevent unnecessary error state updates
   useEffect(() => {
-    if (!isLoading && dependencies.stages?.length === 0) {
+    const hasStages = dependencies.stages && dependencies.stages.length > 0;
+
+    if (!isLoading && !hasStages) {
       setError("No workflow stages available");
-    } else {
+    } else if (error) {
+      // Only update error state if there's actually an error to clear
       setError(null);
     }
-  }, [dependencies.stages, isLoading]);
+  }, [dependencies.stages?.length, isLoading, error]);
 
   // Handle recipients state updates - simplified to avoid infinite loops
   useEffect(() => {
@@ -247,10 +257,14 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
   if (isLoading) {
     return (
       <div className="text-center p-4">
-        <div className="spinner-border" role="status">
-          <span className="sr-only">Loading...</span>
+        <div className="process__flow__progress__container">
+          <div className="process__flow__progress__bar">
+            <div className="process__flow__progress__fill"></div>
+          </div>
         </div>
-        <p className="mt-2">Loading process configuration...</p>
+        <small className="text-muted mt-2 d-block">
+          Loading process configuration...
+        </small>
       </div>
     );
   }
@@ -315,7 +329,7 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
                 "Desk",
                 formatOptions(stages, "id", "name"),
                 state.stage,
-                handleMultiSelectChange("stage", handleStateChange),
+                handleMultiSelectChange("stage"),
                 "Workflow Stage",
                 isDisplay && !!state.stage?.value // Only disable in display mode if stage has a value
               )}
@@ -324,7 +338,7 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
                 "Group",
                 accessibleGroups,
                 state.group,
-                handleMultiSelectChange("group", handleStateChange),
+                handleMultiSelectChange("group"),
                 "Group",
                 isDisplay && !!state.group?.value // Only disable in display mode if group has a value
               )}
@@ -333,7 +347,7 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
                 "Staff",
                 selectedUsers,
                 state.staff ?? null,
-                handleMultiSelectChange("staff", handleStateChange),
+                handleMultiSelectChange("staff"),
                 "Staff",
                 false,
                 7
@@ -345,7 +359,7 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
                   { label: "No", value: false },
                 ],
                 state.is_approving ?? null,
-                handleMultiSelectChange("is_approving", handleStateChange),
+                handleMultiSelectChange("is_approving"),
                 "Signature",
                 false,
                 5

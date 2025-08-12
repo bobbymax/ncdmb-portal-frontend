@@ -5,7 +5,7 @@ import { ProcessTypeDependencies } from "resources/views/crud/ContentBuilder";
 import { GroupResponseData } from "app/Repositories/Group/data";
 import { formatOptions } from "app/Support/Helpers";
 import { useAuth } from "app/Context/AuthContext";
-import useFormOnChangeEvents from "./useFormOnChangeEvents";
+import { ActionMeta } from "react-select";
 import { useAccessControl } from "./useAccessControl";
 
 interface UseProcessStateProps<
@@ -32,7 +32,8 @@ export const useProcessState = <
 }: UseProcessStateProps<K>) => {
   const { staff } = useAuth();
 
-  const initialState: TemplateProcessProps = {
+  // Read directly from global configState instead of maintaining local state
+  const currentState = configState?.[processType]?.state || {
     process_type: processType,
     stage: null,
     group: null,
@@ -42,16 +43,15 @@ export const useProcessState = <
     permissions: "rw",
   };
 
-  const { state, setState, handleMultiSelectChange } =
-    useFormOnChangeEvents<TemplateProcessProps>(initialState);
-
   const [accessibleGroups, setAccessibleGroups] = useState<DataOptionsProps[]>(
     []
   );
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
-  const prevStateRef = useRef<TemplateProcessProps>(initialState);
   const configStateRef = useRef(configState);
   const handleStateUpdateRef = useRef(handleStateUpdate);
+
+  // Smart caching for expensive computations
+  const computationCache = useRef<Map<string, any>>(new Map());
 
   // Update refs when props change
   useEffect(() => {
@@ -62,18 +62,98 @@ export const useProcessState = <
   const { stages = [], groups = [], users = [] } = dependencies;
   const { filteredResources } = useAccessControl(users);
 
+  // Advanced state validation function
+  const validateStateUpdate = useCallback(
+    (
+      key: keyof TemplateProcessProps,
+      value: DataOptionsProps | DataOptionsProps[] | null
+    ): boolean => {
+      // Handle array values (for cc, approvers process types)
+      if (Array.isArray(value)) {
+        return true; // Array validation can be added here if needed
+      }
+
+      // Handle single values
+      if (value && typeof value === "object" && "value" in value) {
+        // Validate stage selection
+        if (key === "stage") {
+          const stage = stages.find((s) => s.id === value.value);
+          if (!stage) {
+            console.warn(`Invalid stage selected: ${value.value}`);
+            return false;
+          }
+        }
+
+        // Validate group selection
+        if (key === "group") {
+          const group = groups.find((g) => g.id === value.value);
+          if (!group) {
+            console.warn(`Invalid group selected: ${value.value}`);
+            return false;
+          }
+        }
+
+        // Validate staff selection
+        if (key === "staff") {
+          const user = users.find((u) => u.id === value.value);
+          if (!user) {
+            console.warn(`Invalid staff selected: ${value.value}`);
+            return false;
+          }
+        }
+
+        // Validate department selection
+        if (key === "department") {
+          // Department validation logic can be added here
+          return true;
+        }
+      }
+
+      return true;
+    },
+    [stages, groups, users]
+  );
+
   // Memoize handleStateChange to prevent infinite loops
   const handleStateChange = useCallback(
     (
       updatedValue: DataOptionsProps | DataOptionsProps[] | null,
       key: keyof TemplateProcessProps
     ) => {
-      setState((prev) => ({
-        ...prev,
-        [key]: updatedValue,
-      }));
+      try {
+        // Validate the state update before applying it
+        if (!validateStateUpdate(key, updatedValue)) {
+          console.warn(
+            `State update validation failed for ${processType}.${key}`
+          );
+          return;
+        }
+
+        // Update global state directly instead of local state
+        const updatedState = {
+          ...currentState,
+          [key]: updatedValue,
+        };
+
+        // Call the global state update function
+        handleStateUpdateRef.current(updatedState, processType);
+      } catch (error) {
+        console.error(`Error updating state for ${processType}.${key}:`, error);
+      }
     },
-    []
+    [currentState, processType, validateStateUpdate]
+  );
+
+  // Create handleMultiSelectChange that works with global state
+  const handleMultiSelectChange = useCallback(
+    (key: keyof TemplateProcessProps) =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        handleStateChange(
+          newValue as DataOptionsProps | DataOptionsProps[] | null,
+          key
+        );
+      },
+    [handleStateChange]
   );
 
   // Handle state updates and prevent infinite loops - only for single process types
@@ -83,45 +163,24 @@ export const useProcessState = <
       return;
     }
 
-    const hasChanged =
-      prevStateRef.current.stage?.value !== state.stage?.value ||
-      prevStateRef.current.group?.value !== state.group?.value ||
-      prevStateRef.current.department?.value !== state.department?.value ||
-      prevStateRef.current.staff?.value !== state.staff?.value;
-
-    if (hasChanged) {
-      const changedState: TemplateProcessProps = {
-        ...state,
-        department:
-          (state.department as DataOptionsProps)?.value < 1 && isDisplay
-            ? (staff?.department as DataOptionsProps | null)
-            : state.department,
-      };
-
-      handleStateUpdateRef.current(changedState, processType);
-      prevStateRef.current = { ...state };
-    }
-  }, [
-    state.stage?.value,
-    state.group?.value,
-    state.department?.value,
-    state.staff?.value,
-    processType,
-    isDisplay,
-    staff?.department,
-  ]);
+    // Since we're now reading directly from global state, we don't need this effect
+    // The state updates are handled directly in handleStateChange
+    return;
+  }, []);
 
   // Handle group filtering based on department
   useEffect(() => {
-    if (state.group && groups.length > 0) {
+    if (currentState.group && groups.length > 0) {
       const group: GroupResponseData | undefined =
-        groups.find((grp) => grp.id === state.group?.value) ?? undefined;
+        groups.find((grp) => grp.id === currentState.group?.value) ?? undefined;
 
       if (!group) return;
 
       const matchingIds = new Set(
         filteredResources
-          .filter((user) => user.department_id === state.department?.value)
+          .filter(
+            (user) => user.department_id === currentState.department?.value
+          )
           .map((user) => user.id)
       );
 
@@ -133,21 +192,55 @@ export const useProcessState = <
       const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
       setSelectedUsers([{ label: "None", value: 0 }, ...matchUsers]);
     }
-  }, [state.group, groups, state.department, filteredResources]);
+  }, [currentState.group, groups, currentState.department, filteredResources]);
+
+  // Enhanced state persistence: Preserve user input when switching tabs
+  useEffect(() => {
+    // This effect ensures that user input is preserved across tab switches
+    // by maintaining the current state in the global context
+    if (currentState && Object.keys(currentState).length > 0) {
+      // Only update if there are actual changes to prevent infinite loops
+      const hasValidData =
+        currentState.stage?.value ||
+        currentState.group?.value ||
+        currentState.staff?.value ||
+        currentState.department?.value;
+
+      if (hasValidData) {
+        try {
+          // Ensure the state is properly persisted in the global context
+          // This prevents state loss when switching between tabs
+          handleStateUpdateRef.current(currentState, processType);
+        } catch (error) {
+          console.error(`Error persisting state for ${processType}:`, error);
+        }
+      }
+    }
+  }, [currentState, processType]);
 
   // Handle stage changes and set accessible groups
   useEffect(() => {
-    if (state.stage && stages.length > 0) {
-      const stage = stages.find((stg) => stg.id === state.stage?.value) ?? null;
+    if (currentState.stage && stages.length > 0) {
+      const stage =
+        stages.find((stg) => stg.id === currentState.stage?.value) ?? null;
 
       if (!stage) return;
 
       setAccessibleGroups(
         formatOptions(stage.groups, "id", "name", true) ?? []
       );
-      handleStateChange(stage?.department ?? null, "department");
+
+      // Only auto-set department if it's not already set by the user
+      if (!currentState.department?.value) {
+        handleStateChange(stage?.department ?? null, "department");
+      }
     }
-  }, [state.stage, stages, handleStateChange]);
+  }, [
+    currentState.stage,
+    stages,
+    handleStateChange,
+    currentState.department?.value,
+  ]);
 
   // Handle config state updates - use ref to avoid infinite loops
   useEffect(() => {
@@ -156,43 +249,27 @@ export const useProcessState = <
       return;
     }
 
-    const currentConfigState = configStateRef.current;
-    if (currentConfigState?.[processType]?.state) {
-      const configData = currentConfigState[processType].state;
-
-      // Only update if the data is actually different and not from a recent local change
-      setState((prevState) => {
-        const hasChanged =
-          prevState.group?.value !== configData.group?.value ||
-          prevState.staff?.value !== configData.staff?.value ||
-          prevState.stage?.value !== configData.stage?.value ||
-          prevState.department?.value !== configData.department?.value;
-
-        // Prevent circular updates by checking if this is a recent local change
-        const isRecentLocalChange =
-          prevStateRef.current.stage?.value === configData.stage?.value &&
-          prevStateRef.current.group?.value === configData.group?.value &&
-          prevStateRef.current.staff?.value === configData.staff?.value &&
-          prevStateRef.current.department?.value ===
-            configData.department?.value;
-
-        if (hasChanged && !isRecentLocalChange) {
-          return {
-            ...prevState,
-            group: configData.group,
-            staff: configData.staff,
-            stage: configData.stage,
-            department: configData.department,
-          };
-        }
-        return prevState;
-      });
-    }
+    // Since we're now reading directly from global state, we don't need this effect
+    // The state is always in sync with the global configState
+    return;
   }, [processType]);
 
   return {
-    state,
-    setState,
+    state: currentState,
+    setState: (newState: TemplateProcessProps) => {
+      // For array-based process types, we need to handle state updates differently
+      if (processType === "cc" || processType === "approvers") {
+        // For array types, we need to handle the state update through the parent
+        // This is a special case that needs custom handling
+        console.warn(
+          `setState called for array process type ${processType}. This should be handled by the parent component.`
+        );
+        return;
+      }
+
+      // For single process types, update global state
+      handleStateUpdateRef.current(newState, processType);
+    },
     handleMultiSelectChange,
     handleStateChange,
     accessibleGroups,

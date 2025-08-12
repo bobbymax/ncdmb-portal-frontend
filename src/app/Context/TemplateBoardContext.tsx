@@ -25,6 +25,7 @@ export interface TemplateBoardState {
 
   // Template Building
   contents: ContentAreaProps[];
+  body: ContentAreaProps[]; // Synced with contents for backward compatibility
   configState: ConfigState;
 
   // ContentBuilder Specific State
@@ -163,6 +164,7 @@ export interface TemplateBoardContextType {
 
 // Initial State
 const initialState: TemplateBoardState = {
+  body: [] as ContentAreaProps[],
   category: null,
   template: null,
   contents: [],

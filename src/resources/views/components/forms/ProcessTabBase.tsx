@@ -24,21 +24,26 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if dependencies are ready
+  // Check if dependencies are ready - optimized to prevent excessive re-evaluation
   const isDependenciesReady = useMemo(() => {
-    return (
-      dependencies.stages &&
-      dependencies.groups &&
-      dependencies.users &&
-      dependencies.stages.length > 0 &&
-      dependencies.groups.length > 0 &&
-      dependencies.users.length > 0
-    );
-  }, [dependencies.stages, dependencies.groups, dependencies.users]);
+    const hasStages = dependencies.stages && dependencies.stages.length > 0;
+    const hasGroups = dependencies.groups && dependencies.groups.length > 0;
+    const hasUsers = dependencies.users && dependencies.users.length > 0;
+
+    return hasStages && hasGroups && hasUsers;
+  }, [
+    dependencies.stages?.length,
+    dependencies.groups?.length,
+    dependencies.users?.length,
+  ]);
 
   // Memoize the dependencies to prevent unnecessary re-renders
   const memoizedDependencies = useMemo(
-    () => dependencies,
+    () => ({
+      stages: dependencies.stages || [],
+      groups: dependencies.groups || [],
+      users: dependencies.users || [],
+    }),
     [dependencies.stages, dependencies.groups, dependencies.users]
   );
 
@@ -57,23 +62,85 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
     configState,
   });
 
-  // Handle loading state
+  // Handle loading state with debouncing to prevent excessive loading changes
   useEffect(() => {
     if (!isDependenciesReady) {
-      setIsLoading(true);
+      // Only show loading if dependencies aren't ready after a short delay
+      const loadingTimeout = setTimeout(() => {
+        setIsLoading(true);
+      }, 200); // 200ms delay to prevent flash loading
+
+      return () => clearTimeout(loadingTimeout);
     } else {
+      // Immediately hide loading when dependencies are ready
       setIsLoading(false);
     }
   }, [isDependenciesReady]);
 
-  // Handle errors
+  // Handle errors - optimized to prevent unnecessary error state updates
   useEffect(() => {
-    if (!isLoading && dependencies.stages?.length === 0) {
+    const hasStages = dependencies.stages && dependencies.stages.length > 0;
+
+    if (!isLoading && !hasStages) {
       setError("No workflow stages available");
-    } else {
+    } else if (error) {
+      // Only update error state if there's actually an error to clear
       setError(null);
     }
-  }, [dependencies.stages, isLoading]);
+  }, [dependencies.stages?.length, isLoading, error]);
+
+  // Advanced error recovery and validation
+  useEffect(() => {
+    // Validate that the current state is consistent with available options
+    if (state.stage && dependencies.stages.length > 0) {
+      const stageExists = dependencies.stages.some(
+        (s) => s.id === state.stage?.value
+      );
+      if (!stageExists) {
+        setError(
+          "Selected stage is no longer available. Please select a new stage."
+        );
+        return;
+      }
+    }
+
+    if (state.group && accessibleGroups.length > 0) {
+      const groupExists = accessibleGroups.some(
+        (g) => g.value === state.group?.value
+      );
+      if (!groupExists) {
+        setError(
+          "Selected group is no longer available. Please select a new group."
+        );
+        return;
+      }
+    }
+
+    if (state.staff && selectedUsers.length > 0) {
+      const staffExists = selectedUsers.some(
+        (u) => u.value === state.staff?.value
+      );
+      if (!staffExists) {
+        setError(
+          "Selected staff is no longer available. Please select a new staff member."
+        );
+        return;
+      }
+    }
+
+    // Clear error if all validations pass
+    if (error) {
+      setError(null);
+    }
+  }, [
+    state.stage,
+    state.group,
+    state.staff,
+    dependencies.stages,
+    accessibleGroups,
+    selectedUsers,
+    error,
+  ]);
 
   const renderMultiSelect = (
     label: string,
@@ -120,10 +187,23 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
   if (isLoading) {
     return (
       <div className="text-center p-4">
-        <div className="spinner-border" role="status">
-          <span className="sr-only">Loading...</span>
+        <div className="process__flow__progress__container">
+          <div className="process__flow__progress__bar">
+            <div className="process__flow__progress__fill"></div>
+          </div>
         </div>
-        <p className="mt-2">Loading process configuration...</p>
+        <small className="text-muted mt-2 d-block">
+          Loading process configuration...
+        </small>
+        <div className="mt-3">
+          <div
+            className="spinner-border spinner-border-sm text-primary me-2"
+            role="status"
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="text-muted">Preparing form...</span>
+        </div>
       </div>
     );
   }
@@ -139,7 +219,7 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
           "Desk",
           formatOptions(stages, "id", "name", true),
           state.stage,
-          handleMultiSelectChange("stage", handleStateChange),
+          handleMultiSelectChange("stage"),
           "Workflow Stage",
           isDisplay && !!state.stage?.value // Only disable in display mode if stage has a value
         )}
@@ -148,7 +228,7 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
           "Group",
           accessibleGroups,
           state.group,
-          handleMultiSelectChange("group", handleStateChange),
+          handleMultiSelectChange("group"),
           "Group",
           isDisplay && !!state.group?.value // Only disable in display mode if group has a value
         )}
@@ -157,7 +237,7 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
           "Staff",
           selectedUsers,
           state.staff ?? null,
-          handleMultiSelectChange("staff", handleStateChange),
+          handleMultiSelectChange("staff"),
           "Staff",
           false,
           12
