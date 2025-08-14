@@ -1,392 +1,80 @@
-import { GroupResponseData } from "@/app/Repositories/Group/data";
-import { UserResponseData } from "@/app/Repositories/User/data";
-import { WorkflowStageResponseData } from "@/app/Repositories/WorkflowStage/data";
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React from "react";
 import { ProcessTabsOption } from "resources/views/crud/ContentBuilder";
-import { TemplateProcessProps } from "@/app/Repositories/Template/data";
-import { repo } from "bootstrap/repositories";
-import { ConfigState, ProcessStateMap } from "@/app/Hooks/useTemplateHeader";
-import { useAuth } from "app/Context/AuthContext";
-import { useAccessControl } from "app/Hooks/useAccessControl";
+import { ConfigState } from "@/app/Hooks/useTemplateHeader";
+import ContentBuilderProcessFlow from "./ContentBuilderProcessFlow";
+import DocumentConfiguratorProcessFlow from "./DocumentConfiguratorProcessFlow";
+import { ProcessFlowProvider } from "app/Context/ProcessFlowContext";
 
 type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
-interface ProcessFlowProps {
+
+interface DocumentProcessFlowProps {
   processTypeOptions: ProcessTabsOption[];
   activeTab: ProcessTabsOption;
   configState: ConfigState;
   setConfigState: (state: ConfigState) => void;
   setActiveTab: (tab: ProcessTabsOption) => void;
   isDisplay?: boolean;
-  // Context-agnostic props - no direct context usage
-  onStateUpdate?: (
-    key: ProcessType,
-    state: TemplateProcessProps | TemplateProcessProps[]
-  ) => void;
+  onStateUpdate?: (key: ProcessType, state: any) => void;
 }
 
-type ProcessTypeDependencies = {
-  stages: WorkflowStageResponseData[];
-  groups: GroupResponseData[];
-  users: UserResponseData[];
-};
+const DocumentProcessFlow: React.FC<DocumentProcessFlowProps> = (props) => {
+  // Auto-detect context based on props and usage patterns
 
-// Custom hook to prevent infinite re-renders
-const useStableDirectories = () => {
-  const [data, setData] = useState({
-    stages: [] as WorkflowStageResponseData[],
-    groups: [] as GroupResponseData[],
-    users: [] as UserResponseData[],
-    error: null as string | null,
-  });
-
-  const initialized = useRef(false);
-
-  useEffect(() => {
-    if (initialized.current) return;
-
-    const fetchData = async () => {
-      try {
-        const workflowStageRepo = repo("workflow_stage");
-        const groupRepo = repo("group");
-        const userRepo = repo("user");
-
-        const [stagesResponse, groupsResponse, usersResponse] =
-          await Promise.all([
-            workflowStageRepo.collection("workflowStages"),
-            groupRepo.collection("groups"),
-            userRepo.collection("users"),
-          ]);
-
-        setData({
-          stages: (stagesResponse.data as WorkflowStageResponseData[]) || [],
-          groups: (groupsResponse.data as GroupResponseData[]) || [],
-          users: (usersResponse.data as UserResponseData[]) || [],
-          error: null,
-        });
-      } catch (error) {
-        console.error("Error fetching directories:", error);
-        setData((prev) => ({
-          ...prev,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Failed to load process configuration",
-        }));
-      }
-    };
-
-    fetchData();
-    initialized.current = true;
-  }, []);
-
-  return data;
-};
-
-const DocumentProcessFlow = ({
-  processTypeOptions,
-  activeTab,
-  setActiveTab,
-  configState,
-  setConfigState,
-  isDisplay = false,
-  onStateUpdate,
-}: ProcessFlowProps) => {
-  const { stages, groups, users, error } = useStableDirectories();
-
-  // Performance monitoring
-  const renderStartTime = useRef<number>(Date.now());
-  const tabSwitchCount = useRef<number>(0);
-
-  // Track performance metrics
-  useEffect(() => {
-    const renderTime = Date.now() - renderStartTime.current;
-    if (renderTime > 100) {
-      // Log slow renders
-      console.warn(`DocumentProcessFlow render took ${renderTime}ms`);
-    }
-    renderStartTime.current = Date.now();
-  });
-
-  // Track tab switching performance
-  const handleTabSwitch = useCallback(
-    (newTab: ProcessTabsOption) => {
-      const startTime = Date.now();
-      setActiveTab(newTab);
-      tabSwitchCount.current++;
-
-      // Log tab switch performance
-      const switchTime = Date.now() - startTime;
-      if (switchTime > 50) {
-        // Log slow tab switches
-        console.warn(`Tab switch to ${newTab.value} took ${switchTime}ms`);
-      }
-    },
-    [setActiveTab]
-  );
-
-  // const { filteredResources } = useAccessControl(users);
-
-  // Check if all dependencies are loaded
-  const hasData = stages.length > 0 && groups.length > 0 && users.length > 0;
-
-  // Validate required props
-  if (
-    !processTypeOptions ||
-    !Array.isArray(processTypeOptions) ||
-    processTypeOptions.length === 0
-  ) {
+  // Check if this is ContentBuilder context
+  // ContentBuilder typically has processTypeOptions, activeTab, and complex state management
+  const isContentBuilderContext = React.useMemo(() => {
     return (
-      <div className="process__flow__section">
-        <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-        <div className="process__flow__error text-center p-4">
-          <p className="process__flow__error__text text-warning">
-            No process type options available.
-          </p>
-        </div>
-      </div>
+      props.processTypeOptions &&
+      props.activeTab &&
+      props.configState &&
+      // ContentBuilder usually doesn't have onStateUpdate (it uses setConfigState directly)
+      props.onStateUpdate === undefined
     );
-  }
+  }, [
+    props.processTypeOptions,
+    props.activeTab,
+    props.configState,
+    props.onStateUpdate,
+  ]);
 
-  if (!activeTab || !setActiveTab || !configState || !setConfigState) {
+  // Check if this is DocumentConfigurator context
+  // DocumentConfigurator typically has onStateUpdate and simpler state management
+  const isDocumentConfiguratorContext = React.useMemo(() => {
     return (
-      <div className="process__flow__section">
-        <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-        <div className="process__flow__error text-center p-4">
-          <p className="process__flow__error__text text-warning">
-            Missing required configuration.
-          </p>
-        </div>
-      </div>
+      props.processTypeOptions &&
+      props.activeTab &&
+      props.configState &&
+      // DocumentConfigurator usually has onStateUpdate
+      props.onStateUpdate !== undefined
     );
-  }
+  }, [
+    props.processTypeOptions,
+    props.activeTab,
+    props.configState,
+    props.onStateUpdate,
+  ]);
 
-  // Use ref to track current configState to avoid infinite loops
-  const configStateRef = useRef(configState);
-
-  // Update ref when configState changes - use a stable reference
-  useEffect(() => {
-    configStateRef.current = configState;
-  }, [configState]); // Keep this dependency but ensure handleStateUpdate doesn't cause loops
-
-  // Create a stable handleStateUpdate function that doesn't depend on changing values
-  const handleStateUpdate = useCallback(
-    (
-      updatedState: TemplateProcessProps | TemplateProcessProps[],
-      key: ProcessType
-    ) => {
-      try {
-        const newConfigState: ConfigState = {
-          ...configStateRef.current,
-          [key]: {
-            key,
-            state: updatedState as ProcessStateMap[typeof key], // TS-safe
-          },
-        };
-
-        // Update the ref immediately to ensure consistency
-        configStateRef.current = newConfigState;
-
-        // Use the prop callback if provided, otherwise fall back to setConfigState
-        if (onStateUpdate) {
-          onStateUpdate(key, updatedState);
-        } else {
-          setConfigState(newConfigState);
-        }
-      } catch (error) {
-        console.error("Error updating config state:", error);
-      }
-    },
-    [setConfigState, onStateUpdate] // Include both dependencies
-  );
-
-  // Memoize the dependencies to prevent unnecessary re-renders
-  const dependencies = useMemo(
-    () =>
-      ({
-        stages: stages.filter(
-          (stage) => stage.flow === "process" || stage.flow === "both"
-        ),
-        groups,
-        users,
-      } as ProcessTypeDependencies),
-    [stages, groups, users]
-  );
-
-  // Memoize filtered process type options to prevent unnecessary re-renders
-  const filteredProcessTypeOptions = useMemo(() => {
-    if (!isDisplay) {
-      return processTypeOptions;
+  // Wrap with ProcessFlowProvider for global state management
+  const renderContent = () => {
+    if (isContentBuilderContext) {
+      return <ContentBuilderProcessFlow {...props} />;
     }
 
-    return processTypeOptions.filter((option) => {
-      const configData = configStateRef.current[option.value]; // Use ref for consistency
-
-      if (!configData?.state) {
-        return false;
-      }
-
-      // For single process types (from, to, through)
-      if (
-        option.value === "from" ||
-        option.value === "to" ||
-        option.value === "through"
-      ) {
-        const state = configData.state as TemplateProcessProps;
-        return state.stage?.value || state.group?.value || state.staff?.value;
-      }
-
-      // For array process types (cc, approvers)
-      if (option.value === "cc" || option.value === "approvers") {
-        const state = configData.state as TemplateProcessProps[];
-        return Array.isArray(state) && state.length > 0;
-      }
-
-      return false;
-    });
-  }, [processTypeOptions, isDisplay]); // Remove configState dependency
-
-  // Update active tab if current tab is filtered out
-  useEffect(() => {
-    if (isDisplay && filteredProcessTypeOptions.length > 0) {
-      const currentTabExists = filteredProcessTypeOptions.some(
-        (option) => option.value === activeTab.value
-      );
-
-      if (!currentTabExists) {
-        setActiveTab(filteredProcessTypeOptions[0]);
-      }
+    if (isDocumentConfiguratorContext) {
+      return <DocumentConfiguratorProcessFlow {...props} />;
     }
-  }, [filteredProcessTypeOptions, activeTab, isDisplay, setActiveTab]);
 
-  // Ensure active tab is always valid even in non-display mode
-  useEffect(() => {
-    if (!isDisplay && processTypeOptions.length > 0) {
-      const currentTabExists = processTypeOptions.some(
-        (option) => option.value === activeTab.value
-      );
-
-      if (!currentTabExists) {
-        setActiveTab(processTypeOptions[0]);
-      }
-    }
-  }, [processTypeOptions, activeTab, isDisplay, setActiveTab]);
-
-  // Silent loading - show component structure immediately, data loads in background
-  // No more intrusive loading spinner!
-
-  // Show error state if there was an error loading data
-  if (error) {
-    return (
-      <div className="process__flow__section">
-        <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-        <div className="process__flow__error text-center p-4">
-          <div className="process__flow__error__icon mb-2">
-            <i
-              className="ri-error-warning-line text-danger"
-              style={{ fontSize: "2rem" }}
-            ></i>
-          </div>
-          <p className="process__flow__error__text text-danger mb-2">{error}</p>
-          <button
-            className="btn btn-outline-primary btn-sm"
-            onClick={() => window.location.reload()}
-          >
-            <i className="ri-refresh-line me-1"></i>
-            Retry
-          </button>
-        </div>
-      </div>
+    // Fallback to DocumentConfigurator for backward compatibility
+    console.warn(
+      "DocumentProcessFlow: Context not detected, falling back to DocumentConfigurator mode"
     );
-  }
-
-  // Show message when no tabs are available in display mode
-  if (isDisplay && filteredProcessTypeOptions.length === 0) {
-    return (
-      <div className="process__flow__section">
-        <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-        <div className="process__flow__empty text-center p-4">
-          <p className="process__flow__empty__text">
-            No process configuration available for display.
-          </p>
-        </div>
-      </div>
-    );
-  }
+    return <DocumentConfiguratorProcessFlow {...props} />;
+  };
 
   return (
-    <div className="process__flow__section">
-      <h5 className="process__flow__title mb-3">Document Process Flow</h5>
-
-      <div className="process__flow__tabs">
-        <div className="process__flow__tab__header flex align mt-4">
-          {filteredProcessTypeOptions.map((option, idx) => (
-            <div
-              className={`process__flow__tab__item flex column gap-md align center ${
-                activeTab.value === option.value ? "active" : ""
-              }`}
-              key={idx}
-              onClick={() => handleTabSwitch(option)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleTabSwitch(option);
-                }
-              }}
-              role="tab"
-              tabIndex={0}
-              aria-selected={activeTab.value === option.value}
-              aria-label={`${option.label} tab`}
-            >
-              <img src={option.icon} alt={option.label} />
-              <p className="process__flow__tab__label">{option.label}:</p>
-            </div>
-          ))}
-        </div>
-        <div
-          className="process__flow__tab__content"
-          role="tabpanel"
-          aria-label="Process flow content"
-        >
-          {filteredProcessTypeOptions.map((option, idx) => {
-            const ActiveComponent = option.TabContent;
-            return (
-              <div
-                className="process__flow__tab__layer"
-                style={{
-                  display: activeTab.value === option.value ? "block" : "none",
-                }}
-                key={idx}
-                role="tabpanel"
-                aria-hidden={activeTab.value !== option.value}
-                aria-label={`${option.label} content`}
-              >
-                <ActiveComponent
-                  key={`${option.value}-${activeTab.value}`}
-                  value={activeTab.value}
-                  icon={activeTab.icon}
-                  label={activeTab.label}
-                  default={activeTab.default}
-                  data={null}
-                  configState={configState}
-                  handleStateUpdate={handleStateUpdate}
-                  dependencies={dependencies}
-                  isDisplay={isDisplay}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Completely silent loading - no visual indicators, just loads in background */}
-      {/* Loading state is completely invisible to maintain clean UI */}
-    </div>
+    <ProcessFlowProvider initialState={props.configState}>
+      {renderContent()}
+    </ProcessFlowProvider>
   );
 };
 

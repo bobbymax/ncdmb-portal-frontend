@@ -38,7 +38,7 @@ const DocumentGeneratorContent: React.FC<{
     if (mode === "update" && documentData && !loading && !error) {
       actions.initializeFromDocument(documentData);
     }
-  }, [mode, documentData, loading, error, actions]);
+  }, [mode, documentData, loading, error]); // Remove actions dependency to prevent infinite loops
 
   // TODO: Add document owner and department owner to the state
   // Apply Code Here!
@@ -67,12 +67,7 @@ const DocumentGeneratorContent: React.FC<{
       actions.setDocumentOwner(null);
       actions.setDepartmentOwner(null);
     }
-  }, [
-    staff,
-    actions,
-    state.configState.from?.state?.staff,
-    state.department_owner,
-  ]);
+  }, [staff, state.configState.from?.state?.staff, state.department_owner]);
 
   // Show loading state for update mode
   if (mode === "update" && loading) {
@@ -163,7 +158,6 @@ const DocumentGenerator = ({
   // Determine mode based on URL parameters
   const isUpdateMode = !!params.documentReference;
   const documentReference = params.documentReference;
-  const categoryId = params.categoryId;
 
   const { category, editedContents } = useDocumentGenerator(params);
 

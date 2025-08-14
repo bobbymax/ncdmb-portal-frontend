@@ -1,0 +1,13 @@
+So let me give a detailed functionality description of how I want the DocumentProcessFlow to work. The DocumentProcessFlow is a component
+that exists as a standalone but within a context of 2 HOCs, that is the ContentBuilder, 
+and DocumentGenerator. It is a set of tabs that controls the direction of where a document should go.
+
+so the DocumentProcessFlow component consists of 5 major tabs, the ['to', 'from', 'through', 'cc', 'approvers]
+the to, from and through state is of type TemplateProcessProps, and the cc and approvers are of type TemplateProcessProps[]
+you can check the useTemplateHeader for reference. 
+
+The idea behind this is in the context of the ContentBuilder, all tabs should be accessible because the idea is the administrator designs the general workflow
+but then in the context of the DocumentGenerator, the user only sees the tabs that the stage and group has data. This is used to transform the configState to a workflow - trackers data
+This is what you have done earlier.
+
+Let this component have access to the global state and mutate it directly, minimise prop drilling, and too much re-rendering. Make sure the state on each tab persists on every render.

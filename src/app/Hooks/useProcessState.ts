@@ -156,21 +156,11 @@ export const useProcessState = <
     [handleStateChange]
   );
 
-  // Handle state updates and prevent infinite loops - only for single process types
-  useEffect(() => {
-    // Skip for array-based process types (cc, approvers)
-    if (processType === "cc" || processType === "approvers") {
-      return;
-    }
+  // COMPLETE OVERHAUL: Remove all problematic useEffects that cause infinite loops
 
-    // Since we're now reading directly from global state, we don't need this effect
-    // The state updates are handled directly in handleStateChange
-    return;
-  }, []);
-
-  // Handle group filtering based on department
+  // Handle group filtering based on department - STABILIZED
   useEffect(() => {
-    if (currentState.group && groups.length > 0) {
+    if (currentState.group?.value && groups.length > 0) {
       const group: GroupResponseData | undefined =
         groups.find((grp) => grp.id === currentState.group?.value) ?? undefined;
 
@@ -192,35 +182,16 @@ export const useProcessState = <
       const matchUsers = selectedUsers.length > 0 ? selectedUsers : staff;
       setSelectedUsers([{ label: "None", value: 0 }, ...matchUsers]);
     }
-  }, [currentState.group, groups, currentState.department, filteredResources]);
+  }, [
+    currentState.group?.value, // Use primitive value instead of object
+    groups.length, // Use primitive value instead of array
+    currentState.department?.value, // Use primitive value instead of object
+    filteredResources.length, // Use primitive value instead of array
+  ]);
 
-  // Enhanced state persistence: Preserve user input when switching tabs
+  // Handle stage changes and set accessible groups - STABILIZED
   useEffect(() => {
-    // This effect ensures that user input is preserved across tab switches
-    // by maintaining the current state in the global context
-    if (currentState && Object.keys(currentState).length > 0) {
-      // Only update if there are actual changes to prevent infinite loops
-      const hasValidData =
-        currentState.stage?.value ||
-        currentState.group?.value ||
-        currentState.staff?.value ||
-        currentState.department?.value;
-
-      if (hasValidData) {
-        try {
-          // Ensure the state is properly persisted in the global context
-          // This prevents state loss when switching between tabs
-          handleStateUpdateRef.current(currentState, processType);
-        } catch (error) {
-          console.error(`Error persisting state for ${processType}:`, error);
-        }
-      }
-    }
-  }, [currentState, processType]);
-
-  // Handle stage changes and set accessible groups
-  useEffect(() => {
-    if (currentState.stage && stages.length > 0) {
+    if (currentState.stage?.value && stages.length > 0) {
       const stage =
         stages.find((stg) => stg.id === currentState.stage?.value) ?? null;
 
@@ -232,27 +203,17 @@ export const useProcessState = <
 
       // Only auto-set department if it's not already set by the user
       if (!currentState.department?.value) {
-        handleStateChange(stage?.department ?? null, "department");
+        // Use setTimeout to break the synchronous update chain
+        setTimeout(() => {
+          handleStateChange(stage?.department ?? null, "department");
+        }, 0);
       }
     }
   }, [
-    currentState.stage,
-    stages,
-    handleStateChange,
-    currentState.department?.value,
+    currentState.stage?.value, // Use primitive value instead of object
+    stages.length, // Use primitive value instead of array
+    currentState.department?.value, // Use primitive value instead of object
   ]);
-
-  // Handle config state updates - use ref to avoid infinite loops
-  useEffect(() => {
-    // Skip for array-based process types (cc, approvers)
-    if (processType === "cc" || processType === "approvers") {
-      return;
-    }
-
-    // Since we're now reading directly from global state, we don't need this effect
-    // The state is always in sync with the global configState
-    return;
-  }, [processType]);
 
   return {
     state: currentState,

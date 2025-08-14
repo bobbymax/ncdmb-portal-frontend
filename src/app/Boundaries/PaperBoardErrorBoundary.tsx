@@ -13,10 +13,10 @@ interface State {
 }
 
 /**
- * Error boundary for TemplateBoard context
+ * Error boundary for PaperBoard context
  * Provides fallback state and error recovery
  */
-class TemplateBoardErrorBoundary extends Component<Props, State> {
+class PaperBoardErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
@@ -30,7 +30,7 @@ class TemplateBoardErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console
     console.error(
-      "TemplateBoard Error Boundary caught an error:",
+      "PaperBoard Error Boundary caught an error:",
       error,
       errorInfo
     );
@@ -65,7 +65,7 @@ class TemplateBoardErrorBoundary extends Component<Props, State> {
             <div className="error-icon">
               <i className="ri-error-warning-line"></i>
             </div>
-            <h3>Something went wrong with the Template Builder</h3>
+            <h3>Something went wrong with the Paper Builder</h3>
             <p>
               An error occurred while managing the document template state. This
               might be due to corrupted data or a temporary issue.
@@ -112,4 +112,4 @@ class TemplateBoardErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default TemplateBoardErrorBoundary;
+export default PaperBoardErrorBoundary;

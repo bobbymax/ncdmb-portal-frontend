@@ -49,11 +49,22 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
   emptyMessage,
 }: ProcessTabArrayBaseProps<K>) => {
   const [isToggled, setIsToggled] = useState(false);
-  const [recipients, setRecipients] = useState<CCProcessProps[]>([]);
+  const [recipients, setRecipients] = useState<CCProcessProps[]>(() => {
+    // Initialize recipients from data prop for persistence
+    if (data && Array.isArray(data) && data.length > 0) {
+      return (data as TemplateProcessProps[]).map((item) => ({
+        id: generateUUID(),
+        recipient: item,
+      }));
+    }
+    return [];
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if dependencies are ready - optimized to prevent excessive re-evaluation
+  // COMPLETE OVERHAUL: Ultra-stable dependency checking
+
+  // Check if dependencies are ready - ULTRA-STABILIZED with primitive values
   const isDependenciesReady = useMemo(() => {
     const hasStages = dependencies.stages && dependencies.stages.length > 0;
     const hasGroups = dependencies.groups && dependencies.groups.length > 0;
@@ -61,9 +72,9 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
 
     return hasStages && hasGroups && hasUsers;
   }, [
-    dependencies.stages?.length,
-    dependencies.groups?.length,
-    dependencies.users?.length,
+    dependencies.stages?.length || 0, // Use primitive value
+    dependencies.groups?.length || 0, // Use primitive value
+    dependencies.users?.length || 0, // Use primitive value
   ]);
 
   const {
@@ -85,6 +96,8 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
     configState,
   });
 
+  // COMPLETE OVERHAUL: Ultra-stable loading state management
+
   // Handle loading state with debouncing to prevent excessive loading changes
   useEffect(() => {
     if (!isDependenciesReady) {
@@ -98,9 +111,22 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
       // Immediately hide loading when dependencies are ready
       setIsLoading(false);
     }
-  }, [isDependenciesReady]);
+  }, [isDependenciesReady]); // isDependenciesReady is already stable
 
-  // Handle errors - optimized to prevent unnecessary error state updates
+  // Sync recipients with data prop changes for persistence
+  useEffect(() => {
+    if (data && Array.isArray(data) && data.length > 0) {
+      const newRecipients = (data as TemplateProcessProps[]).map((item) => ({
+        id: generateUUID(),
+        recipient: item,
+      }));
+      setRecipients(newRecipients);
+    }
+  }, [data]);
+
+  // COMPLETE OVERHAUL: Ultra-stable error handling
+
+  // Handle errors - ULTRA-STABILIZED with primitive dependencies
   useEffect(() => {
     const hasStages = dependencies.stages && dependencies.stages.length > 0;
 
@@ -110,10 +136,16 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
       // Only update error state if there's actually an error to clear
       setError(null);
     }
-  }, [dependencies.stages?.length, isLoading, error]);
+  }, [
+    dependencies.stages?.length || 0, // Use primitive value
+    isLoading, // Use primitive value
+    error, // Keep error as it's a primitive string
+  ]);
 
-  // Handle recipients state updates - simplified to avoid infinite loops
-  useEffect(() => {
+  // COMPLETE OVERHAUL: Remove problematic useEffect that causes infinite loops
+
+  // Handle recipients state updates - STABILIZED with useCallback
+  const updateRecipientsState = useCallback(() => {
     try {
       if (recipients.length > 0) {
         handleStateUpdate(
@@ -125,10 +157,23 @@ const ProcessTabArrayBase = <K extends "cc" | "approvers">({
         handleStateUpdate([], value);
       }
     } catch (err) {
-      console.error("Error in recipients useEffect:", err);
+      console.error("Error in recipients update:", err);
       setError("Error updating recipients state");
     }
-  }, [recipients, value]); // Removed handleStateUpdate from dependencies to prevent infinite loop
+  }, [recipients, value, handleStateUpdate]);
+
+  // Only update when recipients actually change - use useRef to track previous value
+  const prevRecipientsRef = useRef(recipients);
+
+  useEffect(() => {
+    // Only update if recipients actually changed
+    if (
+      JSON.stringify(prevRecipientsRef.current) !== JSON.stringify(recipients)
+    ) {
+      prevRecipientsRef.current = recipients;
+      updateRecipientsState();
+    }
+  }, [recipients, updateRecipientsState]);
 
   // Handle config state updates
   // Temporarily disabled to isolate the infinite loop issue

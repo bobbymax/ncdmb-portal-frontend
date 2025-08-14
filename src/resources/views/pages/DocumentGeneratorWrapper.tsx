@@ -20,14 +20,14 @@ const DocumentGeneratorWrapper: React.FC<DocumentGeneratorWrapperProps> = ({
     (updates: Partial<DocumentResponseData>) => {
       actions.updateDocumentState(updates);
     },
-    [actions]
+    [actions.updateDocumentState]
   );
 
   const handleResourceUpdate = useCallback(
     (resource: BaseResponse) => {
       actions.setResource(resource);
     },
-    [actions]
+    [actions.setResource]
   );
 
   const handleGlobalStateUpdate = useCallback(
@@ -37,7 +37,7 @@ const DocumentGeneratorWrapper: React.FC<DocumentGeneratorWrapperProps> = ({
         actions.updateContent("generated-data", data, identifier);
       }
     },
-    [actions]
+    [actions.updateContent]
   );
 
   return (

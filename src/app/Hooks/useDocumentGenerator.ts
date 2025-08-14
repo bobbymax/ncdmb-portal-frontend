@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import _ from "lodash";
 import { ContentAreaProps } from "./useBuilder";
 import { ConfigState } from "app/Hooks/useTemplateHeader";
 import {
@@ -7,7 +8,6 @@ import {
 } from "../Repositories/Template/data";
 import { DocumentCategoryResponseData } from "../Repositories/DocumentCategory/data";
 import { repo } from "bootstrap/repositories";
-import _ from "lodash";
 
 const useDocumentGenerator = (params: unknown) => {
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
@@ -82,7 +82,13 @@ const useDocumentGenerator = (params: unknown) => {
         const hasTemplateData =
           prev.from?.state?.stage?.value ||
           prev.to?.state?.stage?.value ||
-          prev.through?.state?.stage?.value;
+          prev.through?.state?.stage?.value ||
+          (prev.cc?.state &&
+            Array.isArray(prev.cc.state) &&
+            prev.cc.state.length > 0) ||
+          (prev.approvers?.state &&
+            Array.isArray(prev.approvers.state) &&
+            prev.approvers.state.length > 0);
 
         if (hasTemplateData) {
           // Already initialized, don't overwrite user changes

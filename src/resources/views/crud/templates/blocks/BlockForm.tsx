@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import {
   ContentAreaProps,
   OptionsContentAreaProps,
@@ -34,31 +34,27 @@ const BlockForm: React.FC<BlockFormProps> = ({
       return initialState;
     });
 
-  // Get content from global context
-  const globalContent = state.contents.find(
-    (content) => content.id === block.id
-  )?.content as OptionsContentAreaProps;
+  // Get content from global context - with useMemo to prevent recreation
+  const globalContent = useMemo(() => {
+    return state.contents.find((content) => content.id === block.id)
+      ?.content as OptionsContentAreaProps;
+  }, [state.contents, block.id]);
 
-  // Initialize local state from global state
+  // Initialize local state from global state - with aggressive optimization
   useEffect(() => {
     if (globalContent) {
-      // Initialize from global state
       setLocalContentState((prev) => {
         const blockType = block.type as keyof OptionsContentAreaProps;
-
-        // Check if globalContent already has the correct nested structure
         const blockContent = globalContent[blockType];
 
+        // Create new content object
         const newContent: OptionsContentAreaProps = {
           ...prev,
           [blockType]: blockContent || {},
         };
 
-        // Only update if content is actually different
-        const contentString = JSON.stringify(newContent);
-        const prevString = JSON.stringify(prev);
-
-        if (contentString !== prevString) {
+        // Deep comparison to prevent unnecessary updates
+        if (JSON.stringify(newContent) !== JSON.stringify(prev)) {
           return newContent;
         }
         return prev;

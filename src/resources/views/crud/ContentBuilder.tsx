@@ -174,7 +174,7 @@ const ContentBuilder: React.FC<
 
         initialized.current = true;
       }
-    }, [state.config, state.body, actions, blocks]);
+    }, [state.config, state.body, blocks]);
 
     return (
       <div className="row mt-4">

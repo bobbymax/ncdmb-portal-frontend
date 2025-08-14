@@ -315,7 +315,7 @@ const ClaimDocumentGenerator: React.FC<
       updateGlobalStateRef.current(manualEditData, "expense");
     }
 
-    // Update template context
+    // Update template context - use ref to prevent infinite loops
     const expenseContent = templateState.contents.find(
       (content) => content.type === "expense"
     );
@@ -327,8 +327,7 @@ const ClaimDocumentGenerator: React.FC<
     removeManualEdit,
     addManualExpense,
     removeManualExpense,
-    // Remove template context dependencies to prevent infinite loops
-  ]);
+  ]); // Remove template context dependencies to prevent infinite loops
 
   return (
     <div className="document__generator__container">

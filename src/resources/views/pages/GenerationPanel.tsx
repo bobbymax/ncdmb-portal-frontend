@@ -221,8 +221,21 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
       hideOverlay();
     }
   }, [
-    state,
-    actions,
+    state.isGenerating,
+    state.category?.service,
+    state.documentState,
+    state.resource?.id,
+    state.configState,
+    state.uploads,
+    state.contents,
+    state.fund?.value,
+    state.parentDocument?.id,
+    state.workflow,
+    state.trackers,
+    state.isValid,
+    state.document_owner,
+    state.department_owner,
+    state.template?.id,
     Repository,
     staff,
     navigate,
@@ -231,7 +244,7 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
     updateOverlayProgress,
     mode,
     documentReference,
-  ]);
+  ]); // Remove state and actions objects to prevent infinite loops
 
   useEffect(() => {
     if (staff?.pages && pathname) {
@@ -241,7 +254,7 @@ const GenerationPanel: React.FC<GenerationPanelProps> = ({
         setPage(page);
       }
     }
-  }, [pathname, staff?.pages, actions]);
+  }, [pathname, staff?.pages]); // Remove actions dependency to prevent infinite loops
 
   const handleGoBack = useCallback(() => {
     navigate(-1);

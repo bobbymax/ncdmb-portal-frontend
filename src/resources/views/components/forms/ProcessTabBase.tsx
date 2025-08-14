@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useMemo } from "react";
+import React, { FC, useState, useEffect } from "react";
 import { ActionMeta } from "react-select";
 import { TemplateProcessProps } from "app/Repositories/Template/data";
 import {
@@ -7,10 +7,9 @@ import {
 } from "resources/views/crud/ContentBuilder";
 import MultiSelect, { DataOptionsProps } from "./MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
-import { useProcessState } from "app/Hooks/useProcessState";
 import ErrorBoundary from "../ErrorBoundary";
 
-const ProcessTabBase = <K extends "from" | "to" | "through">({
+const ProcessTabBaseComponent = <K extends "from" | "to" | "through">({
   value,
   icon,
   default: isDefault,
@@ -21,125 +20,108 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
   isDisplay = false,
   configState,
 }: TabConfigContentProps<K, TemplateProcessProps>) => {
-  const [isLoading, setIsLoading] = useState(true);
+  // NUCLEAR OPTION: Ultra-simple component with NO external dependencies
+
+  // Simple state management
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if dependencies are ready - optimized to prevent excessive re-evaluation
-  const isDependenciesReady = useMemo(() => {
-    const hasStages = dependencies.stages && dependencies.stages.length > 0;
-    const hasGroups = dependencies.groups && dependencies.groups.length > 0;
-    const hasUsers = dependencies.users && dependencies.users.length > 0;
+  // Initialize local state from props data for persistence
+  const [localState, setLocalState] = useState<{
+    stage: any;
+    group: any;
+    staff: any;
+  }>(() => {
+    // Use data prop if available, otherwise default to null
+    if (data && !Array.isArray(data)) {
+      return {
+        stage: data.stage || null,
+        group: data.group || null,
+        staff: data.staff || null,
+      };
+    }
+    return {
+      stage: null,
+      group: null,
+      staff: null,
+    };
+  });
 
-    return hasStages && hasGroups && hasUsers;
+  // Simple handlers - no external dependencies
+  const handleStageChange = (newValue: any) => {
+    setLocalState((prev) => ({ ...prev, stage: newValue }));
+    if (handleStateUpdate) {
+      const updatedState: TemplateProcessProps = {
+        process_type: value,
+        stage: newValue,
+        group: localState.group,
+        staff: localState.staff,
+        department: null,
+        is_approving: null,
+        permissions: "rw",
+      };
+      handleStateUpdate(updatedState, value);
+    }
+  };
+
+  const handleGroupChange = (newValue: any) => {
+    setLocalState((prev) => ({ ...prev, group: newValue }));
+    if (handleStateUpdate) {
+      const updatedState: TemplateProcessProps = {
+        process_type: value,
+        stage: localState.stage,
+        group: newValue,
+        staff: localState.staff,
+        department: null,
+        is_approving: null,
+        permissions: "rw",
+      };
+      handleStateUpdate(updatedState, value);
+    }
+  };
+
+  const handleStaffChange = (newValue: any) => {
+    setLocalState((prev) => ({ ...prev, staff: newValue }));
+    if (handleStateUpdate) {
+      const updatedState: TemplateProcessProps = {
+        process_type: value,
+        stage: localState.stage,
+        group: localState.group,
+        staff: newValue,
+        department: null,
+        is_approving: null,
+        permissions: "rw",
+      };
+      handleStateUpdate(updatedState, value);
+    }
+  };
+
+  // Sync local state with data prop changes
+  useEffect(() => {
+    if (data && !Array.isArray(data)) {
+      setLocalState({
+        stage: data.stage || null,
+        group: data.group || null,
+        staff: data.staff || null,
+      });
+    }
+  }, [data]);
+
+  // Simple loading state
+  useEffect(() => {
+    if (
+      dependencies.stages?.length > 0 &&
+      dependencies.groups?.length > 0 &&
+      dependencies.users?.length > 0
+    ) {
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
   }, [
     dependencies.stages?.length,
     dependencies.groups?.length,
     dependencies.users?.length,
-  ]);
-
-  // Memoize the dependencies to prevent unnecessary re-renders
-  const memoizedDependencies = useMemo(
-    () => ({
-      stages: dependencies.stages || [],
-      groups: dependencies.groups || [],
-      users: dependencies.users || [],
-    }),
-    [dependencies.stages, dependencies.groups, dependencies.users]
-  );
-
-  const {
-    state,
-    handleMultiSelectChange,
-    handleStateChange,
-    accessibleGroups,
-    selectedUsers,
-    stages,
-  } = useProcessState({
-    processType: value,
-    dependencies: memoizedDependencies,
-    isDisplay,
-    handleStateUpdate,
-    configState,
-  });
-
-  // Handle loading state with debouncing to prevent excessive loading changes
-  useEffect(() => {
-    if (!isDependenciesReady) {
-      // Only show loading if dependencies aren't ready after a short delay
-      const loadingTimeout = setTimeout(() => {
-        setIsLoading(true);
-      }, 200); // 200ms delay to prevent flash loading
-
-      return () => clearTimeout(loadingTimeout);
-    } else {
-      // Immediately hide loading when dependencies are ready
-      setIsLoading(false);
-    }
-  }, [isDependenciesReady]);
-
-  // Handle errors - optimized to prevent unnecessary error state updates
-  useEffect(() => {
-    const hasStages = dependencies.stages && dependencies.stages.length > 0;
-
-    if (!isLoading && !hasStages) {
-      setError("No workflow stages available");
-    } else if (error) {
-      // Only update error state if there's actually an error to clear
-      setError(null);
-    }
-  }, [dependencies.stages?.length, isLoading, error]);
-
-  // Advanced error recovery and validation
-  useEffect(() => {
-    // Validate that the current state is consistent with available options
-    if (state.stage && dependencies.stages.length > 0) {
-      const stageExists = dependencies.stages.some(
-        (s) => s.id === state.stage?.value
-      );
-      if (!stageExists) {
-        setError(
-          "Selected stage is no longer available. Please select a new stage."
-        );
-        return;
-      }
-    }
-
-    if (state.group && accessibleGroups.length > 0) {
-      const groupExists = accessibleGroups.some(
-        (g) => g.value === state.group?.value
-      );
-      if (!groupExists) {
-        setError(
-          "Selected group is no longer available. Please select a new group."
-        );
-        return;
-      }
-    }
-
-    if (state.staff && selectedUsers.length > 0) {
-      const staffExists = selectedUsers.some(
-        (u) => u.value === state.staff?.value
-      );
-      if (!staffExists) {
-        setError(
-          "Selected staff is no longer available. Please select a new staff member."
-        );
-        return;
-      }
-    }
-
-    // Clear error if all validations pass
-    if (error) {
-      setError(null);
-    }
-  }, [
-    state.stage,
-    state.group,
-    state.staff,
-    dependencies.stages,
-    accessibleGroups,
-    selectedUsers,
-    error,
   ]);
 
   const renderMultiSelect = (
@@ -195,15 +177,6 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
         <small className="text-muted mt-2 d-block">
           Loading process configuration...
         </small>
-        <div className="mt-3">
-          <div
-            className="spinner-border spinner-border-sm text-primary me-2"
-            role="status"
-          >
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <span className="text-muted">Preparing form...</span>
-        </div>
       </div>
     );
   }
@@ -217,27 +190,27 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
       >
         {renderMultiSelect(
           "Desk",
-          formatOptions(stages, "id", "name", true),
-          state.stage,
-          handleMultiSelectChange("stage"),
+          formatOptions(dependencies.stages || [], "id", "name", true),
+          localState.stage,
+          handleStageChange,
           "Workflow Stage",
-          isDisplay && !!state.stage?.value // Only disable in display mode if stage has a value
+          isDisplay && !!localState.stage?.value
         )}
 
         {renderMultiSelect(
           "Group",
-          accessibleGroups,
-          state.group,
-          handleMultiSelectChange("group"),
+          formatOptions(dependencies.groups || [], "id", "name", true),
+          localState.group,
+          handleGroupChange,
           "Group",
-          isDisplay && !!state.group?.value // Only disable in display mode if group has a value
+          isDisplay && !!localState.group?.value
         )}
 
         {renderMultiSelect(
           "Staff",
-          selectedUsers,
-          state.staff ?? null,
-          handleMultiSelectChange("staff"),
+          formatOptions(dependencies.users || [], "id", "name", true),
+          localState.staff,
+          handleStaffChange,
           "Staff",
           false,
           12
@@ -247,4 +220,6 @@ const ProcessTabBase = <K extends "from" | "to" | "through">({
   );
 };
 
-export default React.memo(ProcessTabBase) as typeof ProcessTabBase;
+export default React.memo(
+  ProcessTabBaseComponent
+) as typeof ProcessTabBaseComponent;
