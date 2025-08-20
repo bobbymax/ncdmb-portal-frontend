@@ -1,0 +1,274 @@
+/* Rich Text Editor Styles */
+.rich-text-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: #1a202c;
+}
+
+/* Toolbar Styles */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 8px 8px 0 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.toolbar-group:last-child {
+  border-right: none;
+}
+
+.toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.toolbar-button:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.toolbar-button.active {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.toolbar-button:active {
+  transform: translateY(1px);
+}
+
+/* Editor Content */
+.editor-content {
+  padding: 16px;
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.editor-editable {
+  outline: none;
+  line-height: 1.6;
+  color: #111827;
+}
+
+.editor-editable[data-slate-placeholder]::before {
+  content: attr(data-slate-placeholder);
+  position: absolute;
+  color: #9ca3af;
+  pointer-events: none;
+  font-style: italic;
+}
+
+/* NUCLEAR OPTION - Override global CSS reset with maximum specificity */
+.editor-content ul.bulleted-list,
+.editor-content ol.numbered-list,
+.editor-content ul,
+.editor-content ol {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  padding-left: 2em !important;
+  margin: 1em 0 !important;
+}
+
+.editor-content ol.numbered-list,
+.editor-content ol {
+  list-style: decimal outside !important;
+  list-style-type: decimal !important;
+}
+
+.editor-content li.list-item,
+.editor-content li {
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+/* BROAD TARGETING - Target any ul/ol/li in the editor area */
+.rich-text-editor ul,
+.rich-text-editor ol {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  padding-left: 2em !important;
+  margin: 1em 0 !important;
+}
+
+.rich-text-editor ol {
+  list-style: decimal outside !important;
+  list-style-type: decimal !important;
+}
+
+.rich-text-editor li {
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+/* EVEN BROADER - Target any list elements anywhere in the editor */
+.editor-editable ul,
+.editor-editable ol {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  padding-left: 2em !important;
+  margin: 1em 0 !important;
+}
+
+.editor-editable ol {
+  list-style: decimal outside !important;
+  list-style-type: decimal !important;
+}
+
+.editor-editable li {
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+/* ULTIMATE OVERRIDE - Target the specific global CSS reset */
+.rich-text-editor ul.bulleted-list,
+.rich-text-editor ol.numbered-list {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  padding-left: 2em !important;
+  margin: 1em 0 !important;
+}
+
+.rich-text-editor ol.numbered-list {
+  list-style: decimal outside !important;
+  list-style-type: decimal !important;
+}
+
+.rich-text-editor li.list-item {
+  display: list-item !important;
+  margin: 0.5em 0 !important;
+}
+
+/* Force list markers with maximum specificity */
+.rich-text-editor ul.bulleted-list {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+}
+
+.rich-text-editor ol.numbered-list {
+  list-style: decimal outside !important;
+  list-style-type: decimal !important;
+}
+
+.rich-text-editor li.list-item {
+  display: list-item !important;
+}
+
+/* Block-level element styling */
+.editor-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  border: 1px solid #e2e8f0;
+}
+
+.editor-table th,
+.editor-table td {
+  border: 1px solid #e2e8f0;
+  padding: 0.5em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.editor-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+}
+
+.editor-table td {
+  background-color: #ffffff;
+}
+
+/* Ensure block-level elements don't inherit paragraph styles */
+.editor-content .editor-table,
+.editor-content .image-wrapper,
+.editor-content .file-attachment-wrapper,
+.editor-content .database-record-wrapper {
+  display: block;
+  margin: 1em 0;
+  padding: 0;
+}
+
+/* Remove any inherited paragraph margins from block elements */
+.editor-content p .editor-table,
+.editor-content p .image-wrapper,
+.editor-content p .file-attachment-wrapper,
+.editor-content p .database-record-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+/* Table Modal Styles */
+.table-modal-overlay {
+  backdrop-filter: blur(4px);
+}
+
+.table-modal-content {
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.table-preview-grid {
+  transition: all 0.2s ease;
+}
+
+.table-preview-cell {
+  transition: all 0.15s ease;
+}
+
+.table-preview-cell:hover {
+  transform: scale(1.05);
+}
+
+.quick-size-button {
+  transition: all 0.2s ease;
+}
+
+.quick-size-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.quick-size-button.active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}

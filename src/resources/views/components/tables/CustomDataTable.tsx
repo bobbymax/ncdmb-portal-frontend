@@ -33,7 +33,8 @@ export interface ButtonsProp {
     | "payments"
     | "track"
     | "deactivate"
-    | "builder";
+    | "builder"
+    | "configurator";
   variant: "success" | "info" | "warning" | "danger" | "dark";
   icon?: string;
   conditions: ConditionalArray[];

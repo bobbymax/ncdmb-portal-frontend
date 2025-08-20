@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isAuthenticated) {
       const interval = setInterval(() => {
         fetchUser();
-      }, 5 * 60 * 1000); // 5 minutes in milliseconds
+      }, 30 * 60 * 1000); // 5 minutes in milliseconds
 
       return () => clearInterval(interval); // Cleanup interval on unmount
     }

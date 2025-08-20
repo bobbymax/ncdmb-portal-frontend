@@ -26,6 +26,7 @@ import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategor
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
 import { BlockDataType } from "@/app/Repositories/Block/data";
 import GenerateDocument from "resources/views/pages/GenerateDocument";
+import BuildTemplate from "resources/views/pages/BuildTemplate";
 
 export interface ActionBttnProps {
   variant: string;
@@ -173,6 +174,8 @@ const renderRoute = <T extends BaseRepository>(
             <GenerateDocument {...componentProps} />
           ) : view.type === "docket" ? (
             <FileDocket {...componentProps} />
+          ) : view.type === "configurator" ? (
+            <BuildTemplate {...componentProps} />
           ) : (
             <ResourceRawPage {...componentProps} />
           )}

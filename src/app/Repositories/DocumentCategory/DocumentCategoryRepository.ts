@@ -37,6 +37,8 @@ export default class DocumentCategoryRepository extends BaseRepository {
         formatOptions(data.requirements ?? [], "id", "name") ?? [],
       template: data.template ?? null,
       service: data.service ?? "",
+      workflow: data.workflow ?? null,
+      config: data.config ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

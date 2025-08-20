@@ -24,6 +24,7 @@ const GenerateDocument = ({
           category={category}
           editedContents={editedContents}
           mode="store"
+          context="generator"
         />
       </PaperBoardProvider>
     </PaperBoardErrorBoundary>

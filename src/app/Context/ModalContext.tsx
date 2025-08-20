@@ -21,6 +21,16 @@ import { ProcessedDataProps } from "./FileProcessorProvider";
 import { BlockDataType } from "app/Repositories/Block/data";
 import { BlockDataTypeMap } from "resources/views/crud/templates/blocks";
 import { toast } from "react-toastify";
+import DocumentCategoryRepository from "../Repositories/DocumentCategory/DocumentCategoryRepository";
+import {
+  CategoryProgressTrackerProps,
+  CategoryWorkflowProps,
+} from "../Repositories/DocumentCategory/data";
+import {
+  ProcessFlowConfigProps,
+  ProcessFlowType,
+  WorkflowDependencyProps,
+} from "@/resources/views/crud/DocumentWorkflow";
 
 type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers
@@ -38,6 +48,21 @@ export interface ModalLoopProps<
   handleSubmit: (props: ProcessedDataProps<T>) => void;
   dependencies?: object;
   extras?: any;
+}
+
+export interface WorkflowModalProps<K extends ProcessFlowType> {
+  type: K;
+  title: string;
+  modalState: ProcessFlowConfigProps[K];
+  data: ProcessFlowConfigProps[K] | null;
+  isUpdating: boolean;
+  handleSubmit: (
+    type: K,
+    config: ProcessFlowConfigProps[K],
+    mode: "store" | "update"
+  ) => void;
+  dependencies: WorkflowDependencyProps;
+  extras?: unknown;
 }
 
 export interface BlockModalProps<P extends BlockDataType> {
@@ -98,6 +123,12 @@ interface ModalContextType {
     type: P,
     initialState?: unknown
   ) => void;
+  openWorkflow: <K extends ProcessFlowType>(
+    Component: React.ComponentType<WorkflowModalProps<K>>,
+    identifier: K,
+    props: WorkflowModalProps<K>,
+    initialData?: ProcessFlowConfigProps[K]
+  ) => void;
   handleInputChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -142,6 +173,22 @@ export const ModalProvider: React.FC<{
     props: ModalValueProps,
     initialData?: BaseResponse,
     Repo?: BaseRepository
+  ) => {
+    setContent(<Component {...props} />);
+    setCurrentIdentifier(identifier);
+    setTitle(props.title);
+    setIsOpen(true);
+    setModalState((prevState) => ({
+      ...prevState,
+      [identifier]: initialData || {}, // Initialize modalState with ResponseData if provided
+    }));
+  };
+
+  const openWorkflow = <K extends ProcessFlowType>(
+    Component: React.ComponentType<WorkflowModalProps<K>>,
+    identifier: K,
+    props: WorkflowModalProps<K>,
+    initialData?: ProcessFlowConfigProps[K]
   ) => {
     setContent(<Component {...props} />);
     setCurrentIdentifier(identifier);
@@ -217,6 +264,7 @@ export const ModalProvider: React.FC<{
     setContent(null);
     setCurrentIdentifier("");
     setTitle("");
+    setModalState({});
   };
 
   const onManageRaw = (params: ManageModalProps) => {
@@ -261,6 +309,7 @@ export const ModalProvider: React.FC<{
         title,
         currentIdentifier,
         openModal,
+        openWorkflow,
         openLoop,
         openBlock,
         closeModal,

@@ -10,6 +10,7 @@
 @import "menu.css";
 @import "modal.css";
 @import "workflow-preview.css";
+@import "app/Plugins/editor/styles.css";
 
 :root {
   --color-primary: #004d40;

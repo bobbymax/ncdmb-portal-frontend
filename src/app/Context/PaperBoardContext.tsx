@@ -14,11 +14,13 @@ import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/dat
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { ProcessTabsOption } from "@/resources/views/crud/ContentBuilder";
 
+export type ContextType = "builder" | "generator" | "viewer";
+
 export interface PaperBoardState {
   isLoading: boolean;
   hasError: boolean;
   errorMessage: string | null;
-  context: "builder" | "generator" | "viewer";
+  context: ContextType;
   mode: "store" | "update";
 
   // Primary Data

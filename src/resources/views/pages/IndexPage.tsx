@@ -73,6 +73,10 @@ const IndexPage = ({
         navigate(`${view.frontend_path}/${raw.id}/builder`);
         break;
 
+      case "configurator":
+        navigate(`${view.frontend_path}/${raw.id}/workflow`);
+        break;
+
       default:
         navigate(`${view.frontend_path}/${raw.id}/manage`);
         break;

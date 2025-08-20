@@ -1,0 +1,20 @@
+{
+  "name": "@ncdmb/editor",
+  "version": "1.0.0",
+  "description": "WYSIWYG Editor Plugin with Slate.js",
+  "main": "index.ts",
+  "dependencies": {
+    "slate": "^0.118.0",
+    "slate-react": "^0.117.4",
+    "slate-history": "^0.113.1",
+    "slate-hyperscript": "^0.100.0",
+    "is-hotkey": "^0.2.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/slate": "^0.94.0"
+  }
+}

@@ -29,6 +29,7 @@ export default class TemplateRepository extends BaseRepository {
       document_category_id: data.document_category_id ?? 0,
       name: data.name ?? "",
       header: data.header ?? "",
+      category: data.category ?? null,
       config: data.config ?? {
         subject: "",
         process: {} as ConfigState,

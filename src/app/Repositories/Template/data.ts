@@ -4,6 +4,7 @@ import { BlockResponseData } from "../Block/data";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { PermissionTypes } from "../ProgressTracker/data";
 import { ConfigState } from "app/Hooks/useTemplateHeader";
+import { DocumentCategoryResponseData } from "../DocumentCategory/data";
 
 export type TemplateProcessProps = {
   process_type: "from" | "to" | "through" | "cc" | "approvers";
@@ -24,6 +25,7 @@ export interface TemplateResponseData extends BaseResponse {
   document_category_id: number;
   name: string;
   header: "banner" | "memo" | "resource";
+  category?: DocumentCategoryResponseData | null;
   config?: TemplateProcessConfigProps;
   body?: ContentAreaProps[];
   footer: string;

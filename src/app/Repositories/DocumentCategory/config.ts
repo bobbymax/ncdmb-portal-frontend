@@ -13,6 +13,8 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "type",
       "selectedBlocks",
       "service",
+      "workflow",
+      "config",
     ],
     associatedResources: [
       { url: "apiServices", name: "services" },
@@ -20,6 +22,11 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       { name: "workflows", url: "workflows" },
       { name: "documentRequirements", url: "documentRequirements" },
       { name: "blocks", url: "blocks" },
+      { name: "groups", url: "groups" },
+      { name: "departments", url: "departments" },
+      { name: "users", url: "users" },
+      { name: "workflowStages", url: "workflowStages" },
+      { name: "carders", url: "carders" },
     ],
     state: {
       id: 0,
@@ -34,6 +41,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       requirements: [],
       selectedRequirements: [],
       selectedBlocks: [],
+      workflow: null,
     },
     actions: [
       {
@@ -43,6 +51,22 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
         conditions: [],
         operator: "and",
         display: "Manage",
+      },
+      {
+        label: "configurator",
+        icon: "ri-flow-chart",
+        variant: "dark",
+        conditions: [],
+        operator: "and",
+        display: "Workflow",
+      },
+      {
+        label: "builder",
+        icon: "ri-layout-3-line",
+        variant: "info",
+        conditions: [],
+        operator: "and",
+        display: "Template",
       },
     ],
   };
