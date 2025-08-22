@@ -84,7 +84,8 @@ export interface ViewsProps {
     | "docket"
     | "builder"
     | "generator"
-    | "configurator";
+    | "configurator"
+    | "configuration";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;

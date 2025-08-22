@@ -15,6 +15,7 @@ export const workflowStageConfig: ConfigProp<WorkflowStageResponseData> = {
     "actions",
     "isDisplayed",
     "flow",
+    "document_actions",
   ],
   associatedResources: [
     { name: "departments", url: "departments" },

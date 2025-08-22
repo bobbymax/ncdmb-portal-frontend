@@ -99,6 +99,7 @@ export interface BuilderComponentProps<
     generatorData: unknown,
     identifier: BlockDataType
   ) => void;
+  dependencies: object;
 }
 
 export interface DocumentGeneratorComponentProps<
@@ -168,7 +169,7 @@ const renderRoute = <T extends BaseRepository>(
             <CardPage {...componentProps} />
           ) : view.type === "page" ? (
             <ViewResourcePage {...componentProps} />
-          ) : view.type === "builder" ? (
+          ) : view.type === "builder" || view.type === "configuration" ? (
             <Builder {...componentProps} />
           ) : view.type === "generator" ? (
             <GenerateDocument {...componentProps} />

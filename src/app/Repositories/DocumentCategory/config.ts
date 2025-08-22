@@ -15,6 +15,8 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "service",
       "workflow",
       "config",
+      "content",
+      "meta_data",
     ],
     associatedResources: [
       { url: "apiServices", name: "services" },
@@ -27,6 +29,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       { name: "users", url: "users" },
       { name: "workflowStages", url: "workflowStages" },
       { name: "carders", url: "carders" },
+      { name: "documentActions", url: "documentActions" },
     ],
     state: {
       id: 0,
@@ -42,6 +45,8 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       selectedRequirements: [],
       selectedBlocks: [],
       workflow: null,
+      content: [],
+      meta_data: null,
     },
     actions: [
       {
@@ -67,6 +72,14 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
         conditions: [],
         operator: "and",
         display: "Template",
+      },
+      {
+        label: "configuration",
+        icon: "ri-settings-3-line",
+        variant: "danger",
+        conditions: [],
+        operator: "and",
+        display: "Configuration",
       },
     ],
   };

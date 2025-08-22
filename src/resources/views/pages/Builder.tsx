@@ -47,9 +47,6 @@ const Builder = ({
   return (
     <div className="row">
       <div className="col-md-12 mb-3">
-        <h2>Template Builder</h2>
-      </div>
-      <div className="col-md-12 mb-3">
         <BuilderComponent
           repo={Repository}
           state={state}
@@ -59,6 +56,7 @@ const Builder = ({
           updateGlobalState={(generatorData, identifier) => {
             setGeneratedData(generatorData);
           }}
+          dependencies={dependencies}
         />
       </div>
     </div>

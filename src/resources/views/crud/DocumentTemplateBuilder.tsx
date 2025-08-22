@@ -6,8 +6,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { BlockResponseData } from "@/app/Repositories/Block/data";
 import { useNavigate } from "react-router-dom";
 import Alert from "app/Support/Alert";
+import { toast } from "react-toastify";
 
-interface ContentBlock {
+export interface ContentBlock {
   id: string;
   block: BlockResponseData;
   order: number;
@@ -28,7 +29,23 @@ const DocumentTemplateBuilder: React.FC<
     useState<ContentBlock | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
-  console.log(state);
+  // Initialize contentBlocks with existing content if in update mode
+  useEffect(() => {
+    if (
+      state.content &&
+      Array.isArray(state.content) &&
+      state.content.length > 0
+    ) {
+      // Safely map the existing content to ContentBlock format
+      const existingBlocks = state.content.map((item: any, index: number) => ({
+        id: item.id || crypto.randomUUID(),
+        block: item.block || item,
+        order: item.order || index + 1,
+      }));
+      setContentBlocks(existingBlocks);
+    }
+  }, [state.content]);
+
   const handleUpdateTemplate = useCallback(async () => {
     if (!repo) return;
 
@@ -37,10 +54,12 @@ const DocumentTemplateBuilder: React.FC<
         if (res.isConfirmed) {
           try {
             const response = await repo.update("documentCategories", state.id, {
-              blocks: contentBlocks,
+              ...state,
+              content: contentBlocks,
             });
 
             if (response.code === 200) {
+              toast.success("Template updated successfully");
               navigate(`/specifications/document-categories`);
             }
           } catch (error) {
@@ -103,7 +122,7 @@ const DocumentTemplateBuilder: React.FC<
       const newBlock: ContentBlock = {
         id: crypto.randomUUID(),
         block: draggedBlock,
-        order: contentBlocks.length,
+        order: contentBlocks.length + 1,
       };
       setContentBlocks((prev) => [...prev, newBlock]);
       setDraggedBlock(null);
@@ -121,10 +140,10 @@ const DocumentTemplateBuilder: React.FC<
         const newOrder = [...filtered];
         newOrder.splice(dropIndex, 0, draggedContentBlock);
 
-        // Update order numbers
+        // Update order numbers (starting from 1)
         return newOrder.map((block, index) => ({
           ...block,
-          order: index,
+          order: index + 1,
         }));
       });
       setDraggedContentBlock(null);
@@ -152,7 +171,7 @@ const DocumentTemplateBuilder: React.FC<
       const filtered = prev.filter((block) => block.id !== blockId);
       return filtered.map((block, index) => ({
         ...block,
-        order: index,
+        order: index + 1,
       }));
     });
   };

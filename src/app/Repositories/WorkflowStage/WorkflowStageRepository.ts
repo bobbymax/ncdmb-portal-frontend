@@ -14,6 +14,7 @@ import { workflowStageViews } from "./views";
 import { workflowStageColumns } from "./columns";
 import { workflowStageConfig } from "./config";
 import { formatOptions } from "app/Support/Helpers";
+import { DocumentActionResponseData } from "../DocumentAction/data";
 
 export default class WorkflowStageRepository extends BaseRepository {
   public fillables: Array<keyof WorkflowStageResponseData> =
@@ -36,7 +37,8 @@ export default class WorkflowStageRepository extends BaseRepository {
       stage_category: data.stage_category ?? null,
       can_appeal: data.can_appeal ?? 0,
       append_signature: data.append_signature ?? 0,
-      document_actions: [],
+      document_actions:
+        (data.actions as unknown as DocumentActionResponseData[]) ?? [],
       department: data.department ?? undefined,
       groups: formatOptions(data.groups, "id", "name") ?? [],
       recipients: formatOptions(data.recipients, "id", "name") ?? [],

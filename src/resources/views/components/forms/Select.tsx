@@ -35,7 +35,7 @@ const Select: React.FC<SelectInputProps> = ({
   ...attributes
 }) => {
   return (
-    <div className="storm-form-group flex column mb-3">
+    <div className="storm-form-group flex column mb-2">
       {label && (
         <label className="storm-form-label mb-2" htmlFor={name}>
           {label}:

@@ -54,4 +54,15 @@ export const documentCategoryViews: ViewsProps[] = [
     action: "Update Template",
     index_path: "/specifications/document-categories",
   },
+  {
+    title: "Document Category Configuration",
+    server_url: "documentCategories",
+    component: "DocumentCategoryConfiguration",
+    frontend_path: "/specifications/document-categories/:id/configuration",
+    type: "configuration",
+    tag: "",
+    mode: "update",
+    action: "Update Configuration",
+    index_path: "/specifications/document-categories",
+  },
 ];

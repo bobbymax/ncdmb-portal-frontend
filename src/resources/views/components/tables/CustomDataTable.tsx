@@ -34,7 +34,8 @@ export interface ButtonsProp {
     | "track"
     | "deactivate"
     | "builder"
-    | "configurator";
+    | "configurator"
+    | "configuration";
   variant: "success" | "info" | "warning" | "danger" | "dark";
   icon?: string;
   conditions: ConditionalArray[];
