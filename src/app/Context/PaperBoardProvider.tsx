@@ -4,15 +4,14 @@ import {
   PaperBoardContextType,
   PaperBoardState,
 } from "./PaperBoardContext";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 import { paperBoardReducer } from "./PaperBoardReducer";
 import { useAuth } from "./AuthContext";
 import { useParams } from "react-router-dom";
 import useDocumentGenerator from "../Hooks/useDocumentGenerator";
-import useWorkflowTransformer from "../Hooks/useWorkflowTransformer";
-import { ContentAreaProps } from "../Hooks/useBuilder";
+import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { SheetProps } from "@/resources/views/pages/DocumentTemplateContent";
 import { TemplateResponseData } from "../Repositories/Template/data";
-import { ConfigState } from "../Hooks/useTemplateHeader";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { BlockResponseData } from "../Repositories/Block/data";
 import { BaseResponse } from "../Repositories/BaseRepository";
@@ -20,6 +19,11 @@ import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect
 import { DocumentResponseData } from "../Repositories/Document/data";
 import { DocumentCategoryResponseData } from "../Repositories/DocumentCategory/data";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
+import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import {
+  CategoryWorkflowProps,
+  CategoryProgressTrackerProps,
+} from "../Repositories/DocumentCategory/data";
 
 export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -37,44 +41,9 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     contents: [],
     body: [],
     configState: {
-      from: {
-        key: "from",
-        state: {
-          process_type: "from",
-          stage: null,
-          group: null,
-          department: null,
-          staff: null,
-          is_approving: null,
-          permissions: "rw",
-        },
-      },
-      to: {
-        key: "to",
-        state: {
-          process_type: "to",
-          stage: null,
-          group: null,
-          department: null,
-          staff: null,
-          is_approving: null,
-          permissions: "rw",
-        },
-      },
-      through: {
-        key: "through",
-        state: {
-          process_type: "through",
-          stage: null,
-          group: null,
-          department: null,
-          staff: null,
-          is_approving: null,
-          permissions: "rw",
-        },
-      },
-      cc: { key: "cc", state: [] },
-      approvers: { key: "approvers", state: [] },
+      from: null,
+      to: null,
+      through: null,
     },
     blocks: [],
     activeBlockId: null,
@@ -87,7 +56,6 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     isGenerating: false,
     workflow: null,
     trackers: [],
-    processType: {} as ProcessTabsOption,
     uploads: [],
     fund: null,
     approval_memo: null,
@@ -103,23 +71,12 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     editedContents: urlEditedContents,
     category: urlCategory,
     template: urlTemplate,
+    blocks: urlBlocks,
+    workflow: urlWorkflow,
+    trackers: urlTrackers,
+    body: urlBody,
+    isBuilding: urlIsBuilding,
   } = useDocumentGenerator(params);
-
-  // Transform workflow data from configState
-  const workflowTransformerInput = useMemo(
-    () => ({
-      configState: state.configState,
-      category: state.category,
-    }),
-    [state.configState, state.category]
-  );
-
-  const {
-    workflow: transformedWorkflow,
-    trackers: transformedTrackers,
-    isValid: isWorkflowValid,
-    errors: workflowErrors,
-  } = useWorkflowTransformer(workflowTransformerInput);
 
   // Initialize state from URL params - use refs to prevent infinite loops
   const initializedRef = useRef({
@@ -127,64 +84,116 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     template: false,
     contents: false,
     configState: false,
+    blocks: false,
+    workflow: false,
+    trackers: false,
+    body: false,
+    isBuilding: false,
   });
 
   useEffect(() => {
+    if (
+      urlConfigState &&
+      Object.keys(urlConfigState).length > 0 &&
+      !initializedRef.current.configState &&
+      JSON.stringify(urlConfigState) !==
+        JSON.stringify({
+          from: null,
+          to: null,
+          through: null,
+        })
+    ) {
+      initializedRef.current.configState = true;
+      dispatch({ type: "SET_CONFIG_STATE", payload: urlConfigState });
+    }
+
     if (urlCategory && !state.category && !initializedRef.current.category) {
       initializedRef.current.category = true;
       dispatch({ type: "SET_CATEGORY", payload: urlCategory });
     }
+
     if (urlTemplate && !state.template && !initializedRef.current.template) {
       initializedRef.current.template = true;
       dispatch({ type: "SET_TEMPLATE", payload: urlTemplate });
     }
+
+    // Initialize blocks from category.blocks
+    if (
+      urlBlocks &&
+      urlBlocks.length > 0 &&
+      state.blocks.length === 0 &&
+      !initializedRef.current.blocks
+    ) {
+      initializedRef.current.blocks = true;
+      dispatch({ type: "SET_BLOCKS", payload: urlBlocks });
+    }
+
+    // Initialize workflow from category.workflow
+    if (urlWorkflow && !state.workflow && !initializedRef.current.workflow) {
+      initializedRef.current.workflow = true;
+      dispatch({
+        type: "SET_WORKFLOW",
+        payload: {
+          workflow: urlWorkflow,
+          trackers: urlTrackers || [],
+        },
+      });
+    }
+
+    // Initialize body from category.content
+    if (
+      urlBody &&
+      urlBody.length > 0 &&
+      state.body.length === 0 &&
+      !initializedRef.current.body
+    ) {
+      initializedRef.current.body = true;
+      dispatch({ type: "SET_BODY", payload: urlBody });
+    }
+
+    // Initialize isBuilding
+    if (urlIsBuilding && !initializedRef.current.isBuilding) {
+      initializedRef.current.isBuilding = true;
+      dispatch({ type: "SET_IS_BUILDING", payload: urlIsBuilding });
+    }
+
     if (
       urlEditedContents.length > 0 &&
       state.contents.length === 0 &&
       !initializedRef.current.contents
     ) {
       initializedRef.current.contents = true;
-      dispatch({ type: "REORDER_CONTENTS", payload: urlEditedContents });
-    }
-    if (
-      urlConfigState &&
-      Object.keys(urlConfigState).length > 0 &&
-      !initializedRef.current.configState
-    ) {
-      // Only update once to prevent infinite loops
-      initializedRef.current.configState = true;
-      dispatch({ type: "UPDATE_CONFIG_STATE", payload: urlConfigState });
+      // Convert ContentBlock[] to SheetProps[] if needed
+      const sheetProps: SheetProps[] = urlEditedContents.map(
+        (content, index) => ({
+          id: content.id || `content-${index}`,
+          order: index + 1,
+          text: content.content?.text || {},
+          table: content.content?.table || {},
+          list: content.content?.list || {},
+          header: content.content?.header || {},
+          event: content.content?.event || {},
+        })
+      );
+      dispatch({ type: "REORDER_CONTENTS", payload: sheetProps });
     }
   }, [
     urlCategory,
     urlTemplate,
     urlEditedContents,
     urlConfigState,
+    urlBlocks,
+    urlWorkflow,
+    urlTrackers,
+    urlBody,
+    urlIsBuilding,
     state.category,
     state.template,
     state.contents,
+    state.blocks,
+    state.workflow,
+    state.body,
   ]);
-
-  // Update workflow when configState changes - use refs to prevent infinite loops
-  const workflowInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (
-      transformedWorkflow &&
-      transformedTrackers &&
-      !workflowInitializedRef.current
-    ) {
-      // Only update once to prevent infinite loops
-      workflowInitializedRef.current = true;
-      dispatch({
-        type: "SET_WORKFLOW",
-        payload: {
-          workflow: transformedWorkflow,
-          trackers: transformedTrackers,
-        },
-      });
-    }
-  }, [transformedWorkflow, transformedTrackers]);
 
   const actions = useMemo(
     () => ({
@@ -194,31 +203,44 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       setTemplate: (template: TemplateResponseData | null) => {
         dispatch({ type: "SET_TEMPLATE", payload: template });
       },
-      addContent: (content: ContentAreaProps) => {
+      addContent: (content: SheetProps) => {
         dispatch({ type: "ADD_CONTENT", payload: content });
       },
-      updateContent: (content: ContentAreaProps) => {
+      updateContent: (content: SheetProps) => {
         dispatch({ type: "UPDATE_CONTENT", payload: content });
       },
       deleteContent: (blockId: string) => {
         dispatch({ type: "DELETE_CONTENT", payload: blockId });
       },
-      setBody: (body: ContentAreaProps[]) => {
+      setBody: (body: ContentBlock[]) => {
         dispatch({ type: "SET_BODY", payload: body });
       },
-      setConfigState: (configState: ConfigState) => {
+      setConfigState: (configState: ProcessFlowConfigProps | null) => {
         dispatch({ type: "SET_CONFIG_STATE", payload: configState });
       },
-      updateConfigState: (configState: ConfigState) => {
+      updateConfigState: (configState: ProcessFlowConfigProps | null) => {
         dispatch({ type: "UPDATE_CONFIG_STATE", payload: configState });
       },
       setWorkflow: (
         workflow: WorkflowResponseData,
         trackers: ProgressTrackerResponseData[]
       ) => {
+        // Convert to CategoryWorkflowProps and CategoryProgressTrackerProps
+        const categoryWorkflow: CategoryWorkflowProps = {
+          // Map the properties accordingly
+          ...workflow,
+        } as unknown as CategoryWorkflowProps;
+
+        const categoryTrackers: CategoryProgressTrackerProps[] = trackers.map(
+          (tracker) => ({
+            // Map the properties accordingly
+            ...tracker,
+          })
+        ) as unknown as CategoryProgressTrackerProps[];
+
         dispatch({
           type: "SET_WORKFLOW",
-          payload: { workflow, trackers },
+          payload: { workflow: categoryWorkflow, trackers: categoryTrackers },
         });
       },
       setBlocks: (blocks: BlockResponseData[]) => {
@@ -260,21 +282,11 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       setApprovalMemo: (approvalMemo: DocumentResponseData | null) => {
         dispatch({ type: "SET_APPROVAL_MEMO", payload: approvalMemo });
       },
-      reorderContents: (contents: ContentAreaProps[]) => {
-        dispatch({ type: "REORDER_CONTENTS", payload: contents });
-      },
       setIsLoading: (loading: boolean) => {
         dispatch({ type: "SET_IS_LOADING", payload: loading });
       },
     }),
-    [
-      dispatch,
-      state.category,
-      state.template,
-      state.contents,
-      isWorkflowValid,
-      workflowErrors,
-    ]
+    [dispatch]
   );
 
   const contextValue: PaperBoardContextType = useMemo(

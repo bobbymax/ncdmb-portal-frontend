@@ -6,6 +6,7 @@ import {
   ResourceHeader,
 } from "resources/templates/headers";
 import moment from "moment";
+import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 
 export type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 
@@ -26,7 +27,7 @@ export type ConfigState = {
 
 export interface HeaderProps {
   code?: string | null;
-  configState: ConfigState;
+  configState: ProcessFlowConfigProps | null;
   tagline?: string | null;
   title?: string | null;
   date?: string | null;
@@ -54,9 +55,9 @@ export const useTemplateHeader = (
         default:
           return (
             <InternalMemoHeader
-              to={configState.to.state}
-              from={configState.from.state}
-              through={configState.through.state}
+              to={configState?.to ?? null}
+              from={configState?.from ?? null}
+              through={configState?.through ?? null}
               ref={code ?? null}
               date={moment().format()}
               title={title ?? null}

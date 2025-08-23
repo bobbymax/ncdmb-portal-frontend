@@ -3,7 +3,6 @@ import { useReducer } from "react";
 import TemplateBoardContext, {
   TemplateBoardContextType,
   TemplateBoardState,
-  TemplateBoardAction,
 } from "./TemplateBoardContext";
 import { templateBoardReducer } from "./TemplateBoardReducer";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
@@ -103,7 +102,6 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
 
   // Initialize from URL params if available
   const {
-    configState: urlConfigState,
     editedContents: urlEditedContents,
     category: urlCategory,
     template: urlTemplate,
@@ -148,22 +146,29 @@ export const TemplateBoardProvider: React.FC<TemplateBoardProviderProps> = ({
       !initializedRef.current.contents
     ) {
       initializedRef.current.contents = true;
-      dispatch({ type: "REORDER_CONTENTS", payload: urlEditedContents });
-    }
-    if (
-      urlConfigState &&
-      Object.keys(urlConfigState).length > 0 &&
-      !initializedRef.current.configState
-    ) {
-      // Only update once to prevent infinite loops
-      initializedRef.current.configState = true;
-      dispatch({ type: "UPDATE_CONFIG_STATE", payload: urlConfigState });
+      // Convert ContentBlock[] to the expected type for REORDER_CONTENTS
+      const convertedContents = urlEditedContents.map((content, index) => ({
+        id: content.id || `content-${index}`,
+        activeId: content.id || `content-${index}`,
+        name: content.block?.title || `Content ${index + 1}`,
+        type: content.block?.data_type || "text",
+        isBeingEdited: false,
+        block_id: content.block?.id || index + 1,
+        isCollapsed: false,
+        order: index + 1,
+        content: {
+          title: content.block?.title || `Content ${index + 1}`,
+          tagline: "",
+        },
+        comments: content.comments || [],
+        source: content.block?.data_type || "text",
+      }));
+      dispatch({ type: "REORDER_CONTENTS", payload: convertedContents });
     }
   }, [
     urlCategory,
     urlTemplate,
     urlEditedContents,
-    urlConfigState,
     state.category,
     state.template,
     state.contents,

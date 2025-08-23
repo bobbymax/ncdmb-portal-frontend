@@ -7,11 +7,15 @@ import { BlockResponseData } from "@/app/Repositories/Block/data";
 import { useNavigate } from "react-router-dom";
 import Alert from "app/Support/Alert";
 import { toast } from "react-toastify";
+import { SheetProps } from "../pages/DocumentTemplateContent";
 
 export interface ContentBlock {
   id: string;
   block: BlockResponseData;
   order: number;
+  content?: SheetProps | null;
+  state?: Record<string, unknown>;
+  comments?: any[];
 }
 
 const DocumentTemplateBuilder: React.FC<

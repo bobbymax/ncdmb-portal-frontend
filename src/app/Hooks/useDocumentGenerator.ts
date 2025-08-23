@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import _ from "lodash";
-import { ContentAreaProps } from "./useBuilder";
-import { ConfigState } from "app/Hooks/useTemplateHeader";
+import { TemplateResponseData } from "../Repositories/Template/data";
 import {
-  TemplateProcessProps,
-  TemplateResponseData,
-} from "../Repositories/Template/data";
-import { DocumentCategoryResponseData } from "../Repositories/DocumentCategory/data";
+  CategoryProgressTrackerProps,
+  DocumentCategoryResponseData,
+} from "../Repositories/DocumentCategory/data";
 import { repo } from "bootstrap/repositories";
+import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { BlockResponseData } from "../Repositories/Block/data";
 
 const useDocumentGenerator = (params: unknown) => {
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
@@ -15,22 +16,26 @@ const useDocumentGenerator = (params: unknown) => {
     null
   );
   const [template, setTemplate] = useState<TemplateResponseData | null>(null);
-  const [configState, setConfigState] = useState<ConfigState>({
-    from: { key: "from", state: {} as TemplateProcessProps },
-    to: { key: "to", state: {} as TemplateProcessProps },
-    through: { key: "through", state: {} as TemplateProcessProps },
-    cc: { key: "cc", state: [] },
-    approvers: { key: "approvers", state: [] },
+  const [configState, setConfigState] = useState<ProcessFlowConfigProps>({
+    from: null,
+    to: null,
+    through: null,
   });
 
-  const contents: ContentAreaProps[] = useMemo(
-    () => template?.body ?? [],
-    [template]
+  const [trackers, setTrackers] = useState<CategoryProgressTrackerProps[]>([]);
+  const [blocks, setBlocks] = useState<BlockResponseData[]>([]);
+  const [workflow, setWorkflow] = useState<any>(null);
+  const [body, setBody] = useState<ContentBlock[]>([]);
+  const [isBuilding, setIsBuilding] = useState<boolean>(true);
+
+  const contents: ContentBlock[] = useMemo(
+    () => category?.content ?? [],
+    [category]
   );
 
-  const [editedContents, setEditedContents] = useState<ContentAreaProps[]>([]);
+  const [editedContents, setEditedContents] = useState<ContentBlock[]>([]);
 
-  const updateEditedContents = (updatedContent: ContentAreaProps) => {
+  const updateEditedContents = (updatedContent: ContentBlock) => {
     setEditedContents((prev) => {
       return prev.map((block) => {
         if (block.id === updatedContent.id) {
@@ -41,14 +46,14 @@ const useDocumentGenerator = (params: unknown) => {
     });
   };
 
-  const updateEditedContentsOrder = (reorderedContents: ContentAreaProps[]) => {
+  const updateEditedContentsOrder = (reorderedContents: ContentBlock[]) => {
     setEditedContents(reorderedContents);
   };
 
   const removeEditedContent = (blockId: string) => {
     setEditedContents((prev) => {
       const filteredContents = prev.filter((content) => content.id !== blockId);
-      // Update the order of remaining contents
+
       return filteredContents.map((content, index) => ({
         ...content,
         order: index + 1,
@@ -65,8 +70,48 @@ const useDocumentGenerator = (params: unknown) => {
 
         if (response && _.has(response, "data")) {
           const category = response.data as DocumentCategoryResponseData;
+
+          if (category.template) {
+            setTemplate(category.template);
+          }
+
+          if (category.config) {
+            setConfigState(category.config as ProcessFlowConfigProps);
+          }
+
+          // Initialize blocks from category.blocks
+          if (category.blocks && Array.isArray(category.blocks)) {
+            setBlocks(category.blocks);
+          }
+
+          // Initialize workflow from category.workflow
+          if (category.workflow) {
+            setWorkflow(category.workflow);
+          }
+
+          // Initialize trackers from category.workflow?.trackers
+          if (
+            category.workflow?.trackers &&
+            Array.isArray(category.workflow.trackers)
+          ) {
+            setTrackers(category.workflow.trackers);
+          }
+
+          // Initialize body from category.content
+          if (category.content && Array.isArray(category.content)) {
+            setBody(category.content);
+          }
+
+          if (category.content) {
+            setEditedContents((prev) => {
+              if (prev.length > 0) {
+                return prev;
+              }
+              return category.content ?? [];
+            });
+          }
+
           setCategory(category);
-          setTemplate(category.template ?? null);
         }
       };
 
@@ -74,58 +119,24 @@ const useDocumentGenerator = (params: unknown) => {
     }
   }, [params]);
 
-  useEffect(() => {
-    if (template) {
-      // Only initialize configState from template if it hasn't been set yet
-      setConfigState((prev) => {
-        // Check if configState has already been initialized with template data
-        const hasTemplateData =
-          prev.from?.state?.stage?.value ||
-          prev.to?.state?.stage?.value ||
-          prev.through?.state?.stage?.value ||
-          (prev.cc?.state &&
-            Array.isArray(prev.cc.state) &&
-            prev.cc.state.length > 0) ||
-          (prev.approvers?.state &&
-            Array.isArray(prev.approvers.state) &&
-            prev.approvers.state.length > 0);
-
-        if (hasTemplateData) {
-          // Already initialized, don't overwrite user changes
-          return prev;
-        }
-
-        // First time loading template, initialize with template config
-        return {
-          ...prev,
-          ...template.config?.process,
-        };
-      });
-
-      // Only initialize editedContents if it hasn't been set yet
-      setEditedContents((prev) => {
-        // Check if editedContents has already been initialized
-        if (prev.length > 0) {
-          // Already initialized, don't overwrite user changes
-          return prev;
-        }
-
-        // First time loading template, initialize with template contents
-        return template.body ?? [];
-      });
-    }
-  }, [template]);
-
   return {
     category,
     template,
     configState,
+    trackers,
+    setTrackers,
     setConfigState,
     contents,
     editedContents,
     updateEditedContents,
     updateEditedContentsOrder,
     removeEditedContent,
+    // New state properties
+    blocks,
+    workflow,
+    body,
+    isBuilding,
+    setIsBuilding,
   };
 };
 

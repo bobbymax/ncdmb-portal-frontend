@@ -11,6 +11,7 @@ import TemplateBuilderView from "resources/views/crud/templates/builders/Templat
 import { toTitleCase } from "bootstrap/repositories";
 import moment from "moment";
 import Button from "resources/views/components/forms/Button";
+import { ProcessFlowConfigProps } from "../crud/DocumentWorkflow";
 
 interface TemplateBuilderProps {
   Repository: BaseRepository;
@@ -229,12 +230,12 @@ const TemplateBuilder: React.FC<TemplateBuilderProps> = ({
 
         {/* Template Header */}
         <div className="paper__header">
-          {getTemplateHeader({
-            configState: state.configState,
+          {/* {getTemplateHeader({
+            configState: state.configState as ProcessFlowConfigProps,
             title: state.documentState.title || "Document Title",
             date: moment().format(),
             ref: null,
-          })}
+          })} */}
         </div>
 
         {/* Template Body */}

@@ -4,7 +4,9 @@ import { BlockDataType, BlockResponseData } from "app/Repositories/Block/data";
 import { TemplateProcessProps } from "app/Repositories/Template/data";
 import _ from "lodash";
 import defaultIcon from "../assets/images/apps/template.png";
-import { ConfigState, ProcessType } from "app/Hooks/useTemplateHeader";
+import { ProcessType } from "app/Hooks/useTemplateHeader";
+import { ProcessFlowConfigProps } from "../views/crud/DocumentWorkflow";
+import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
 
 export const ResourceHeader = ({
   code,
@@ -16,7 +18,7 @@ export const ResourceHeader = ({
   icon,
 }: {
   code?: string | null;
-  configState: ConfigState;
+  configState: ProcessFlowConfigProps | null;
   tagline?: string | null;
   title?: string | null;
   date?: string | null;
@@ -73,13 +75,13 @@ export const InternalMemoHeader = ({
   modify,
   isDisplay = false,
 }: {
-  to: TemplateProcessProps | null;
-  from: TemplateProcessProps | null;
-  through?: TemplateProcessProps | null;
+  to: CategoryProgressTrackerProps | null;
+  from: CategoryProgressTrackerProps | null;
+  through?: CategoryProgressTrackerProps | null;
   ref: string | null;
   date: string | null;
   title: string | null;
-  modify?: (data: TemplateProcessProps, key: ProcessType) => void;
+  modify?: (data: CategoryProgressTrackerProps, key: ProcessType) => void;
   isDisplay?: boolean;
 }) => {
   return (
@@ -96,8 +98,8 @@ export const InternalMemoHeader = ({
                 <div className="flex align gap-md">
                   <span>TO:</span>
                   <span style={{ textTransform: "uppercase" }}>
-                    {`${to?.stage?.label ?? ""}${
-                      !isDisplay ? `, ${to?.department?.label ?? ""}` : ""
+                    {`${to?.workflow_stage_id ?? ""}${
+                      !isDisplay ? `, ${to?.department_id ?? ""}` : ""
                     }`}
                   </span>
                 </div>
@@ -109,8 +111,8 @@ export const InternalMemoHeader = ({
                   <div className="flex align gap-md">
                     <span>THROUGH:</span>
                     <span style={{ textTransform: "uppercase" }}>
-                      {`${through?.stage?.label ?? ""}${
-                        isDisplay ? `, ${through?.department?.label ?? ""}` : ""
+                      {`${through?.workflow_stage_id ?? ""}${
+                        isDisplay ? `, ${through?.department_id ?? ""}` : ""
                       }`}
                     </span>
                   </div>
@@ -122,8 +124,8 @@ export const InternalMemoHeader = ({
                 <div className="flex align gap-md">
                   <span>FROM:</span>
                   <span style={{ textTransform: "uppercase" }}>
-                    {`${from?.stage?.label ?? ""}${
-                      !isDisplay ? `, ${from?.department?.label ?? ""}` : ""
+                    {`${from?.workflow_stage_id ?? ""}${
+                      !isDisplay ? `, ${from?.department_id ?? ""}` : ""
                     }`}
                   </span>
                 </div>

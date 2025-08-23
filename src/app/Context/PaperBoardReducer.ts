@@ -1,10 +1,17 @@
-import { ContentAreaProps } from "../Hooks/useBuilder";
+import { SheetProps } from "@/resources/views/pages/DocumentTemplateContent";
+import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { PaperBoardAction, PaperBoardState } from "./PaperBoardContext";
 
 // Helper function to sync body with contents
-const syncBodyWithContents = (
-  contents: ContentAreaProps[]
-): ContentAreaProps[] => {
+const syncBodyWithContents = (contents: SheetProps[]): SheetProps[] => {
+  return contents.map((content, index) => ({
+    ...content,
+    order: index + 1, // Ensure order is always sequential
+  }));
+};
+
+// Helper function to sync body with ContentBlock
+const syncBodyWithContentBlock = (contents: ContentBlock[]): ContentBlock[] => {
   return contents.map((content, index) => ({
     ...content,
     order: index + 1, // Ensure order is always sequential
@@ -66,7 +73,7 @@ export const paperBoardReducer = (
     case "SET_BODY":
       return {
         ...state,
-        body: syncBodyWithContents(action.payload),
+        body: syncBodyWithContentBlock(action.payload),
       };
     case "SET_CONFIG_STATE":
       return {
@@ -136,13 +143,21 @@ export const paperBoardReducer = (
         ...state,
         uploads: action.payload.map((upload) => upload.file),
       };
-    case "REMOVE_UPLOAD":
+    case "REMOVE_UPLOAD": {
+      const filteredUploads = (state.uploads as (File | string)[]).filter(
+        (upload) => {
+          if (typeof upload === "string") {
+            return upload !== action.payload;
+          }
+          return upload.name !== action.payload;
+        }
+      );
+
       return {
         ...state,
-        uploads: state.uploads.filter(
-          (upload) => upload.name !== action.payload
-        ),
+        uploads: filteredUploads as typeof state.uploads,
       };
+    }
     case "SET_FUND":
       return {
         ...state,

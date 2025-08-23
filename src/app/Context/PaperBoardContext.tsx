@@ -1,22 +1,47 @@
 import { createContext, useContext, useState } from "react";
-import { DocumentCategoryResponseData } from "../Repositories/DocumentCategory/data";
+import {
+  CategoryProgressTrackerProps,
+  CategoryWorkflowProps,
+  DocumentCategoryResponseData,
+} from "../Repositories/DocumentCategory/data";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect";
 import { ContentAreaProps } from "../Hooks/useBuilder";
-import { ConfigState } from "../Hooks/useTemplateHeader";
 import { BlockResponseData } from "../Repositories/Block/data";
-import {
-  DocumentResponseData,
-  UploadResponseData,
-} from "../Repositories/Document/data";
+import { DocumentResponseData } from "../Repositories/Document/data";
 import { BaseResponse } from "../Repositories/BaseRepository";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { ProcessTabsOption } from "@/resources/views/crud/ContentBuilder";
+import { SheetProps } from "@/resources/views/pages/DocumentTemplateContent";
+import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import { DocumentMetaDataProps } from "../Repositories/DocumentCategory/data";
 
-export type ContextType = "builder" | "generator" | "viewer";
+export type ContextType = "builder" | "generator" | "desk";
 
 export interface PaperBoardState {
+  /**
+   * @var category - The category of the document
+   * @var template - The template of the document
+   * @var document_owner - The owner of the document
+   * @var department_owner - The department of the document
+   * @var contents - The contents of the document from the template builder
+   * @var body - The body of the document from template in the database
+   * @var configState - The config state of the document from the category configuration
+   * @var blocks - The blocks of the document from the template builder
+   * @var activeBlockId - The active block id of the document
+   * @var isBuilding - Whether the document is being built
+   * @var documentState - The state of the document
+   * @var resource - The resource of the document
+   * @var isGenerating - Whether the document is being generated
+   * @var workflow - The workflow of the document
+   * @var trackers - The trackers of the document
+   * @var uploads - The uploads of the document
+   * @var fund - The fund of the document
+   * @var approval_memo - The approval memo of the document
+   */
+
   isLoading: boolean;
   hasError: boolean;
   errorMessage: string | null;
@@ -30,9 +55,9 @@ export interface PaperBoardState {
   department_owner: DataOptionsProps | null;
 
   // Template Building Data
-  contents: ContentAreaProps[];
-  body: ContentAreaProps[]; // Contents from database
-  configState: ConfigState;
+  contents: SheetProps[]; // Contents from template builder
+  body: ContentBlock[]; // Contents from database
+  configState: ProcessFlowConfigProps | null;
 
   // ContentBuilder Specific State
   blocks: BlockResponseData[];
@@ -48,11 +73,10 @@ export interface PaperBoardState {
   isGenerating: boolean;
 
   //Workflow Data
-  workflow: WorkflowResponseData | null;
-  trackers: ProgressTrackerResponseData[];
-  processType: ProcessTabsOption;
+  workflow: CategoryWorkflowProps | null;
+  trackers: CategoryProgressTrackerProps[];
 
-  uploads: File[];
+  uploads: File[] | string[];
   fund: DataOptionsProps | null;
   approval_memo: DocumentResponseData | null;
 }
@@ -85,15 +109,15 @@ export type PaperBoardAction =
     }
   | {
       type: "SET_CONTENTS";
-      payload: ContentAreaProps[];
+      payload: SheetProps[];
     }
   | {
       type: "ADD_CONTENT";
-      payload: ContentAreaProps;
+      payload: SheetProps;
     }
   | {
       type: "UPDATE_CONTENT";
-      payload: ContentAreaProps;
+      payload: SheetProps;
     }
   | {
       type: "DELETE_CONTENT";
@@ -101,15 +125,15 @@ export type PaperBoardAction =
     }
   | {
       type: "SET_BODY";
-      payload: ContentAreaProps[];
+      payload: ContentBlock[];
     }
   | {
       type: "SET_CONFIG_STATE";
-      payload: ConfigState;
+      payload: ProcessFlowConfigProps | null;
     }
   | {
       type: "UPDATE_CONFIG_STATE";
-      payload: ConfigState;
+      payload: ProcessFlowConfigProps | null;
     }
   | {
       type: "SET_BLOCKS";
@@ -163,12 +187,12 @@ export type PaperBoardAction =
       type: "SET_APPROVAL_MEMO";
       payload: DocumentResponseData | null;
     }
-  | { type: "REORDER_CONTENTS"; payload: ContentAreaProps[] }
+  | { type: "REORDER_CONTENTS"; payload: SheetProps[] }
   | {
       type: "SET_WORKFLOW";
       payload: {
-        workflow: WorkflowResponseData;
-        trackers: ProgressTrackerResponseData[];
+        workflow: CategoryWorkflowProps;
+        trackers: CategoryProgressTrackerProps[];
       };
     }
   | {
@@ -181,12 +205,12 @@ export interface PaperBoardContextType {
   actions: {
     setCategory: (category: DocumentCategoryResponseData | null) => void;
     setTemplate: (template: TemplateResponseData | null) => void;
-    addContent: (content: ContentAreaProps) => void;
-    updateContent: (content: ContentAreaProps) => void;
+    addContent: (content: SheetProps) => void;
+    updateContent: (content: SheetProps) => void;
     deleteContent: (blockId: string) => void;
-    setBody: (body: ContentAreaProps[]) => void;
-    setConfigState: (configState: ConfigState) => void;
-    updateConfigState: (configState: ConfigState) => void;
+    setBody: (body: ContentBlock[]) => void;
+    setConfigState: (configState: ProcessFlowConfigProps | null) => void;
+    updateConfigState: (configState: ProcessFlowConfigProps | null) => void;
     setWorkflow: (
       workflow: WorkflowResponseData,
       trackers: ProgressTrackerResponseData[]

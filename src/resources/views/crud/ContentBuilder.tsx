@@ -36,6 +36,7 @@ import {
 import TemplateBoardErrorBoundary from "app/Context/TemplateBoardErrorBoundary";
 import { TemplateBoardProvider } from "app/Context/TemplateBoardProvider";
 import { useTemplateBoard } from "app/Context/TemplateBoardContext";
+import { ProcessFlowConfigProps } from "./DocumentWorkflow";
 
 export type ProcessType = "from" | "to" | "through" | "cc" | "approvers";
 export type ProcessTypeDependencies = {
@@ -194,9 +195,9 @@ const ContentBuilder: React.FC<
               <div className="col-md-12 mb-3">
                 {/* Page Component */}
                 <div className="template__page">
-                  {getTemplateHeader({
-                    configState: memoizedConfigState,
-                  })}
+                  {/* {getTemplateHeader({
+                    configState: memoizedConfigState as ProcessFlowConfigProps,
+                  })} */}
                   {/* Block Content Area */}
                   {/* The Template should be here!!! */}
                   <div className="block__placeholders">
