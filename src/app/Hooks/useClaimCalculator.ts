@@ -12,12 +12,12 @@ import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 import { ExpenseResponseData } from "app/Repositories/Expense/data";
 import moment from "moment";
 
-type DependencyProps = {
+export type DependencyProps = {
   allowances: AllowanceResponseData[];
   cities: CityResponseData[];
 };
 
-type DistanceMatrixProps = {
+export type DistanceMatrixProps = {
   rows: {
     elements: {
       distance: {
@@ -59,6 +59,13 @@ const useClaimCalculator = () => {
   const [allowances, setAllowances] = useState<AllowanceResponseData[]>([]);
   const [cities, setCities] = useState<CityResponseData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const getNumOfDays = (startDate: string, endDate: string) => {
+    const start = moment(startDate);
+    const end = moment(endDate);
+
+    return end.diff(start, "days") + 1;
+  };
 
   const filterAllowancesByComponent = (
     allowances: AllowanceResponseData[],
@@ -509,6 +516,8 @@ const useClaimCalculator = () => {
     cities,
     allowances,
     countWeekdays,
+    getNumOfDays,
+    formDescription,
   };
 };
 

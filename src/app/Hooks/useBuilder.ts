@@ -162,6 +162,8 @@ export type OptionsContentAreaProps = {
   invoice?: InvoiceContentAreaProps | undefined;
   expense?: ExpenseContentProps | undefined;
   paper_title?: TitleContentProps | undefined;
+  requisition?: unknown;
+  signature?: unknown;
 };
 
 export interface ContentAreaProps {

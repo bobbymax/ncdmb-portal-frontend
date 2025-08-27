@@ -4,4 +4,5 @@ export const documentCategoryRules: { [key: string]: string } = {
   document_type_id: "required|integer",
   type: "required|string",
   service: "required|string",
+  signature_type: "required|string",
 };

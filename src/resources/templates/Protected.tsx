@@ -20,6 +20,7 @@ const Protected = ({ children }: ProtectedProps) => {
   const { staff, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const logoutUser = () => {
     logout();
@@ -40,6 +41,15 @@ const Protected = ({ children }: ProtectedProps) => {
     const sidebar = document.getElementById("sidebar-wrapper");
     if (sidebar) {
       sidebar.classList.remove("sidebar-open");
+    }
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+    const sidebar = document.getElementById("sidebar-wrapper");
+
+    if (sidebar) {
+      sidebar.classList.toggle("sidebar-collapsed");
     }
   };
 
@@ -92,6 +102,25 @@ const Protected = ({ children }: ProtectedProps) => {
             >
               <i className="ri-menu-line" />
             </button>
+
+            {/* Sidebar Toggle Button */}
+            <button
+              className="sidebar-toggle-btn"
+              onClick={toggleSidebar}
+              aria-label={
+                isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <i
+                className={
+                  isSidebarCollapsed
+                    ? "ri-menu-unfold-line"
+                    : "ri-menu-fold-line"
+                }
+              />
+            </button>
+
             <div className="search-container">
               <div className="search-input-wrapper">
                 <i className="ri-search-line" />

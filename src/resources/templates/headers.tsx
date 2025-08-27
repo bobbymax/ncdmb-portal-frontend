@@ -1,12 +1,12 @@
 import moment from "moment";
 import logo from "../assets/images/logo.png";
-import { BlockDataType, BlockResponseData } from "app/Repositories/Block/data";
-import { TemplateProcessProps } from "app/Repositories/Template/data";
+import { BlockResponseData } from "app/Repositories/Block/data";
 import _ from "lodash";
 import defaultIcon from "../assets/images/apps/template.png";
 import { ProcessType } from "app/Hooks/useTemplateHeader";
 import { ProcessFlowConfigProps } from "../views/crud/DocumentWorkflow";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
+import { DeskComponentPropTypes } from "../views/pages/DocumentTemplateContent";
 
 export const ResourceHeader = ({
   code,
@@ -173,7 +173,7 @@ export const BlockBuilderCard = ({
   addToSheet,
 }: {
   raw: BlockResponseData;
-  addToSheet: (data: BlockResponseData, type: BlockDataType) => void;
+  addToSheet: (data: BlockResponseData, type: DeskComponentPropTypes) => void;
 }) => {
   return (
     <div

@@ -19,7 +19,6 @@ import React, {
 } from "react";
 import { ProcessedDataProps } from "./FileProcessorProvider";
 import { BlockDataType } from "app/Repositories/Block/data";
-import { BlockDataTypeMap } from "resources/views/crud/templates/blocks";
 import { toast } from "react-toastify";
 import DocumentCategoryRepository from "../Repositories/DocumentCategory/DocumentCategoryRepository";
 import {
@@ -31,6 +30,10 @@ import {
   ProcessFlowType,
   WorkflowDependencyProps,
 } from "@/resources/views/crud/DocumentWorkflow";
+import {
+  DeskComponentPropTypes,
+  SheetProps,
+} from "@/resources/views/pages/DocumentTemplateContent";
 
 type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers
@@ -65,17 +68,14 @@ export interface WorkflowModalProps<K extends ProcessFlowType> {
   extras?: unknown;
 }
 
-export interface BlockModalProps<P extends BlockDataType> {
+export interface DeskComponentModalProps<P extends DeskComponentPropTypes> {
   title: string;
   type: P;
-  blockState: BlockDataTypeMap[P];
+  blockState: SheetProps[P];
   data?: unknown;
   isUpdating: boolean;
-  addBlockComponent: (props: unknown, mode?: "store" | "update") => void;
-  dependencies?: {
-    partials: any[];
-    extras: unknown;
-  };
+  resolve: (props: unknown, mode?: "store" | "update") => void;
+  dependencies?: unknown;
 }
 
 export interface ModalValueProps<T = JsonResponse> {
@@ -117,9 +117,9 @@ interface ModalContextType {
     props: ModalLoopProps<any, any>,
     initialData?: BaseResponse
   ) => void;
-  openBlock: <P extends BlockDataType>(
-    BlockComponent: React.ComponentType<BlockModalProps<P>>,
-    props: BlockModalProps<P>,
+  openDeskComponent: <P extends DeskComponentPropTypes>(
+    Component: React.ComponentType<DeskComponentModalProps<P>>,
+    props: DeskComponentModalProps<P>,
     type: P,
     initialState?: unknown
   ) => void;
@@ -216,14 +216,14 @@ export const ModalProvider: React.FC<{
     }));
   };
 
-  const openBlock = <P extends BlockDataType>(
-    BlockComponent: React.ComponentType<BlockModalProps<P>>,
-    props: BlockModalProps<P>,
+  const openDeskComponent = <P extends DeskComponentPropTypes>(
+    DeskComponent: React.ComponentType<DeskComponentModalProps<P>>,
+    props: DeskComponentModalProps<P>,
     type: P,
     initialState?: unknown
   ) => {
+    setContent(<DeskComponent {...props} />);
     setCurrentIdentifier(type);
-    setContent(<BlockComponent {...props} />);
     setIsOpen(true);
     setTitle(props.title);
     setModalState((prevState) => ({
@@ -311,7 +311,7 @@ export const ModalProvider: React.FC<{
         openModal,
         openWorkflow,
         openLoop,
-        openBlock,
+        openDeskComponent,
         closeModal,
         handleInputChange,
         updateModalState,

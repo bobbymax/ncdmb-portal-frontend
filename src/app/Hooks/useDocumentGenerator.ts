@@ -4,13 +4,20 @@ import { TemplateResponseData } from "../Repositories/Template/data";
 import {
   CategoryProgressTrackerProps,
   DocumentCategoryResponseData,
+  DocumentMetaDataProps,
 } from "../Repositories/DocumentCategory/data";
 import { repo } from "bootstrap/repositories";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { BlockResponseData } from "../Repositories/Block/data";
+import {
+  DocumentRequirementProps,
+  ResourceProps,
+} from "../Context/PaperBoardContext";
+import { useAuth } from "../Context/AuthContext";
 
 const useDocumentGenerator = (params: unknown) => {
+  const { staff } = useAuth();
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
   const [category, setCategory] = useState<DocumentCategoryResponseData | null>(
     null
@@ -21,12 +28,17 @@ const useDocumentGenerator = (params: unknown) => {
     to: null,
     through: null,
   });
+  const [metaData, setMetaData] = useState<DocumentMetaDataProps | null>(null);
+  const [requirements, setRequirements] = useState<DocumentRequirementProps[]>(
+    []
+  );
 
   const [trackers, setTrackers] = useState<CategoryProgressTrackerProps[]>([]);
   const [blocks, setBlocks] = useState<BlockResponseData[]>([]);
   const [workflow, setWorkflow] = useState<any>(null);
   const [body, setBody] = useState<ContentBlock[]>([]);
   const [isBuilding, setIsBuilding] = useState<boolean>(true);
+  const [resources, setResources] = useState<ResourceProps | null>(null);
 
   const contents: ContentBlock[] = useMemo(
     () => category?.content ?? [],
@@ -60,6 +72,19 @@ const useDocumentGenerator = (params: unknown) => {
       }));
     });
   };
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      const response = await categoryRepo.dependencies();
+
+      if (response) {
+        const resources = response as unknown as ResourceProps;
+        setResources(resources);
+      }
+    };
+
+    fetchResources();
+  }, []);
 
   useEffect(() => {
     if (params && _.has(params, "id")) {
@@ -111,6 +136,20 @@ const useDocumentGenerator = (params: unknown) => {
             });
           }
 
+          if (category.meta_data) {
+            setMetaData(category.meta_data);
+          }
+
+          if (category.requirements) {
+            setRequirements(
+              category.requirements.map((requirement) => ({
+                ...requirement,
+                is_required: requirement.priority === "high",
+                is_present: false,
+              }))
+            );
+          }
+
           setCategory(category);
         }
       };
@@ -137,6 +176,10 @@ const useDocumentGenerator = (params: unknown) => {
     body,
     isBuilding,
     setIsBuilding,
+    metaData,
+    resources,
+    loggedInUser: staff,
+    requirements,
   };
 };
 

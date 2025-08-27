@@ -154,6 +154,44 @@ const DocumentCategory: React.FC<
           defaultCheckDisabled
         />
       </div>
+      <div className="col-md-6 mb-3">
+        <Select
+          label="Signature Type"
+          name="signature_type"
+          value={state.signature_type}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "none", label: "None" },
+            { value: "flex", label: "Flex" },
+            { value: "boxed", label: "Boxed" },
+            { value: "flush", label: "Flush" },
+            { value: "stacked", label: "Stacked" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="lg"
+        />
+      </div>
+      <div className="col-md-6 mb-3">
+        <Select
+          label="With Date"
+          name="with_date"
+          value={state.with_date}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: 0, label: "No" },
+            { value: 1, label: "Yes" },
+          ]}
+          defaultValue={999}
+          defaultCheckDisabled
+        />
+      </div>
 
       <div className="col-md-4 mb-3">
         <Select

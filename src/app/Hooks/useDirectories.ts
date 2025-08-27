@@ -7,6 +7,7 @@ import { WorkflowStageResponseData } from "app/Repositories/WorkflowStage/data";
 import React, { useCallback, useEffect, useState } from "react";
 import { ProjectResponseData } from "../Repositories/Project/data";
 import { FundResponseData } from "../Repositories/Fund/data";
+import { ClaimResponseData } from "../Repositories/Claim/data";
 
 type HasId = { id: string | number };
 export interface AccessibleResourceMap {
@@ -17,6 +18,7 @@ export interface AccessibleResourceMap {
   workflowStages: WorkflowStageResponseData & HasId;
   projects: ProjectResponseData & HasId;
   funds: FundResponseData & HasId;
+  claims: ClaimResponseData & HasId;
 }
 
 const useDirectories = <

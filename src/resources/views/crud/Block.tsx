@@ -60,6 +60,7 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "bullet", label: "Bullet List" },
             { value: "approval", label: "Approvals" },
             { value: "expense", label: "Expense" },
+            { value: "signature", label: "Signature" },
             { value: "paper_title", label: "Paper Title" },
           ]}
         />

@@ -3,7 +3,6 @@ import { CarderResponseData } from "@/app/Repositories/Carder/data";
 import { DepartmentResponseData } from "@/app/Repositories/Department/data";
 import {
   CategoryProgressTrackerProps,
-  CategoryWorkflowProps,
   DocumentCategoryResponseData,
 } from "@/app/Repositories/DocumentCategory/data";
 import { GroupResponseData } from "@/app/Repositories/Group/data";
@@ -13,8 +12,6 @@ import { FormPageComponentProps } from "@/bootstrap";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import Button from "resources/views/components/forms/Button";
 import FlowConfigModal from "./modals/FlowConfigModal";
-import DocumentCategoryRepository from "app/Repositories/DocumentCategory/DocumentCategoryRepository";
-import { generateUUID } from "../components/forms/ProcessTabArrayBase";
 
 const processFlowTypes = ["from", "through", "to"] as const;
 export type ProcessFlowType = (typeof processFlowTypes)[number];
@@ -128,7 +125,17 @@ const DocumentWorkflow: React.FC<
       ...prev,
       [type]: {
         ...config,
-        identifier: mode === "store" ? generateUUID() : config?.identifier,
+        identifier:
+          mode === "store"
+            ? "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+                /[xy]/g,
+                function (c) {
+                  const r = (Math.random() * 16) | 0;
+                  const v = c === "x" ? r : (r & 0x3) | 0x8;
+                  return v.toString(16);
+                }
+              )
+            : config?.identifier,
       },
     }));
     closeModal();

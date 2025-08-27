@@ -20,7 +20,6 @@ import ViewResourcePage from "resources/views/pages/ViewResourcePage";
 import FileDocket from "resources/views/pages/FileDocket";
 import Builder from "resources/views/pages/Builder";
 import PageLoader from "resources/views/components/loaders/PageLoader";
-import DocumentGenerator from "resources/views/pages/DocumentGenerator";
 import { TemplateResponseData } from "@/app/Repositories/Template/data";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";

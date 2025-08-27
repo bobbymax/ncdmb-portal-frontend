@@ -8,6 +8,8 @@ import { SignatoryType } from "../Signatory/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessActivitiesProps } from "@/resources/views/crud/DocumentCategoryConfiguration";
+import { CommentProps } from "@/resources/views/components/DocumentGeneratorTab/CommentsGeneratorTab";
+import { SettingsProps } from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 
 export type CategoryProgressTrackerProps = {
   identifier: string;
@@ -45,6 +47,8 @@ export type DocumentMetaDataProps = {
   recipients: DataOptionsProps[];
   actions: DataOptionsProps[];
   activities: ProcessActivitiesProps[];
+  comments: CommentProps[];
+  settings: SettingsProps;
 };
 
 export interface DocumentCategoryResponseData extends BaseResponse {
@@ -59,6 +63,8 @@ export interface DocumentCategoryResponseData extends BaseResponse {
   document_type?: string;
   blocks?: BlockResponseData[];
   description: string;
+  signature_type: "none" | "flex" | "boxed" | "flush" | "stacked";
+  with_date: 0 | 1;
   requirements: DocumentRequirementResponseData[];
   selectedRequirements: DataOptionsProps[];
   config?: ProcessFlowConfigProps | null;

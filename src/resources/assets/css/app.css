@@ -11,6 +11,7 @@
 @import "modal.css";
 @import "workflow-preview.css";
 @import "app/Plugins/editor/styles.css";
+/* @import "global.css"; */
 
 :root {
   --color-primary: #004d40;
@@ -616,104 +617,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   position: relative;
   overflow: hidden;
   padding: 2rem;
-}
-
-/* Workspace Background Vectors */
-#login-wrapper::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Vector Elements */
-#login-wrapper::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    /* Desk */ linear-gradient(
-      45deg,
-      transparent 40%,
-      rgba(100, 116, 139, 0.08) 40%,
-      rgba(100, 116, 139, 0.08) 60%,
-      transparent 60%
-    ),
-    /* Monitor */
-      radial-gradient(
-        circle at 85% 15%,
-        rgba(100, 116, 139, 0.06) 0%,
-        transparent 50%
-      ),
-    /* Keyboard */
-      linear-gradient(
-        90deg,
-        transparent 20%,
-        rgba(100, 116, 139, 0.05) 20%,
-        rgba(100, 116, 139, 0.05) 80%,
-        transparent 80%
-      ),
-    /* Mouse */
-      radial-gradient(
-        circle at 35% 80%,
-        rgba(100, 116, 139, 0.04) 0%,
-        transparent 30%
-      ),
-    /* Plant */
-      radial-gradient(
-        ellipse at 10% 25%,
-        rgba(100, 116, 139, 0.03) 0%,
-        transparent 40%
-      ),
-    /* Lamp */
-      linear-gradient(
-        180deg,
-        transparent 10%,
-        rgba(100, 116, 139, 0.04) 10%,
-        rgba(100, 116, 139, 0.04) 15%,
-        transparent 15%
-      ),
-    /* Papers */
-      linear-gradient(
-        45deg,
-        transparent 75%,
-        rgba(100, 116, 139, 0.03) 75%,
-        rgba(100, 116, 139, 0.03) 85%,
-        transparent 85%
-      ),
-    /* Coffee */
-      radial-gradient(
-        circle at 80% 85%,
-        rgba(100, 116, 139, 0.05) 0%,
-        transparent 25%
-      );
-  background-size: 200px 120px, 80px 60px, 140px 8px, 20px 30px, 40px 60px,
-    8px 80px, 60px 80px, 30px 40px;
-  background-position: 5% 90%, 85% 15%, 20% 75%, 35% 80%, 10% 25%, 25% 10%,
-    75% 40%, 80% 85%;
-  background-repeat: no-repeat;
-  animation: float 8s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(1deg);
-  }
+  background-color: var(--color-white);
 }
 
 .login-form {
@@ -7022,10 +6929,6 @@ p.claim-description {
   padding-bottom: 21px;
 }
 
-.signature__item {
-  width: 85%;
-  height: auto;
-}
 .custom__signature__pad {
   background-color: var(--color-light);
   display: flex;

@@ -3,22 +3,56 @@ import {
   CategoryProgressTrackerProps,
   CategoryWorkflowProps,
   DocumentCategoryResponseData,
+  DocumentMetaDataProps,
 } from "../Repositories/DocumentCategory/data";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect";
-import { ContentAreaProps } from "../Hooks/useBuilder";
 import { BlockResponseData } from "../Repositories/Block/data";
 import { DocumentResponseData } from "../Repositories/Document/data";
 import { BaseResponse } from "../Repositories/BaseRepository";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
-import { ProcessTabsOption } from "@/resources/views/crud/ContentBuilder";
-import { SheetProps } from "@/resources/views/pages/DocumentTemplateContent";
+import {
+  DeskComponentPropTypes,
+  SheetProps,
+} from "@/resources/views/pages/DocumentTemplateContent";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
-import { DocumentMetaDataProps } from "../Repositories/DocumentCategory/data";
+import { UserResponseData } from "../Repositories/User/data";
+import { DepartmentResponseData } from "../Repositories/Department/data";
+import { FundResponseData } from "../Repositories/Fund/data";
+import { GroupResponseData } from "../Repositories/Group/data";
+import { WorkflowStageResponseData } from "../Repositories/WorkflowStage/data";
+import { DocumentActionResponseData } from "../Repositories/DocumentAction/data";
+import { CarderResponseData } from "../Repositories/Carder/data";
+import { DocumentTypeResponseData } from "../Repositories/DocumentType/data";
+import { AuthUserResponseData } from "./AuthContext";
+import {
+  SettingsProps,
+  WatcherProps,
+} from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
+import { DocumentRequirementResponseData } from "../Repositories/DocumentRequirement/data";
 
 export type ContextType = "builder" | "generator" | "desk";
+
+export type ResourceProps = {
+  users: UserResponseData[];
+  departments: DepartmentResponseData[];
+  funds: FundResponseData[];
+  groups: GroupResponseData[];
+  workflowStages: WorkflowStageResponseData[];
+  documentActions: DocumentActionResponseData[];
+  services: string[];
+  carders: CarderResponseData[];
+  documentTypes: DocumentTypeResponseData[];
+  workflows: WorkflowResponseData[];
+};
+
+export interface DocumentRequirementProps
+  extends DocumentRequirementResponseData {
+  is_required: boolean;
+  is_present: boolean;
+}
 
 export interface PaperBoardState {
   /**
@@ -47,17 +81,26 @@ export interface PaperBoardState {
   errorMessage: string | null;
   context: ContextType;
   mode: "store" | "update";
+  preferences: SettingsProps;
+  watchers: WatcherProps[];
+
+  // Resources
+  resources: ResourceProps;
+  loggedInUser: AuthUserResponseData | undefined;
+  requirements: DocumentRequirementProps[];
 
   // Primary Data
   category: DocumentCategoryResponseData | null;
   template: TemplateResponseData | null;
   document_owner: DataOptionsProps | null;
   department_owner: DataOptionsProps | null;
+  metaData: DocumentMetaDataProps | null;
 
   // Template Building Data
   contents: SheetProps[]; // Contents from template builder
   body: ContentBlock[]; // Contents from database
   configState: ProcessFlowConfigProps | null;
+  resourceLinks: ContentBlock[];
 
   // ContentBuilder Specific State
   blocks: BlockResponseData[];
@@ -76,7 +119,7 @@ export interface PaperBoardState {
   workflow: CategoryWorkflowProps | null;
   trackers: CategoryProgressTrackerProps[];
 
-  uploads: File[] | string[];
+  uploads: File[];
   fund: DataOptionsProps | null;
   approval_memo: DocumentResponseData | null;
 }
@@ -108,6 +151,22 @@ export type PaperBoardAction =
       payload: DataOptionsProps | null;
     }
   | {
+      type: "SET_RESOURCE_LINKS";
+      payload: ContentBlock[];
+    }
+  | {
+      type: "ADD_RESOURCE_LINK";
+      payload: ContentBlock;
+    }
+  | {
+      type: "UPDATE_RESOURCE_LINK";
+      payload: ContentBlock;
+    }
+  | {
+      type: "DELETE_RESOURCE_LINK";
+      payload: string;
+    }
+  | {
       type: "SET_CONTENTS";
       payload: SheetProps[];
     }
@@ -134,6 +193,14 @@ export type PaperBoardAction =
   | {
       type: "UPDATE_CONFIG_STATE";
       payload: ProcessFlowConfigProps | null;
+    }
+  | {
+      type: "SET_PREFERENCES";
+      payload: SettingsProps;
+    }
+  | {
+      type: "UPDATE_PREFERENCES";
+      payload: SettingsProps;
     }
   | {
       type: "SET_BLOCKS";
@@ -176,8 +243,12 @@ export type PaperBoardAction =
       payload: { id: string; file: File }[];
     }
   | {
+      type: "ADD_UPLOAD";
+      payload: File;
+    }
+  | {
       type: "REMOVE_UPLOAD";
-      payload: string;
+      payload: string | number;
     }
   | {
       type: "SET_FUND";
@@ -196,8 +267,40 @@ export type PaperBoardAction =
       };
     }
   | {
+      type: "UPDATE_BODY";
+      payload: { body: ContentBlock; type: DeskComponentPropTypes };
+    }
+  | {
       type: "SET_IS_LOADING";
       payload: boolean;
+    }
+  | {
+      type: "SET_META_DATA";
+      payload: DocumentMetaDataProps | null;
+    }
+  | {
+      type: "UPDATE_META_DATA";
+      payload: DocumentMetaDataProps | null;
+    }
+  | {
+      type: "SET_RESOURCES";
+      payload: ResourceProps;
+    }
+  | {
+      type: "SET_LOGGED_IN_USER";
+      payload: AuthUserResponseData | undefined;
+    }
+  | {
+      type: "SET_WATCHERS";
+      payload: WatcherProps[];
+    }
+  | {
+      type: "SET_REQUIREMENTS";
+      payload: DocumentRequirementProps[];
+    }
+  | {
+      type: "UPDATE_REQUIREMENTS";
+      payload: DocumentRequirementProps;
     };
 
 export interface PaperBoardContextType {
@@ -205,10 +308,16 @@ export interface PaperBoardContextType {
   actions: {
     setCategory: (category: DocumentCategoryResponseData | null) => void;
     setTemplate: (template: TemplateResponseData | null) => void;
+    setResourceLinks: (resourceLinks: ContentBlock[]) => void;
+    addResourceLink: (resourceLink: ContentBlock) => void;
+    updateResourceLink: (resourceLink: ContentBlock) => void;
+    deleteResourceLink: (resourceLinkId: string) => void;
     addContent: (content: SheetProps) => void;
+    addUpload: (upload: File) => void;
     updateContent: (content: SheetProps) => void;
     deleteContent: (blockId: string) => void;
     setBody: (body: ContentBlock[]) => void;
+    updateBody: (body: ContentBlock, type: DeskComponentPropTypes) => void;
     setConfigState: (configState: ProcessFlowConfigProps | null) => void;
     updateConfigState: (configState: ProcessFlowConfigProps | null) => void;
     setWorkflow: (
@@ -225,10 +334,23 @@ export interface PaperBoardContextType {
     setDocumentState: (documentState: DocumentResponseData | null) => void;
     setResource: (resource: BaseResponse | null) => void;
     setUploads: (uploads: { id: string; file: File }[]) => void;
-    removeUpload: (uploadId: string) => void;
+    removeUpload: (uploadId: string | number) => void;
     setFund: (fund: DataOptionsProps | null) => void;
     setApprovalMemo: (approvalMemo: DocumentResponseData | null) => void;
     setIsLoading: (loading: boolean) => void;
+    setDepartmentOwner: (department: DataOptionsProps | null) => void;
+    updateDepartmentOwner: (department: DataOptionsProps | null) => void;
+    setDocumentOwner: (document: DataOptionsProps | null) => void;
+    updateDocumentOwner: (document: DataOptionsProps | null) => void;
+    setMetaData: (metaData: DocumentMetaDataProps | null) => void;
+    updateMetaData: (metaData: DocumentMetaDataProps | null) => void;
+    setResources: (resources: ResourceProps) => void;
+    setLoggedInUser: (user: AuthUserResponseData | undefined) => void;
+    setPreferences: (preferences: SettingsProps) => void;
+    updatePreferences: (preferences: SettingsProps) => void;
+    setWatchers: (watchers: WatcherProps[]) => void;
+    setRequirements: (requirements: DocumentRequirementProps[]) => void;
+    updateRequirements: (requirements: DocumentRequirementProps) => void;
   };
 }
 

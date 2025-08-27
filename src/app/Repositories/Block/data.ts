@@ -1,5 +1,6 @@
 import { ContentAreaProps } from "app/Hooks/useBuilder";
 import { BaseResponse } from "../BaseRepository";
+import { DeskComponentPropTypes } from "@/resources/views/pages/DocumentTemplateContent";
 
 export type BlockDataType =
   | "paragraph"
@@ -13,7 +14,8 @@ export type BlockDataType =
   | "bullet"
   | "approval"
   | "expense"
-  | "paper_title";
+  | "paper_title"
+  | "signature";
 
 export type BlockInputType =
   | "ParagraphBlock"
@@ -24,13 +26,14 @@ export type BlockInputType =
   | "SignatureBlock"
   | "ListBlock"
   | "ExpenseBlock"
-  | "TitleBlock";
+  | "TitleBlock"
+  | "SignatureBlock";
 
 export interface BlockResponseData extends BaseResponse {
   title: string;
   label?: string;
   icon: string;
-  data_type: BlockDataType;
+  data_type: DeskComponentPropTypes;
   input_type: BlockInputType;
   max_words: number;
   type: "staff" | "third-party" | "document";

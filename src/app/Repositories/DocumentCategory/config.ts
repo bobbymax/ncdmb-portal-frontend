@@ -17,6 +17,8 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "config",
       "content",
       "meta_data",
+      "signature_type",
+      "with_date",
     ],
     associatedResources: [
       { url: "apiServices", name: "services" },
@@ -30,6 +32,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       { name: "workflowStages", url: "workflowStages" },
       { name: "carders", url: "carders" },
       { name: "documentActions", url: "documentActions" },
+      { name: "funds", url: "funds" },
     ],
     state: {
       id: 0,
@@ -47,6 +50,8 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       workflow: null,
       content: [],
       meta_data: null,
+      signature_type: "none",
+      with_date: 0,
     },
     actions: [
       {

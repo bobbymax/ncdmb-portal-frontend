@@ -58,6 +58,30 @@ export const paperBoardReducer = (
         ...state,
         contents: syncBodyWithContents(action.payload),
       };
+    case "SET_RESOURCE_LINKS":
+      return {
+        ...state,
+        resourceLinks: action.payload,
+      };
+    case "ADD_RESOURCE_LINK":
+      return {
+        ...state,
+        resourceLinks: [...state.resourceLinks, action.payload],
+      };
+    case "UPDATE_RESOURCE_LINK":
+      return {
+        ...state,
+        resourceLinks: state.resourceLinks.map((link) =>
+          link.id === action.payload.id ? action.payload : link
+        ),
+      };
+    case "DELETE_RESOURCE_LINK":
+      return {
+        ...state,
+        resourceLinks: state.resourceLinks.filter(
+          (link) => link.id !== action.payload
+        ),
+      };
     case "ADD_CONTENT":
       return {
         ...state,
@@ -143,6 +167,11 @@ export const paperBoardReducer = (
         ...state,
         uploads: action.payload.map((upload) => upload.file),
       };
+    case "ADD_UPLOAD":
+      return {
+        ...state,
+        uploads: [...state.uploads, action.payload],
+      };
     case "REMOVE_UPLOAD": {
       const filteredUploads = (state.uploads as (File | string)[]).filter(
         (upload) => {
@@ -179,6 +208,60 @@ export const paperBoardReducer = (
       return {
         ...state,
         contents: action.payload,
+      };
+    case "UPDATE_BODY":
+      return {
+        ...state,
+        body: state.body.map((body) =>
+          body.type === action.payload.type ? action.payload.body : body
+        ),
+      };
+    case "SET_META_DATA":
+      return {
+        ...state,
+        metaData: action.payload,
+      };
+    case "UPDATE_META_DATA":
+      return {
+        ...state,
+        metaData: action.payload,
+      };
+    case "SET_RESOURCES":
+      return {
+        ...state,
+        resources: action.payload,
+      };
+    case "SET_LOGGED_IN_USER":
+      return {
+        ...state,
+        loggedInUser: action.payload,
+      };
+    case "SET_PREFERENCES":
+      return {
+        ...state,
+        preferences: action.payload,
+      };
+    case "UPDATE_PREFERENCES":
+      return {
+        ...state,
+        preferences: action.payload,
+      };
+    case "SET_WATCHERS":
+      return {
+        ...state,
+        watchers: action.payload,
+      };
+    case "SET_REQUIREMENTS":
+      return {
+        ...state,
+        requirements: action.payload,
+      };
+    case "UPDATE_REQUIREMENTS":
+      return {
+        ...state,
+        requirements: state.requirements.map((requirement) =>
+          requirement.id === action.payload.id ? action.payload : requirement
+        ),
       };
     default:
       return state;

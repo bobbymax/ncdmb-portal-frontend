@@ -153,7 +153,7 @@ export const toSnakeCase = (str: string): string =>
     .toLowerCase(); // Convert to lowercase
 
 // 🔹 Converts `document_category` → `DocumentCategory` (for folder imports)
-const toFolderName = (str: string): string =>
+export const toFolderName = (str: string): string =>
   str
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

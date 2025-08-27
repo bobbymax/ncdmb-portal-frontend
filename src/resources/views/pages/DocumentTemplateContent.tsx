@@ -7,8 +7,24 @@ import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { ProcessFlowConfigProps } from "../crud/DocumentWorkflow";
 import moment from "moment";
+import InlineContentCard from "../components/ContentCards/InlineContentCard";
+import {
+  BudgetGeneratorTab,
+  UploadsGeneratorTab,
+  ResourceGeneratorTab,
+  CommentsGeneratorTab,
+  SettingsGeneratorTab,
+} from "../components/DocumentGeneratorTab";
+import organizationLogo from "../../assets/images/logo.png";
 
 export type DeskComponentPropTypes =
+  | "paper_title"
+  | "title"
+  | "paragraph"
+  | "expense"
+  | "invoice"
+  | "requisition"
+  | "signature"
   | "text"
   | "table"
   | "list"
@@ -40,9 +56,19 @@ const DocumentTemplateContent = ({
   context,
 }: DocumentTemplateContentProps) => {
   const { state, actions } = usePaperBoard();
-  const { staff } = useAuth();
-  const [activeTab, setActiveTab] = useState("review");
+  const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Tab reordering state
+  const [tabOrder, setTabOrder] = useState([
+    { id: "budget", label: "Budget", icon: "ri-bank-line" },
+    { id: "uploads", label: "Uploads", icon: "ri-git-repository-commits-line" },
+    { id: "resource", label: "Resource", icon: "ri-database-2-line" },
+    { id: "comments", label: "Comments", icon: "ri-message-2-line" },
+    { id: "settings", label: "Settings", icon: "ri-settings-3-line" },
+  ]);
+  const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
+  const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
   const TemplateHeader = useTemplateHeader(state.template);
 
@@ -63,6 +89,55 @@ const DocumentTemplateContent = ({
     setActiveTab(tabName);
   };
 
+  // Tab reordering handlers
+  const handleTabDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedTabIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", `tab-${index}`);
+  };
+
+  const handleTabDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleTabDragEnter = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedTabIndex !== null && draggedTabIndex !== index) {
+      const target = e.currentTarget as HTMLElement;
+      target.classList.add("tab-drag-over");
+    }
+  };
+
+  const handleTabDragLeave = (e: React.DragEvent) => {
+    const target = e.currentTarget as HTMLElement;
+    target.classList.remove("tab-drag-over");
+  };
+
+  const handleTabDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedTabIndex !== null && draggedTabIndex !== dropIndex) {
+      const newTabOrder = [...tabOrder];
+      const [draggedTab] = newTabOrder.splice(draggedTabIndex, 1);
+      newTabOrder.splice(dropIndex, 0, draggedTab);
+
+      setTabOrder(newTabOrder);
+
+      // Update active tab if the dragged tab was active
+      if (activeTab === draggedTab.id) {
+        setActiveTab(draggedTab.id);
+      }
+    }
+
+    // Remove drag-over classes
+    document.querySelectorAll(".tab__item").forEach((tab) => {
+      tab.classList.remove("tab-drag-over");
+    });
+
+    setDraggedTabIndex(null);
+  };
+
   // Drag and Drop handlers for body items (reordering)
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -72,11 +147,9 @@ const DocumentTemplateContent = ({
 
   // Drag and Drop handlers for toolbar blocks (adding new items)
   const handleBlockDragStart = (e: React.DragEvent, block: any) => {
-    console.log("Block drag start:", block);
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("application/json", JSON.stringify(block));
     e.dataTransfer.setData("text/plain", "toolbar-block");
-    console.log("Data transfer set:", e.dataTransfer.types);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -109,13 +182,8 @@ const DocumentTemplateContent = ({
 
   const handleDrop = (e: React.DragEvent, dropIndex?: number) => {
     e.preventDefault();
-    console.log("Drop event triggered", {
-      dropIndex,
-      dataTransfer: e.dataTransfer,
-    });
 
     const dragType = e.dataTransfer.getData("text/plain");
-    console.log("Drag type:", dragType);
 
     if (dragType === "toolbar-block") {
       // Handle dropping a toolbar block
@@ -125,6 +193,7 @@ const DocumentTemplateContent = ({
         );
         const newContentBlock: ContentBlock = {
           id: crypto.randomUUID(),
+          type: blockData.data_type,
           block: blockData,
           order: state.body.length + 1,
           content: null,
@@ -178,12 +247,92 @@ const DocumentTemplateContent = ({
     setDraggedIndex(null);
   };
 
+  const handleManageItem = (itemId: string) => {
+    setEditingItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
   const handleRemoveItem = (itemId: string) => {
     const newBody = state.body.filter((item) => item.id !== itemId);
     actions.setBody(newBody);
   };
 
-  console.log(state);
+  const handleAddResourceLink = (contentBlock: ContentBlock) => {
+    // Check if the content block is already in resourceLinks
+    const isAlreadyLinked = state.resourceLinks?.some(
+      (link) => link.id === contentBlock.id
+    );
+
+    if (isAlreadyLinked) {
+      // If already linked, remove it
+      const updatedResourceLinks =
+        state.resourceLinks?.filter((link) => link.id !== contentBlock.id) ||
+        [];
+      actions.setResourceLinks(updatedResourceLinks);
+    } else {
+      // If not linked, add it
+      const updatedResourceLinks = [
+        ...(state.resourceLinks || []),
+        contentBlock,
+      ];
+      actions.setResourceLinks(updatedResourceLinks);
+    }
+  };
+
+  const handleGenerateDocument = async () => {
+    // Convert File objects to data URLs
+    const uploadDataUrls = await Promise.all(
+      state.uploads.map(async (file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      })
+    );
+
+    const document = {
+      title: state.documentState?.title,
+      date: moment().format("DD/MM/YYYY"),
+      content: state.body,
+      config: state.configState,
+      template: state.template,
+      category: category,
+      mode: mode,
+      service: category?.service,
+      trackers: state.trackers,
+      document_owner: state.document_owner,
+      department_owner: state.department_owner,
+      fund: state.fund,
+      meta_data: state.metaData,
+      preferences: state.preferences,
+      uploads: uploadDataUrls, // Now contains data URLs instead of File objects
+      watchers: state.watchers,
+      loggedInUser: {
+        id: state.loggedInUser?.id,
+        name: state.loggedInUser?.name,
+        email: state.loggedInUser?.email,
+      },
+      requirements: state.requirements.filter(
+        (requirement) => requirement.is_present
+      ),
+      approval_memo: state.approval_memo,
+      // signatures: state.signatures,
+    };
+
+    console.log(document);
+  };
+
+  // console.log(state);
 
   return (
     <div className="document__template__content">
@@ -214,7 +363,10 @@ const DocumentTemplateContent = ({
               )}
             </div>
             <div className="toolbar__actions">
-              <button className="generate__document__btn">
+              <button
+                className="generate__document__btn"
+                onClick={handleGenerateDocument}
+              >
                 <i className="ri-file-download-line"></i>
                 <span>Generate Document</span>
               </button>
@@ -222,9 +374,77 @@ const DocumentTemplateContent = ({
           </div>
         </div>
         <div className="document__template__paper__sheet">
-          {/* A4 Sheet Area */}
-          <div className="a4__sheet">
-            <div className="sheet__header" style={{ padding: "45px 32px" }}>
+          {/* A4 Paper Sheet Area */}
+          <div
+            className="a4__sheet"
+            style={{
+              position: "relative",
+              boxShadow:
+                "0 25px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+              border: "1px solid rgba(19, 117, 71, 0.1)",
+              borderRadius: "12px",
+              background:
+                "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)",
+            }}
+          >
+            {/* Background logo with fade effect */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundImage: `url(${organizationLogo})`,
+                backgroundSize: "contain",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                opacity: 0.25,
+                filter: "grayscale(0.1)",
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            />
+            {/* Faded background overlay */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(255, 255, 255, 0.85)",
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            />
+
+            {/* Subtle paper texture overlay */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, rgba(19, 117, 71, 0.03) 1px, transparent 0)",
+                backgroundSize: "20px 20px",
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            />
+            {/* Enhanced Header with subtle background */}
+            <div
+              className="sheet__header"
+              style={{
+                padding: "45px 32px 32px 32px",
+                position: "relative",
+                zIndex: 1,
+                background:
+                  "linear-gradient(180deg, rgba(248, 250, 252, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%)",
+              }}
+            >
               <TemplateHeader
                 configState={state.configState as ProcessFlowConfigProps}
                 title={state.documentState?.title ?? null}
@@ -234,6 +454,7 @@ const DocumentTemplateContent = ({
             </div>
             <div
               className="sheet__content"
+              style={{ position: "relative", zIndex: 1 }}
               onDragOver={(e) => handleDragOver(e)}
               onDragEnter={(e) => handleDragEnter(e)}
               onDrop={(e) => handleDrop(e)}
@@ -257,6 +478,32 @@ const DocumentTemplateContent = ({
                         {bodyItem.block?.title || `Item ${index + 1}`}
                       </div>
                       <div
+                        className={`resource__link__button ${
+                          state.resourceLinks?.some(
+                            (link) => link.id === bodyItem.id
+                          )
+                            ? "active"
+                            : ""
+                        }`}
+                        onClick={() => handleAddResourceLink(bodyItem)}
+                        title={
+                          state.resourceLinks?.some(
+                            (link) => link.id === bodyItem.id
+                          )
+                            ? "Remove from resource links"
+                            : "Add to resource links"
+                        }
+                      >
+                        <i className="ri-link"></i>
+                      </div>
+                      <div
+                        className="manage__button"
+                        onClick={() => handleManageItem(bodyItem.id)}
+                        title="Manage item"
+                      >
+                        <i className="ri-settings-4-line"></i>
+                      </div>
+                      <div
                         className="remove__button"
                         onClick={() => handleRemoveItem(bodyItem.id)}
                       >
@@ -264,13 +511,11 @@ const DocumentTemplateContent = ({
                       </div>
                     </div>
                     <div className="body__item__content">
-                      <div className="item__preview">
-                        <i className="ri-file-text-line"></i>
-                        <span>
-                          Content preview for{" "}
-                          {bodyItem.block?.title || "this item"}
-                        </span>
-                      </div>
+                      <InlineContentCard
+                        item={bodyItem}
+                        onClose={() => handleManageItem(bodyItem.id)}
+                        isEditing={editingItems.has(bodyItem.id)}
+                      />
                     </div>
                   </div>
                 ))
@@ -282,6 +527,43 @@ const DocumentTemplateContent = ({
                 </div>
               )}
             </div>
+
+            {/* Enhanced Footer with subtle background */}
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                padding: "32px 32px 45px 32px",
+                background:
+                  "linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(248, 250, 252, 0.6) 100%)",
+                marginTop: "auto",
+              }}
+            >
+              {/* Footer content */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ fontSize: "12px", color: "rgba(0, 0, 0, 0.6)" }}>
+                  <span>Generated on {moment().format("DD/MM/YYYY")}</span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "rgba(19, 117, 71, 0.7)",
+                    fontWeight: "500",
+                  }}
+                >
+                  <span>NCDMB Document Template</span>
+                </div>
+                <div style={{ fontSize: "12px", color: "rgba(0, 0, 0, 0.6)" }}>
+                  <span>Page 1 of 1</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -289,107 +571,50 @@ const DocumentTemplateContent = ({
         {/* Configuration Tabs */}
         <div className="configuration__tabs">
           <div className="tabs__header">
-            <div
-              className={`tab__item ${activeTab === "review" ? "active" : ""}`}
-              data-tab="review"
-              onClick={() => handleTabChange("review")}
-            >
-              <i className="ri-eye-line"></i>
-              <span>Review</span>
-            </div>
-            <div
-              className={`tab__item ${activeTab === "uploads" ? "active" : ""}`}
-              data-tab="uploads"
-              onClick={() => handleTabChange("uploads")}
-            >
-              <i className="ri-upload-line"></i>
-              <span>Uploads</span>
-            </div>
-            <div
-              className={`tab__item ${
-                activeTab === "settings" ? "active" : ""
-              }`}
-              data-tab="settings"
-              onClick={() => handleTabChange("settings")}
-            >
-              <i className="ri-settings-3-line"></i>
-              <span>Settings</span>
-            </div>
-            <div
-              className={`tab__item ${
-                activeTab === "comments" ? "active" : ""
-              }`}
-              data-tab="comments"
-              onClick={() => handleTabChange("comments")}
-            >
-              <i className="ri-message-2-line"></i>
-              <span>Comments</span>
-            </div>
-            <div
-              className={`tab__item ${
-                activeTab === "resource" ? "active" : ""
-              }`}
-              data-tab="resource"
-              onClick={() => handleTabChange("resource")}
-            >
-              <i className="ri-database-2-line"></i>
-              <span>Resource</span>
-            </div>
+            {tabOrder.map((tab, index) => (
+              <div
+                key={tab.id}
+                className={`tab__item ${activeTab === tab.id ? "active" : ""}`}
+                data-tab={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                draggable
+                onDragStart={(e) => handleTabDragStart(e, index)}
+                onDragOver={(e) => handleTabDragOver(e)}
+                onDragEnter={(e) => handleTabDragEnter(e, index)}
+                onDragLeave={handleTabDragLeave}
+                onDrop={(e) => handleTabDrop(e, index)}
+              >
+                <i className={tab.icon}></i>
+                <span>{tab.label}</span>
+              </div>
+            ))}
           </div>
           <div className="tabs__content">
-            <div
-              className={`tab__panel ${activeTab === "review" ? "active" : ""}`}
-              data-tab="review"
-            >
-              <div className="panel__content">
-                <h4>Review Panel</h4>
-                <p>Content for review will appear here</p>
+            {tabOrder.map((tab) => (
+              <div
+                key={tab.id}
+                className={`tab__panel ${activeTab === tab.id ? "active" : ""}`}
+                data-tab={tab.id}
+              >
+                <div className="panel__content">
+                  {tab.id === "budget" && (
+                    <BudgetGeneratorTab category={category} />
+                  )}
+                  {tab.id === "uploads" && (
+                    <UploadsGeneratorTab category={category} />
+                  )}
+                  {tab.id === "resource" && (
+                    <ResourceGeneratorTab category={category} />
+                  )}
+                  {tab.id === "comments" && (
+                    <CommentsGeneratorTab category={category} />
+                  )}
+                  {tab.id === "settings" && (
+                    <SettingsGeneratorTab category={category} />
+                  )}
+                </div>
               </div>
-            </div>
-            <div
-              className={`tab__panel ${
-                activeTab === "uploads" ? "active" : ""
-              }`}
-              data-tab="uploads"
-            >
-              <div className="panel__content">
-                <h4>Uploads Panel</h4>
-                <p>File uploads will appear here</p>
-              </div>
-            </div>
-            <div
-              className={`tab__panel ${
-                activeTab === "settings" ? "active" : ""
-              }`}
-              data-tab="settings"
-            >
-              <div className="panel__content">
-                <h4>Settings Panel</h4>
-                <p>Configuration settings will appear here</p>
-              </div>
-            </div>
-            <div
-              className={`tab__panel ${
-                activeTab === "comments" ? "active" : ""
-              }`}
-              data-tab="comments"
-            >
-              <div className="panel__content">
-                <h4>Comments Panel</h4>
-                <p>Comments and notes will appear here</p>
-              </div>
-            </div>
-            <div
-              className={`tab__panel ${
-                activeTab === "resource" ? "active" : ""
-              }`}
-              data-tab="resource"
-            >
-              <div className="panel__content">
-                <h4>Resource Panel</h4>
-                <p>Resource information will appear here</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

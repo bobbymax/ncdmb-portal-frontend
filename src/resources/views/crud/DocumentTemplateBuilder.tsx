@@ -7,10 +7,14 @@ import { BlockResponseData } from "@/app/Repositories/Block/data";
 import { useNavigate } from "react-router-dom";
 import Alert from "app/Support/Alert";
 import { toast } from "react-toastify";
-import { SheetProps } from "../pages/DocumentTemplateContent";
+import {
+  DeskComponentPropTypes,
+  SheetProps,
+} from "../pages/DocumentTemplateContent";
 
 export interface ContentBlock {
   id: string;
+  type: DeskComponentPropTypes;
   block: BlockResponseData;
   order: number;
   content?: SheetProps | null;
@@ -43,6 +47,7 @@ const DocumentTemplateBuilder: React.FC<
       // Safely map the existing content to ContentBlock format
       const existingBlocks = state.content.map((item: any, index: number) => ({
         id: item.id || crypto.randomUUID(),
+        type: item.type || "text",
         block: item.block || item,
         order: item.order || index + 1,
       }));
@@ -125,6 +130,7 @@ const DocumentTemplateBuilder: React.FC<
       // Adding new block from toolbar
       const newBlock: ContentBlock = {
         id: crypto.randomUUID(),
+        type: draggedBlock.data_type as DeskComponentPropTypes,
         block: draggedBlock,
         order: contentBlocks.length + 1,
       };

@@ -54,31 +54,18 @@ const SignatureCanvas = ({
   }, [signatureUrl]);
 
   return (
-    <div className="signature__container__box">
+    <div className="canvas__block">
       <canvas
         ref={canvasRef}
         className="signature-container"
         style={{
+          ...styles,
           pointerEvents: "none",
           userSelect: "none",
           background: "transparent",
-          ...styles,
         }}
       />
-      {signature && (
-        <small
-          style={{
-            textTransform: "uppercase",
-            textAlign: "center",
-            letterSpacing: 2,
-            fontWeight: "bolder",
-            color: "green",
-            display: "block",
-          }}
-        >
-          {signature.approving_officer?.name}
-        </small>
-      )}
+      {signature && <small>{signature.approving_officer?.name}</small>}
     </div>
   );
 };
