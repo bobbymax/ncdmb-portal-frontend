@@ -1,5 +1,8 @@
 import { BaseRepository } from "@/app/Repositories/BaseRepository";
-import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
+import {
+  DocumentCategoryResponseData,
+  CategoryProgressTrackerProps,
+} from "@/app/Repositories/DocumentCategory/data";
 import React, { useState } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { useAuth } from "app/Context/AuthContext";
@@ -300,6 +303,35 @@ const DocumentTemplateContent = ({
       })
     );
 
+    // Transform configState to CategoryProgressTrackerProps[] format
+    const transformedTrackers: CategoryProgressTrackerProps[] = [];
+
+    if (state.configState) {
+      // Add from stage if it exists
+      if (state.configState.from) {
+        transformedTrackers.push({
+          ...state.configState.from,
+          order: 1,
+        });
+      }
+
+      // Add through stage if it exists
+      if (state.configState.through) {
+        transformedTrackers.push({
+          ...state.configState.through,
+          order: transformedTrackers.length + 1,
+        });
+      }
+
+      // Add to stage if it exists
+      if (state.configState.to) {
+        transformedTrackers.push({
+          ...state.configState.to,
+          order: transformedTrackers.length + 1,
+        });
+      }
+    }
+
     const document = {
       title: state.documentState?.title,
       date: moment().format("DD/MM/YYYY"),
@@ -309,7 +341,7 @@ const DocumentTemplateContent = ({
       category: category,
       mode: mode,
       service: category?.service,
-      trackers: state.trackers,
+      trackers: transformedTrackers, // Use transformed configState instead of state.trackers
       document_owner: state.document_owner,
       department_owner: state.department_owner,
       fund: state.fund,
@@ -326,7 +358,6 @@ const DocumentTemplateContent = ({
         (requirement) => requirement.is_present
       ),
       approval_memo: state.approval_memo,
-      // signatures: state.signatures,
     };
 
     console.log(document);

@@ -263,6 +263,20 @@ export const paperBoardReducer = (
           requirement.id === action.payload.id ? action.payload : requirement
         ),
       };
+    case "SET_THREADS":
+      return {
+        ...state,
+        threads: action.payload,
+      };
+    case "UPDATE_THREADS":
+      return {
+        ...state,
+        threads: state.threads.map((thread) =>
+          thread.pointer_identifier === action.payload.pointer_identifier
+            ? action.payload
+            : thread
+        ),
+      };
     default:
       return state;
   }

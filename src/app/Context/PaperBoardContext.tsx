@@ -4,6 +4,7 @@ import {
   CategoryWorkflowProps,
   DocumentCategoryResponseData,
   DocumentMetaDataProps,
+  PointerThreadProps,
 } from "../Repositories/DocumentCategory/data";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect";
@@ -83,6 +84,7 @@ export interface PaperBoardState {
   mode: "store" | "update";
   preferences: SettingsProps;
   watchers: WatcherProps[];
+  threads: PointerThreadProps[];
 
   // Resources
   resources: ResourceProps;
@@ -301,6 +303,14 @@ export type PaperBoardAction =
   | {
       type: "UPDATE_REQUIREMENTS";
       payload: DocumentRequirementProps;
+    }
+  | {
+      type: "SET_THREADS";
+      payload: PointerThreadProps[];
+    }
+  | {
+      type: "UPDATE_THREADS";
+      payload: PointerThreadProps;
     };
 
 export interface PaperBoardContextType {
@@ -351,6 +361,8 @@ export interface PaperBoardContextType {
     setWatchers: (watchers: WatcherProps[]) => void;
     setRequirements: (requirements: DocumentRequirementProps[]) => void;
     updateRequirements: (requirements: DocumentRequirementProps) => void;
+    setThreads: (threads: PointerThreadProps[]) => void;
+    updateThreads: (threads: PointerThreadProps) => void;
   };
 }
 

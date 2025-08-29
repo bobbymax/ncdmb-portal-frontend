@@ -11,6 +11,56 @@ import { ProcessActivitiesProps } from "@/resources/views/crud/DocumentCategoryC
 import { CommentProps } from "@/resources/views/components/DocumentGeneratorTab/CommentsGeneratorTab";
 import { SettingsProps } from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 
+export type PointerActivityTypesProps =
+  | "commented"
+  | "reviewed"
+  | "queried"
+  | "escalated"
+  | "question"
+  | "approved"
+  | "signed"
+  | "rejected"
+  | "cancelled"
+  | "completed"
+  | "reopened"
+  | "reassigned"
+  | "responded";
+
+export type PointerThreadConversationProps = {
+  id: string;
+  thread_id: string;
+  message: string;
+  created_at: string;
+  updated_at?: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    avatar: string;
+  };
+  replies: string[];
+  type: "comment" | "reply";
+  is_pinned: boolean;
+  is_deleted: boolean;
+  delivered: boolean;
+  marked_as_read: boolean;
+};
+
+export type PointerThreadProps = {
+  pointer_identifier: string;
+  identifier: string;
+  icon?: string;
+  thread_owner_id: number; // logged in user id
+  action?: string;
+  category: PointerActivityTypesProps;
+  conversations: PointerThreadConversationProps[];
+  priority: "low" | "medium" | "high";
+  status: "pending" | "resolved" | "rejected";
+  state: "open" | "closed";
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type CategoryProgressTrackerProps = {
   identifier: string;
   workflow_stage_id: number;

@@ -15493,20 +15493,26 @@ body,
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
-/* Watchers Card Icon (2nd) - Purple (people, collaboration) */
+/* Requirements Card Icon (2nd) - Orange (documents, requirements) */
 .settings__card:nth-child(2) .settings__card__icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Watchers Card Icon (3rd) - Purple (people, collaboration) */
+.settings__card:nth-child(3) .settings__card__icon {
   background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
   box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
 
-/* Policy Card Icon (3rd) - Red (security, protection) */
-.settings__card:nth-child(3) .settings__card__icon {
+/* Policy Card Icon (4th) - Red (security, protection) */
+.settings__card:nth-child(4) .settings__card__icon {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
-/* Preferences Card Icon (4th) - Green (settings, configuration) */
-.settings__card:nth-child(4) .settings__card__icon {
+/* Preferences Card Icon (5th) - Green (settings, configuration) */
+.settings__card:nth-child(5) .settings__card__icon {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
@@ -15519,15 +15525,20 @@ body,
 
 .settings__card:nth-child(2):hover .settings__card__icon {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
 }
 
 .settings__card:nth-child(3):hover .settings__card__icon {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.settings__card:nth-child(4):hover .settings__card__icon {
   transform: scale(1.1) rotate(-5deg);
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
-.settings__card:nth-child(4):hover .settings__card__icon {
+.settings__card:nth-child(5):hover .settings__card__icon {
   transform: scale(1.1) rotate(5deg);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }

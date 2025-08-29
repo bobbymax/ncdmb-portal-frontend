@@ -52,7 +52,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
   const { state, actions } = usePaperBoard();
   const [selectedScope, setSelectedScope] = useState<string>("private");
 
-  console.log(state);
+  // console.log(state);
 
   // Watcher search state
   const [watcherSearchQuery, setWatcherSearchQuery] = useState<string>("");
@@ -329,6 +329,83 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
     state.resources.departments,
     actions,
   ]);
+
+  // Update trackers when configState changes
+  useEffect(() => {
+    if (state.configState) {
+      const newTrackers: CategoryProgressTrackerProps[] = [];
+
+      // Add from stage if it exists
+      if (state.configState.from) {
+        newTrackers.push({
+          ...state.configState.from,
+          order: 1,
+        });
+      }
+
+      // Add through stage if it exists
+      if (state.configState.through) {
+        newTrackers.push({
+          ...state.configState.through,
+          order: newTrackers.length + 1,
+        });
+      }
+
+      // Add to stage if it exists
+      if (state.configState.to) {
+        newTrackers.push({
+          ...state.configState.to,
+          order: newTrackers.length + 1,
+        });
+      }
+
+      // Only update if trackers have actually changed
+      const currentTrackerIds = state.trackers
+        .map((t) => t.workflow_stage_id)
+        .sort();
+      const newTrackerIds = newTrackers.map((t) => t.workflow_stage_id).sort();
+
+      if (JSON.stringify(currentTrackerIds) !== JSON.stringify(newTrackerIds)) {
+        // Create a default workflow if none exists
+        const defaultWorkflow = {
+          id: 0,
+          name: "Default Workflow",
+          type: "serialize" as const,
+          description: "Workflow generated from configuration",
+          trackers: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        // Convert CategoryProgressTrackerProps to ProgressTrackerResponseData
+        const convertedTrackers = newTrackers.map((tracker, index) => ({
+          id: index + 1,
+          workflow_id: 0,
+          workflow_stage_id: tracker.workflow_stage_id,
+          identifier: tracker.identifier,
+          document_type_id: 1, // Default value
+          group_id: tracker.group_id,
+          carder_id: tracker.carder_id,
+          department_id: tracker.department_id,
+          signatory_id: 0, // Default value
+          internal_process_id: 0, // Default value
+          permission: tracker.permission,
+          order: tracker.order,
+          stage: null,
+          group: null,
+          document_type: null,
+          carder: null,
+          actions: tracker.actions || [],
+          recipients: [],
+          loadedActions: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+        actions.setWorkflow(defaultWorkflow, convertedTrackers);
+      }
+    }
+  }, [state.configState, state.trackers, actions]);
 
   return (
     <div className="settings__generator__tab__container">

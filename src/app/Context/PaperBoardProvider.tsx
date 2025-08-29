@@ -24,6 +24,7 @@ import { DocumentResponseData } from "../Repositories/Document/data";
 import {
   DocumentCategoryResponseData,
   DocumentMetaDataProps,
+  PointerThreadProps,
 } from "../Repositories/DocumentCategory/data";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
@@ -94,6 +95,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     watchers: [],
     requirements: [],
+    threads: [],
   };
 
   const [state, dispatch] = useReducer(paperBoardReducer, initialState);
@@ -448,6 +450,12 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       },
       updateRequirements: (requirements: DocumentRequirementProps) => {
         dispatch({ type: "UPDATE_REQUIREMENTS", payload: requirements });
+      },
+      setThreads: (threads: PointerThreadProps[]) => {
+        dispatch({ type: "SET_THREADS", payload: threads });
+      },
+      updateThreads: (threads: PointerThreadProps) => {
+        dispatch({ type: "UPDATE_THREADS", payload: threads });
       },
     }),
     [dispatch]
