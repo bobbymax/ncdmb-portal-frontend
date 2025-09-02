@@ -6,8 +6,8 @@ const flash = (title: string, status: any, mssg: string) => {
     title: title,
     text: mssg,
     showCancelButton: true,
-    confirmButtonColor: "#4caf50",
-    cancelButtonColor: "#f44336",
+    confirmButtonColor: "#2a9134", // Using project's tetiary color
+    cancelButtonColor: "#a91e2c", // Using project's danger color
     confirmButtonText: "Confirm",
     cancelButtonText: "Cancel",
     customClass: {

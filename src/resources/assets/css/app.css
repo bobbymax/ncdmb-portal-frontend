@@ -11,6 +11,7 @@
 @import "modal.css";
 @import "workflow-preview.css";
 @import "app/Plugins/editor/styles.css";
+@import "ui.css";
 /* @import "global.css"; */
 
 :root {
@@ -11838,6 +11839,450 @@ html {
   border-color: var(--border-color);
 }
 
+/* Dark Theme for ManageResourcePage Specific Styles */
+[data-theme="dark"] .custom-card-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .custom-card-header h1 {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .custom-card-header .storm-bttn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .custom-card-header .storm-bttn:hover {
+  background: var(--hover-bg);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .custom-card-header .storm-bttn.storm-bttn-danger {
+  background: var(--color-bttn-danger);
+  border-color: var(--color-bttn-danger);
+  color: var(--color-white);
+}
+
+[data-theme="dark"] .custom-card-header .storm-bttn.storm-bttn-danger:hover {
+  background: var(--color-bttn-danger-variant);
+  border-color: var(--color-bttn-danger-variant);
+}
+
+/* Dark Theme for Form Elements in ManageResourcePage */
+[data-theme="dark"] .container-fluid {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .row {
+  background: transparent;
+}
+
+[data-theme="dark"] .col-md-12 {
+  background: transparent;
+}
+
+/* Dark Theme for Button Groups */
+[data-theme="dark"] .flex.align.gap-md {
+  background: transparent;
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn:hover {
+  background: var(--hover-bg);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn[type="submit"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn[type="submit"]:hover {
+  background: var(--color-primary-alternate);
+  border-color: var(--color-primary-alternate);
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn.storm-bttn-danger {
+  background: var(--color-bttn-danger);
+  border-color: var(--color-bttn-danger);
+  color: var(--color-white);
+}
+
+[data-theme="dark"] .flex.align.gap-md .storm-bttn.storm-bttn-danger:hover {
+  background: var(--color-bttn-danger-variant);
+  border-color: var(--color-bttn-danger-variant);
+}
+
+/* Dark Theme for Form Container */
+[data-theme="dark"] form {
+  background: transparent;
+}
+
+[data-theme="dark"] form .row {
+  background: transparent;
+}
+
+/* Dark Theme for Specific Text Colors */
+[data-theme="dark"] h1[style*="color: #4c934c"] {
+  color: var(--color-primary) !important;
+}
+
+/* Dark Theme for Button States */
+[data-theme="dark"] .storm-bttn:disabled,
+[data-theme="dark"] .storm-bttn.is-disabled {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .storm-bttn:disabled:hover,
+[data-theme="dark"] .storm-bttn.is-disabled:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Dark Theme for Form Validation */
+[data-theme="dark"] .validation-error {
+  color: var(--color-bttn-danger);
+  background: rgba(169, 30, 44, 0.1);
+  border: 1px solid rgba(169, 30, 44, 0.3);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+[data-theme="dark"] .validation-success {
+  color: var(--color-bttn-success);
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+/* Dark Theme for Loading States */
+[data-theme="dark"] .loading {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .loading .spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--color-primary);
+}
+
+/* Dark Theme for Error States */
+[data-theme="dark"] .error {
+  color: var(--color-bttn-danger);
+  background: rgba(169, 30, 44, 0.1);
+  border: 1px solid rgba(169, 30, 44, 0.3);
+}
+
+/* Dark Theme for Success States */
+[data-theme="dark"] .success {
+  color: var(--color-bttn-success);
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+/* Dark Theme for Flex Utilities */
+[data-theme="dark"] .flex {
+  background: transparent;
+}
+
+[data-theme="dark"] .flex.align {
+  background: transparent;
+}
+
+[data-theme="dark"] .flex.align.between {
+  background: transparent;
+}
+
+[data-theme="dark"] .flex.align.gap-md {
+  background: transparent;
+}
+
+/* Dark Theme for Margin and Padding Utilities */
+[data-theme="dark"] .mb-3 {
+  background: transparent;
+}
+
+[data-theme="dark"] .col-md-12 {
+  background: transparent;
+}
+
+/* Dark Theme for Form Submit Button */
+[data-theme="dark"] form button[type="submit"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+[data-theme="dark"] form button[type="submit"]:hover {
+  background: var(--color-primary-alternate);
+  border-color: var(--color-primary-alternate);
+}
+
+[data-theme="dark"] form button[type="submit"]:disabled {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Dark Theme for Inline Styles Override */
+[data-theme="dark"] h1[style*="color: #4c934c"] {
+  color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] h1[style*="fontWeight: 500"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] h1[style*="letterSpacing: 0.7"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] h1[style*="textTransform: uppercase"] {
+  color: var(--text-primary) !important;
+}
+
+/* Dark Theme for Button Variants */
+[data-theme="dark"] .storm-bttn.rounded {
+  border-radius: 20px;
+}
+
+[data-theme="dark"] .storm-bttn.storm-bttn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Dark Theme for Form EncType */
+[data-theme="dark"] form[encType="multipart/form-data"] {
+  background: transparent;
+}
+
+/* Dark Theme for Component Props */
+[data-theme="dark"] .Component {
+  background: transparent;
+}
+
+/* Dark Theme for Dependencies */
+[data-theme="dark"] .dependencies {
+  background: transparent;
+}
+
+/* Dark Theme for Mode Specific Styles */
+[data-theme="dark"] .mode-update {
+  background: transparent;
+}
+
+[data-theme="dark"] .mode-create {
+  background: transparent;
+}
+
+/* Dark Theme Enhancements for ManageResourcePage */
+[data-theme="dark"] .ManageResourcePage {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .ManageResourcePage .container-fluid {
+  background: var(--bg-primary);
+}
+
+[data-theme="dark"] .ManageResourcePage .custom-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .ManageResourcePage .file__card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .ManageResourcePage .custom-card-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem;
+}
+
+[data-theme="dark"] .ManageResourcePage .custom-card-header h1 {
+  color: var(--text-primary);
+  text-shadow: none;
+}
+
+[data-theme="dark"] .ManageResourcePage form {
+  background: transparent;
+}
+
+[data-theme="dark"] .ManageResourcePage form .row {
+  background: transparent;
+}
+
+[data-theme="dark"] .ManageResourcePage form .col-md-12 {
+  background: transparent;
+}
+
+/* Dark Theme for Button Container */
+[data-theme="dark"] .ManageResourcePage .flex.align.gap-md {
+  background: transparent;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+  margin-top: 1rem;
+}
+
+/* Dark Theme for Submit Button */
+[data-theme="dark"] .ManageResourcePage form button[type="submit"] {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-alternate)
+  );
+  border: 1px solid var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .ManageResourcePage form button[type="submit"]:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-alternate),
+    var(--color-primary)
+  );
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .ManageResourcePage form button[type="submit"]:disabled {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Dark Theme for Destroy Button */
+[data-theme="dark"] .ManageResourcePage .storm-bttn.storm-bttn-danger {
+  background: linear-gradient(
+    135deg,
+    var(--color-bttn-danger),
+    var(--color-bttn-danger-variant)
+  );
+  border: 1px solid var(--color-bttn-danger);
+  color: var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .ManageResourcePage .storm-bttn.storm-bttn-danger:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-bttn-danger-variant),
+    var(--color-bttn-danger)
+  );
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Dark Theme for Back Button */
+[data-theme="dark"] .ManageResourcePage .storm-bttn.storm-bttn-danger.rounded {
+  background: linear-gradient(
+    135deg,
+    var(--color-bttn-danger),
+    var(--color-bttn-danger-variant)
+  );
+  border: 1px solid var(--color-bttn-danger);
+  color: var(--color-white);
+}
+
+[data-theme="dark"]
+  .ManageResourcePage
+  .storm-bttn.storm-bttn-danger.rounded:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-bttn-danger-variant),
+    var(--color-bttn-danger)
+  );
+  transform: translateY(-1px);
+}
+
+/* Dark Theme for Form Validation Messages */
+[data-theme="dark"] .ManageResourcePage .validation-error {
+  background: rgba(169, 30, 44, 0.1);
+  border: 1px solid rgba(169, 30, 44, 0.3);
+  color: var(--color-bttn-danger);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+[data-theme="dark"] .ManageResourcePage .validation-success {
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  color: var(--color-bttn-success);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+/* Dark Theme for Loading States */
+[data-theme="dark"] .ManageResourcePage .loading {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ManageResourcePage .loading .spinner {
+  border: 2px solid var(--border-color);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark Theme for Error States */
+[data-theme="dark"] .ManageResourcePage .error {
+  background: rgba(169, 30, 44, 0.1);
+  border: 1px solid rgba(169, 30, 44, 0.3);
+  color: var(--color-bttn-danger);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+/* Dark Theme for Success States */
+[data-theme="dark"] .ManageResourcePage .success {
+  background: rgba(39, 174, 96, 0.1);
+  border: 1px solid rgba(39, 174, 96, 0.3);
+  color: var(--color-bttn-success);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
 [data-theme="dark"] .storm-form-control.storm-control-with-icon {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -12731,4 +13176,872 @@ html {
 .login-form-card .storm-form-control.storm-control-with-icon:disabled i {
   color: #94a3b8 !important;
   opacity: 0.6 !important;
+}
+
+/* ===== NEW CLASSY LOGIN DESIGN ===== */
+
+/* Main Sign In Container */
+.sign_in_container {
+  position: relative;
+  min-height: 100vh;
+  min-width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  overflow: hidden;
+  padding: 2rem;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Circuit Board Background Pattern */
+.sign_in_container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+      45deg,
+      rgba(59, 130, 246, 0.03) 25%,
+      transparent 25%
+    ),
+    linear-gradient(-45deg, rgba(59, 130, 246, 0.03) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(59, 130, 246, 0.03) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(59, 130, 246, 0.03) 75%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+  opacity: 0.6;
+}
+
+/* Circuit Lines */
+.sign_in_container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(
+      2px 2px at 20px 30px,
+      rgba(59, 130, 246, 0.1),
+      transparent
+    ),
+    radial-gradient(2px 2px at 40px 70px, rgba(59, 130, 246, 0.08), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(59, 130, 246, 0.06), transparent),
+    radial-gradient(
+      1px 1px at 130px 80px,
+      rgba(59, 130, 246, 0.05),
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 160px 30px,
+      rgba(59, 130, 246, 0.04),
+      transparent
+    );
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: circuit-drift 80s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes circuit-drift {
+  0% {
+    transform: translateX(0px) translateY(0px);
+  }
+  100% {
+    transform: translateX(-200px) translateY(-100px);
+  }
+}
+
+/* Centered Form Container */
+.sign_in_container .flex.column.gap-md {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(42, 145, 52, 0.15);
+  border-radius: 28px;
+  padding: 3.5rem;
+  box-shadow: 0 12px 40px rgba(42, 145, 52, 0.12),
+    0 0 0 1px rgba(42, 145, 52, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Glassy Form Enhancement */
+.sign_in_container .flex.column.gap-md::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(42, 145, 52, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  border-radius: 28px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sign_in_container .flex.column.gap-md:hover::before {
+  opacity: 1;
+}
+
+/* Flickering Effects on Form Hover */
+.sign_in_container .flex.column.gap-md::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.8s ease;
+  pointer-events: none;
+  border-radius: 28px;
+}
+
+.sign_in_container .flex.column.gap-md:hover::after {
+  left: 100%;
+}
+
+/* Subtle Glow Effect */
+.sign_in_container .flex.column.gap-md:hover {
+  animation: formGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes formGlow {
+  0% {
+    box-shadow: 0 20px 60px rgba(42, 145, 52, 0.18),
+      0 0 0 1px rgba(42, 145, 52, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+  100% {
+    box-shadow: 0 20px 60px rgba(42, 145, 52, 0.22),
+      0 0 0 1px rgba(42, 145, 52, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 0 20px rgba(42, 145, 52, 0.1);
+  }
+}
+
+/* Hover Effect */
+.sign_in_container .flex.column.gap-md:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(42, 145, 52, 0.18),
+    0 0 0 1px rgba(42, 145, 52, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Logo Styling */
+.sign_in_container .brand {
+  text-align: center;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sign_in_container .brand img {
+  width: 60px !important;
+  height: auto;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.sign_in_container .brand:hover img {
+  transform: scale(1.05);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+.sign_in_container .logo__area img {
+  height: 24px;
+  width: auto;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.sign_in_container .brand:hover .logo__area img {
+  opacity: 1;
+}
+
+/* Enhanced Small Text Styling */
+.sign_in_container .small-text {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.sign_in_container .small-text::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.3),
+    transparent
+  );
+  transform: translateX(-50%);
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.sign_in_container .brand:hover + .small-text {
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.sign_in_container .brand:hover + .small-text::after {
+  width: 60px;
+  opacity: 1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.5),
+    transparent
+  );
+}
+
+/* Form Elements */
+.sign_in_container form {
+  width: 100%;
+}
+
+.sign_in_container .row {
+  margin: 0;
+}
+
+.sign_in_container .col-md-12 {
+  padding: 0;
+  margin-bottom: 0;
+}
+
+/* Input Field Styling */
+.sign_in_container .login-text-input-with-icon,
+.sign_in_container .LoginTextInputWithIcon {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.3);
+  border-radius: 12px;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  margin-bottom: 1.5rem;
+}
+
+.sign_in_container .login-text-input-with-icon:focus,
+.sign_in_container .LoginTextInputWithIcon:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1),
+    0 4px 12px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.sign_in_container .login-text-input-with-icon::placeholder,
+.sign_in_container .LoginTextInputWithIcon::placeholder {
+  color: #64748b;
+}
+
+/* Icon Styling */
+.sign_in_container .icon-item i,
+.sign_in_container .with-icon i {
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.sign_in_container .icon-item:focus-within i,
+.sign_in_container .with-icon:focus-within i {
+  color: #3b82f6;
+}
+
+/* Custom Login Button Design - Updated for CustomButton component */
+.sign_in_container .custom-bttn {
+  background: #2a9134 !important; /* Primary green color */
+  border: 2px solid rgba(42, 145, 52, 0.3) !important;
+  border-radius: 50px !important;
+  color: white !important;
+  font-weight: 600 !important;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 1rem 2.5rem !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.5px !important;
+  text-transform: none !important;
+  width: auto !important;
+  min-width: 200px !important;
+  max-width: 280px !important;
+  box-shadow: 0 4px 20px rgba(42, 145, 52, 0.2),
+    0 0 0 1px rgba(42, 145, 52, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  cursor: pointer !important;
+  font-family: "Poppins", sans-serif !important;
+  z-index: 1 !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+.sign_in_container .custom-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.sign_in_container .custom-button:hover::before {
+  left: 100%;
+}
+
+.sign_in_container .custom-bttn:hover {
+  transform: translateY(-2px) !important;
+  background: #137547 !important; /* Darker green on hover */
+  border-color: rgba(42, 145, 52, 0.5) !important;
+  color: white !important;
+  box-shadow: 0 8px 30px rgba(42, 145, 52, 0.3),
+    0 0 0 1px rgba(42, 145, 52, 0.2), 0 0 0 4px rgba(42, 145, 52, 0.1) !important;
+}
+
+.sign_in_container .custom-button:disabled {
+  background: #94a3b8;
+  color: #64748b;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading State */
+.sign_in_container .custom-button i.ri-loader-4-line {
+  animation: spin 1s linear infinite;
+}
+
+/* Password Forgot Link */
+.sign_in_container .password-forgot {
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  position: relative;
+  text-align: center;
+  display: block;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.sign_in_container .password-forgot::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: #3b82f6;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.sign_in_container .password-forgot:hover {
+  color: #3b82f6;
+}
+
+.sign_in_container .password-forgot:hover::after {
+  width: 100%;
+}
+
+/* Button Wrapper Animation */
+.sign_in_container .button-wrapper {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sign_in_container .button-wrapper.animating {
+  animation: button-shake 0.8s ease-in-out;
+}
+
+@keyframes button-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sign_in_container {
+    padding: 1rem;
+  }
+
+  .sign_in_container .flex.column.gap-md {
+    padding: 2.5rem;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sign_in_container .flex.column.gap-md {
+    padding: 2rem;
+    margin: 0.5rem;
+  }
+
+  .sign_in_container .custom-button {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== DARK THEME - SPACE-LIKE DESIGN ===== */
+
+[data-theme="dark"] .sign_in_container {
+  background: linear-gradient(
+    135deg,
+    #000000 0%,
+    #0a0a0a 20%,
+    #111111 40%,
+    #1a1a1a 60%,
+    #1f1f1f 80%,
+    #2a2a2a 100%
+  );
+}
+
+[data-theme="dark"] .sign_in_container::before {
+  background-image: linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.02) 25%,
+      transparent 25%
+    ),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.02) 75%);
+  opacity: 0.3;
+}
+
+[data-theme="dark"] .sign_in_container::after {
+  background-image: radial-gradient(
+      2px 2px at 20px 30px,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 40px 70px,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    ),
+    radial-gradient(
+      1px 1px at 90px 40px,
+      rgba(255, 255, 255, 0.04),
+      transparent
+    ),
+    radial-gradient(
+      1px 1px at 130px 80px,
+      rgba(255, 255, 255, 0.03),
+      transparent
+    ),
+    radial-gradient(
+      2px 2px at 160px 30px,
+      rgba(255, 255, 255, 0.02),
+      transparent
+    );
+  opacity: 0.2;
+}
+
+[data-theme="dark"] .sign_in_container .flex.column.gap-md {
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .sign_in_container .flex.column.gap-md:hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .sign_in_container .login-text-input-with-icon,
+[data-theme="dark"] .sign_in_container .LoginTextInputWithIcon {
+  background: rgba(15, 52, 96, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .sign_in_container .login-text-input-with-icon:focus,
+[data-theme="dark"] .sign_in_container .LoginTextInputWithIcon:focus {
+  background: rgba(15, 52, 96, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sign_in_container .login-text-input-with-icon::placeholder,
+[data-theme="dark"] .sign_in_container .LoginTextInputWithIcon::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .sign_in_container .icon-item i,
+[data-theme="dark"] .sign_in_container .with-icon i {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .sign_in_container .icon-item:focus-within i,
+[data-theme="dark"] .sign_in_container .with-icon:focus-within i {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="dark"] .sign_in_container .custom-bttn {
+  background: #111111 !important; /* Matte black background */
+  border: 2px solid rgba(42, 145, 52, 0.4) !important;
+  color: #10b981 !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(42, 145, 52, 0.1) !important;
+}
+
+[data-theme="dark"] .sign_in_container .custom-bttn:hover {
+  transform: translateY(-2px) !important;
+  background: #1a1a1a !important; /* Slightly lighter matte black */
+  border-color: rgba(42, 145, 52, 0.6) !important;
+  color: #34d399 !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(42, 145, 52, 0.15),
+    0 0 0 4px rgba(42, 145, 52, 0.08) !important;
+}
+
+[data-theme="dark"] .sign_in_container .custom-bttn:disabled {
+  background: #0a0a0a !important; /* Darker matte black */
+  border-color: rgba(42, 145, 52, 0.2) !important;
+  color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(42, 145, 52, 0.05) !important;
+}
+
+[data-theme="dark"] .sign_in_container .password-forgot {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .sign_in_container .password-forgot::after {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .sign_in_container .password-forgot:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Dark Theme Responsive */
+@media (max-width: 768px) {
+  [data-theme="dark"] .sign_in_container .flex.column.gap-md {
+    background: rgba(18, 18, 18, 0.98);
+  }
+}
+
+@media (max-width: 480px) {
+  [data-theme="dark"] .sign_in_container .flex.column.gap-md {
+    background: rgba(16, 16, 16, 0.98);
+  }
+}
+
+/* ===== ADDITIONAL ENHANCEMENTS ===== */
+
+/* Enhanced Input Field Styling */
+.sign_in_container .login-text-input-with-icon,
+.sign_in_container .LoginTextInputWithIcon {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  transition: all 0.4s ease;
+}
+
+.sign_in_container .login-text-input-with-icon::before,
+.sign_in_container .LoginTextInputWithIcon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(42, 145, 52, 0.08),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.sign_in_container .login-text-input-with-icon:focus::before,
+.sign_in_container .LoginTextInputWithIcon:focus::before {
+  left: 100%;
+}
+
+/* Input Field Flickering on Hover */
+.sign_in_container .login-text-input-with-icon:hover,
+.sign_in_container .LoginTextInputWithIcon:hover {
+  animation: inputFlicker 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes inputFlicker {
+  0% {
+    box-shadow: 0 0 0 1px rgba(42, 145, 52, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(42, 145, 52, 0.2);
+  }
+}
+
+/* Enhanced Button States */
+.sign_in_container .custom-bttn:active {
+  transform: translateY(0px) !important;
+  background: #065f46 !important; /* Even darker green on active */
+  border-color: rgba(42, 145, 52, 0.4) !important;
+  box-shadow: 0 4px 20px rgba(42, 145, 52, 0.25),
+    0 0 0 1px rgba(42, 145, 52, 0.15) !important;
+}
+
+/* Button Icon Enhancement */
+.sign_in_container .custom-bttn i {
+  margin-right: 0.5rem !important;
+  font-size: 1.1rem !important;
+  transition: all 0.4s ease !important;
+  opacity: 0.9 !important;
+}
+
+.sign_in_container .custom-bttn:hover i {
+  transform: translateX(2px) !important;
+  opacity: 1 !important;
+}
+
+/* Button Text Enhancement */
+.sign_in_container .custom-bttn span {
+  font-weight: 600 !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* Button Focus Enhancement */
+.sign_in_container .custom-bttn:focus {
+  outline: none !important;
+  box-shadow: 0 2px 20px rgba(42, 145, 52, 0.2),
+    0 0 0 1px rgba(42, 145, 52, 0.15), 0 0 0 4px rgba(42, 145, 52, 0.1) !important;
+}
+
+/* Button Loading State Icon */
+.sign_in_container .custom-bttn i.ri-loader-4-line {
+  animation: spin 1.2s linear infinite !important;
+  color: inherit !important;
+}
+
+/* Button Hover Text Effect */
+.sign_in_container .custom-bttn:hover span {
+  transform: translateX(1px) !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Button Ripple Effect */
+.sign_in_container .custom-bttn::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-radius: 50% !important;
+  background: rgba(42, 145, 52, 0.15) !important;
+  transform: translate(-50%, -50%) !important;
+  transition: width 0.6s ease, height 0.6s ease !important;
+  z-index: -1 !important;
+}
+
+.sign_in_container .custom-bttn:active::after {
+  width: 300px !important;
+  height: 300px !important;
+}
+
+/* Additional Glassy Effects */
+.sign_in_container .custom-bttn::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(42, 145, 52, 0.08) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  ) !important;
+  border-radius: 50px !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+.sign_in_container .custom-bttn:hover::before {
+  opacity: 1 !important;
+}
+
+/* Button Loading State Enhancement */
+.sign_in_container .custom-bttn:disabled {
+  background: rgba(42, 145, 52, 0.4) !important;
+  border-color: rgba(42, 145, 52, 0.2) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  transform: none !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(42, 145, 52, 0.1) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* Focus States for Accessibility */
+.sign_in_container *:focus {
+  outline: none;
+}
+
+.sign_in_container *:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Logo Enhancement */
+.sign_in_container .brand {
+  position: relative;
+  z-index: 3;
+}
+
+.sign_in_container .brand::after {
+  content: "";
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.4),
+    transparent
+  );
+  transform: translateX(-50%);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.sign_in_container .brand:hover::after {
+  width: 120px;
+  opacity: 1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.6),
+    transparent
+  );
+}
+
+/* Form Enhancement */
+.sign_in_container form {
+  position: relative;
+  z-index: 3;
+}
+
+/* Enhanced Spacing */
+.sign_in_container .mb-4 {
+  margin-bottom: 2rem;
+}
+
+.sign_in_container .mb-5 {
+  margin-bottom: 2.5rem;
+}
+
+.sign_in_container .mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+/* Form Layout Perfection */
+.sign_in_container form {
+  margin-top: 1rem;
+}
+
+.sign_in_container .row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sign_in_container .col-md-12 {
+  margin-bottom: 0;
+}
+
+/* Input Field Spacing */
+.sign_in_container .login-text-input-with-icon,
+.sign_in_container .LoginTextInputWithIcon {
+  margin-bottom: 1.5rem;
+}
+
+/* Button Container Enhancement */
+.sign_in_container .button-wrapper {
+  margin-top: 0.5rem;
+}
+
+/* Smooth Transitions */
+.sign_in_container * {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Hover Effects */
+.sign_in_container .flex.column.gap-md:hover .brand::after {
+  opacity: 1;
+  width: 120px;
+}
+
+/* Dark Theme Logo Enhancement */
+[data-theme="dark"] .sign_in_container .brand::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+}
+
+[data-theme="dark"] .sign_in_container .brand:hover::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+}
+
+/* Dark Theme Enhanced Transitions */
+[data-theme="dark"] .sign_in_container * {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

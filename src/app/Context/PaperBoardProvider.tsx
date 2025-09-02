@@ -96,6 +96,9 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     watchers: [],
     requirements: [],
     threads: [],
+    existingDocument: null,
+    currentPointer: null,
+    accessLevel: "looker",
   };
 
   const [state, dispatch] = useReducer(paperBoardReducer, initialState);
@@ -116,6 +119,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     resources: urlResources,
     loggedInUser: staff,
     requirements: urlRequirements,
+    existingDocument,
   } = useDocumentGenerator(params);
 
   // Initialize state from URL params - use refs to prevent infinite loops
@@ -133,6 +137,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     resources: false,
     loggedInUser: false,
     requirements: false,
+    existingDocument: false,
   });
 
   useEffect(() => {
@@ -262,6 +267,11 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       initializedRef.current.requirements = true;
       dispatch({ type: "SET_REQUIREMENTS", payload: urlRequirements });
     }
+
+    if (existingDocument && !initializedRef.current.existingDocument) {
+      initializedRef.current.existingDocument = true;
+      dispatch({ type: "SET_EXISTING_DOCUMENT", payload: existingDocument });
+    }
   }, [
     urlCategory,
     urlTemplate,
@@ -285,6 +295,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     state.loggedInUser,
     staff,
     urlRequirements,
+    existingDocument,
   ]);
 
   // Separate effect for handling resources updates
@@ -456,6 +467,17 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       },
       updateThreads: (threads: PointerThreadProps) => {
         dispatch({ type: "UPDATE_THREADS", payload: threads });
+      },
+      setExistingDocument: (document: DocumentResponseData | null) => {
+        dispatch({ type: "SET_EXISTING_DOCUMENT", payload: document });
+      },
+      setCurrentPointer: (pointer: string | null) => {
+        dispatch({ type: "SET_CURRENT_POINTER", payload: pointer });
+      },
+      setAccessLevel: (
+        accessLevel: "looker" | "authority" | "approver" | "lock"
+      ) => {
+        dispatch({ type: "SET_ACCESS_LEVEL", payload: accessLevel });
       },
     }),
     [dispatch]

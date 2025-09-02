@@ -15,10 +15,13 @@ import {
   ResourceProps,
 } from "../Context/PaperBoardContext";
 import { useAuth } from "../Context/AuthContext";
+import { DocumentResponseData } from "../Repositories/Document/data";
 
 const useDocumentGenerator = (params: unknown) => {
   const { staff } = useAuth();
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
+  const [existingDocument, setExistingDocument] =
+    useState<DocumentResponseData | null>(null);
   const [category, setCategory] = useState<DocumentCategoryResponseData | null>(
     null
   );
@@ -89,6 +92,21 @@ const useDocumentGenerator = (params: unknown) => {
   useEffect(() => {
     if (params && _.has(params, "id")) {
       const id = Number(params.id);
+
+      if (_.has(params, "documentId")) {
+        const documentId = Number(params.documentId);
+
+        const fetchDocument = async () => {
+          const response = await categoryRepo.show("documents", documentId);
+
+          if (response && _.has(response, "data")) {
+            const document = response.data as DocumentResponseData;
+            setExistingDocument(document);
+          }
+        };
+
+        fetchDocument();
+      }
 
       const fetchCategory = async () => {
         const response = await categoryRepo.show("documentCategories", id);
@@ -180,6 +198,8 @@ const useDocumentGenerator = (params: unknown) => {
     resources,
     loggedInUser: staff,
     requirements,
+    existingDocument,
+    setExistingDocument,
   };
 };
 

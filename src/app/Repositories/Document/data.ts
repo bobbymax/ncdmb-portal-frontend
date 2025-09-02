@@ -5,6 +5,17 @@ import { DocumentTypeResponseData } from "../DocumentType/data";
 import { WorkflowResponseData } from "../Workflow/data";
 import { DocumentUpdateResponseData } from "../DocumentUpdate/data";
 import { DocumentActionResponseData } from "../DocumentAction/data";
+import {
+  DocumentMetaDataProps,
+  PointerThreadProps,
+} from "../DocumentCategory/data";
+import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
+import {
+  SettingsProps,
+  WatcherProps,
+} from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
+import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 
 export interface UploadResponseData extends BaseResponse {
   user_id: number;
@@ -54,6 +65,7 @@ export interface DocumentOwnerData {
 
 export interface DocumentResponseData extends BaseResponse {
   user_id?: number;
+  created_by?: number;
   department_id?: number;
   document_category_id: number;
   document_reference_id: number;
@@ -70,18 +82,26 @@ export interface DocumentResponseData extends BaseResponse {
   document_template: string;
   documentable?: DocumentableData;
   status: string;
-  drafts: DocumentDraftResponseData[];
-  // action?: DocumentActionProps | null
-  workflow: WorkflowResponseData | null;
+  drafts: DocumentDraftResponseData[]; // ignore
+  // action?: DocumentActionProps | null // ignore
+  workflow: WorkflowResponseData | null; // ignore
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;
-  linked_drafts?: DocumentDraftResponseData[];
-  complete_or_linked_drafts?: DocumentDraftResponseData[];
+  linked_drafts?: DocumentDraftResponseData[]; // ignore
+  complete_or_linked_drafts?: DocumentDraftResponseData[]; // ignore
   dept?: string;
-  updates?: DocumentUpdateResponseData[];
-  action?: Partial<DocumentActionResponseData> | null;
-  parents?: DocumentResponseData[];
+  updates?: DocumentUpdateResponseData[]; // ignore
+  action?: Partial<DocumentActionResponseData> | null; // ignore
+  parents?: DocumentResponseData[]; // ignore
+  meta_data?: DocumentMetaDataProps | null;
+  uploaded_requirements?: DocumentRequirementResponseData[];
+  preferences?: SettingsProps;
+  pointer?: string;
+  threads?: PointerThreadProps[];
+  watchers?: WatcherProps[];
+  contents?: ContentBlock[];
+  config?: ProcessFlowConfigProps;
   amount?: number;
   is_archived: number;
   created_at?: string;

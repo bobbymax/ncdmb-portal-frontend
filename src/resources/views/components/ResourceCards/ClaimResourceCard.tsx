@@ -196,6 +196,51 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
   }, [expenseState, claimState.expenses]);
 
   useEffect(() => {
+    if (state.existingDocument) {
+      const existingClaim = state.existingDocument
+        .documentable as unknown as ClaimResponseData;
+      // console.log(existingClaim);
+
+      setClaimState((prev) => ({
+        ...prev,
+        start_date: existingClaim.start_date,
+        end_date: existingClaim.end_date,
+        departure_city_id: existingClaim.departure_city_id,
+        destination_city_id: existingClaim.destination_city_id,
+        airport_id: existingClaim.airport_id,
+        sponsoring_department_id: existingClaim.sponsoring_department_id,
+        resident_type: existingClaim.resident_type,
+        distance: existingClaim.distance,
+        mode: existingClaim.mode,
+        route: existingClaim.route,
+      }));
+
+      const departure_city = formatOptions(cities, "id", "name").find(
+        (city) => city.value === existingClaim.departure_city_id
+      );
+      const destination_city = formatOptions(cities, "id", "name").find(
+        (city) => city.value === existingClaim.destination_city_id
+      );
+      const airport = formatOptions(cities, "id", "name").find(
+        (city) => city.value === existingClaim.airport_id
+      );
+      const sponsoring_department = formatOptions(
+        departments,
+        "id",
+        "abv"
+      ).find((dept) => dept.value === existingClaim.sponsoring_department_id);
+
+      setSelectedOptions((prev) => ({
+        ...prev,
+        departure_city: departure_city ?? null,
+        destination_city: destination_city ?? null,
+        airport: airport ?? null,
+        sponsoring_department: sponsoring_department ?? null,
+      }));
+    }
+  }, [state.existingDocument, cities, departments]);
+
+  useEffect(() => {
     const getDependencies = async () => {
       const dependencies = await repository.dependencies();
       setDependencies(dependencies);
@@ -203,6 +248,8 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
 
     getDependencies();
   }, [repository]);
+
+  // console.log(claimState);
 
   return (
     <div className="document__generator__container">

@@ -10,6 +10,7 @@ import NewBrandLogo from "../components/pages/NewBrandLogo";
 import { Link } from "react-router-dom";
 import LoginTextInputWithIcon from "../components/forms/LoginTextInputWithIcon";
 import CustomButton from "../components/forms/CustomButton";
+import CompanyLogo from "../components/pages/CompanyLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -82,81 +83,60 @@ const Login = () => {
   };
 
   return (
-    <div className="modern-login-container">
-      {/* Workspace Background Vectors */}
-      <div className="workspace-vectors">
-        <div className="vector vector-desk"></div>
-        <div className="vector vector-monitor"></div>
-        <div className="vector vector-keyboard"></div>
-        <div className="vector vector-mouse"></div>
-        <div className="vector vector-plant"></div>
-        <div className="vector vector-lamp"></div>
-        <div className="vector vector-papers"></div>
-        <div className="vector vector-coffee"></div>
-      </div>
+    <div className="sign_in_container">
+      <div className="flex column gap-md">
+        <CompanyLogo />
+        <div className="mb-4"></div>
 
-      {/* Centered Form Container */}
-      <div className="login-form-container">
-        <div className="login-form-card">
-          <div className="flex column gap-md">
-            <NewBrandLogo />
-            <div className="mb-4"></div>
+        <form onSubmit={handleSubmit}>
+          <div className="row">
+            <div className="col-md-12 mb-3">
+              <LoginTextInputWithIcon
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                size="md"
+                icon="user-5"
+                width={100}
+                isDisabled={isLoading}
+              />
+            </div>
+            <div className="col-md-12 mb-5">
+              <LoginTextInputWithIcon
+                placeholder="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                size="md"
+                icon="lock-password"
+                width={100}
+                isDisabled={isLoading}
+              />
+            </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="row">
-                <div className="col-md-12 mb-3">
-                  <LoginTextInputWithIcon
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    size="md"
-                    icon="user-5"
-                    width={100}
-                    isDisabled={isLoading}
-                  />
-                </div>
-                <div className="col-md-12 mb-5">
-                  <LoginTextInputWithIcon
-                    placeholder="Password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    size="md"
-                    icon="lock-password"
-                    width={100}
-                    isDisabled={isLoading}
-                  />
-                </div>
-
-                <div className="col-md-12 mb-4">
-                  <div
-                    className={
-                      isAnimating
-                        ? "button-wrapper animating"
-                        : "button-wrapper"
-                    }
-                  >
-                    <CustomButton
-                      type="submit"
-                      label={isLoading ? "" : "Login"}
-                      icon={
-                        isLoading ? "ri-loader-4-line" : "ri-login-box-line"
-                      }
-                      variant="success"
-                      size="md"
-                      isDisabled={isLoading || isAnimating}
-                    />
-                  </div>
-                </div>
-                <div className="col-md-12">
-                  <Link to="#" className="password-forgot flex align end">
-                    Forgot Password?
-                  </Link>
-                </div>
+            <div className="col-md-12 mb-4">
+              <div
+                className={
+                  isAnimating ? "button-wrapper animating" : "button-wrapper"
+                }
+              >
+                <CustomButton
+                  type="submit"
+                  label={isLoading ? "" : "Login"}
+                  icon={isLoading ? "ri-loader-4-line" : "ri-login-box-line"}
+                  variant="success"
+                  size="md"
+                  isDisabled={isLoading || isAnimating}
+                />
               </div>
-            </form>
+            </div>
+            <div className="col-md-12">
+              <Link to="#" className="password-forgot flex align end">
+                Forgot Password?
+              </Link>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

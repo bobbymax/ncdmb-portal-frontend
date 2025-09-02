@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import "../assets/css/app.css";
 import "../assets/css/styles.css";
 import { ToastContainer } from "react-toastify";
@@ -11,6 +11,14 @@ import avatar from "../assets/images/avatars/profile_picture.webp";
 import { useNavigate } from "react-router-dom";
 import PageLoader from "resources/views/components/loaders/PageLoader";
 import ThemeToggle from "resources/views/components/ThemeToggle";
+import DocumentGenerationProgress from "resources/views/components/DocumentGenerationProgress";
+
+// Global type declaration for the document progress modal
+declare global {
+  interface Window {
+    showDocumentProgressModal?: (onComplete: () => void) => void;
+  }
+}
 
 export interface ProtectedProps {
   children: ReactNode;
@@ -21,6 +29,13 @@ const Protected = ({ children }: ProtectedProps) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Global modal state for document generation progress
+  const [progressModalProps, setProgressModalProps] = useState({
+    isOpen: false,
+    onClose: () => {},
+    onComplete: () => {},
+  });
 
   const logoutUser = () => {
     logout();
@@ -52,6 +67,29 @@ const Protected = ({ children }: ProtectedProps) => {
       sidebar.classList.toggle("sidebar-collapsed");
     }
   };
+
+  // Function to show the progress modal globally
+  const showDocumentProgressModal = (onComplete: () => void) => {
+    setProgressModalProps({
+      isOpen: true,
+      onClose: () =>
+        setProgressModalProps((prev) => ({ ...prev, isOpen: false })),
+      onComplete: () => {
+        onComplete();
+        setProgressModalProps((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
+  };
+
+  // Expose the function globally so other components can use it
+  React.useEffect(() => {
+    window.showDocumentProgressModal = showDocumentProgressModal;
+
+    // Cleanup function to remove the global function
+    return () => {
+      delete window.showDocumentProgressModal;
+    };
+  }, []);
 
   return (
     <ModalProvider>
@@ -176,6 +214,14 @@ const Protected = ({ children }: ProtectedProps) => {
         </div>
         {/* End Main Content */}
       </main>
+
+      {/* Document Generation Progress Modal - Rendered at root level to cover header */}
+      <DocumentGenerationProgress
+        isOpen={progressModalProps.isOpen}
+        onClose={progressModalProps.onClose}
+        onComplete={progressModalProps.onComplete}
+      />
+
       <PageLoader />
       <ModalPage />
       <ToastContainer />

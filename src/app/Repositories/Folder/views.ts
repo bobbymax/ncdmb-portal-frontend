@@ -33,6 +33,17 @@ export const folderViews: ViewsProps[] = [
     index_path: "/desk/folders/create",
   },
   {
+    title: "Edit Generated Document",
+    server_url: "documents",
+    component: "DocumentBuilder",
+    frontend_path: "/desk/folders/category/:id/document/:documentId/edit",
+    type: "generator",
+    tag: "",
+    mode: "update",
+    action: "Edit Document",
+    index_path: "/desk/folders",
+  },
+  {
     title: "Build Document",
     server_url: "documents",
     component: "BuildDocument",

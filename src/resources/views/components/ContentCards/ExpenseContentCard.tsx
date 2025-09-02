@@ -59,13 +59,8 @@ const ExpenseContentCard: React.FC<ExpenseContentCardProps> = ({
   ) => {
     const expense = props as ExpenseResponseData;
 
-    console.log("handleAddOrEditExpense called with mode:", mode);
-    console.log("Expense data:", expense);
-    console.log("Current expenses:", expenseContent?.expense?.expenses);
-
     if (mode === "store") {
       // Add new expense - append to existing expenses
-      console.log("Adding new expense...");
       const newExpense: ContentBlock = {
         ...expenseContent?.contentBlock,
         id: crypto.randomUUID(),
@@ -78,23 +73,22 @@ const ExpenseContentCard: React.FC<ExpenseContentCardProps> = ({
             ...expenseContent?.expense,
             expenses: [
               ...(expenseContent?.expense?.expenses || []),
-              expense, // Append new expense
+              {
+                ...expense,
+                identifier: crypto.randomUUID(),
+              }, // Append new expense
             ],
           } as ExpenseContentProps,
         } as SheetProps,
       };
 
-      console.log("New expense block:", newExpense);
       actions.updateBody(newExpense, "expense");
     } else {
       // Update existing expense - find and replace it
-      console.log("Updating existing expense...");
       const updatedExpenses = (expenseContent?.expense?.expenses || []).map(
         (existingExpense) =>
           existingExpense.id === expense.id ? expense : existingExpense
       );
-
-      console.log("Updated expenses array:", updatedExpenses);
 
       const updatedExpense: ContentBlock = {
         ...expenseContent?.contentBlock,
@@ -110,8 +104,6 @@ const ExpenseContentCard: React.FC<ExpenseContentCardProps> = ({
           } as ExpenseContentProps,
         } as SheetProps,
       };
-
-      console.log("Updated expense block:", updatedExpense);
       actions.updateBody(updatedExpense, "expense");
     }
 

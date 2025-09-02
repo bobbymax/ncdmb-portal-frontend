@@ -20,29 +20,8 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   isEditing,
 }) => {
   const { state, actions } = usePaperBoard();
-
-  if (isEditing) {
-    return (
-      <div className="inline__content__card signature__card">
-        <div className="inline__card__header">
-          <h5>Signature Configuration</h5>
-        </div>
-        <div className="inline__card__content">
-          <p>Signature configuration coming soon...</p>
-          <div className="inline__card__actions">
-            <button className="btn__secondary" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // View mode - Check if signatures should be displayed
-  if (!state.category || state.category.signature_type === "none") {
-    return null; // Don't render anything if no signatures
-  }
+  // Use ref to track previous configState to detect actual changes
+  const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
 
   // Get stages that should be signed from configState
   const signableStages: CategoryProgressTrackerProps[] = [];
@@ -111,9 +90,6 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     [signableStages, state.resources?.users]
   );
 
-  // Use ref to track previous configState to detect actual changes
-  const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
-
   // Update global state with signature data when configState or signatures change
   useEffect(() => {
     // Check if configState has actually changed
@@ -146,6 +122,29 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       previousConfigState.current = state.configState;
     }
   }, [signatures, item.id, actions, state.configState]);
+
+  if (isEditing) {
+    return (
+      <div className="inline__content__card signature__card">
+        <div className="inline__card__header">
+          <h5>Signature Configuration</h5>
+        </div>
+        <div className="inline__card__content">
+          <p>Signature configuration coming soon...</p>
+          <div className="inline__card__actions">
+            <button className="btn__secondary" onClick={onClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // View mode - Check if signatures should be displayed
+  if (!state.category || state.category.signature_type === "none") {
+    return null; // Don't render anything if no signatures
+  }
 
   // Determine container class based on signature type
   const getContainerClass = () => {

@@ -23,6 +23,13 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     "claimant_signature",
     "approval_signature",
     "authorising_staff_id",
+    "resident_type",
+    "distance",
+    "mode",
+    "route",
+    "departure_city_id",
+    "destination_city_id",
+    "airport_id",
   ],
   associatedResources: [
     { name: "allowances", url: "allowances" },
@@ -61,6 +68,13 @@ export const claimConfig: ConfigProp<ClaimResponseData> = {
     owner: null,
     approval_signature: "",
     claimant_signature: "",
+    resident_type: "resident",
+    distance: 0,
+    mode: "flight",
+    route: "one-way",
+    departure_city_id: 0,
+    destination_city_id: 0,
+    airport_id: 0,
   },
   actions: [
     {

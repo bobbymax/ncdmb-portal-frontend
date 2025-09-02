@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import PaperBoardErrorBoundary from "app/Boundaries/PaperBoardErrorBoundary";
 import { PaperBoardProvider } from "app/Context/PaperBoardProvider";
 import DocumentTemplateContent from "./DocumentTemplateContent";
+import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useEffect } from "react";
 
 const GenerateDocument = ({
   Repository,
@@ -12,8 +14,8 @@ const GenerateDocument = ({
   BuilderComponent,
 }: PageProps<BaseRepository>) => {
   const params = useParams();
-
-  const { category, editedContents } = useDocumentGenerator(params);
+  const { category, editedContents, existingDocument } =
+    useDocumentGenerator(params);
 
   return (
     <PaperBoardErrorBoundary>
@@ -23,8 +25,9 @@ const GenerateDocument = ({
           ResourceGeneratorComponent={BuilderComponent}
           category={category}
           editedContents={editedContents}
-          mode="store"
-          context="generator"
+          mode={existingDocument ? "update" : "store"}
+          context={existingDocument ? "desk" : "generator"}
+          existingDocument={existingDocument}
         />
       </PaperBoardProvider>
     </PaperBoardErrorBoundary>

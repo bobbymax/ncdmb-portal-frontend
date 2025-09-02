@@ -54,6 +54,15 @@ export default class DocumentRepository extends BaseRepository {
       dept: data.dept ?? "",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
+      meta_data: data.meta_data ?? null,
+      uploaded_requirements: data.uploaded_requirements ?? [],
+      preferences: data.preferences ?? null,
+      pointer: data.pointer ?? "",
+      threads: data.threads ?? [],
+      watchers: data.watchers ?? [],
+      contents: data.contents ?? [],
+      config: data.config ?? null,
+      created_by: data.created_by ?? 0,
     };
   }
   public associatedResources: DependencyProps[] =

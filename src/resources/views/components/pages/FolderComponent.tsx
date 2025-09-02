@@ -20,7 +20,7 @@ interface FileCardProps {
 const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
   const [officers, setOfficers] = useState<AuthorisingOfficerProps[]>([]);
   const [amount, setAmount] = useState<string>("");
-  const [color, setColor] = useState<string>("");
+  const [color, setColor] = useState<string>("#065f46");
   const [currentTracker, setCurrentTracker] =
     useState<ProgressTrackerResponseData>({} as ProgressTrackerResponseData);
 
@@ -48,7 +48,7 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
                   ? item
                   : max
               ).amount
-            : document.amount; // or 0 or undefined
+            : document.amount;
 
         setAmount(formatCurrency(Number(latestAmount)));
 
@@ -69,109 +69,139 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
     }
   }, [document]);
 
-  return (
-    <div className="resource__card">
-      <div className="mb-3">
-        <div
-          style={{
-            backgroundColor: color,
-          }}
-          className="doc__details folder_card__padding"
-        >
-          <h2>{except(document.title, 35)}</h2>
-          <small className="bready">
-            Published: {moment(document.created_at).format("LL")}
-          </small>
-          <small>{document.ref}</small>
-        </div>
-        <div className="details_mid__section flex align gap-md between">
-          <div
-            className="left__mid__section"
-            style={{
-              width: "65%",
-            }}
-          >
-            <div className="file__category">
-              <small
-                style={{
-                  backgroundColor: color,
-                }}
-                className="category_name"
-              >
-                {toTitleCase(
-                  extractModelName(document.documentable_type ?? "")
-                )}
-              </small>
-            </div>
-            <small
-              style={{
-                padding: "0 25px",
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                fontWeight: 600,
-                color: color,
-              }}
-            >
-              Reviewers:
-            </small>
-            <div className="avatar-group">
-              {officers.slice(0, 4).map((officer) => {
-                const namePaths = officer.name.trim().split(" ");
+  const getStatusColor = () => {
+    if (officers.length === 0) return "#6b7280"; // Gray for pending
+    if (officers.length >= currentTracker.order) return "#10b981"; // Green for completed
+    return "#f59e0b"; // Amber for in progress
+  };
 
+  const getStatusText = () => {
+    if (officers.length === 0) return "Pending";
+    if (officers.length >= currentTracker.order) return "Completed";
+    return "In Progress";
+  };
+
+  return (
+    <div className="document-card">
+      {/* Header Section */}
+      <div className="card-header">
+        <div className="header-main">
+          <div className="document-type-badge">
+            <i className="ri-file-text-line"></i>
+            <span>
+              {toTitleCase(extractModelName(document.documentable_type ?? ""))}
+            </span>
+          </div>
+          <div className="document-status">
+            <div
+              className="status-indicator"
+              style={{ backgroundColor: getStatusColor() }}
+            ></div>
+            <span className="status-text">{getStatusText()}</span>
+          </div>
+        </div>
+        <div className="document-ref">
+          <i className="ri-hashtag"></i>
+          {document.ref}
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="card-content">
+        <h3 className="document-title">{except(document.title, 50)}</h3>
+
+        <div className="document-meta">
+          <div className="meta-item">
+            <i className="ri-calendar-line"></i>
+            <span>{moment(document.created_at).format("MMM DD, YYYY")}</span>
+          </div>
+          {amount && (
+            <div className="meta-item">
+              <i className="ri-money-dollar-circle-line"></i>
+              <span>{amount}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Progress Section */}
+        <div className="progress-section">
+          <div className="progress-header">
+            <span className="progress-label">Approval Progress</span>
+            <span className="progress-count">
+              {officers.length}/{currentTracker.order || 1}
+            </span>
+          </div>
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${Math.min(
+                  (officers.length / (currentTracker.order || 1)) * 100,
+                  100
+                )}%`,
+                backgroundColor: getStatusColor(),
+              }}
+            ></div>
+          </div>
+        </div>
+
+        {/* Reviewers Section */}
+        {officers.length > 0 && (
+          <div className="reviewers-section">
+            <div className="reviewers-header">
+              <i className="ri-user-star-line"></i>
+              <span>Reviewers ({officers.length})</span>
+            </div>
+            <div className="reviewers-list">
+              {officers.slice(0, 3).map((officer) => {
+                const namePaths = officer.name.trim().split(" ");
                 const initials =
                   (namePaths[0]?.[0] ?? "") + (namePaths[1]?.[0] ?? "");
 
-                return officer.avatar ? (
-                  <img
-                    src="https://placehold.co/40x40"
-                    alt="User 1"
-                    className="custom__avatar"
-                  />
-                ) : (
+                return (
                   <div
                     key={officer.id}
-                    className="custom__avatar placeholder-avatar"
+                    className="reviewer-avatar"
                     title={officer.name}
-                    style={{
-                      backgroundColor: color,
-                    }}
                   >
-                    {initials.toUpperCase()}
+                    {officer.avatar ? (
+                      <img
+                        src="https://placehold.co/32x32"
+                        alt={officer.name}
+                      />
+                    ) : (
+                      <div className="avatar-initials">
+                        {initials.toUpperCase()}
+                      </div>
+                    )}
                   </div>
                 );
               })}
-
-              {/* <span className="more-avatars">+3</span> */}
+              {officers.length > 3 && (
+                <div className="more-reviewers">+{officers.length - 3}</div>
+              )}
             </div>
           </div>
-          <div
-            className="document__progress__bar"
-            style={{
-              width: "35%",
-            }}
-          >
-            <CircularProgressBar
-              min={1}
-              max={currentTracker.order}
-              currentValue={officers.length}
-              callback={(response: string) => setColor(response)}
-            />
-          </div>
-        </div>
+        )}
+      </div>
 
-        <div className="footer__mid__section">
-          <Button
-            label="Open File"
-            icon="ri-file-paper-line"
-            handleClick={() => openFolder(document)}
-            variant="success"
-            size="xs"
-            style={{
-              backgroundColor: color,
-            }}
-            rounded
-          />
+      {/* Footer Section */}
+      <div className="card-footer">
+        <Button
+          label="Open Document"
+          icon="ri-external-link-line"
+          handleClick={() => openFolder(document)}
+          variant="primary"
+          size="sm"
+          rounded
+        />
+        <div className="footer-actions">
+          <button className="action-btn" title="Add to favorites">
+            <i className="ri-heart-line"></i>
+          </button>
+          <button className="action-btn" title="Share document">
+            <i className="ri-share-line"></i>
+          </button>
         </div>
       </div>
     </div>

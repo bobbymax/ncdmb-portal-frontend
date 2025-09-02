@@ -13,6 +13,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     "workflow_id",
     "progress_tracker_id",
     "document_reference_id",
+    "threads",
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
@@ -40,6 +41,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     workflow: null,
     owner: null,
     progress_tracker_id: 0,
+    threads: [],
   },
   actions: [
     {

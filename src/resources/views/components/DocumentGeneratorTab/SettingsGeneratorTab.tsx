@@ -52,14 +52,150 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
   const { state, actions } = usePaperBoard();
   const [selectedScope, setSelectedScope] = useState<string>("private");
 
-  // console.log(state);
+  // Initialize preferences with default values if they don't exist
+  useEffect(() => {
+    if (!state.preferences) {
+      const defaultPreferences: SettingsProps = {
+        priority: "medium",
+        accessLevel: "private",
+        access_token: "",
+        lock: false,
+        confidentiality: "general",
+      };
+      actions.setPreferences(defaultPreferences);
+    }
+  }, [state.preferences, actions]);
+
+  // Validate and repair preferences structure if needed
+  useEffect(() => {
+    if (state.preferences) {
+      const requiredFields: (keyof SettingsProps)[] = [
+        "priority",
+        "accessLevel",
+        "access_token",
+        "lock",
+        "confidentiality",
+      ];
+
+      const missingFields = requiredFields.filter(
+        (field) => state.preferences![field] === undefined
+      );
+
+      if (missingFields.length > 0) {
+        const repairedPreferences: SettingsProps = {
+          priority: state.preferences.priority || "medium",
+          accessLevel: state.preferences.accessLevel || "private",
+          access_token: state.preferences.access_token || "",
+          lock: state.preferences.lock ?? false,
+          confidentiality: state.preferences.confidentiality || "general",
+        };
+
+        actions.setPreferences(repairedPreferences);
+      }
+    }
+  }, [state.preferences, actions]);
+
+  // Initialize watchers with default values if they don't exist
+  useEffect(() => {
+    if (!state.watchers) {
+      actions.setWatchers([]);
+    }
+  }, [state.watchers, actions]);
+
+  // Synchronize local selectedWatchers with global state.watchers
+  useEffect(() => {
+    if (state.watchers) {
+      setSelectedWatchers(state.watchers);
+    }
+  }, [state.watchers]);
+
+  // Validate and repair watchers structure if needed
+  useEffect(() => {
+    if (state.watchers && !Array.isArray(state.watchers)) {
+      // If watchers is not an array, reset it to empty array
+      actions.setWatchers([]);
+    }
+  }, [state.watchers, actions]);
+
+  // Initialize requirements with default values if they don't exist
+  useEffect(() => {
+    if (!state.requirements) {
+      actions.setRequirements([]);
+    }
+  }, [state.requirements, actions]);
+
+  // Validate and repair requirements structure if needed
+  useEffect(() => {
+    if (state.requirements && !Array.isArray(state.requirements)) {
+      // If requirements is not an array, reset it to empty array
+      actions.setRequirements([]);
+    }
+  }, [state.requirements, actions]);
+
+  // Auto-fill user info for configState.from when in create mode (no existingDocument)
+  useEffect(() => {
+    if (
+      !state.existingDocument && // Only in create mode
+      state.configState?.from && // From stage exists
+      state.loggedInUser && // Logged in user exists
+      (!state.configState.from.user_id ||
+        state.configState.from.user_id < 1 ||
+        !state.configState.from.department_id ||
+        state.configState.from.department_id < 1)
+    ) {
+      const updatedFrom = { ...state.configState.from };
+      let needsUpdate = false;
+
+      // Set user_id if missing or invalid
+      if (!updatedFrom.user_id || updatedFrom.user_id < 1) {
+        updatedFrom.user_id = state.loggedInUser.id;
+        needsUpdate = true;
+      }
+
+      // Set department_id if missing or invalid
+      if (!updatedFrom.department_id || updatedFrom.department_id < 1) {
+        updatedFrom.department_id = state.loggedInUser.department_id;
+        needsUpdate = true;
+      }
+
+      // Update configState if changes were made
+      if (needsUpdate) {
+        actions.updateConfigState({
+          ...state.configState,
+          from: updatedFrom,
+        } as ProcessFlowConfigProps);
+      }
+    }
+  }, [
+    state.existingDocument,
+    state.configState?.from,
+    state.loggedInUser,
+    actions,
+  ]);
+
+  // Sync department changes to configState.to.department_id
+  useEffect(() => {
+    if (
+      state.configState?.to &&
+      state.department_owner?.value &&
+      state.department_owner.value !== state.configState.to.department_id
+    ) {
+      actions.updateConfigState({
+        ...state.configState,
+        to: {
+          ...state.configState.to,
+          department_id: state.department_owner.value,
+        },
+      } as ProcessFlowConfigProps);
+    }
+  }, [state.department_owner?.value, state.configState?.to, actions]);
 
   // Watcher search state
   const [watcherSearchQuery, setWatcherSearchQuery] = useState<string>("");
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] =
     useState<number>(-1);
   const [selectedWatchers, setSelectedWatchers] = useState<WatcherProps[]>(
-    state.watchers
+    state.watchers || []
   );
   const [dropdownPosition, setDropdownPosition] = useState<{
     top: number;
@@ -101,6 +237,47 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
   // Helper function to capitalize first letter
   const capitalizeFirst = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+  // Helper function to safely update preferences while maintaining structure
+  const updatePreferencesSafely = (updates: Partial<SettingsProps>) => {
+    const currentPreferences = state.preferences || {
+      priority: "medium",
+      accessLevel: "private",
+      access_token: "",
+      lock: false,
+      confidentiality: "general",
+    };
+
+    const updatedPreferences: SettingsProps = {
+      ...currentPreferences,
+      ...updates,
+    };
+
+    actions.setPreferences(updatedPreferences);
+  };
+
+  // Helper function to safely update watchers while maintaining synchronization
+  const updateWatchersSafely = (newWatchers: WatcherProps[]) => {
+    setSelectedWatchers(newWatchers);
+    actions.setWatchers(newWatchers);
+  };
+
+  // Helper function to safely update requirements while maintaining structure
+  const updateRequirementsSafely = (updatedRequirement: any) => {
+    const currentRequirements = state.requirements || [];
+
+    if (!Array.isArray(currentRequirements)) {
+      // If current requirements is not an array, start fresh
+      actions.setRequirements([updatedRequirement]);
+      return;
+    }
+
+    const updatedRequirements = currentRequirements.map((req) =>
+      req.id === updatedRequirement.id ? updatedRequirement : req
+    );
+
+    actions.setRequirements(updatedRequirements);
   };
 
   // Filtered watchers based on search query
@@ -164,8 +341,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
 
     if (!isAlreadySelected) {
       const updatedWatchers = [...selectedWatchers, watcher];
-      setSelectedWatchers(updatedWatchers);
-      actions.setWatchers(updatedWatchers);
+      updateWatchersSafely(updatedWatchers);
     }
 
     // Clear search
@@ -178,8 +354,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
     const updatedWatchers = selectedWatchers.filter(
       (w) => !(w.id === watcher.id && w.type === watcher.type)
     );
-    setSelectedWatchers(updatedWatchers);
-    actions.setWatchers(updatedWatchers);
+    updateWatchersSafely(updatedWatchers);
   };
 
   // Handle search input change
@@ -248,164 +423,6 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
       description: "Highly restricted access with clearance requirements",
     },
   ];
-
-  useEffect(() => {
-    if (state.configState && state.loggedInUser) {
-      const fromStage = state.configState.from;
-      const throughStage = state.configState.through;
-      const toStage = state.configState.to;
-
-      // Helper function to update stage with user info
-      const updateStageWithUserInfo = (
-        stage: CategoryProgressTrackerProps | null,
-        stageType: ProcessFlowType
-      ): CategoryProgressTrackerProps | null => {
-        if (!stage || !state.loggedInUser) return null;
-
-        let needsUpdate = false;
-        const updatedStage = { ...stage };
-
-        // Check department_id - if < 1, use logged-in user's department
-        if (stage.department_id < 1 && state.loggedInUser.department_id) {
-          updatedStage.department_id = state.loggedInUser.department_id;
-          needsUpdate = true;
-        }
-
-        // Check user_id - if missing or 0, use logged-in user's ID
-        if ((!stage.user_id || stage.user_id < 1) && state.loggedInUser.id) {
-          if (stageType === "from") {
-            updatedStage.user_id = state.loggedInUser.id;
-            needsUpdate = true;
-          }
-        }
-
-        // Check group_id - if missing or 0, use logged-in user's group (if available)
-        if (!stage.group_id || stage.group_id < 1) {
-          // You might want to get this from loggedInUser if available
-          // For now, we'll leave it as is if not available
-          // updatedStage.group_id = state.loggedInUser.group_id;
-        }
-
-        // Check carder_id - if missing or 0, use logged-in user's carder (if available)
-        if (!stage.carder_id || stage.carder_id < 1) {
-          if (stageType === "from") {
-            updatedStage.carder_id = state.loggedInUser.carder?.id;
-            needsUpdate = true;
-          }
-          // You might want to get this from loggedInUser if available
-          // For now, we'll leave it as is if not available
-          // updatedStage.carder_id = state.loggedInUser.carder_id;
-        }
-
-        // Only update if changes were made
-        if (needsUpdate) {
-          actions.updateConfigState({
-            ...state.configState,
-            [stageType]: updatedStage,
-          } as ProcessFlowConfigProps);
-        }
-
-        return updatedStage;
-      };
-
-      // Update each stage if it exists
-      if (fromStage) {
-        updateStageWithUserInfo(fromStage, "from");
-      }
-
-      if (throughStage) {
-        updateStageWithUserInfo(throughStage, "through");
-      }
-
-      if (toStage) {
-        updateStageWithUserInfo(toStage, "to");
-      }
-    }
-  }, [
-    state.configState,
-    state.loggedInUser,
-    state.resources.users,
-    state.resources.groups,
-    state.resources.departments,
-    actions,
-  ]);
-
-  // Update trackers when configState changes
-  useEffect(() => {
-    if (state.configState) {
-      const newTrackers: CategoryProgressTrackerProps[] = [];
-
-      // Add from stage if it exists
-      if (state.configState.from) {
-        newTrackers.push({
-          ...state.configState.from,
-          order: 1,
-        });
-      }
-
-      // Add through stage if it exists
-      if (state.configState.through) {
-        newTrackers.push({
-          ...state.configState.through,
-          order: newTrackers.length + 1,
-        });
-      }
-
-      // Add to stage if it exists
-      if (state.configState.to) {
-        newTrackers.push({
-          ...state.configState.to,
-          order: newTrackers.length + 1,
-        });
-      }
-
-      // Only update if trackers have actually changed
-      const currentTrackerIds = state.trackers
-        .map((t) => t.workflow_stage_id)
-        .sort();
-      const newTrackerIds = newTrackers.map((t) => t.workflow_stage_id).sort();
-
-      if (JSON.stringify(currentTrackerIds) !== JSON.stringify(newTrackerIds)) {
-        // Create a default workflow if none exists
-        const defaultWorkflow = {
-          id: 0,
-          name: "Default Workflow",
-          type: "serialize" as const,
-          description: "Workflow generated from configuration",
-          trackers: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        // Convert CategoryProgressTrackerProps to ProgressTrackerResponseData
-        const convertedTrackers = newTrackers.map((tracker, index) => ({
-          id: index + 1,
-          workflow_id: 0,
-          workflow_stage_id: tracker.workflow_stage_id,
-          identifier: tracker.identifier,
-          document_type_id: 1, // Default value
-          group_id: tracker.group_id,
-          carder_id: tracker.carder_id,
-          department_id: tracker.department_id,
-          signatory_id: 0, // Default value
-          internal_process_id: 0, // Default value
-          permission: tracker.permission,
-          order: tracker.order,
-          stage: null,
-          group: null,
-          document_type: null,
-          carder: null,
-          actions: tracker.actions || [],
-          recipients: [],
-          loadedActions: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }));
-
-        actions.setWorkflow(defaultWorkflow, convertedTrackers);
-      }
-    }
-  }, [state.configState, state.trackers, actions]);
 
   return (
     <div className="settings__generator__tab__container">
@@ -737,8 +754,10 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
           </div>
           <div className="settings__card__content">
             <div className="requirements__container">
-              {state.requirements && state.requirements.length > 0 ? (
-                state.requirements.map((requirement) => (
+              {state.requirements &&
+              Array.isArray(state.requirements) &&
+              state.requirements.length > 0 ? (
+                state.requirements?.map((requirement) => (
                   <div className="requirement__item" key={requirement.id}>
                     <div className="requirement__checkbox">
                       <div className="custom__checkbox">
@@ -751,7 +770,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                               ...requirement,
                               is_present: e.target.checked,
                             };
-                            actions.updateRequirements(updatedRequirement);
+                            updateRequirementsSafely(updatedRequirement);
                           }}
                           className="checkbox__input"
                         />
@@ -844,56 +863,59 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
               </div>
 
               {/* Selected Watchers */}
-              {selectedWatchers.length > 0 && (
-                <div className="watchers__selected__section">
-                  <h4 className="watchers__selected__title">
-                    Selected Watchers
-                  </h4>
-                  <div className="watchers__selected__list">
-                    {selectedWatchers.map((watcher, index) => (
-                      <div
-                        key={`${watcher.type}-${watcher.id}`}
-                        className="watcher__card"
-                      >
-                        <div className="watcher__card__avatar">
-                          <i
-                            className={`ri-${
-                              watcher.type === "user"
-                                ? "user-line"
-                                : "group-line"
-                            }`}
-                          ></i>
-                        </div>
-                        <div className="watcher__card__info">
-                          <div className="watcher__card__name">
-                            {watcher.name}
-                          </div>
-                          <div className="watcher__card__type">
-                            {watcher.type === "user" ? "Staff" : "Group"}
-                          </div>
-                          {watcher.type === "user" && watcher.email && (
-                            <div className="watcher__card__email">
-                              {watcher.email}
-                            </div>
-                          )}
-                          {watcher.type === "group" && watcher.description && (
-                            <div className="watcher__card__description">
-                              {watcher.description}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          className="watcher__card__remove"
-                          onClick={() => removeWatcher(watcher)}
-                          title="Remove watcher"
+              {selectedWatchers &&
+                Array.isArray(selectedWatchers) &&
+                selectedWatchers.length > 0 && (
+                  <div className="watchers__selected__section">
+                    <h4 className="watchers__selected__title">
+                      Selected Watchers
+                    </h4>
+                    <div className="watchers__selected__list">
+                      {selectedWatchers.map((watcher, index) => (
+                        <div
+                          key={`${watcher.type}-${watcher.id}`}
+                          className="watcher__card"
                         >
-                          <i className="ri-close-line"></i>
-                        </button>
-                      </div>
-                    ))}
+                          <div className="watcher__card__avatar">
+                            <i
+                              className={`ri-${
+                                watcher.type === "user"
+                                  ? "user-line"
+                                  : "group-line"
+                              }`}
+                            ></i>
+                          </div>
+                          <div className="watcher__card__info">
+                            <div className="watcher__card__name">
+                              {watcher.name}
+                            </div>
+                            <div className="watcher__card__type">
+                              {watcher.type === "user" ? "Staff" : "Group"}
+                            </div>
+                            {watcher.type === "user" && watcher.email && (
+                              <div className="watcher__card__email">
+                                {watcher.email}
+                              </div>
+                            )}
+                            {watcher.type === "group" &&
+                              watcher.description && (
+                                <div className="watcher__card__description">
+                                  {watcher.description}
+                                </div>
+                              )}
+                          </div>
+                          <button
+                            className="watcher__card__remove"
+                            onClick={() => removeWatcher(watcher)}
+                            title="Remove watcher"
+                          >
+                            <i className="ri-close-line"></i>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
         </div>
@@ -982,8 +1004,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                         id="document-lock"
                         checked={state.preferences?.lock || false}
                         onChange={(e) => {
-                          actions.updatePreferences({
-                            ...state.preferences,
+                          updatePreferencesSafely({
                             lock: e.target.checked,
                           });
                         }}
@@ -1016,8 +1037,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                   type="text"
                   value={state.preferences?.access_token || ""}
                   onChange={(e) => {
-                    actions.updatePreferences({
-                      ...state.preferences,
+                    updatePreferencesSafely({
                       access_token: e.target.value,
                     });
                   }}
@@ -1040,8 +1060,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                   name="priority"
                   value={state.preferences?.priority || "medium"}
                   onChange={(e) => {
-                    actions.updatePreferences({
-                      ...state.preferences,
+                    updatePreferencesSafely({
                       priority: e.target.value as
                         | "low"
                         | "medium"
@@ -1076,8 +1095,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                   name="confidentiality"
                   value={state.preferences?.confidentiality || "general"}
                   onChange={(e) => {
-                    actions.updatePreferences({
-                      ...state.preferences,
+                    updatePreferencesSafely({
                       confidentiality: e.target.value as
                         | "general"
                         | "sensitive"

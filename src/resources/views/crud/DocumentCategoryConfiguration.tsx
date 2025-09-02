@@ -24,15 +24,18 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export type ProcessActivitiesProps = {
-  id?: number;
+  id: number;
+  identifier: string;
   title: string;
   workflow_stage_id: number;
   group_id: number;
   department_id: number;
-  document_action_status: string;
+  action_label: string;
   trigger_action_id: number;
-  category: "add_tracker" | "notify" | "mail" | "default" | "no_action";
+  category: "process" | "activity";
   user_id: number;
+  status: "pending" | "completed" | "failed";
+  document_action_id: number;
 };
 
 type DependencyProps = {
@@ -60,14 +63,18 @@ const DocumentCategoryConfiguration: React.FC<
   const navigate = useNavigate();
   const [documentConfigState, setDocumentConfigState] =
     useState<ProcessActivitiesProps>({
+      id: 0,
+      identifier: "",
       title: "",
       workflow_stage_id: 0,
       group_id: 0,
       department_id: 0,
-      document_action_status: "",
+      action_label: "",
       trigger_action_id: 0,
-      category: "default",
+      category: "process",
       user_id: 0,
+      status: "pending",
+      document_action_id: 0,
     });
 
   const [policy, setPolicy] = useState<DocumentPolicy>({
@@ -85,13 +92,16 @@ const DocumentCategoryConfiguration: React.FC<
     ProcessActivitiesProps[]
   >([]);
   const [showPostProcessingForm, setShowPostProcessingForm] = useState(false);
+  const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
   const trackers: CategoryProgressTrackerProps[] =
     state.workflow?.trackers || [];
 
-  const [selectedActions, setSelectedActions] = useState<DataOptionsProps[]>(
-    []
-  );
+  const [selectedActions, setSelectedActions] = useState<
+    DocumentActionResponseData[]
+  >([]);
+
+  const [selectedGroups, setSelectedGroups] = useState<GroupResponseData[]>([]);
 
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
 
@@ -109,17 +119,27 @@ const DocumentCategoryConfiguration: React.FC<
     trigger_action: null,
   });
 
-  const [processActions, setProcessActions] = useState<DataOptionsProps[]>([]);
+  const [processActions, setProcessActions] = useState<
+    DocumentActionResponseData[]
+  >([]);
+
+  const handleCardClick = useCallback(
+    (cardId: number) => {
+      setExpandedCard(expandedCard === cardId ? null : cardId);
+    },
+    [expandedCard]
+  );
 
   const handleUpdateConfiguration = useCallback(() => {
     const configuration = {
       ...state,
+      identifier: documentConfigState.identifier,
       meta_data: {
         policy,
         recipients: selectedUsers,
         actions: selectedActions,
         activities: postProcessingActivities,
-      } as DocumentMetaDataProps,
+      },
     };
 
     Alert.flash(
@@ -142,12 +162,12 @@ const DocumentCategoryConfiguration: React.FC<
   }, [policy, selectedUsers, selectedActions, repo]);
 
   const handleActionChange = useCallback(
-    (action: DataOptionsProps, checked: boolean) => {
+    (action: DocumentActionResponseData, checked: boolean) => {
       setSelectedActions((prev) => {
         if (checked) {
           return [...prev, action];
         }
-        return prev.filter((a) => a.label !== action.label);
+        return prev.filter((a) => a.id !== action.id);
       });
     },
     []
@@ -192,7 +212,13 @@ const DocumentCategoryConfiguration: React.FC<
         ) ?? null;
 
       if (workflowStage) {
-        setProcessActions(workflowStage.actions);
+        setProcessActions(
+          workflowStage.actions as unknown as DocumentActionResponseData[]
+        );
+
+        setSelectedGroups(
+          workflowStage?.groups as unknown as GroupResponseData[]
+        );
       }
     }
   }, [selectedOptions.workflow_stage]);
@@ -237,7 +263,9 @@ const DocumentCategoryConfiguration: React.FC<
     if (state.meta_data) {
       setPolicy(state.meta_data.policy as DocumentPolicy);
       if (state.meta_data.actions) {
-        setSelectedActions(state.meta_data.actions);
+        setSelectedActions(
+          state.meta_data.actions as unknown as DocumentActionResponseData[]
+        );
       }
       if (state.meta_data.recipients) {
         setSelectedUsers(state.meta_data.recipients);
@@ -294,6 +322,9 @@ const DocumentCategoryConfiguration: React.FC<
                     (stage) => stage.id === tracker.workflow_stage_id
                   ) ?? null;
 
+                const actions =
+                  stage?.actions as unknown as DocumentActionResponseData[];
+
                 return (
                   <div className="track__item" key={idx}>
                     <h5>
@@ -301,7 +332,7 @@ const DocumentCategoryConfiguration: React.FC<
                         stage?.name || `Stage ID: ${tracker.workflow_stage_id}`
                       )}
                     </h5>
-                    {stage?.actions.map((action, actionIdx) => (
+                    {(actions ?? []).map((action, actionIdx) => (
                       <div
                         className="track__item__action"
                         key={`${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
@@ -313,13 +344,13 @@ const DocumentCategoryConfiguration: React.FC<
                             handleActionChange(action, e.target.checked);
                           }}
                           checked={selectedActions.some(
-                            (a) => a.label === action.label
+                            (a) => a.id === action.id
                           )}
                         />
                         <label
                           htmlFor={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
                         >
-                          {toTitleCase(action.label)}
+                          {toTitleCase(action.button_text)}
                         </label>
                       </div>
                     ))}
@@ -400,30 +431,18 @@ const DocumentCategoryConfiguration: React.FC<
                   label="Category"
                   options={[
                     {
-                      label: "Default",
-                      value: "default",
+                      label: "Process",
+                      value: "process",
                     },
                     {
-                      label: "Track",
-                      value: "add_tracker",
-                    },
-                    {
-                      label: "Notify",
-                      value: "notify",
-                    },
-                    {
-                      label: "Mail",
-                      value: "mail",
+                      label: "Activity",
+                      value: "activity",
                     },
                   ]}
                   onChange={(e) => {
                     setDocumentConfigState((prev) => ({
                       ...prev,
-                      category: e.target.value as
-                        | "add_tracker"
-                        | "notify"
-                        | "mail"
-                        | "default",
+                      category: e.target.value as "process" | "activity",
                     }));
                   }}
                   defaultValue=""
@@ -435,7 +454,7 @@ const DocumentCategoryConfiguration: React.FC<
               </div>
               {renderMultiSelect(
                 "Group",
-                formatOptions(groups, "id", "name"),
+                formatOptions(selectedGroups, "id", "name"),
                 selectedOptions.group,
                 handleSelectionChange("group"),
                 "Group"
@@ -446,15 +465,16 @@ const DocumentCategoryConfiguration: React.FC<
                   options={
                     selectedActions.length > 0
                       ? selectedActions.map((action) => ({
-                          label: toTitleCase(action.label),
-                          value: action.label,
+                          label: toTitleCase(action.draft_status),
+                          value: action.id,
                         }))
-                      : [{ label: "No Actions", value: "no_action" }]
+                      : [{ label: "No Actions", value: 0 }]
                   }
+                  value={documentConfigState.document_action_id}
                   onChange={(e) => {
                     setDocumentConfigState((prev) => ({
                       ...prev,
-                      document_action_status: e.target.value,
+                      document_action_id: Number(e.target.value),
                     }));
                   }}
                   defaultValue=""
@@ -486,13 +506,12 @@ const DocumentCategoryConfiguration: React.FC<
                 {/* Button Area */}
                 <Button
                   label="Add Activity"
-                  handleClick={() => {
+                  handleClick={(value: any) => {
                     // Validate required fields
                     if (
                       !documentConfigState.title ||
                       !documentConfigState.workflow_stage_id
                     ) {
-                      // console.log("Please fill in required fields");
                       return;
                     }
 
@@ -510,14 +529,18 @@ const DocumentCategoryConfiguration: React.FC<
 
                     // Reset form
                     setDocumentConfigState({
+                      id: 0,
+                      identifier: "",
                       title: "",
                       workflow_stage_id: 0,
                       group_id: 0,
                       department_id: 0,
-                      document_action_status: "",
+                      action_label: "",
                       trigger_action_id: 0,
-                      category: "default",
+                      category: "process",
                       user_id: 0,
+                      status: "pending",
+                      document_action_id: 0,
                     });
 
                     // Reset selected options
@@ -533,7 +556,7 @@ const DocumentCategoryConfiguration: React.FC<
                   }}
                   size="sm"
                   variant="dark"
-                  type="submit"
+                  type="button"
                   icon="ri-terminal-box-line"
                 />
               </div>
@@ -546,130 +569,159 @@ const DocumentCategoryConfiguration: React.FC<
             style={{ display: showPostProcessingForm ? "none" : "block" }}
           >
             {postProcessingActivities.length > 0 ? (
-              <div className="activities__grid">
-                {postProcessingActivities.map((activity, index) => {
-                  // Find corresponding data from useMemo dependencies
-                  const workflowStage = workflowStages.find(
-                    (stage) => stage.id === activity.workflow_stage_id
-                  );
-                  const department = departments.find(
-                    (dept) => dept.id === activity.department_id
-                  );
-                  const group = groups.find(
-                    (grp) => grp.id === activity.group_id
-                  );
-                  const user = users.find((usr) => usr.id === activity.user_id);
-                  const triggerAction = documentActions.find(
-                    (action) => action.id === activity.trigger_action_id
-                  );
+              <>
+                <div className="activities__scroll__container">
+                  <div className="activities__grid">
+                    {postProcessingActivities.map((activity, index) => {
+                      // Find corresponding data from useMemo dependencies
+                      const workflowStage = workflowStages.find(
+                        (stage) => stage.id === activity.workflow_stage_id
+                      );
+                      const department = departments.find(
+                        (dept) => dept.id === activity.department_id
+                      );
+                      const group = groups.find(
+                        (grp) => grp.id === activity.group_id
+                      );
+                      const user = users.find(
+                        (usr) => usr.id === activity.user_id
+                      );
+                      const triggerAction = documentActions.find(
+                        (action) => action.id === activity.trigger_action_id
+                      );
 
-                  return (
-                    <div key={activity.id || index} className="activity__card">
-                      <div className="activity__card__header">
-                        <div className="activity__card__title">
-                          <i className="ri-settings-4-line"></i>
-                          <span>{activity.title}</span>
-                        </div>
-                        <div className="activity__card__category">
-                          <span
-                            className={`category__badge category__${activity.category}`}
-                          >
-                            {toTitleCase(activity.category)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="activity__card__content">
-                        <div className="activity__card__row">
-                          <span className="activity__card__label">Desk:</span>
-                          <span className="activity__card__value">
-                            {workflowStage?.name || "N/A"}
-                          </span>
-                        </div>
-
-                        {activity.department_id > 0 && (
-                          <div className="activity__card__row">
-                            <span className="activity__card__label">
-                              Department:
-                            </span>
-                            <span className="activity__card__value">
-                              {department?.abv || department?.name || "N/A"}
-                            </span>
-                          </div>
-                        )}
-
-                        {activity.group_id > 0 && (
-                          <div className="activity__card__row">
-                            <span className="activity__card__label">
-                              Group:
-                            </span>
-                            <span className="activity__card__value">
-                              {group?.name || "N/A"}
-                            </span>
-                          </div>
-                        )}
-
-                        {activity.user_id > 0 && (
-                          <div className="activity__card__row">
-                            <span className="activity__card__label">
-                              Staff:
-                            </span>
-                            <span className="activity__card__value">
-                              {user?.name || "N/A"}
-                            </span>
-                          </div>
-                        )}
-
-                        {activity.document_action_status && (
-                          <div className="activity__card__row">
-                            <span className="activity__card__label">
-                              Event:
-                            </span>
-                            <span className="activity__card__value">
-                              {toTitleCase(activity.document_action_status)}
-                            </span>
-                          </div>
-                        )}
-
-                        {activity.trigger_action_id > 0 && (
-                          <div className="activity__row">
-                            <span className="activity__card__label">
-                              Trigger:
-                            </span>
-                            <span className="activity__card__value">
-                              {triggerAction?.name || "N/A"}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="activity__card__actions">
-                        <button
-                          className="activity__card__action__btn edit"
-                          onClick={() => {
-                            // TODO: Implement edit functionality
-                            console.log("Edit activity:", activity);
-                          }}
-                          title="Edit Activity"
+                      return (
+                        <div
+                          key={activity.id || index}
+                          className={`activity__card ${
+                            expandedCard === activity.id ? "expanded" : ""
+                          }`}
+                          onClick={() => handleCardClick(activity.id)}
                         >
-                          <i className="ri-edit-line"></i>
-                        </button>
-                        <button
-                          className="activity__card__action__btn delete"
-                          onClick={() => {
-                            setPostProcessingActivities((prev) =>
-                              prev.filter((a) => a.id !== activity.id)
-                            );
-                          }}
-                          title="Delete Activity"
-                        >
-                          <i className="ri-delete-bin-line"></i>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                          {/* Expand indicator */}
+                          <div className="expand__indicator">
+                            <i
+                              className={
+                                expandedCard === activity.id
+                                  ? "ri-subtract-line"
+                                  : "ri-add-line"
+                              }
+                            ></i>
+                          </div>
+
+                          <div className="activity__card__header">
+                            <div className="activity__card__title">
+                              <i className="ri-settings-4-line"></i>
+                              <span>{activity.title}</span>
+                            </div>
+                            <div className="activity__card__category">
+                              <span
+                                className={`category__badge category__${activity.category}`}
+                              >
+                                {toTitleCase(activity.category)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="activity__card__content">
+                            <div className="activity__card__row">
+                              <span className="activity__card__label">
+                                Desk:
+                              </span>
+                              <span className="activity__card__value">
+                                {workflowStage?.name || "N/A"}
+                              </span>
+                            </div>
+
+                            {activity.department_id > 0 && (
+                              <div className="activity__card__row">
+                                <span className="activity__card__label">
+                                  Department:
+                                </span>
+                                <span className="activity__card__value">
+                                  {department?.abv || department?.name || "N/A"}
+                                </span>
+                              </div>
+                            )}
+
+                            {activity.group_id > 0 && (
+                              <div className="activity__card__row">
+                                <span className="activity__card__label">
+                                  Group:
+                                </span>
+                                <span className="activity__card__value">
+                                  {group?.name || "N/A"}
+                                </span>
+                              </div>
+                            )}
+
+                            {activity.user_id > 0 && (
+                              <div className="activity__card__row">
+                                <span className="activity__card__label">
+                                  Staff:
+                                </span>
+                                <span className="activity__card__value">
+                                  {user?.name || "N/A"}
+                                </span>
+                              </div>
+                            )}
+
+                            {activity.action_label && (
+                              <div className="activity__card__row">
+                                <span className="activity__card__label">
+                                  Event:
+                                </span>
+                                <span className="activity__card__value">
+                                  {toTitleCase(activity.action_label)}
+                                </span>
+                              </div>
+                            )}
+
+                            {activity.trigger_action_id > 0 && (
+                              <div className="activity__card__row">
+                                <span className="activity__card__label">
+                                  Trigger:
+                                </span>
+                                <span className="activity__card__value">
+                                  {triggerAction?.name || "N/A"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="activity__card__actions">
+                            <button
+                              className="activity__card__action__btn edit"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent card expansion
+                                // TODO: Implement edit functionality
+                                console.log("Edit activity:", activity);
+                              }}
+                              title="Edit Activity"
+                            >
+                              <i className="ri-edit-line"></i>
+                            </button>
+                            <button
+                              className="activity__card__action__btn delete"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent card expansion
+                                setPostProcessingActivities((prev) =>
+                                  prev.filter((a) => a.id !== activity.id)
+                                );
+                              }}
+                              title="Delete Activity"
+                            >
+                              <i className="ri-delete-bin-line"></i>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Beautiful stacked cards - no more slider needed! */}
+              </>
             ) : (
               <div className="activities__empty__state">
                 <i className="ri-inbox-line"></i>

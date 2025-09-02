@@ -203,7 +203,7 @@ export const paperBoardReducer = (
         ...action.payload,
         uploads: [],
         workflow: state.workflow,
-      };
+      } as PaperBoardState;
     case "REORDER_CONTENTS":
       return {
         ...state,
@@ -276,6 +276,21 @@ export const paperBoardReducer = (
             ? action.payload
             : thread
         ),
+      };
+    case "SET_EXISTING_DOCUMENT":
+      return {
+        ...state,
+        existingDocument: action.payload,
+      };
+    case "SET_CURRENT_POINTER":
+      return {
+        ...state,
+        currentPointer: action.payload,
+      };
+    case "SET_ACCESS_LEVEL":
+      return {
+        ...state,
+        accessLevel: action.payload,
       };
     default:
       return state;

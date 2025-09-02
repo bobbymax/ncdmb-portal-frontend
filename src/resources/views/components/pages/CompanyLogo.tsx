@@ -3,8 +3,8 @@ import logo from "../../../assets/images/logo.png";
 import textLogo from "../../../assets/images/logo_frey.png";
 
 interface LogoProps {
-  color: "primary" | "secondary";
-  text: boolean;
+  color?: "primary" | "secondary";
+  text?: boolean;
 }
 
 const CompanyLogo = ({ color, text = false }: LogoProps) => {
@@ -21,16 +21,11 @@ const CompanyLogo = ({ color, text = false }: LogoProps) => {
             alt="The Logo of the Company"
           />
         </Link>
-        <div className="logo__area">
-          <img
-            src={textLogo}
-            style={{
-              width: "70%",
-              // margin: "0 auto",
-            }}
-            alt="The Logo of the Company"
-          />
-        </div>
+        {text && (
+          <div className="logo__area">
+            <img src={textLogo} alt="The Logo of the Company" />
+          </div>
+        )}
       </div>
       <small
         style={{ padding: "0 20px", letterSpacing: 2, display: "block" }}

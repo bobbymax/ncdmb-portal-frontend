@@ -95,6 +95,13 @@ export default class ClaimRepository extends BaseRepository {
       claimant_signature: data.claimant_signature ?? "",
       approval_signature: data.approval_signature ?? "",
       authorising_officer: data.authorising_officer ?? null,
+      resident_type: data.resident_type ?? "resident",
+      distance: data.distance ?? 0,
+      mode: data.mode ?? "flight",
+      route: data.route ?? "one-way",
+      departure_city_id: data.departure_city_id ?? 0,
+      destination_city_id: data.destination_city_id ?? 0,
+      airport_id: data.airport_id ?? 0,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

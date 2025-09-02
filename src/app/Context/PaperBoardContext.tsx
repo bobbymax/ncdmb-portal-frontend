@@ -77,6 +77,7 @@ export interface PaperBoardState {
    * @var approval_memo - The approval memo of the document
    */
 
+  // General Data
   isLoading: boolean;
   hasError: boolean;
   errorMessage: string | null;
@@ -85,11 +86,14 @@ export interface PaperBoardState {
   preferences: SettingsProps;
   watchers: WatcherProps[];
   threads: PointerThreadProps[];
+  currentPointer: string | null;
+  accessLevel: "looker" | "authority" | "approver" | "lock";
 
   // Resources
   resources: ResourceProps;
   loggedInUser: AuthUserResponseData | undefined;
   requirements: DocumentRequirementProps[];
+  existingDocument: DocumentResponseData | null;
 
   // Primary Data
   category: DocumentCategoryResponseData | null;
@@ -311,6 +315,18 @@ export type PaperBoardAction =
   | {
       type: "UPDATE_THREADS";
       payload: PointerThreadProps;
+    }
+  | {
+      type: "SET_EXISTING_DOCUMENT";
+      payload: DocumentResponseData | null;
+    }
+  | {
+      type: "SET_CURRENT_POINTER";
+      payload: string | null;
+    }
+  | {
+      type: "SET_ACCESS_LEVEL";
+      payload: "looker" | "authority" | "approver" | "lock";
     };
 
 export interface PaperBoardContextType {
@@ -363,6 +379,11 @@ export interface PaperBoardContextType {
     updateRequirements: (requirements: DocumentRequirementProps) => void;
     setThreads: (threads: PointerThreadProps[]) => void;
     updateThreads: (threads: PointerThreadProps) => void;
+    setExistingDocument: (document: DocumentResponseData | null) => void;
+    setCurrentPointer: (pointer: string | null) => void;
+    setAccessLevel: (
+      accessLevel: "looker" | "authority" | "approver" | "lock"
+    ) => void;
   };
 }
 

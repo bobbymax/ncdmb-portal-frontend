@@ -8,8 +8,9 @@ import { SignatoryType } from "../Signatory/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessActivitiesProps } from "@/resources/views/crud/DocumentCategoryConfiguration";
-import { CommentProps } from "@/resources/views/components/DocumentGeneratorTab/CommentsGeneratorTab";
+import { CommentProps } from "@/resources/views/components/DocumentGeneratorTab/ThreadsGeneratorTab";
 import { SettingsProps } from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
+import { DocumentActionResponseData } from "../DocumentAction/data";
 
 export type PointerActivityTypesProps =
   | "commented"
@@ -40,6 +41,7 @@ export type PointerThreadConversationProps = {
   };
   replies: string[];
   type: "comment" | "reply";
+  category: PointerActivityTypesProps;
   is_pinned: boolean;
   is_deleted: boolean;
   delivered: boolean;
@@ -48,16 +50,18 @@ export type PointerThreadConversationProps = {
 
 export type PointerThreadProps = {
   pointer_identifier: string;
+  resource?: unknown;
   identifier: string;
   icon?: string;
   thread_owner_id: number; // logged in user id
+  recipient_id: number;
   action?: string;
   category: PointerActivityTypesProps;
   conversations: PointerThreadConversationProps[];
   priority: "low" | "medium" | "high";
   status: "pending" | "resolved" | "rejected";
   state: "open" | "closed";
-  created_at?: string;
+  created_at: string;
   updated_at?: string;
 };
 
@@ -73,6 +77,7 @@ export type CategoryProgressTrackerProps = {
   signatory_type: SignatoryType;
   should_be_signed: "yes" | "no";
   actions?: DataOptionsProps[];
+  threads?: PointerThreadProps[];
 };
 
 export type CategoryWorkflowProps = {
@@ -95,7 +100,7 @@ export type DocumentPolicy = {
 export type DocumentMetaDataProps = {
   policy: DocumentPolicy | null;
   recipients: DataOptionsProps[];
-  actions: DataOptionsProps[];
+  actions: DocumentActionResponseData[];
   activities: ProcessActivitiesProps[];
   comments: CommentProps[];
   settings: SettingsProps;

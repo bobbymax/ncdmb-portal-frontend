@@ -11,7 +11,7 @@ interface PaperTitleContentCardProps {
   isEditing: boolean;
 }
 
-interface PaperTitleContent {
+export interface PaperTitleContent {
   title: string;
   tagline: string;
 }
