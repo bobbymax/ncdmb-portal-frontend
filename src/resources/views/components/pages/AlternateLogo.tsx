@@ -1,5 +1,5 @@
 import React from "react";
-import logoImg from "../../../assets/images/logos/ice_cube.png";
+import logoImg from "../../../assets/images/logo.png";
 
 const AlternateLogo = () => {
   return (

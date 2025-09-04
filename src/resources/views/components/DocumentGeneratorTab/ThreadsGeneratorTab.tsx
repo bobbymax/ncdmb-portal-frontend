@@ -234,11 +234,16 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
   // Convert threads to chat format
   const chatThreads = useMemo(() => {
     return allThreads.map((thread) => {
-      const targetUserId = Number(thread.recipient_id);
+      // Determine the other person in the conversation (not the logged-in user)
+      const loggedInUserId = state.loggedInUser?.id;
+      const otherUserId =
+        thread.thread_owner_id === loggedInUserId
+          ? Number(thread.recipient_id) // If logged-in user is the thread owner, show recipient
+          : thread.thread_owner_id; // If logged-in user is not the thread owner, show thread owner
 
-      // Get user info for the target user (not the thread owner)
-      const targetUser = state.resources.users.find(
-        (user) => user.id === targetUserId
+      // Get user info for the other person in the conversation
+      const otherUser = state.resources.users.find(
+        (user) => user.id === otherUserId
       );
 
       // Get the last conversation from the thread owner to determine category
@@ -288,8 +293,8 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
 
       return {
         id: thread.identifier,
-        name: targetUser?.name || `User ${targetUserId}`,
-        avatar: targetUser?.name?.charAt(0) || "U",
+        name: otherUser?.name || `User ${otherUserId}`,
+        avatar: otherUser?.name?.charAt(0) || "U",
         lastMessage:
           thread.conversations.length > 0
             ? thread.conversations[thread.conversations.length - 1].message
@@ -305,13 +310,13 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
         status: "online" as const,
         type: "personal" as const,
         threadData: thread,
-        targetUserId: targetUserId,
+        targetUserId: otherUserId,
         categoryColor: categoryColor,
         category: displayCategory,
         categoryIcon: getCategoryIcon(displayCategory),
       };
     });
-  }, [allThreads, state.resources.users]);
+  }, [allThreads, state.resources.users, state.loggedInUser?.id]);
 
   useEffect(() => {
     // Initialize comments from global state

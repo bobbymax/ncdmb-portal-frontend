@@ -26,7 +26,6 @@ const GenerateDocument = ({
           category={category}
           editedContents={editedContents}
           mode={existingDocument ? "update" : "store"}
-          context={existingDocument ? "desk" : "generator"}
           existingDocument={existingDocument}
         />
       </PaperBoardProvider>

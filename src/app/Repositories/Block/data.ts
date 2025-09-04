@@ -15,7 +15,8 @@ export type BlockDataType =
   | "approval"
   | "expense"
   | "paper_title"
-  | "signature";
+  | "signature"
+  | "payment_batch";
 
 export type BlockInputType =
   | "ParagraphBlock"

@@ -272,6 +272,10 @@
   color: #ea580c; /* Orange */
 }
 
+.document__display__content__area {
+  padding: 0 20px;
+}
+
 /* Liquid hover effect */
 .chat-tab::before {
   content: "";

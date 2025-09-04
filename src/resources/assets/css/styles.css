@@ -17421,7 +17421,8 @@ body,
   height: 100vh;
   padding: 16px;
   background: linear-gradient(135deg, #fefefe 0%, #f9fafb 100%);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Paper Container */
@@ -17728,12 +17729,162 @@ body,
   height: 100%;
   /* min-height: 892px; */
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.05),
+  border-radius: 12px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(19, 117, 71, 0.1);
   position: relative;
   overflow-y: auto;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(248, 250, 252, 0.9) 100%
+  );
+}
+
+/* A4 Sheet background elements */
+.a4__sheet__logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.25;
+  filter: grayscale(0.1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.a4__sheet__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.a4__sheet__texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(19, 117, 71, 0.03) 1px,
+    transparent 0
+  );
+  background-size: 20px 20px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Enhanced sheet header */
+.sheet__header--enhanced {
+  padding: 45px 32px 32px 32px;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.6) 0%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+}
+
+/* Enhanced sheet content */
+.sheet__content--enhanced {
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced sheet footer */
+.sheet__footer {
+  position: relative;
+  z-index: 1;
+  padding: 32px 32px 45px 32px;
+  margin-top: auto;
+}
+
+/* Context-specific styling */
+.a4__sheet[data-context="desk"] {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.a4__sheet[data-context="desk"] .a4__sheet__overlay,
+.a4__sheet[data-context="desk"] .a4__sheet__texture {
+  display: none; /* Hide overlay and texture in desk view, keep logo */
+}
+
+/* Make logo more subtle in desk context */
+.a4__sheet[data-context="desk"] .a4__sheet__logo {
+  opacity: 0.08; /* Further reduced opacity for very subtle background */
+  filter: grayscale(0.3) brightness(0.8); /* More desaturated and dimmed */
+}
+
+.body__item__content--desk {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+[data-context="desk"] .body__item__content {
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  overflow: visible;
+  max-height: none;
+  height: auto;
+}
+
+[data-context="desk"] .body__item__content * {
+  color: inherit;
+  background: transparent;
+}
+
+.sheet__footer--enhanced {
+  background: linear-gradient(
+    180deg,
+    rgba(19, 117, 71, 0.05) 0%,
+    rgba(19, 117, 71, 0.1) 50%,
+    rgba(19, 117, 71, 0.15) 100%
+  );
+  border-top: 1px solid rgba(19, 117, 71, 0.08);
+  padding: 12px 0;
+}
+
+.sheet__footer__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+}
+
+.sheet__footer__item {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.sheet__footer__item--left,
+.sheet__footer__item--right {
+  color: rgba(139, 69, 19, 0.8);
+  font-weight: 600;
+}
+
+.sheet__footer__item--center {
+  display: none;
 }
 
 .a4__sheet::before {
@@ -18004,7 +18155,7 @@ body,
   flex: 1;
   height: auto;
   min-height: 400px;
-  max-height: 80vh;
+  max-height: 75vh;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 12px;
@@ -18456,58 +18607,133 @@ body,
 /* Document Content Table Styles */
 .document__content__table {
   width: 100%;
-  border-collapse: collapse;
-  background: transparent;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.8);
   font-size: 13px;
   margin: 8px 0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(19, 117, 71, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(19, 117, 71, 0.1);
 }
 
 .document__content__table thead {
-  background: rgba(19, 117, 71, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(19, 117, 71, 0.12) 0%,
+    rgba(16, 185, 129, 0.08) 100%
+  );
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
 }
 
 .document__content__table th {
-  padding: 10px 12px;
+  padding: 16px 20px;
   text-align: left;
   font-weight: 600;
-  color: #374151;
+  color: #1f2937;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(19, 117, 71, 0.15);
+  letter-spacing: 0.8px;
+  border: none;
+  border-bottom: 2px solid rgba(19, 117, 71, 0.2);
+  position: relative;
+}
+
+.document__content__table th:first-child {
+  border-radius: 12px 0 0 0;
+}
+
+.document__content__table th:last-child {
+  border-radius: 0 12px 0 0;
 }
 
 .document__content__table tbody tr {
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .document__content__table tbody tr:nth-child(even) {
-  background: rgba(248, 250, 252, 0.6);
+  background: rgba(248, 250, 252, 0.4);
 }
 
 .document__content__table tbody tr:nth-child(odd) {
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .document__content__table tbody tr:hover {
-  background: rgba(19, 117, 71, 0.05);
+  background: rgba(19, 117, 71, 0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(19, 117, 71, 0.1);
+}
+
+.document__content__table tbody tr:last-child {
+  border-radius: 0 0 12px 12px;
 }
 
 .document__content__table td {
-  padding: 8px 12px;
-  color: #4b5563;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-  font-size: 13px;
-  line-height: 1.4;
+  padding: 16px 20px;
+  color: #374151;
+  border: none;
+  border-bottom: 1px solid rgba(19, 117, 71, 0.08);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 .document__content__table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Duration cell with icon styling */
+.document__content__table td:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.document__content__table td:first-child i {
+  color: #10b981;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* Description cell */
+.document__content__table td:nth-child(2) {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Amount cell */
+.document__content__table td:last-child {
+  font-weight: 700;
+  color: #059669;
+  font-size: 15px;
+}
+
+/* Total row styling */
+.document__content__table tbody tr:last-child {
+  background: linear-gradient(
+    135deg,
+    rgba(19, 117, 71, 0.08) 0%,
+    rgba(16, 185, 129, 0.05) 100%
+  ) !important;
+  border-top: 2px solid rgba(19, 117, 71, 0.15);
+}
+
+.document__content__table tbody tr:last-child td {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.document__content__table tbody tr:last-child td:last-child {
+  color: #047857;
+  font-size: 18px;
 }
 
 /* Document Content View Styles */
@@ -18969,36 +19195,86 @@ body,
 }
 
 /* Dark Theme Support */
-[data-theme="dark"] .document__template__content {
+/* [data-theme="dark"] .document__template__content {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+} */
+
+[data-theme="dark"] .document__content__table {
+  background: rgba(31, 41, 55, 0.8);
+  box-shadow: 0 4px 12px rgba(83, 165, 72, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(83, 165, 72, 0.15);
 }
 
 [data-theme="dark"] .document__content__table thead {
-  background: rgba(19, 117, 71, 0.15);
+  background: linear-gradient(
+    135deg,
+    rgba(83, 165, 72, 0.15) 0%,
+    rgba(16, 185, 129, 0.1) 100%
+  );
 }
 
 [data-theme="dark"] .document__content__table th {
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-bottom-color: rgba(19, 117, 71, 0.25);
+  color: #f3f4f6;
+  border: none;
+  border-bottom-color: rgba(83, 165, 72, 0.3);
 }
 
 [data-theme="dark"] .document__content__table tbody tr:nth-child(even) {
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(30, 41, 59, 0.4);
 }
 
 [data-theme="dark"] .document__content__table tbody tr:nth-child(odd) {
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(15, 23, 42, 0.6);
 }
 
 [data-theme="dark"] .document__content__table tbody tr:hover {
-  background: rgba(19, 117, 71, 0.1);
+  background: rgba(83, 165, 72, 0.08);
+  box-shadow: 0 2px 8px rgba(83, 165, 72, 0.15);
 }
 
 [data-theme="dark"] .document__content__table td {
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom-color: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border: none;
+  border-bottom-color: rgba(83, 165, 72, 0.1);
+}
+
+[data-theme="dark"] .document__content__table td:first-child {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .document__content__table td:first-child i {
+  color: #34d399;
+}
+
+[data-theme="dark"] .document__content__table td:nth-child(2) {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .document__content__table td:last-child {
+  color: #10b981;
+}
+
+[data-theme="dark"] .document__content__table tbody tr:last-child {
+  background: linear-gradient(
+    135deg,
+    rgba(83, 165, 72, 0.1) 0%,
+    rgba(16, 185, 129, 0.06) 100%
+  ) !important;
+  border-top: 2px solid rgba(83, 165, 72, 0.2);
+}
+
+[data-theme="dark"] .document__content__table tbody tr:last-child td {
+  color: #f3f4f6;
+  font-size: 16px;
+}
+
+[data-theme="dark"]
+  .document__content__table
+  tbody
+  tr:last-child
+  td:last-child {
+  color: #34d399;
+  font-size: 18px;
 }
 
 [data-theme="dark"] .document__content__empty {
@@ -19067,9 +19343,9 @@ body,
 }
 
 /* Dark Theme for Document Generator Tabs */
-[data-theme="dark"] .budget__generator__tab,
+/* [data-theme="dark"] .budget__generator__tab, */
 [data-theme="dark"] .uploads__generator__tab,
-[data-theme="dark"] .resource__generator__tab,
+/* [data-theme="dark"] .resource__generator__tab, */
 [data-theme="dark"] .comments__generator__tab,
 [data-theme="dark"] .settings__generator__tab {
   background: rgba(15, 23, 42, 0.8);
@@ -22008,15 +22284,390 @@ body,
   color: #e2e8f0;
 }
 
+/* Dark theme styles for paper sheet and children */
+[data-theme="dark"] .document__template__paper__sheet {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+[data-theme="dark"] .sheet__header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 [data-theme="dark"] .a4__sheet {
   background: #1e293b;
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.2),
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95) 0%,
+    rgba(15, 23, 42, 0.9) 100%
+  );
+}
+
+/* Dark theme for A4 Sheet background elements */
+[data-theme="dark"] .a4__sheet__logo {
+  opacity: 0.15;
+  filter: grayscale(0.3) brightness(0.8);
+}
+
+[data-theme="dark"] .a4__sheet__overlay {
+  background-color: rgba(15, 23, 42, 0.85);
+}
+
+[data-theme="dark"] .a4__sheet__texture {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(83, 165, 72, 0.05) 1px,
+    transparent 0
+  );
+}
+
+/* Dark theme for enhanced sheet header */
+[data-theme="dark"] .sheet__header--enhanced {
+  background: linear-gradient(
+    180deg,
+    rgba(30, 41, 59, 0.6) 0%,
+    rgba(15, 23, 42, 0.3) 100%
+  );
+}
+
+/* Dark theme for enhanced sheet footer */
+[data-theme="dark"] .sheet__footer--enhanced {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.3) 0%,
+    rgba(30, 41, 59, 0.6) 100%
+  );
+}
+
+[data-theme="dark"] .sheet__footer__item--left,
+[data-theme="dark"] .sheet__footer__item--right {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .sheet__footer__item--center {
+  color: rgba(83, 165, 72, 0.8);
+}
+
+/* Context-specific styling for expense content in desk mode */
+[data-context="desk"] .sheet__content {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+  min-height: auto;
+}
+
+[data-context="desk"] .document__content__view {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+
+[data-context="desk"] .document__content__table {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+  page-break-inside: auto;
+}
+
+[data-context="desk"] .expense__edit__container {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+
+[data-context="desk"] .expense__cards__grid {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+
+/* Ensure tables in desk context are fully visible for printing */
+[data-context="desk"] .document__content__table tbody {
+  display: table-row-group;
+}
+
+[data-context="desk"] .document__content__table tr {
+  page-break-inside: avoid;
+}
+
+/* Dark theme for desk context */
+[data-theme="dark"] .a4__sheet[data-context="desk"] {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .body__item__content--desk {
+  background: transparent;
+}
+
+[data-theme="dark"] [data-context="desk"] .body__item__content {
+  background: transparent;
+  overflow: visible;
+  max-height: none;
+  height: auto;
+}
+
+[data-theme="dark"] [data-context="desk"] .sheet__content {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+  min-height: auto;
+}
+
+[data-theme="dark"] [data-context="desk"] .body__item__content * {
+  color: inherit;
+  background: transparent;
+}
+
+/* Dark theme logo styling for desk context */
+[data-theme="dark"] .a4__sheet[data-context="desk"] .a4__sheet__logo {
+  opacity: 0.05; /* Very subtle in dark theme */
+  filter: grayscale(0.4) brightness(0.7); /* More desaturated and dimmed for dark theme */
+}
+
+[data-theme="dark"] .a4__sheet::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+/* Dark theme footer styling */
+[data-theme="dark"] .sheet__footer--enhanced {
+  background: linear-gradient(
+    180deg,
+    rgba(83, 165, 72, 0.08) 0%,
+    rgba(83, 165, 72, 0.12) 50%,
+    rgba(83, 165, 72, 0.18) 100%
+  );
+  border-top: 1px solid rgba(83, 165, 72, 0.15);
+}
+
+[data-theme="dark"] .sheet__footer__item--left,
+[data-theme="dark"] .sheet__footer__item--right {
+  color: rgba(255, 215, 0, 0.9);
+}
+
+[data-theme="dark"] .sheet__footer__item--center {
+  display: none;
+}
+
+/* Sync Controls Styling - Engraved Style */
+.document__template__paper__sync {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.document__template__paper__sync::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+.sync__controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.sync__text {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.2px;
+}
+
+.sync__checkboxes {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.sync__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Switch-style checkbox */
+.sync__checkbox input[type="checkbox"] {
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.sync__checkbox input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sync__checkbox input[type="checkbox"]:checked {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.sync__checkbox input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.sync__checkbox__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.1px;
+}
+
+/* Dark theme sync controls */
+[data-theme="dark"] .document__template__paper__sync {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .document__template__paper__sync::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+}
+
+[data-theme="dark"] .sync__text {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .sync__checkbox input[type="checkbox"] {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .sync__checkbox input[type="checkbox"]::before {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .sync__checkbox input[type="checkbox"]:checked {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+[data-theme="dark"] .sync__checkbox__label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .sheet__content {
+  background: rgba(30, 41, 59, 0.1);
+}
+
+[data-theme="dark"] .sheet__content.drag-over {
+  background: rgba(83, 165, 72, 0.1);
+  border: 2px dashed rgba(83, 165, 72, 0.4);
+}
+
+[data-theme="dark"] .sheet__placeholder {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .sheet__placeholder i {
+  color: #6b7280;
+  opacity: 0.6;
 }
 
 [data-theme="dark"] .sheet__placeholder span {
   color: #cbd5e1;
+}
+
+[data-theme="dark"] .sheet__placeholder small {
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+/* Additional dark theme enhancements for paper sheet */
+[data-theme="dark"] .document__template__paper {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="dark"] .document__template__paper__panel {
+  background: rgba(15, 23, 42, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .paper__toolbar {
+  background: rgba(15, 23, 42, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .toolbar__blocks {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="dark"] .toolbar__block {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .toolbar__block:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(83, 165, 72, 0.3);
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .block__icon {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .block__name {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .toolbar__empty {
+  color: #6b7280;
+}
+
+[data-theme="dark"] .generate__document__btn {
+  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #059669 100%);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .generate__document__btn:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 50%, #047857 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 [data-theme="dark"] .document__template__configuration {
@@ -23658,7 +24309,7 @@ body,
 
 /* Dark theme support */
 [data-theme="dark"] .signature__container__box.view__mode {
-  background-color: #2d2d2d;
+  /* background-color: #2d2d2d; */
   border-color: #404040;
 }
 
@@ -25002,6 +25653,32 @@ html.modal-open {
   border-radius: 12px;
   border: 1px solid var(--border-color);
   overflow: hidden;
+}
+
+/* A4Sheet Desk Content - Plain content on background */
+.a4__sheet .desk-content {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  padding: 20px;
+}
+
+/* Plain content cards - no background styling */
+.a4__sheet .desk-content .body__item__content--desk {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin-bottom: 16px;
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Ensure all content is fully visible */
+.a4__sheet .desk-content .body__item__content--desk * {
+  opacity: 1 !important;
+  color: inherit !important;
+  background: transparent !important;
 }
 
 .content-header {

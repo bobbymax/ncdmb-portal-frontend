@@ -88,6 +88,7 @@ export interface PaperBoardState {
   threads: PointerThreadProps[];
   currentPointer: string | null;
   accessLevel: "looker" | "authority" | "approver" | "lock";
+  sync: boolean;
 
   // Resources
   resources: ResourceProps;
@@ -327,6 +328,14 @@ export type PaperBoardAction =
   | {
       type: "SET_ACCESS_LEVEL";
       payload: "looker" | "authority" | "approver" | "lock";
+    }
+  | {
+      type: "SET_CONTEXT";
+      payload: "desk" | "generator";
+    }
+  | {
+      type: "SET_SYNC";
+      payload: boolean;
     };
 
 export interface PaperBoardContextType {
@@ -384,6 +393,8 @@ export interface PaperBoardContextType {
     setAccessLevel: (
       accessLevel: "looker" | "authority" | "approver" | "lock"
     ) => void;
+    setContext: (context: "desk" | "generator") => void;
+    setSync: (sync: boolean) => void;
   };
 }
 

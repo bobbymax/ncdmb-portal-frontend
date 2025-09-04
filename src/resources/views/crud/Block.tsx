@@ -62,6 +62,7 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "expense", label: "Expense" },
             { value: "signature", label: "Signature" },
             { value: "paper_title", label: "Paper Title" },
+            { value: "payment_batch", label: "Payment Batch" },
           ]}
         />
       </div>

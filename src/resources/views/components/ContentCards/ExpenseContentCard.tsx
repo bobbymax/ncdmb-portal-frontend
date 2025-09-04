@@ -319,7 +319,10 @@ const ExpenseContentCard: React.FC<ExpenseContentCardProps> = ({
           <tbody>
             {expenses.map((expense) => (
               <tr key={expense.id}>
-                <td>{getDuration(expense.start_date, expense.end_date)}</td>
+                <td>
+                  <i className="ri-calendar-line"></i>
+                  {getDuration(expense.start_date, expense.end_date)}
+                </td>
                 <td>{expense.description}</td>
                 <td
                   style={{

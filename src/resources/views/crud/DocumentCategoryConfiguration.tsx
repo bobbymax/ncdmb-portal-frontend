@@ -22,6 +22,8 @@ import Button from "../components/forms/Button";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { PermissionTypes } from "@/app/Repositories/ProgressTracker/data";
+import { BlockResponseData } from "@/app/Repositories/Block/data";
 
 export type ProcessActivitiesProps = {
   id: number;
@@ -35,7 +37,10 @@ export type ProcessActivitiesProps = {
   category: "process" | "activity";
   user_id: number;
   status: "pending" | "completed" | "failed";
+  permission: PermissionTypes;
+  blocks: BlockResponseData[];
   document_action_id: number;
+  order: number;
 };
 
 type DependencyProps = {
@@ -74,7 +79,10 @@ const DocumentCategoryConfiguration: React.FC<
       category: "process",
       user_id: 0,
       status: "pending",
+      permission: "r",
       document_action_id: 0,
+      order: 0,
+      blocks: [],
     });
 
   const [policy, setPolicy] = useState<DocumentPolicy>({
@@ -540,7 +548,10 @@ const DocumentCategoryConfiguration: React.FC<
                       category: "process",
                       user_id: 0,
                       status: "pending",
+                      permission: "r",
                       document_action_id: 0,
+                      order: 0,
+                      blocks: [],
                     });
 
                     // Reset selected options

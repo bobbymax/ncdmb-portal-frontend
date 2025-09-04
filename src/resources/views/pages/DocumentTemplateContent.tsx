@@ -41,7 +41,6 @@ interface DocumentTemplateContentProps {
   category: DocumentCategoryResponseData | null;
   editedContents: ContentBlock[];
   mode: "store" | "update";
-  context: ContextType;
   existingDocument?: DocumentResponseData | null;
 }
 
@@ -58,13 +57,13 @@ const DocumentTemplateContent = ({
   category,
   editedContents,
   mode,
-  context,
   existingDocument: propExistingDocument,
 }: DocumentTemplateContentProps) => {
   const { state, actions } = usePaperBoard();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isEditor, setIsEditor] = useState(false);
 
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
@@ -81,7 +80,6 @@ const DocumentTemplateContent = ({
 
   // Ref to prevent infinite loops during sync
   const hasSyncedRef = useRef<number | false>(false);
-  const requirementsSyncedRef = useRef(false);
 
   // Sync prop existingDocument to global state
   useEffect(() => {
@@ -846,6 +844,18 @@ const DocumentTemplateContent = ({
   return (
     <div className="document__template__content">
       <div className="document__template__paper">
+        {/* Paper Header */}
+        <div className="document__template__paper__header">
+          {/* Switch isEditor */}
+          <div className="switch__editor">
+            <input
+              type="checkbox"
+              checked={isEditor}
+              onChange={() => setIsEditor(!isEditor)}
+            />
+          </div>
+        </div>
+        {/* Paper Panel */}
         <div className="document__template__paper__panel">
           {/* Toolbar with blocks */}
           <div className="paper__toolbar">
@@ -872,23 +882,21 @@ const DocumentTemplateContent = ({
               )}
             </div>
             <div className="toolbar__actions">
-              {state.existingDocument ? (
-                <button
-                  className="generate__document__btn"
-                  onClick={handleGenerateDocument}
-                >
-                  <i className="ri-database-2-line"></i>
-                  <span>Update Document</span>
-                </button>
-              ) : (
-                <button
-                  className="generate__document__btn"
-                  onClick={handleGenerateDocument}
-                >
-                  <i className="ri-store-line"></i>
-                  <span>Generate Document</span>
-                </button>
-              )}
+              <button
+                className="generate__document__btn"
+                onClick={handleGenerateDocument}
+              >
+                <i
+                  className={
+                    state.existingDocument
+                      ? "ri-database-2-line"
+                      : "ri-store-line"
+                  }
+                ></i>
+                <span>
+                  {state.existingDocument ? "Update" : "Generate"} Document
+                </span>
+              </button>
             </div>
           </div>
         </div>
@@ -906,6 +914,7 @@ const DocumentTemplateContent = ({
             handleRemoveItem={handleRemoveItem}
             editingItems={editingItems}
             TemplateHeader={TemplateHeader}
+            isEditor={isEditor}
           />
         </div>
       </div>

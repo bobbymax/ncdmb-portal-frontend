@@ -99,6 +99,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     existingDocument: null,
     currentPointer: null,
     accessLevel: "looker",
+    sync: false,
   };
 
   const [state, dispatch] = useReducer(paperBoardReducer, initialState);
@@ -478,6 +479,12 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
         accessLevel: "looker" | "authority" | "approver" | "lock"
       ) => {
         dispatch({ type: "SET_ACCESS_LEVEL", payload: accessLevel });
+      },
+      setContext: (context: "desk" | "generator") => {
+        dispatch({ type: "SET_CONTEXT", payload: context });
+      },
+      setSync: (sync: boolean) => {
+        dispatch({ type: "SET_SYNC", payload: sync });
       },
     }),
     [dispatch]

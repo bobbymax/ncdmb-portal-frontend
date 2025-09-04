@@ -878,10 +878,6 @@ b {
   padding: 20px 0;
 }
 
-.custom__new__wrapper {
-  width: 60%;
-}
-
 .brand-name > .logo__new__wrapper {
   width: 80%;
   max-width: 80%;
@@ -3248,7 +3244,7 @@ b {
 }
 
 .custom__new__wrapper {
-  width: 60%;
+  width: 35%;
 }
 
 .brand-name > .logo__new__wrapper {

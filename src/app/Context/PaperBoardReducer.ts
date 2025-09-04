@@ -292,6 +292,16 @@ export const paperBoardReducer = (
         ...state,
         accessLevel: action.payload,
       };
+    case "SET_CONTEXT":
+      return {
+        ...state,
+        context: action.payload,
+      };
+    case "SET_SYNC":
+      return {
+        ...state,
+        sync: action.payload,
+      };
     default:
       return state;
   }

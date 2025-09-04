@@ -14,6 +14,7 @@ import {
   RequisitionContentCard,
   SignatureContentCard,
 } from "./index";
+import { ContextType } from "app/Context/PaperBoardContext";
 
 interface InlineContentCardProps {
   item: ContentBlock;
