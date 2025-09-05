@@ -67,11 +67,31 @@ const DocumentTemplateContent = ({
 
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
-    { id: "budget", label: "Budget", icon: "ri-bank-line" },
-    { id: "uploads", label: "Uploads", icon: "ri-git-repository-commits-line" },
-    { id: "resource", label: "Resource", icon: "ri-database-2-line" },
-    { id: "threads", label: "Threads", icon: "ri-chat-3-line" },
-    { id: "settings", label: "Settings", icon: "ri-settings-3-line" },
+    { id: "budget", label: "Budget", icon: "ri-bank-line", isEditor: true },
+    {
+      id: "uploads",
+      label: "Uploads",
+      icon: "ri-git-repository-commits-line",
+      isEditor: true,
+    },
+    {
+      id: "resource",
+      label: "Resource",
+      icon: "ri-database-2-line",
+      isEditor: true,
+    },
+    {
+      id: "threads",
+      label: "Threads",
+      icon: "ri-chat-3-line",
+      isEditor: false,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: "ri-settings-3-line",
+      isEditor: true,
+    },
   ]);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
@@ -847,59 +867,68 @@ const DocumentTemplateContent = ({
         {/* Paper Header */}
         <div className="document__template__paper__header">
           {/* Switch isEditor */}
-          <div className="switch__editor">
-            <input
-              type="checkbox"
-              checked={isEditor}
-              onChange={() => setIsEditor(!isEditor)}
-            />
-          </div>
+          {(state.loggedInUser?.id === state.existingDocument?.user_id ||
+            state.loggedInUser?.id === state.existingDocument?.created_by) && (
+            <div className="switch__editor">
+              <input
+                type="checkbox"
+                id="editor-switch"
+                checked={isEditor}
+                onChange={() => setIsEditor(!isEditor)}
+              />
+              <label htmlFor="editor-switch">
+                {isEditor ? "Editor" : "Preview"}
+              </label>
+            </div>
+          )}
         </div>
         {/* Paper Panel */}
-        <div className="document__template__paper__panel">
-          {/* Toolbar with blocks */}
-          <div className="paper__toolbar">
-            <div className="toolbar__blocks">
-              {displayBlocks && displayBlocks.length > 0 ? (
-                displayBlocks.map((block) => (
-                  <div
-                    key={block.id}
-                    className="toolbar__block"
-                    draggable
-                    onDragStart={(e) => handleBlockDragStart(e, block)}
-                  >
-                    <div className="block__icon">
-                      <i className={block.icon}></i>
+        {isEditor && (
+          <div className="document__template__paper__panel">
+            {/* Toolbar with blocks */}
+            <div className="paper__toolbar">
+              <div className="toolbar__blocks">
+                {displayBlocks && displayBlocks.length > 0 ? (
+                  displayBlocks.map((block) => (
+                    <div
+                      key={block.id}
+                      className="toolbar__block"
+                      draggable
+                      onDragStart={(e) => handleBlockDragStart(e, block)}
+                    >
+                      <div className="block__icon">
+                        <i className={block.icon}></i>
+                      </div>
+                      <div className="block__name">{block.title}</div>
                     </div>
-                    <div className="block__name">{block.title}</div>
+                  ))
+                ) : (
+                  <div className="toolbar__empty">
+                    <i className="ri-layout-grid-line"></i>
+                    <span>No blocks available</span>
                   </div>
-                ))
-              ) : (
-                <div className="toolbar__empty">
-                  <i className="ri-layout-grid-line"></i>
-                  <span>No blocks available</span>
-                </div>
-              )}
-            </div>
-            <div className="toolbar__actions">
-              <button
-                className="generate__document__btn"
-                onClick={handleGenerateDocument}
-              >
-                <i
-                  className={
-                    state.existingDocument
-                      ? "ri-database-2-line"
-                      : "ri-store-line"
-                  }
-                ></i>
-                <span>
-                  {state.existingDocument ? "Update" : "Generate"} Document
-                </span>
-              </button>
+                )}
+              </div>
+              <div className="toolbar__actions">
+                <button
+                  className="generate__document__btn"
+                  onClick={handleGenerateDocument}
+                >
+                  <i
+                    className={
+                      state.existingDocument
+                        ? "ri-database-2-line"
+                        : "ri-store-line"
+                    }
+                  ></i>
+                  <span>
+                    {state.existingDocument ? "Update" : "Generate"} Document
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
         <div className="document__template__paper__sheet">
           {/* A4 Paper Sheet Area */}
           <A4Sheet
@@ -934,6 +963,9 @@ const DocumentTemplateContent = ({
                 onDragEnter={(e) => handleTabDragEnter(e, index)}
                 onDragLeave={handleTabDragLeave}
                 onDrop={(e) => handleTabDrop(e, index)}
+                style={{
+                  display: tab.isEditor === isEditor ? "flex" : "none",
+                }}
               >
                 <i className={tab.icon}></i>
                 <span>{tab.label}</span>

@@ -76,8 +76,7 @@ export type CategoryProgressTrackerProps = {
   permission: PermissionTypes;
   signatory_type: SignatoryType;
   should_be_signed: "yes" | "no";
-  actions?: DataOptionsProps[];
-  threads?: PointerThreadProps[];
+  actions: DocumentActionResponseData[];
 };
 
 export type CategoryWorkflowProps = {

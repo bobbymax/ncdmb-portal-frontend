@@ -5,8 +5,6 @@ import { useParams } from "react-router-dom";
 import PaperBoardErrorBoundary from "app/Boundaries/PaperBoardErrorBoundary";
 import { PaperBoardProvider } from "app/Context/PaperBoardProvider";
 import DocumentTemplateContent from "./DocumentTemplateContent";
-import { usePaperBoard } from "app/Context/PaperBoardContext";
-import { useEffect } from "react";
 
 const GenerateDocument = ({
   Repository,

@@ -1,10 +1,11 @@
 import { BaseResponse } from "../BaseRepository";
+import { SignatoryType } from "../Signatory/data";
 
 export interface SignatureResponseData extends BaseResponse {
   signatory_id: number;
   user_id: number;
   document_draft_id: number;
-  type?: string;
+  type: SignatoryType;
   approving_officer?: {
     name: string;
     grade_level: string;

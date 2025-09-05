@@ -23,6 +23,15 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   // Use ref to track previous configState to detect actual changes
   const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
 
+  // console.log(state.currentPointer, state.trackers);
+
+  // Get the tracker for the current pointer
+  const currentTracker = state.trackers.find(
+    (tracker) => tracker.identifier === state.currentPointer
+  );
+
+  console.log(currentTracker, state.metaData?.actions);
+
   // Get stages that should be signed from configState
   const signableStages: CategoryProgressTrackerProps[] = [];
   if (state.configState) {
@@ -76,7 +85,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
             order: stage.order,
             user_id: stage.user_id,
             document_draft_id: 1,
-            type: stage.signatory_type || "flex",
+            type: stage.signatory_type || "owner",
             approving_officer: {
               name: user?.name || `User ${stage.user_id}`,
               grade_level: user?.grade_level || "Unknown",
@@ -169,10 +178,6 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
           <SignatureCanvas
             signatureUrl={signature.signature}
             signature={signature}
-            styles={{
-              maxWidth: "200px",
-              maxHeight: "100px",
-            }}
           />
         </div>
       ))}

@@ -43,6 +43,12 @@ export type ProcessActivitiesProps = {
   order: number;
 };
 
+export type SelectedActionsProps = {
+  identifier: string;
+  tracker: CategoryProgressTrackerProps;
+  action: DocumentActionResponseData;
+};
+
 type DependencyProps = {
   users: UserResponseData[];
   workflowStages: WorkflowStageResponseData[];
@@ -106,7 +112,7 @@ const DocumentCategoryConfiguration: React.FC<
     state.workflow?.trackers || [];
 
   const [selectedActions, setSelectedActions] = useState<
-    DocumentActionResponseData[]
+    SelectedActionsProps[]
   >([]);
 
   const [selectedGroups, setSelectedGroups] = useState<GroupResponseData[]>([]);
@@ -170,12 +176,16 @@ const DocumentCategoryConfiguration: React.FC<
   }, [policy, selectedUsers, selectedActions, repo]);
 
   const handleActionChange = useCallback(
-    (action: DocumentActionResponseData, checked: boolean) => {
+    (
+      tracker: CategoryProgressTrackerProps,
+      action: DocumentActionResponseData,
+      checked: boolean
+    ) => {
       setSelectedActions((prev) => {
         if (checked) {
-          return [...prev, action];
+          return [...prev, { identifier: tracker.identifier, tracker, action }];
         }
-        return prev.filter((a) => a.id !== action.id);
+        return prev.filter((a) => a.identifier !== tracker.identifier);
       });
     },
     []
@@ -272,7 +282,7 @@ const DocumentCategoryConfiguration: React.FC<
       setPolicy(state.meta_data.policy as DocumentPolicy);
       if (state.meta_data.actions) {
         setSelectedActions(
-          state.meta_data.actions as unknown as DocumentActionResponseData[]
+          state.meta_data.actions as unknown as SelectedActionsProps[]
         );
       }
       if (state.meta_data.recipients) {
@@ -349,16 +359,20 @@ const DocumentCategoryConfiguration: React.FC<
                           type="checkbox"
                           id={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
                           onChange={(e) => {
-                            handleActionChange(action, e.target.checked);
+                            handleActionChange(
+                              tracker,
+                              action,
+                              e.target.checked
+                            );
                           }}
                           checked={selectedActions.some(
-                            (a) => a.id === action.id
+                            (a) => a.identifier === tracker.identifier
                           )}
                         />
                         <label
                           htmlFor={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
                         >
-                          {toTitleCase(action.button_text)}
+                          {toTitleCase(action.button_text ?? "")}
                         </label>
                       </div>
                     ))}
@@ -472,9 +486,9 @@ const DocumentCategoryConfiguration: React.FC<
                   label="Event"
                   options={
                     selectedActions.length > 0
-                      ? selectedActions.map((action) => ({
-                          label: toTitleCase(action.draft_status),
-                          value: action.id,
+                      ? selectedActions.map((sel) => ({
+                          label: toTitleCase(sel.action?.draft_status ?? ""),
+                          value: sel.action?.id,
                         }))
                       : [{ label: "No Actions", value: 0 }]
                   }
