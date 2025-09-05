@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import SignatureCanvas from "../capsules/SignatureCanvas";
@@ -7,30 +7,28 @@ import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { UserResponseData } from "@/app/Repositories/User/data";
 import { SheetProps } from "../../pages/DocumentTemplateContent";
+import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
+import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 
 interface SignatureContentCardProps {
   item: ContentBlock;
   onClose: () => void;
   isEditing: boolean;
+  currentTracker: CategoryProgressTrackerProps | null;
+  currentPageActions: SelectedActionsProps[];
 }
 
 const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   item,
   onClose,
   isEditing,
+  currentTracker,
+  currentPageActions,
 }) => {
   const { state, actions } = usePaperBoard();
+  const [isDisplayed, setIsDisplayed] = useState<boolean>(false);
   // Use ref to track previous configState to detect actual changes
   const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
-
-  // console.log(state.currentPointer, state.trackers);
-
-  // Get the tracker for the current pointer
-  const currentTracker = state.trackers.find(
-    (tracker) => tracker.identifier === state.currentPointer
-  );
-
-  console.log(currentTracker, state.metaData?.actions);
 
   // Get stages that should be signed from configState
   const signableStages: CategoryProgressTrackerProps[] = [];
@@ -43,6 +41,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       signableStages.push({
         ...state.configState.from,
         order: signableStages.length + 1,
+        flow_type: "from",
       });
     }
     if (
@@ -52,6 +51,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       signableStages.push({
         ...state.configState.through,
         order: signableStages.length + 1,
+        flow_type: "through",
       });
     }
     if (
@@ -61,6 +61,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       signableStages.push({
         ...state.configState.to,
         order: signableStages.length + 1,
+        flow_type: "to",
       });
     }
   }
@@ -68,6 +69,16 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   if (signableStages.length === 0) {
     return null; // No stages to sign
   }
+
+  const signatureButton: SelectedActionsProps | null = useMemo(() => {
+    return (
+      currentPageActions.find(
+        (page) =>
+          page.identifier === currentTracker?.identifier &&
+          page.action.category === "signature"
+      ) ?? null
+    );
+  }, [currentTracker, currentPageActions]);
 
   // Create signature data using actual user information from state.resources.users
   const signatures: SignatureResponseData[] = React.useMemo(
@@ -93,11 +104,22 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
             signature: "",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            flow_type: stage.flow_type,
           };
         }
       ),
     [signableStages, state.resources?.users]
   );
+
+  const currentSignature: SignatureResponseData | null = useMemo(() => {
+    return (
+      signatures.find(
+        (signature) =>
+          signature.flow_type === currentTracker?.flow_type &&
+          state.loggedInUser?.id === signature.user_id
+      ) ?? null
+    );
+  }, [signatures, currentTracker, state.loggedInUser]);
 
   // Update global state with signature data when configState or signatures change
   useEffect(() => {
@@ -175,6 +197,15 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     <div className={getContainerClass()}>
       {signatures.map((signature: SignatureResponseData, index: number) => (
         <div key={signature.id} className="signature__item">
+          <div className="signature__button__container">
+            {signatureButton &&
+              state.loggedInUser?.id === signature.user_id &&
+              signature.flow_type === currentTracker?.flow_type && (
+                <div className="signature__item__display">
+                  <p>{signatureButton.action.button_text}</p>
+                </div>
+              )}
+          </div>
           <SignatureCanvas
             signatureUrl={signature.signature}
             signature={signature}

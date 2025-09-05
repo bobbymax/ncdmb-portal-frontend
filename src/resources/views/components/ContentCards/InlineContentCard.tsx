@@ -15,19 +15,25 @@ import {
   SignatureContentCard,
 } from "./index";
 import { ContextType } from "app/Context/PaperBoardContext";
+import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
+import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 
 interface InlineContentCardProps {
   item: ContentBlock;
   onClose: () => void;
   isEditing: boolean;
+  currentTracker: CategoryProgressTrackerProps | null;
   dependencies?: unknown;
+  currentPageActions: SelectedActionsProps[];
 }
 
 const InlineContentCard: React.FC<InlineContentCardProps> = ({
   item,
   onClose,
   isEditing,
+  currentTracker,
   dependencies = null,
+  currentPageActions,
 }) => {
   // Determine the type from the item's type property
   const getItemType = (): DeskComponentPropTypes => {
@@ -109,6 +115,8 @@ const InlineContentCard: React.FC<InlineContentCardProps> = ({
           item={item}
           onClose={onClose}
           isEditing={isEditing}
+          currentTracker={currentTracker}
+          currentPageActions={currentPageActions}
         />
       );
     default:

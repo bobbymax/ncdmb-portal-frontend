@@ -4,7 +4,7 @@ import {
   CategoryProgressTrackerProps,
 } from "@/app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
@@ -20,6 +20,8 @@ import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
 import { PaperTitleContent } from "../components/ContentCards/PaperTitleContentCard";
 import ThreadsGeneratorTab from "../components/DocumentGeneratorTab/ThreadsGeneratorTab";
+import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
+import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -63,7 +65,7 @@ const DocumentTemplateContent = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [isEditor, setIsEditor] = useState(false);
+  const [isEditor, setIsEditor] = useState(mode === "store");
 
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
@@ -861,27 +863,54 @@ const DocumentTemplateContent = ({
     }
   };
 
+  const currentTracker: CategoryProgressTrackerProps | null = useMemo(() => {
+    if (state.currentPointer) {
+      return (
+        state.trackers.find(
+          (tracker) => tracker.identifier === state.currentPointer
+        ) ?? null
+      );
+    }
+    return null;
+  }, [state.trackers, state.currentPointer]);
+
+  const currentPage: SelectedActionsProps[] = useMemo(() => {
+    const documentActions = state.metaData?.actions;
+    if (!currentTracker || !documentActions) {
+      return [];
+    }
+    return documentActions.filter(
+      (action) => action.identifier === currentTracker.identifier
+    );
+  }, [currentTracker, state.metaData?.actions]);
+
+  // console.log(currentPage);
+
   return (
     <div className="document__template__content">
       <div className="document__template__paper">
         {/* Paper Header */}
-        <div className="document__template__paper__header">
-          {/* Switch isEditor */}
-          {(state.loggedInUser?.id === state.existingDocument?.user_id ||
-            state.loggedInUser?.id === state.existingDocument?.created_by) && (
-            <div className="switch__editor">
-              <input
-                type="checkbox"
-                id="editor-switch"
-                checked={isEditor}
-                onChange={() => setIsEditor(!isEditor)}
-              />
-              <label htmlFor="editor-switch">
-                {isEditor ? "Editor" : "Preview"}
-              </label>
-            </div>
-          )}
-        </div>
+        {mode === "update" && (
+          <div className="document__template__paper__header">
+            {/* Switch isEditor */}
+            {(state.loggedInUser?.id === state.existingDocument?.user_id ||
+              state.loggedInUser?.id ===
+                state.existingDocument?.created_by) && (
+              <div className="switch__editor">
+                <input
+                  type="checkbox"
+                  id="editor-switch"
+                  checked={isEditor}
+                  onChange={() => setIsEditor(!isEditor)}
+                />
+                <label htmlFor="editor-switch">
+                  {isEditor ? "Editor" : "Preview"}
+                </label>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Paper Panel */}
         {isEditor && (
           <div className="document__template__paper__panel">
@@ -934,6 +963,7 @@ const DocumentTemplateContent = ({
           <A4Sheet
             state={state}
             actions={actions}
+            currentPageActions={currentPage}
             handleDragStart={handleDragStart}
             handleDragOver={handleDragOver}
             handleDrop={handleDrop}
@@ -943,6 +973,7 @@ const DocumentTemplateContent = ({
             handleRemoveItem={handleRemoveItem}
             editingItems={editingItems}
             TemplateHeader={TemplateHeader}
+            currentTracker={currentTracker}
             isEditor={isEditor}
           />
         </div>

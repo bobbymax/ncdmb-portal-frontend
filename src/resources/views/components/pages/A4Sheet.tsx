@@ -5,6 +5,8 @@ import moment from "moment";
 import organizationLogo from "../../../assets/images/logo.png";
 import { ProcessFlowConfigProps } from "../../crud/DocumentWorkflow";
 import { ContextType } from "app/Context/PaperBoardContext";
+import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
+import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 
 interface A4SheetProps {
   // State props
@@ -15,6 +17,9 @@ interface A4SheetProps {
     resourceLinks: ContentBlock[] | null;
     template: any;
   };
+
+  currentTracker: CategoryProgressTrackerProps | null;
+  currentPageActions: SelectedActionsProps[];
 
   // Action props
   actions: {
@@ -45,7 +50,8 @@ interface A4SheetProps {
 const A4Sheet: React.FC<A4SheetProps> = ({
   state,
   actions,
-  // context,
+  currentTracker,
+  currentPageActions,
   handleDragStart,
   handleDragOver,
   handleDrop,
@@ -57,6 +63,8 @@ const A4Sheet: React.FC<A4SheetProps> = ({
   TemplateHeader,
   isEditor,
 }) => {
+  // console.log(currentTracker);
+
   return (
     <div className="a4__sheet" data-context={isEditor ? "generator" : "desk"}>
       {/* Background logo with fade effect */}
@@ -146,6 +154,8 @@ const A4Sheet: React.FC<A4SheetProps> = ({
                     item={bodyItem}
                     onClose={() => handleManageItem(bodyItem.id)}
                     isEditing={editingItems.has(bodyItem.id)}
+                    currentTracker={currentTracker}
+                    currentPageActions={currentPageActions}
                   />
                 </div>
               </div>
@@ -168,6 +178,8 @@ const A4Sheet: React.FC<A4SheetProps> = ({
                 item={bodyItem}
                 onClose={() => handleManageItem(bodyItem.id)}
                 isEditing={editingItems.has(bodyItem.id)}
+                currentTracker={currentTracker}
+                currentPageActions={currentPageActions}
               />
             </div>
           ))}

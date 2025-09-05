@@ -55,6 +55,15 @@ export interface DocumentRequirementProps
   is_present: boolean;
 }
 
+export type AccessLevelProps =
+  | "looker"
+  | "authority"
+  | "approver"
+  | "lock"
+  | "admin"
+  | "shared"
+  | "system";
+
 export interface PaperBoardState {
   /**
    * @var category - The category of the document
@@ -87,7 +96,7 @@ export interface PaperBoardState {
   watchers: WatcherProps[];
   threads: PointerThreadProps[];
   currentPointer: string | null;
-  accessLevel: "looker" | "authority" | "approver" | "lock";
+  accessLevel: AccessLevelProps;
   sync: boolean;
 
   // Resources
@@ -327,7 +336,7 @@ export type PaperBoardAction =
     }
   | {
       type: "SET_ACCESS_LEVEL";
-      payload: "looker" | "authority" | "approver" | "lock";
+      payload: AccessLevelProps;
     }
   | {
       type: "SET_CONTEXT";
@@ -390,9 +399,7 @@ export interface PaperBoardContextType {
     updateThreads: (threads: PointerThreadProps) => void;
     setExistingDocument: (document: DocumentResponseData | null) => void;
     setCurrentPointer: (pointer: string | null) => void;
-    setAccessLevel: (
-      accessLevel: "looker" | "authority" | "approver" | "lock"
-    ) => void;
+    setAccessLevel: (accessLevel: AccessLevelProps) => void;
     setContext: (context: "desk" | "generator") => void;
     setSync: (sync: boolean) => void;
   };

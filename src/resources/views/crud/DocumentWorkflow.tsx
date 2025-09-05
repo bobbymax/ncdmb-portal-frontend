@@ -92,6 +92,7 @@ const DocumentWorkflow: React.FC<
       if (config) {
         orderedTrackers.push({
           ...config,
+          flow_type: flowType,
           order: index + 1,
         });
       }

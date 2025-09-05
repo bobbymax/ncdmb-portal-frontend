@@ -116,7 +116,6 @@ const DocumentCategoryConfiguration: React.FC<
   >([]);
 
   const [selectedGroups, setSelectedGroups] = useState<GroupResponseData[]>([]);
-
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
 
   const [selectedOptions, setSelectedOptions] = useState<{
@@ -173,7 +172,15 @@ const DocumentCategoryConfiguration: React.FC<
         }
       }
     });
-  }, [policy, selectedUsers, selectedActions, repo]);
+  }, [
+    policy,
+    selectedUsers,
+    selectedActions,
+    postProcessingActivities,
+    repo,
+    state.id,
+    documentConfigState.identifier,
+  ]);
 
   const handleActionChange = useCallback(
     (
@@ -183,9 +190,27 @@ const DocumentCategoryConfiguration: React.FC<
     ) => {
       setSelectedActions((prev) => {
         if (checked) {
-          return [...prev, { identifier: tracker.identifier, tracker, action }];
+          // Check if this specific action is already selected
+          const isAlreadySelected = prev.some(
+            (a) =>
+              a.identifier === tracker.identifier && a.action.id === action.id
+          );
+          if (!isAlreadySelected) {
+            return [
+              ...prev,
+              { identifier: tracker.identifier, tracker, action },
+            ];
+          }
+          return prev;
+        } else {
+          // Remove this specific action
+          return prev.filter(
+            (a) =>
+              !(
+                a.identifier === tracker.identifier && a.action.id === action.id
+              )
+          );
         }
-        return prev.filter((a) => a.identifier !== tracker.identifier);
       });
     },
     []
@@ -277,19 +302,30 @@ const DocumentCategoryConfiguration: React.FC<
     </div>
   );
 
+  // console.log(state.meta_data?.activities);
+
   useEffect(() => {
     if (state.meta_data) {
       setPolicy(state.meta_data.policy as DocumentPolicy);
+
       if (state.meta_data.actions) {
         setSelectedActions(
           state.meta_data.actions as unknown as SelectedActionsProps[]
         );
       }
+
       if (state.meta_data.recipients) {
         setSelectedUsers(state.meta_data.recipients);
       }
+
       if (state.meta_data.activities) {
-        setPostProcessingActivities(state.meta_data.activities);
+        // Validate and cast the activities data
+        const activities = Array.isArray(state.meta_data.activities)
+          ? (state.meta_data.activities as ProcessActivitiesProps[])
+          : [];
+        setPostProcessingActivities(activities);
+      } else {
+        setPostProcessingActivities([]);
       }
     }
   }, [
@@ -366,7 +402,9 @@ const DocumentCategoryConfiguration: React.FC<
                             );
                           }}
                           checked={selectedActions.some(
-                            (a) => a.identifier === tracker.identifier
+                            (a) =>
+                              a.identifier === tracker.identifier &&
+                              a.action.id === action.id
                           )}
                         />
                         <label
@@ -533,21 +571,38 @@ const DocumentCategoryConfiguration: React.FC<
                     if (
                       !documentConfigState.title ||
                       !documentConfigState.workflow_stage_id
-                    ) {
+                    )
                       return;
-                    }
 
-                    // Create new activity
+                    // Create new activity with all required fields
                     const newActivity: ProcessActivitiesProps = {
-                      ...documentConfigState,
                       id: Date.now(), // Temporary ID for now
+                      identifier: `activity_${Date.now()}`, // Generate unique identifier
+                      title: documentConfigState.title,
+                      workflow_stage_id: documentConfigState.workflow_stage_id,
+                      group_id: documentConfigState.group_id || 0,
+                      department_id: documentConfigState.department_id || 0,
+                      action_label: documentConfigState.action_label || "",
+                      trigger_action_id:
+                        documentConfigState.trigger_action_id || 0,
+                      category: documentConfigState.category,
+                      user_id: documentConfigState.user_id || 0,
+                      status: "pending",
+                      permission: "r",
+                      document_action_id:
+                        documentConfigState.document_action_id || 0,
+                      order: postProcessingActivities.length + 1, // Set proper order
+                      blocks: [], // Initialize empty blocks array
                     };
 
+                    // console.log("Creating new activity:", newActivity);
+
                     // Add to postProcessingActivities
-                    setPostProcessingActivities((prev) => [
-                      ...prev,
-                      newActivity,
-                    ]);
+                    setPostProcessingActivities((prev) => {
+                      const updated = [...prev, newActivity];
+                      // console.log("Updated activities:", updated);
+                      return updated;
+                    });
 
                     // Reset form
                     setDocumentConfigState({
@@ -588,7 +643,6 @@ const DocumentCategoryConfiguration: React.FC<
             </div>
           </div>
 
-          {/* Activities Display Section */}
           <div
             className="configuration__settings__activities__display mt-5"
             style={{ display: showPostProcessingForm ? "none" : "block" }}
@@ -720,7 +774,7 @@ const DocumentCategoryConfiguration: React.FC<
                               onClick={(e) => {
                                 e.stopPropagation(); // Prevent card expansion
                                 // TODO: Implement edit functionality
-                                console.log("Edit activity:", activity);
+                                //  console.log("Edit activity:", activity);
                               }}
                               title="Edit Activity"
                             >

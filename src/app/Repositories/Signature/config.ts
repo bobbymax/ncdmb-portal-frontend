@@ -10,6 +10,7 @@ export const signatureConfig: ConfigProp<SignatureResponseData> = {
     signatory_id: 0,
     user_id: 0,
     document_draft_id: 0,
+    flow_type: "from",
     signature: "",
   },
   actions: [

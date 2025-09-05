@@ -28,6 +28,7 @@ export default class SignatureRepository extends BaseRepository {
       approving_officer: data.approving_officer ?? null,
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
+      flow_type: data.flow_type ?? "from",
     };
   }
   public associatedResources: DependencyProps[] =

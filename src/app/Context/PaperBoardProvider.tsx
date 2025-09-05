@@ -1,4 +1,5 @@
 import {
+  AccessLevelProps,
   DocumentRequirementProps,
   PaperBoardContext,
   PaperBoardContextType,
@@ -475,9 +476,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       setCurrentPointer: (pointer: string | null) => {
         dispatch({ type: "SET_CURRENT_POINTER", payload: pointer });
       },
-      setAccessLevel: (
-        accessLevel: "looker" | "authority" | "approver" | "lock"
-      ) => {
+      setAccessLevel: (accessLevel: AccessLevelProps) => {
         dispatch({ type: "SET_ACCESS_LEVEL", payload: accessLevel });
       },
       setContext: (context: "desk" | "generator") => {

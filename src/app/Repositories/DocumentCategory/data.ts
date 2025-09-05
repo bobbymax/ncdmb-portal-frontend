@@ -5,9 +5,15 @@ import { BlockResponseData } from "../Block/data";
 import { TemplateResponseData } from "../Template/data";
 import { PermissionTypes } from "../ProgressTracker/data";
 import { SignatoryType } from "../Signatory/data";
-import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import {
+  ProcessFlowConfigProps,
+  ProcessFlowType,
+} from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
-import { ProcessActivitiesProps } from "@/resources/views/crud/DocumentCategoryConfiguration";
+import {
+  ProcessActivitiesProps,
+  SelectedActionsProps,
+} from "@/resources/views/crud/DocumentCategoryConfiguration";
 import { CommentProps } from "@/resources/views/components/DocumentGeneratorTab/ThreadsGeneratorTab";
 import { SettingsProps } from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 import { DocumentActionResponseData } from "../DocumentAction/data";
@@ -66,6 +72,7 @@ export type PointerThreadProps = {
 };
 
 export type CategoryProgressTrackerProps = {
+  flow_type: ProcessFlowType;
   identifier: string;
   workflow_stage_id: number;
   group_id: number;
@@ -99,7 +106,7 @@ export type DocumentPolicy = {
 export type DocumentMetaDataProps = {
   policy: DocumentPolicy | null;
   recipients: DataOptionsProps[];
-  actions: DocumentActionResponseData[];
+  actions: SelectedActionsProps[];
   activities: ProcessActivitiesProps[];
   comments: CommentProps[];
   settings: SettingsProps;

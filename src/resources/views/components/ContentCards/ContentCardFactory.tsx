@@ -14,12 +14,16 @@ import {
   RequisitionContentCard,
   SignatureContentCard,
 } from "./index";
+import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
+import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 
 interface ContentCardFactoryProps {
   item: ContentBlock;
   onClose: () => void;
   isEditing?: boolean;
   dependencies?: unknown;
+  currentTracker: CategoryProgressTrackerProps | null;
+  currentPageActions: SelectedActionsProps[];
 }
 
 const ContentCardFactory: React.FC<ContentCardFactoryProps> = ({
@@ -27,6 +31,8 @@ const ContentCardFactory: React.FC<ContentCardFactoryProps> = ({
   onClose,
   isEditing,
   dependencies = null,
+  currentTracker,
+  currentPageActions,
 }) => {
   // Determine the type from the item's type property
   const getItemType = (): DeskComponentPropTypes => {
@@ -124,6 +130,8 @@ const ContentCardFactory: React.FC<ContentCardFactoryProps> = ({
           item={item}
           onClose={onClose}
           isEditing={isEditing || false}
+          currentTracker={currentTracker}
+          currentPageActions={currentPageActions}
         />
       );
     default:
