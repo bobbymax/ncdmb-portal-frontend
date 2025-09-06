@@ -9,6 +9,7 @@ import { UserResponseData } from "@/app/Repositories/User/data";
 import { SheetProps } from "../../pages/DocumentTemplateContent";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
+import Button from "../forms/Button";
 
 interface SignatureContentCardProps {
   item: ContentBlock;
@@ -202,7 +203,13 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
               state.loggedInUser?.id === signature.user_id &&
               signature.flow_type === currentTracker?.flow_type && (
                 <div className="signature__item__display">
-                  <p>{signatureButton.action.button_text}</p>
+                  <Button
+                    label={signatureButton.action.button_text}
+                    variant="dark"
+                    handleClick={() => console.log("triggered")}
+                    icon={signatureButton.action.icon}
+                    size="sm"
+                  />
                 </div>
               )}
           </div>

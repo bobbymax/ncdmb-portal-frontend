@@ -24274,6 +24274,61 @@ body,
   /* border: 2px solid black; */
 }
 
+/* Signature Pad Trigger Button */
+.signature__item__display .signature__pad__trigger__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+  margin-top: 8px !important;
+}
+
+.signature__item__display .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.signature__item__display .signature__pad__trigger__btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+}
+
+.signature__item__display .signature__pad__trigger__btn i {
+  font-size: 14px !important;
+}
+
+.signature__item__display .signature__pad__trigger__btn span {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Dark theme for signature button */
+[data-theme="dark"] .signature__item__display .signature__pad__trigger__btn {
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3) !important;
+}
+
+[data-theme="dark"]
+  .signature__item__display
+  .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4) !important;
+}
+
 /* Small tag styling for signature names */
 .signature__container__box small {
   font-family: "Poppins", sans-serif;
