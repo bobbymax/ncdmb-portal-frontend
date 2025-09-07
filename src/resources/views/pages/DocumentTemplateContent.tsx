@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
+import { useCore } from "app/Hooks/useCore";
 import moment from "moment";
 import {
   BudgetGeneratorTab,
@@ -67,6 +68,29 @@ const DocumentTemplateContent = ({
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isEditor, setIsEditor] = useState(false);
+
+  // Initialize useCore hook for workflow actions
+  const {
+    pass,
+    stall,
+    process,
+    reverse,
+    complete,
+    cancel,
+    appeal,
+    escalate,
+    canPass,
+    canStall,
+    canProcess,
+    canReverse,
+    canComplete,
+    canCancel,
+    canAppeal,
+    canEscalate,
+    isLoading: isWorkflowLoading,
+    error: workflowError,
+    currentTracker: coreCurrentTracker,
+  } = useCore(category);
 
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
@@ -714,6 +738,58 @@ const DocumentTemplateContent = ({
     actions.setBody(newBody);
   };
 
+  // Handle workflow actions
+  const handleWorkflowAction = async (action: DocumentActionResponseData) => {
+    try {
+      switch (action.action_status) {
+        case "passed":
+          if (canPass) {
+            await pass(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "stalled":
+          if (canStall) {
+            await stall(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "processing":
+          if (canProcess) {
+            await process(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "reversed":
+          if (canReverse) {
+            await reverse(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "complete":
+          if (canComplete) {
+            await complete(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "cancelled":
+          if (canCancel) {
+            await cancel(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "appeal":
+          if (canAppeal) {
+            await appeal(action.id, undefined, action.draft_status);
+          }
+          break;
+        case "escalate":
+          if (canEscalate) {
+            await escalate(action.id, undefined, action.draft_status);
+          }
+          break;
+        default:
+          console.warn(`Unknown action status: ${action.action_status}`);
+      }
+    } catch (error) {
+      console.error("Workflow action failed:", error);
+    }
+  };
+
   const handleAddResourceLink = (contentBlock: ContentBlock) => {
     // Check if the content block is already in resourceLinks
     const isAlreadyLinked = state.resourceLinks?.some(
@@ -885,10 +961,6 @@ const DocumentTemplateContent = ({
     );
   }, [currentTracker, state.metaData?.actions]);
 
-  console.log(currentPage);
-
-  // console.log(currentPage);
-  useEffect(() => {}, [mode]);
   useEffect(() => {
     if (mode === "update") {
       setIsEditor(false);
@@ -919,17 +991,48 @@ const DocumentTemplateContent = ({
             )}
 
             <div className="document__template__paper__header__actions flex align gap-md">
-              {currentPage.map((page, idx) => (
-                <Button
-                  key={idx}
-                  label={page.action.button_text}
-                  icon={page.action.icon}
-                  handleClick={() => {}}
-                  variant={page.action.variant}
-                  size="sm"
-                  isDisabled={isEditor}
-                />
-              ))}
+              {/* Workflow Loading Indicator */}
+              {isWorkflowLoading && (
+                <div className="workflow__loading flex align center gap-sm">
+                  <i className="ri-loader-4-line animate-spin"></i>
+                  <span>Processing...</span>
+                </div>
+              )}
+
+              {/* Workflow Error Display */}
+              {workflowError && (
+                <div className="workflow__error flex align center gap-sm">
+                  <i className="ri-error-warning-line text-danger"></i>
+                  <span className="text-danger">{workflowError}</span>
+                </div>
+              )}
+
+              {currentPage.map((page, idx) => {
+                // Determine if this action is disabled based on workflow state
+                const isActionDisabled =
+                  isEditor ||
+                  isWorkflowLoading ||
+                  (page.action.action_status === "passed" && !canPass) ||
+                  (page.action.action_status === "stalled" && !canStall) ||
+                  (page.action.action_status === "processing" && !canProcess) ||
+                  (page.action.action_status === "reversed" && !canReverse) ||
+                  (page.action.action_status === "complete" && !canComplete) ||
+                  (page.action.action_status === "cancelled" && !canCancel) ||
+                  (page.action.action_status === "appeal" && !canAppeal) ||
+                  (page.action.action_status === "escalate" && !canEscalate);
+
+                return (
+                  <Button
+                    key={idx}
+                    label={page.action.button_text}
+                    icon={page.action.icon}
+                    handleClick={() => handleWorkflowAction(page.action)}
+                    variant={page.action.variant}
+                    size="sm"
+                    isDisabled={isActionDisabled}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
