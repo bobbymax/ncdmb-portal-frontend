@@ -22,6 +22,7 @@ import { PaperTitleContent } from "../components/ContentCards/PaperTitleContentC
 import ThreadsGeneratorTab from "../components/DocumentGeneratorTab/ThreadsGeneratorTab";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
+import Button from "../components/forms/Button";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -65,7 +66,7 @@ const DocumentTemplateContent = ({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [isEditor, setIsEditor] = useState(mode === "store");
+  const [isEditor, setIsEditor] = useState(false);
 
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
@@ -884,14 +885,22 @@ const DocumentTemplateContent = ({
     );
   }, [currentTracker, state.metaData?.actions]);
 
+  console.log(currentPage);
+
   // console.log(currentPage);
+  useEffect(() => {}, [mode]);
+  useEffect(() => {
+    if (mode === "update") {
+      setIsEditor(false);
+    }
+  }, [mode]);
 
   return (
     <div className="document__template__content">
       <div className="document__template__paper">
         {/* Paper Header */}
         {mode === "update" && (
-          <div className="document__template__paper__header">
+          <div className="document__template__paper__header flex align center between">
             {/* Switch isEditor */}
             {(state.loggedInUser?.id === state.existingDocument?.user_id ||
               state.loggedInUser?.id ===
@@ -908,6 +917,20 @@ const DocumentTemplateContent = ({
                 </label>
               </div>
             )}
+
+            <div className="document__template__paper__header__actions flex align gap-md">
+              {currentPage.map((page, idx) => (
+                <Button
+                  key={idx}
+                  label={page.action.button_text}
+                  icon={page.action.icon}
+                  handleClick={() => {}}
+                  variant={page.action.variant}
+                  size="sm"
+                  isDisabled={isEditor}
+                />
+              ))}
+            </div>
           </div>
         )}
 

@@ -82,35 +82,47 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   }, [currentTracker, currentPageActions]);
 
   // Create signature data using actual user information from state.resources.users
-  const signatures: SignatureResponseData[] = React.useMemo(
-    () =>
-      signableStages.map(
-        (stage: CategoryProgressTrackerProps, index: number) => {
-          // Find the user from state.resources.users based on stage.user_id
-          const user = state.resources?.users?.find(
-            (u: UserResponseData) => u.id === stage.user_id
-          );
+  const signatures: SignatureResponseData[] = React.useMemo(() => {
+    // Get existing signature data from the item content if it exists
+    const existingSignatures =
+      (item.content?.signature as any)?.signatures || [];
 
-          return {
-            id: index + 1,
-            signatory_id: stage.workflow_stage_id,
-            order: stage.order,
-            user_id: stage.user_id,
-            document_draft_id: 1,
-            type: stage.signatory_type || "owner",
-            approving_officer: {
-              name: user?.name || `User ${stage.user_id}`,
-              grade_level: user?.grade_level || "Unknown",
-            },
-            signature: "",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            flow_type: stage.flow_type,
-          };
-        }
-      ),
-    [signableStages, state.resources?.users]
-  );
+    return signableStages.map(
+      (stage: CategoryProgressTrackerProps, index: number) => {
+        // Find the user from state.resources.users based on stage.user_id
+        const user = state.resources?.users?.find(
+          (u: UserResponseData) => u.id === stage.user_id
+        );
+
+        // Check if we have existing signature data for this stage
+        const existingSignature = existingSignatures.find(
+          (sig: SignatureResponseData) =>
+            sig.user_id === stage.user_id && sig.flow_type === stage.flow_type
+        );
+
+        return {
+          id: index + 1,
+          signatory_id: stage.workflow_stage_id,
+          order: stage.order,
+          user_id: stage.user_id,
+          document_draft_id: 1,
+          type: stage.signatory_type || "owner",
+          approving_officer: {
+            name: user?.name || `User ${stage.user_id}`,
+            grade_level: user?.grade_level || "Unknown",
+          },
+          signature: existingSignature?.signature || "",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          flow_type: stage.flow_type,
+        };
+      }
+    );
+  }, [
+    signableStages,
+    state.resources?.users,
+    (item.content?.signature as any)?.signatures,
+  ]);
 
   const currentSignature: SignatureResponseData | null = useMemo(() => {
     return (
@@ -121,6 +133,33 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       ) ?? null
     );
   }, [signatures, currentTracker, state.loggedInUser]);
+
+  // Handle signature save callback
+  const handleSignatureSave = (signatureData: string, signatureId: number) => {
+    // Update the signature in the signatures array
+    const updatedSignatures = signatures.map((sig) =>
+      sig.id === signatureId ? { ...sig, signature: signatureData } : sig
+    );
+
+    // Update the item content with new signature data
+    const updatedItem = {
+      ...item,
+      content: {
+        id: item.id,
+        order: item.order,
+        signature: {
+          signatures: updatedSignatures,
+        },
+      } as SheetProps,
+    };
+
+    // Update the body with the new signature data
+    const newBody = state.body.map((bodyItem) =>
+      bodyItem.id === item.id ? updatedItem : bodyItem
+    );
+
+    actions.setBody(newBody);
+  };
 
   // Update global state with signature data when configState or signatures change
   useEffect(() => {
@@ -198,24 +237,17 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     <div className={getContainerClass()}>
       {signatures.map((signature: SignatureResponseData, index: number) => (
         <div key={signature.id} className="signature__item">
-          <div className="signature__button__container">
-            {signatureButton &&
-              state.loggedInUser?.id === signature.user_id &&
-              signature.flow_type === currentTracker?.flow_type && (
-                <div className="signature__item__display">
-                  <Button
-                    label={signatureButton.action.button_text}
-                    variant="dark"
-                    handleClick={() => console.log("triggered")}
-                    icon={signatureButton.action.icon}
-                    size="sm"
-                  />
-                </div>
-              )}
-          </div>
           <SignatureCanvas
             signatureUrl={signature.signature}
             signature={signature}
+            canSign={
+              state.loggedInUser?.id === signature.user_id &&
+              signature.flow_type === currentTracker?.flow_type
+            }
+            selectedAction={signatureButton}
+            onSignatureSave={(signatureData: string) =>
+              handleSignatureSave(signatureData, signature.id)
+            }
           />
         </div>
       ))}

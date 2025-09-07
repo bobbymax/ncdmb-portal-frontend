@@ -22422,6 +22422,105 @@ body,
   background: transparent;
 }
 
+/* Override desk context for signature button */
+[data-context="desk"] .signature__item__display .signature__pad__trigger__btn {
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  color: white !important;
+}
+
+[data-context="desk"]
+  .signature__item__display
+  .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+}
+
+[data-theme="dark"]
+  [data-context="desk"]
+  .signature__item__display
+  .signature__pad__trigger__btn {
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  color: white !important;
+}
+
+[data-theme="dark"]
+  [data-context="desk"]
+  .signature__item__display
+  .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+}
+
+/* MAXIMUM SPECIFICITY OVERRIDE FOR SIGNATURE BUTTON IN DESK CONTEXT */
+.a4__sheet[data-context="desk"]
+  .body__item__content
+  .signature__item__display
+  .signature__pad__trigger__btn {
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  color: white !important;
+  border: none !important;
+  opacity: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+  margin-top: 8px !important;
+}
+
+.a4__sheet[data-context="desk"]
+  .body__item__content
+  .signature__item__display
+  .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.a4__sheet[data-context="desk"]
+  .body__item__content
+  .signature__item__display
+  .signature__pad__trigger__btn:active {
+  background-color: #047857 !important;
+  background: #047857 !important;
+  color: white !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Dark theme maximum specificity override */
+[data-theme="dark"]
+  .a4__sheet[data-context="desk"]
+  .body__item__content
+  .signature__item__display
+  .signature__pad__trigger__btn {
+  background-color: #10b981 !important;
+  background: #10b981 !important;
+  color: white !important;
+  border: none !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"]
+  .a4__sheet[data-context="desk"]
+  .body__item__content
+  .signature__item__display
+  .signature__pad__trigger__btn:hover {
+  background-color: #059669 !important;
+  background: #059669 !important;
+  color: white !important;
+}
+
 /* Dark theme logo styling for desk context */
 [data-theme="dark"] .a4__sheet[data-context="desk"] .a4__sheet__logo {
   opacity: 0.05; /* Very subtle in dark theme */
@@ -24266,7 +24365,7 @@ body,
 
 /* Signature canvas styling */
 .signature-container {
-  max-width: 320px;
+  max-width: 85%;
   max-height: 100px;
   border-bottom: 1px dashed #999;
   border-radius: 4px;
@@ -24381,6 +24480,580 @@ body,
 [data-theme="dark"] .signature-container {
   background-color: #404040;
   border-color: #555555;
+}
+
+/* Interactive Signature Pad Styles */
+.signature__pad__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px dashed #10b981;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.05);
+  transition: all 0.3s ease;
+}
+
+.signature__pad__container:hover {
+  border-color: #059669;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.signature__pad__wrapper {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.signature-pad-canvas {
+  border-radius: 6px;
+  cursor: crosshair;
+}
+
+.signature__pad__controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.signature__pad__controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.signature__pad__controls .btn__secondary {
+  background-color: #6b7280;
+  color: white;
+}
+
+.signature__pad__controls .btn__secondary:hover:not(:disabled) {
+  background-color: #4b5563;
+}
+
+.signature__pad__controls .btn__success {
+  background-color: #10b981;
+  color: white;
+}
+
+.signature__pad__controls .btn__success:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.signature__pad__controls .btn__danger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.signature__pad__controls .btn__danger:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.signature__pad__controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signature__pad__controls button i {
+  font-size: 14px;
+}
+
+.signature__pad__controls .btn__info {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.signature__pad__controls .btn__info:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+/* Signature Placeholder */
+.signature__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.signature__placeholder--interactive {
+  cursor: pointer;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.signature__placeholder--interactive:hover {
+  border-color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  transform: translateY(-1px);
+}
+
+.signature__placeholder__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.signature__placeholder__content i {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+.signature__placeholder__content span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Signature User Name */
+.signature__user__name {
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Signature Upload Styles */
+.signature__upload__container {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed #3b82f6;
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.signature__upload__wrapper {
+  position: relative;
+}
+
+.signature__upload__input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.signature__upload__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 6px;
+  background: white;
+  border: 2px dashed #3b82f6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signature__upload__label:hover {
+  border-color: #2563eb;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.signature__upload__label i {
+  font-size: 24px;
+  color: #3b82f6;
+}
+
+.signature__upload__label span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.signature__upload__label small {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Dark theme for signature pad */
+[data-theme="dark"] .signature__pad__container {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+[data-theme="dark"] .signature__pad__container:hover {
+  border-color: #059669;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .signature__pad__wrapper {
+  border-color: #404040;
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .signature__placeholder {
+  border-color: #404040;
+  background: #2d2d2d;
+}
+
+[data-theme="dark"] .signature__placeholder--interactive {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+[data-theme="dark"] .signature__placeholder--interactive:hover {
+  border-color: #059669;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme="dark"] .signature__placeholder__content {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .signature__user__name {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .signature__upload__container {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .signature__upload__label {
+  background: #2d2d2d;
+  border-color: #3b82f6;
+}
+
+[data-theme="dark"] .signature__upload__label:hover {
+  border-color: #2563eb;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="dark"] .signature__upload__label span {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .signature__upload__label small {
+  color: #9ca3af;
+}
+
+/* Signature Modal Styles */
+.signature__modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999999;
+  animation: signatureModalFadeIn 0.3s ease-out;
+}
+
+@keyframes signatureModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.signature__modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 700px;
+  width: 95%;
+  max-height: 85vh;
+  overflow: hidden;
+  animation: signatureModalSlideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes signatureModalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.signature__modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.signature__modal__header h4 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signature__modal__header h4::before {
+  content: "✍️";
+  font-size: 24px;
+}
+
+.signature__modal__close {
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #ef4444;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.signature__modal__close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.signature__modal__close i {
+  font-size: 18px;
+}
+
+.signature__modal__content {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+}
+
+.signature__modal__content .signature__pad__wrapper {
+  border: 3px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease;
+}
+
+.signature__modal__content .signature__pad__wrapper:hover {
+  border-color: #10b981;
+}
+
+.signature__modal__content .signature-pad-canvas {
+  display: block;
+  background: white;
+  cursor: crosshair;
+}
+
+.signature__modal__footer {
+  padding: 24px 32px;
+  border-top: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.signature__modal__footer .signature__pad__controls {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.signature__modal__footer .signature__pad__controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.signature__modal__footer .signature__pad__controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.signature__modal__footer
+  .signature__pad__controls
+  button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.signature__modal__footer .signature__pad__controls button.btn__secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.signature__modal__footer
+  .signature__pad__controls
+  button.btn__secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.signature__modal__footer .signature__pad__controls button.btn__info {
+  background: #3b82f6;
+  color: white;
+}
+
+.signature__modal__footer
+  .signature__pad__controls
+  button.btn__info:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.signature__modal__footer .signature__pad__controls button.btn__success {
+  background: #10b981;
+  color: white;
+}
+
+.signature__modal__footer
+  .signature__pad__controls
+  button.btn__success:hover:not(:disabled) {
+  background: #059669;
+}
+
+.signature__modal__footer .signature__pad__controls button.btn__danger {
+  background: #ef4444;
+  color: white;
+}
+
+.signature__modal__footer
+  .signature__pad__controls
+  button.btn__danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+/* Dark theme modal styles */
+[data-theme="dark"] .signature__modal {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+[data-theme="dark"] .signature__modal__header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .signature__modal__header h4 {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .signature__modal__close {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+[data-theme="dark"] .signature__modal__close:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .signature__modal__content {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .signature__modal__content .signature__pad__wrapper {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+[data-theme="dark"] .signature__modal__content .signature__pad__wrapper:hover {
+  border-color: #10b981;
+}
+
+[data-theme="dark"] .signature__modal__content .signature-pad-canvas {
+  background: #1e293b;
+}
+
+[data-theme="dark"] .signature__modal__footer {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-top-color: #334155;
+}
+
+[data-theme="dark"]
+  .signature__modal__footer
+  .signature__pad__controls
+  button.btn__secondary {
+  background: #334155;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+[data-theme="dark"]
+  .signature__modal__footer
+  .signature__pad__controls
+  button.btn__secondary:hover:not(:disabled) {
+  background: #475569;
+  border-color: #64748b;
+}
+
+/* Responsive adjustments for signature modal */
+@media (max-width: 768px) {
+  .signature__modal {
+    width: 98%;
+    max-height: 90vh;
+  }
+
+  .signature__modal__header,
+  .signature__modal__content,
+  .signature__modal__footer {
+    padding: 20px;
+  }
+
+  .signature__modal__footer .signature__pad__controls {
+    gap: 12px;
+  }
+
+  .signature__modal__footer .signature__pad__controls button {
+    min-width: 100px;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signature__pad__wrapper {
+    max-width: 100%;
+  }
+
+  .signature-pad-canvas {
+    width: 100%;
+    height: 100px;
+  }
 }
 
 /* ========================================
@@ -25733,8 +26406,8 @@ html.modal-open {
 /* Ensure all content is fully visible */
 .a4__sheet .desk-content .body__item__content--desk * {
   opacity: 1 !important;
-  color: inherit !important;
-  background: transparent !important;
+  /* color: inherit !important; */
+  /* background: transparent !important; */
 }
 
 /* Document Template Paper Header */
