@@ -36,6 +36,22 @@ import { DocumentRequirementResponseData } from "../Repositories/DocumentRequire
 
 export type ContextType = "builder" | "generator" | "desk";
 
+export interface DocumentActivity {
+  id: string;
+  user_id: number;
+  user_name: string;
+  action_performed: string;
+  message: string;
+  timestamp: string;
+  metadata?: {
+    document_id?: number;
+    tracker_id?: string;
+    content_block_id?: string;
+    is_sensitive?: boolean;
+    [key: string]: any;
+  };
+}
+
 export type ResourceProps = {
   users: UserResponseData[];
   departments: DepartmentResponseData[];
@@ -138,6 +154,9 @@ export interface PaperBoardState {
   uploads: File[];
   fund: DataOptionsProps | null;
   approval_memo: DocumentResponseData | null;
+
+  // Activity Tracking
+  documentActivities: DocumentActivity[];
 }
 
 export type PaperBoardAction =
@@ -345,6 +364,17 @@ export type PaperBoardAction =
   | {
       type: "SET_SYNC";
       payload: boolean;
+    }
+  | {
+      type: "ADD_DOCUMENT_ACTIVITY";
+      payload: DocumentActivity;
+    }
+  | {
+      type: "CLEAR_DOCUMENT_ACTIVITIES";
+    }
+  | {
+      type: "SET_TRACKERS";
+      payload: CategoryProgressTrackerProps[];
     };
 
 export interface PaperBoardContextType {
@@ -402,6 +432,9 @@ export interface PaperBoardContextType {
     setAccessLevel: (accessLevel: AccessLevelProps) => void;
     setContext: (context: "desk" | "generator") => void;
     setSync: (sync: boolean) => void;
+    addDocumentActivity: (activity: DocumentActivity) => void;
+    clearDocumentActivities: () => void;
+    setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
   };
 }
 

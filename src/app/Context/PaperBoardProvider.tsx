@@ -1,5 +1,6 @@
 import {
   AccessLevelProps,
+  DocumentActivity,
   DocumentRequirementProps,
   PaperBoardContext,
   PaperBoardContextType,
@@ -101,10 +102,51 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     currentPointer: null,
     accessLevel: "looker",
     sync: false,
+    documentActivities: [],
   };
 
   const [state, dispatch] = useReducer(paperBoardReducer, initialState);
   const params = useParams();
+  const hasLoadedActivities = useRef(false);
+
+  // Load activities from localStorage on mount (only once)
+  useEffect(() => {
+    if (!hasLoadedActivities.current) {
+      const savedActivities = localStorage.getItem("documentActivities");
+      if (savedActivities) {
+        try {
+          const activities = JSON.parse(savedActivities);
+          if (Array.isArray(activities)) {
+            // Dispatch each activity to add them to state
+            activities.forEach((activity) => {
+              dispatch({ type: "ADD_DOCUMENT_ACTIVITY", payload: activity });
+            });
+          }
+        } catch (error) {
+          console.error("Error loading activities from localStorage:", error);
+        }
+      }
+      hasLoadedActivities.current = true;
+    }
+  }, []);
+
+  // Save activities to localStorage whenever activities change
+  useEffect(() => {
+    if (state.documentActivities.length > 0) {
+      localStorage.setItem(
+        "documentActivities",
+        JSON.stringify(state.documentActivities)
+      );
+    }
+  }, [state.documentActivities]);
+
+  // Clear localStorage on component unmount to prevent stale data
+  useEffect(() => {
+    return () => {
+      // Only clear if we're not in the middle of a session
+      // This prevents clearing data when navigating between pages
+    };
+  }, []);
 
   // Initialize from URL params if available
   const {
@@ -484,6 +526,16 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       },
       setSync: (sync: boolean) => {
         dispatch({ type: "SET_SYNC", payload: sync });
+      },
+      addDocumentActivity: (activity: DocumentActivity) => {
+        dispatch({ type: "ADD_DOCUMENT_ACTIVITY", payload: activity });
+      },
+      clearDocumentActivities: () => {
+        dispatch({ type: "CLEAR_DOCUMENT_ACTIVITIES" });
+        localStorage.removeItem("documentActivities");
+      },
+      setTrackers: (trackers: CategoryProgressTrackerProps[]) => {
+        dispatch({ type: "SET_TRACKERS", payload: trackers });
       },
     }),
     [dispatch]

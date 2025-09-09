@@ -1,9 +1,14 @@
 import { useState, useMemo, useCallback } from "react";
-import { usePaperBoard } from "app/Context/PaperBoardContext";
-import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/data";
+import { DocumentActivity, usePaperBoard } from "app/Context/PaperBoardContext";
+import {
+  CategoryProgressTrackerProps,
+  PointerThreadProps,
+} from "app/Repositories/DocumentCategory/data";
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
+import { DocumentResponseData } from "app/Repositories/Document/data";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { toast } from "react-toastify";
+import { repo } from "bootstrap/repositories";
 
 export type ActionStatus =
   | "passed"
@@ -19,15 +24,17 @@ export type ActionStatus =
 export interface WorkflowActionPayload {
   currentPointer: string;
   body: ContentBlock[];
-  threads: any[];
+  threads: PointerThreadProps[];
   service: string;
   action_status: ActionStatus;
   action_id: number;
   user_id: number;
+  trackers: CategoryProgressTrackerProps[];
   document_id?: number;
   comments?: string;
   status: string;
   metadata?: any;
+  document_activities?: DocumentActivity[];
 }
 
 export interface UseCoreReturn {
@@ -94,6 +101,7 @@ export interface UseCoreReturn {
 export const useCore = (
   category: DocumentCategoryResponseData | null
 ): UseCoreReturn => {
+  const documentRepo = useMemo(() => repo("document"), []);
   const { state, actions } = usePaperBoard();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -248,6 +256,8 @@ export const useCore = (
               email: state.loggedInUser?.email,
             },
           },
+          trackers: state.trackers || [],
+          document_activities: state.documentActivities,
         };
 
         // TODO: Replace with actual API call
@@ -255,6 +265,15 @@ export const useCore = (
         // if (response.code !== 200) {
         //   throw new Error(response.message || "Workflow action failed");
         // }
+        const response = await documentRepo.store(
+          "process/document",
+          serverData
+        );
+
+        // Update the existing document with the response data
+        if (response.data) {
+          actions.setExistingDocument(response.data as DocumentResponseData);
+        }
 
         // Simulate API call for now
         await new Promise((resolve) => setTimeout(resolve, 1000));

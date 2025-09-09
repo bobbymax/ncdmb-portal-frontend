@@ -302,6 +302,23 @@ export const paperBoardReducer = (
         ...state,
         sync: action.payload,
       };
+    case "ADD_DOCUMENT_ACTIVITY":
+      return {
+        ...state,
+        documentActivities: [...state.documentActivities, action.payload].slice(
+          -200
+        ), // Keep last 200 activities
+      };
+    case "CLEAR_DOCUMENT_ACTIVITIES":
+      return {
+        ...state,
+        documentActivities: [],
+      };
+    case "SET_TRACKERS":
+      return {
+        ...state,
+        trackers: action.payload,
+      };
     default:
       return state;
   }

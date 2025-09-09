@@ -9,6 +9,7 @@ import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
+import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
 import {
   BudgetGeneratorTab,
@@ -24,6 +25,7 @@ import ThreadsGeneratorTab from "../components/DocumentGeneratorTab/ThreadsGener
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
 import Button from "../components/forms/Button";
+import ActivitiesGeneratorTab from "../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -92,6 +94,16 @@ const DocumentTemplateContent = ({
     currentTracker: coreCurrentTracker,
   } = useCore(category);
 
+  // Initialize activity logger
+  const {
+    logDocumentToggle,
+    logWorkflowAction,
+    logContentAction,
+    logTabSwitch,
+    logResourceLink,
+    logDocumentGenerate,
+  } = useActivityLogger();
+
   // Tab reordering state
   const [tabOrder, setTabOrder] = useState([
     { id: "budget", label: "Budget", icon: "ri-bank-line", isEditor: true },
@@ -106,6 +118,12 @@ const DocumentTemplateContent = ({
       label: "Resource",
       icon: "ri-database-2-line",
       isEditor: true,
+    },
+    {
+      id: "activities",
+      label: "Activities",
+      icon: "ri-line-chart-line",
+      isEditor: false,
     },
     {
       id: "threads",
@@ -561,6 +579,7 @@ const DocumentTemplateContent = ({
 
   const handleTabChange = (tabName: string) => {
     setActiveTab(tabName);
+    logTabSwitch(tabName);
   };
 
   // Tab reordering handlers
@@ -688,6 +707,13 @@ const DocumentTemplateContent = ({
         }
 
         actions.setBody(newBody);
+
+        // Log the content addition
+        logContentAction(
+          "content_add",
+          blockData.data_type,
+          newContentBlock.id
+        );
       } catch (error) {
         console.error("Error parsing block data:", error);
       }
@@ -708,6 +734,9 @@ const DocumentTemplateContent = ({
       });
 
       actions.setBody(newBody);
+
+      // Log the content reordering
+      logContentAction("content_reorder", draggedItem.type, draggedItem.id);
     }
 
     // Remove drag-over class from all items
@@ -734,8 +763,14 @@ const DocumentTemplateContent = ({
   };
 
   const handleRemoveItem = (itemId: string) => {
+    const itemToRemove = state.body.find((item) => item.id === itemId);
     const newBody = state.body.filter((item) => item.id !== itemId);
     actions.setBody(newBody);
+
+    // Log the removal
+    if (itemToRemove) {
+      logContentAction("content_remove", itemToRemove.type, itemId);
+    }
   };
 
   // Handle workflow actions
@@ -745,41 +780,49 @@ const DocumentTemplateContent = ({
         case "passed":
           if (canPass) {
             await pass(action.id, undefined, action.draft_status);
+            logWorkflowAction("passed");
           }
           break;
         case "stalled":
           if (canStall) {
             await stall(action.id, undefined, action.draft_status);
+            logWorkflowAction("stalled");
           }
           break;
         case "processing":
           if (canProcess) {
             await process(action.id, undefined, action.draft_status);
+            logWorkflowAction("processing");
           }
           break;
         case "reversed":
           if (canReverse) {
             await reverse(action.id, undefined, action.draft_status);
+            logWorkflowAction("reversed");
           }
           break;
         case "complete":
           if (canComplete) {
             await complete(action.id, undefined, action.draft_status);
+            logWorkflowAction("complete");
           }
           break;
         case "cancelled":
           if (canCancel) {
             await cancel(action.id, undefined, action.draft_status);
+            logWorkflowAction("cancelled");
           }
           break;
         case "appeal":
           if (canAppeal) {
             await appeal(action.id, undefined, action.draft_status);
+            logWorkflowAction("appeal");
           }
           break;
         case "escalate":
           if (canEscalate) {
             await escalate(action.id, undefined, action.draft_status);
+            logWorkflowAction("escalate");
           }
           break;
         default:
@@ -802,6 +845,7 @@ const DocumentTemplateContent = ({
         state.resourceLinks?.filter((link) => link.id !== contentBlock.id) ||
         [];
       actions.setResourceLinks(updatedResourceLinks);
+      logResourceLink("unlinked", contentBlock.id);
     } else {
       // If not linked, add it
       const updatedResourceLinks = [
@@ -809,6 +853,7 @@ const DocumentTemplateContent = ({
         contentBlock,
       ];
       actions.setResourceLinks(updatedResourceLinks);
+      logResourceLink("linked", contentBlock.id);
     }
   };
 
@@ -816,6 +861,7 @@ const DocumentTemplateContent = ({
     // Show progress modal using global function
     if (window.showDocumentProgressModal) {
       window.showDocumentProgressModal(handleDocumentGenerationComplete);
+      logDocumentGenerate();
     }
   };
 
@@ -834,34 +880,8 @@ const DocumentTemplateContent = ({
         })
       );
 
-      // Transform configState to CategoryProgressTrackerProps[] format
-      const transformedTrackers: CategoryProgressTrackerProps[] = [];
-
-      if (state.configState) {
-        // Add from stage if it exists
-        if (state.configState.from) {
-          transformedTrackers.push({
-            ...state.configState.from,
-            order: 1,
-          });
-        }
-
-        // Add through stage if it exists
-        if (state.configState.through) {
-          transformedTrackers.push({
-            ...state.configState.through,
-            order: transformedTrackers.length + 1,
-          });
-        }
-
-        // Add to stage if it exists
-        if (state.configState.to) {
-          transformedTrackers.push({
-            ...state.configState.to,
-            order: transformedTrackers.length + 1,
-          });
-        }
-      }
+      // Use the already transformed trackers from global state
+      const transformedTrackers = state.trackers;
 
       const paperTitleState = state.body.find(
         (link) => link.type === "paper_title"
@@ -940,16 +960,64 @@ const DocumentTemplateContent = ({
     }
   };
 
+  // Transform configState to CategoryProgressTrackerProps[] and update global trackers
+  const transformedTrackers: CategoryProgressTrackerProps[] = useMemo(() => {
+    if (!state.configState) {
+      return state.trackers; // Fallback to category trackers if no configState
+    }
+
+    const trackers: CategoryProgressTrackerProps[] = [];
+
+    // Add from stage if it exists
+    if (state.configState.from) {
+      trackers.push({
+        ...state.configState.from,
+        order: 1,
+        flow_type: "from",
+      });
+    }
+
+    // Add through stage if it exists
+    if (state.configState.through) {
+      trackers.push({
+        ...state.configState.through,
+        order: trackers.length + 1,
+        flow_type: "through",
+      });
+    }
+
+    // Add to stage if it exists
+    if (state.configState.to) {
+      trackers.push({
+        ...state.configState.to,
+        order: trackers.length + 1,
+        flow_type: "to",
+      });
+    }
+
+    return trackers;
+  }, [state.configState, state.trackers]);
+
+  // Update global trackers when transformedTrackers change
+  useEffect(() => {
+    if (
+      transformedTrackers.length > 0 &&
+      JSON.stringify(transformedTrackers) !== JSON.stringify(state.trackers)
+    ) {
+      actions.setTrackers(transformedTrackers);
+    }
+  }, [transformedTrackers, state.trackers, actions]);
+
   const currentTracker: CategoryProgressTrackerProps | null = useMemo(() => {
     if (state.currentPointer) {
       return (
-        state.trackers.find(
+        transformedTrackers.find(
           (tracker) => tracker.identifier === state.currentPointer
         ) ?? null
       );
     }
     return null;
-  }, [state.trackers, state.currentPointer]);
+  }, [transformedTrackers, state.currentPointer]);
 
   const currentPage: SelectedActionsProps[] = useMemo(() => {
     const documentActions = state.metaData?.actions;
@@ -961,57 +1029,73 @@ const DocumentTemplateContent = ({
     );
   }, [currentTracker, state.metaData?.actions]);
 
+  const isUserAuthorized = currentTracker?.user_id === state.loggedInUser?.id;
+
   useEffect(() => {
     if (mode === "update") {
-      setIsEditor(false);
+      setIsEditor(false); // Start in preview mode for existing documents
+    } else if (mode === "store") {
+      setIsEditor(true); // Start in editor mode for new documents
     }
   }, [mode]);
+
+  console.log(state.body[2].content);
 
   return (
     <div className="document__template__content">
       <div className="document__template__paper">
         {/* Paper Header */}
-        {mode === "update" && (
-          <div className="document__template__paper__header flex align center between">
-            {/* Switch isEditor */}
-            {(state.loggedInUser?.id === state.existingDocument?.user_id ||
-              state.loggedInUser?.id ===
-                state.existingDocument?.created_by) && (
-              <div className="switch__editor">
-                <input
-                  type="checkbox"
-                  id="editor-switch"
-                  checked={isEditor}
-                  onChange={() => setIsEditor(!isEditor)}
-                />
-                <label htmlFor="editor-switch">
-                  {isEditor ? "Editor" : "Preview"}
-                </label>
+        <div className="document__template__paper__header flex align center between">
+          {/* Switch isEditor */}
+          {(mode === "update" &&
+            (state.loggedInUser?.id === state.existingDocument?.user_id ||
+              state.loggedInUser?.id === state.existingDocument?.created_by)) ||
+          mode === "store" ? (
+            <div className="switch__editor">
+              <input
+                type="checkbox"
+                id="editor-switch"
+                checked={isEditor}
+                onChange={() => {
+                  setIsEditor(!isEditor);
+                  logDocumentToggle(!isEditor);
+                }}
+              />
+              <label htmlFor="editor-switch">
+                {isEditor ? "Editor" : "Preview"}
+              </label>
+            </div>
+          ) : null}
+
+          <div className="document__template__paper__header__actions flex align gap-md">
+            {/* Workflow Loading Indicator */}
+            {isWorkflowLoading && (
+              <div className="workflow__loading flex align center gap-sm">
+                <i className="ri-loader-4-line animate-spin"></i>
+                <span>Processing...</span>
               </div>
             )}
 
-            <div className="document__template__paper__header__actions flex align gap-md">
-              {/* Workflow Loading Indicator */}
-              {isWorkflowLoading && (
-                <div className="workflow__loading flex align center gap-sm">
-                  <i className="ri-loader-4-line animate-spin"></i>
-                  <span>Processing...</span>
-                </div>
-              )}
+            {/* Workflow Error Display */}
+            {workflowError && (
+              <div className="workflow__error flex align center gap-sm">
+                <i className="ri-error-warning-line text-danger"></i>
+                <span className="text-danger">{workflowError}</span>
+              </div>
+            )}
 
-              {/* Workflow Error Display */}
-              {workflowError && (
-                <div className="workflow__error flex align center gap-sm">
-                  <i className="ri-error-warning-line text-danger"></i>
-                  <span className="text-danger">{workflowError}</span>
-                </div>
-              )}
-
-              {currentPage.map((page, idx) => {
+            {/* Workflow Actions - only show in update mode */}
+            {mode === "update" &&
+              currentPage.map((page, idx) => {
                 // Determine if this action is disabled based on workflow state
                 const isActionDisabled =
                   isEditor ||
                   isWorkflowLoading ||
+                  !isUserAuthorized ||
+                  // Disable passed and complete actions if signature is required
+                  (currentTracker?.should_be_signed === "yes" &&
+                    (page.action.action_status === "passed" ||
+                      page.action.action_status === "complete")) ||
                   (page.action.action_status === "passed" && !canPass) ||
                   (page.action.action_status === "stalled" && !canStall) ||
                   (page.action.action_status === "processing" && !canProcess) ||
@@ -1033,9 +1117,8 @@ const DocumentTemplateContent = ({
                   />
                 );
               })}
-            </div>
           </div>
-        )}
+        </div>
 
         {/* Paper Panel */}
         {isEditor && (
@@ -1151,6 +1234,9 @@ const DocumentTemplateContent = ({
                   )}
                   {tab.id === "settings" && (
                     <SettingsGeneratorTab category={category} />
+                  )}
+                  {tab.id === "activities" && (
+                    <ActivitiesGeneratorTab category={category} />
                   )}
                 </div>
               </div>
