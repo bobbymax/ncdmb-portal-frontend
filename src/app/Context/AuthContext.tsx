@@ -15,6 +15,7 @@ import { getLoggedInUser } from "app/init";
 import { CarderResponseData } from "app/Repositories/Carder/data";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { GradeLevelResponseData } from "../Repositories/GradeLevel/data";
+import TokenProvider from "lib/TokenProvider";
 
 export type AuthUserResponseData = {
   id: number;
@@ -94,6 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setAuthState({ staff: null, token: null, refresh_token: null });
       setStaff(undefined);
       setIsAuthenticated(false);
+      // Clear token from TokenProvider
+      TokenProvider.getInstance().clearToken();
     } catch (error) {
       console.error("Logout failed:", error);
       throw new Error(`Something went wrong ${error}`);

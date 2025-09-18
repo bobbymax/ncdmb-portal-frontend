@@ -1,0 +1,26 @@
+/* Modular CSS Architecture - Main Import File */
+
+/* Base Styles */
+@import "./base/variables.css";
+
+/* Component Styles */
+@import "./components/chat.css";
+
+/* Layout Styles */
+/* @import './layouts/header.css'; */
+/* @import './layouts/sidebar.css'; */
+/* @import './layouts/main.css'; */
+
+/* Theme Styles */
+/* @import './themes/light.css'; */
+/* @import './themes/dark.css'; */
+
+/* 
+TODO: Move remaining styles from styles.css to appropriate modules:
+- Document components → components/documents.css
+- Form components → components/forms.css
+- Modal components → components/modals.css
+- Button components → components/buttons.css
+- Layout components → layouts/
+- Theme overrides → themes/
+*/

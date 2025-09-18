@@ -35,7 +35,8 @@ export type PointerActivityTypesProps =
 
 export type PointerThreadConversationProps = {
   id: string;
-  thread_id: string;
+  thread_id: number | string;
+  sender_id?: number;
   message: string;
   created_at: string;
   updated_at?: string;
@@ -45,7 +46,7 @@ export type PointerThreadConversationProps = {
     email: string;
     avatar: string;
   };
-  replies: string[];
+  replies?: string[];
   type: "comment" | "reply";
   category: PointerActivityTypesProps;
   is_pinned: boolean;

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import TokenProvider from "lib/TokenProvider";
 
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
@@ -22,15 +23,7 @@ const getCsrfToken = async (): Promise<void> => {
   }
 };
 
-export const fetchAuthToken = async () => {
-  try {
-    const response = await apiInstance.get("/api/auth-token");
-    const token = response.data.token;
-    apiInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } catch (error) {
-    console.error("Failed to fetch auth token:", error);
-  }
-};
+// Note: fetchAuthToken removed - now using chat-specific tokens via TokenProvider.fetchChatToken()
 
 export const loginStaff = async (data: {
   username: string;

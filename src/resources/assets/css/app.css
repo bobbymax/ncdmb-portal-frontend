@@ -12,6 +12,7 @@
 @import "workflow-preview.css";
 @import "app/Plugins/editor/styles.css";
 @import "ui.css";
+@import "threads.css";
 /* @import "global.css"; */
 
 :root {

@@ -1,5 +1,6 @@
 import React, { ReactNode, useState } from "react";
 import "../assets/css/app.css";
+import "../assets/css/threads.min.css";
 import "../assets/css/styles.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

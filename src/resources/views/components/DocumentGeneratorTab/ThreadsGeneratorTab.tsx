@@ -696,30 +696,28 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
           </div>
 
           {/* Chat Tabs */}
-          <div className="chat-tabs__container">
-            <div className="chat-tabs__container" data-active-tab={activeTab}>
-              {activityTypes.map((type) => (
-                <button
-                  key={type}
-                  className={`chat-tab ${
-                    activeTab === type ? "chat-tab--active" : ""
-                  }`}
-                  data-activity-type={type}
-                  onClick={() => setActiveTab(type)}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                  {type === "queried" && (
-                    <span className="chat-tab__badge">
-                      {
-                        filteredChats.filter(
-                          (chat) => chat.threadData.category === "queried"
-                        ).length
-                      }
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+          <div className="chat-tabs__container" data-active-tab={activeTab}>
+            {activityTypes.map((type) => (
+              <button
+                key={type}
+                className={`chat-tab ${
+                  activeTab === type ? "chat-tab--active" : ""
+                }`}
+                data-activity-type={type}
+                onClick={() => setActiveTab(type)}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+                {type === "queried" && (
+                  <span className="chat-tab__badge">
+                    {
+                      filteredChats.filter(
+                        (chat) => chat.threadData.category === "queried"
+                      ).length
+                    }
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Chat List */}
@@ -936,7 +934,13 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
           >
             <div className="chat-category-selector__label">
               <i className="ri-tag-line"></i>
-              <span>Select Category</span>
+              <span
+                style={{
+                  fontSize: 11,
+                }}
+              >
+                Select Category
+              </span>
               {categoryUpdated && (
                 <span className="chat-category-selector__feedback">
                   <i className="ri-check-line"></i>

@@ -53,6 +53,7 @@
     "is-hotkey": "^0.2.0",
     "js-cookie": "^3.0.5",
     "jspdf": "^3.0.1",
+    "laravel-echo": "^2.2.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.525.0",
     "moment": "^2.30.1",
@@ -60,6 +61,7 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
     "pluralize": "^8.0.0",
+    "pusher-js": "^8.4.0",
     "react": "^18.3.1",
     "react-apexcharts": "^1.7.0",
     "react-chartjs-2": "^5.2.0",
@@ -93,7 +95,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "plop": "plop --require ts-node/register",
-    "lint:ignore": "react-scripts build --eslint-disable"
+    "lint:ignore": "react-scripts build --eslint-disable",
+    "css:minify": "node scripts/build-css.js",
+    "css:watch": "nodemon --watch src/resources/assets/css/styles.css --exec \"npm run css:minify\""
   },
   "eslintConfig": {
     "extends": [
@@ -128,10 +132,12 @@
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "ajv-keywords": "^5.1.0",
+    "cssnano-cli": "^1.0.5",
     "eslint": "^9.19.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
     "plop": "^4.0.1",
+    "postcss-cli": "^11.0.1",
     "react-scripts": "^5.0.1",
     "ts-node": "^10.9.2",
     "typescript": "~4.8.4",

@@ -69,51 +69,106 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
     }
   }, [document]);
 
-  const getStatusColor = () => {
-    if (officers.length === 0) return "#6b7280"; // Gray for pending
-    if (officers.length >= currentTracker.order) return "#10b981"; // Green for completed
-    return "#f59e0b"; // Amber for in progress
+  const getStatusInfo = () => {
+    if (officers.length === 0) {
+      return {
+        text: "Pending",
+        color: "#ffffff",
+        bgColor: "linear-gradient(135deg, #6b7280 0%, #4b5563 100%)",
+        icon: "ri-time-line",
+      };
+    }
+    if (officers.length >= currentTracker.order) {
+      return {
+        text: "Completed",
+        color: "#ffffff",
+        bgColor: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+        icon: "ri-checkbox-circle-line",
+      };
+    }
+    return {
+      text: "In Progress",
+      color: "#ffffff",
+      bgColor: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+      icon: "ri-loader-4-line",
+    };
   };
 
-  const getStatusText = () => {
-    if (officers.length === 0) return "Pending";
-    if (officers.length >= currentTracker.order) return "Completed";
-    return "In Progress";
+  const getPriorityInfo = () => {
+    const priority = document.preferences?.priority || "medium";
+    switch (priority.toLowerCase()) {
+      case "high":
+        return {
+          color: "#ef4444",
+          bgColor: "#ef4444",
+        };
+      case "urgent":
+        return {
+          color: "#dc2626",
+          bgColor: "#dc2626",
+        };
+      case "low":
+        return {
+          color: "#10b981",
+          bgColor: "#10b981",
+        };
+      default:
+        return {
+          color: "#f59e0b",
+          bgColor: "#f59e0b",
+        };
+    }
   };
+
+  const statusInfo = getStatusInfo();
+  const priorityInfo = getPriorityInfo();
 
   return (
     <div className="document-card">
-      {/* Header Section */}
+      {/* Priority Indicator Dot */}
+      <div
+        className="priority-dot"
+        style={{
+          backgroundColor: priorityInfo.bgColor,
+        }}
+      ></div>
+
+      {/* Compact Header */}
       <div className="card-header">
-        <div className="header-main">
+        <div className="header-top">
           <div className="document-type-badge">
             <i className="ri-file-text-line"></i>
             <span>
               {toTitleCase(extractModelName(document.documentable_type ?? ""))}
             </span>
           </div>
-          <div className="document-status">
+          <div className="badges-row">
             <div
-              className="status-indicator"
-              style={{ backgroundColor: getStatusColor() }}
-            ></div>
-            <span className="status-text">{getStatusText()}</span>
+              className="status-badge"
+              style={{
+                background: statusInfo.bgColor,
+                color: statusInfo.color,
+              }}
+            >
+              <i className={statusInfo.icon}></i>
+              <span>{statusInfo.text}</span>
+            </div>
           </div>
         </div>
         <div className="document-ref">
           <i className="ri-hashtag"></i>
-          {document.ref}
+          <span>{document.ref}</span>
         </div>
       </div>
 
-      {/* Content Section */}
+      {/* Compact Content */}
       <div className="card-content">
-        <h3 className="document-title">{except(document.title, 50)}</h3>
+        <h3 className="document-title">{except(document.title, 45)}</h3>
 
-        <div className="document-meta">
+        <div className="document-meta-compact">
           <div className="meta-item">
             <i className="ri-calendar-line"></i>
-            <span>{moment(document.created_at).format("MMM DD, YYYY")}</span>
+            <span>{moment(document.created_at).format("MMM DD")}</span>
           </div>
           {amount && (
             <div className="meta-item">
@@ -121,17 +176,21 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
               <span>{amount}</span>
             </div>
           )}
+          <div className="meta-item">
+            <i className="ri-user-line"></i>
+            <span>{document.owner?.name || "Unknown"}</span>
+          </div>
         </div>
 
-        {/* Progress Section */}
-        <div className="progress-section">
-          <div className="progress-header">
-            <span className="progress-label">Approval Progress</span>
+        {/* Compact Progress */}
+        <div className="progress-compact">
+          <div className="progress-info">
+            <span className="progress-label">Progress</span>
             <span className="progress-count">
               {officers.length}/{currentTracker.order || 1}
             </span>
           </div>
-          <div className="progress-bar">
+          <div className="progress-bar-compact">
             <div
               className="progress-fill"
               style={{
@@ -139,34 +198,29 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
                   (officers.length / (currentTracker.order || 1)) * 100,
                   100
                 )}%`,
-                backgroundColor: getStatusColor(),
+                backgroundColor: statusInfo.color,
               }}
             ></div>
           </div>
         </div>
 
-        {/* Reviewers Section */}
+        {/* Compact Reviewers */}
         {officers.length > 0 && (
-          <div className="reviewers-section">
-            <div className="reviewers-header">
-              <i className="ri-user-star-line"></i>
-              <span>Reviewers ({officers.length})</span>
-            </div>
-            <div className="reviewers-list">
-              {officers.slice(0, 3).map((officer) => {
+          <div className="reviewers-compact">
+            <div className="reviewers-avatars">
+              {officers.slice(0, 4).map((officer) => {
                 const namePaths = officer.name.trim().split(" ");
                 const initials =
                   (namePaths[0]?.[0] ?? "") + (namePaths[1]?.[0] ?? "");
-
                 return (
                   <div
                     key={officer.id}
-                    className="reviewer-avatar"
+                    className="reviewer-avatar-compact"
                     title={officer.name}
                   >
                     {officer.avatar ? (
                       <img
-                        src="https://placehold.co/32x32"
+                        src="https://placehold.co/24x24"
                         alt={officer.name}
                       />
                     ) : (
@@ -177,22 +231,24 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
                   </div>
                 );
               })}
-              {officers.length > 3 && (
-                <div className="more-reviewers">+{officers.length - 3}</div>
+              {officers.length > 4 && (
+                <div className="more-reviewers-compact">
+                  +{officers.length - 4}
+                </div>
               )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Footer Section */}
+      {/* Compact Footer */}
       <div className="card-footer">
         <Button
-          label="Open Document"
+          label="Open"
           icon="ri-external-link-line"
           handleClick={() => openFolder(document)}
           variant="primary"
-          size="sm"
+          size="xs"
           rounded
         />
         <div className="footer-actions">
@@ -201,6 +257,9 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
           </button>
           <button className="action-btn" title="Share document">
             <i className="ri-share-line"></i>
+          </button>
+          <button className="action-btn" title="More options">
+            <i className="ri-more-2-line"></i>
           </button>
         </div>
       </div>

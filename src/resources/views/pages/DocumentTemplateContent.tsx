@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { PaperTitleContent } from "../components/ContentCards/PaperTitleContentCard";
 import ThreadsGeneratorTab from "../components/DocumentGeneratorTab/ThreadsGeneratorTab";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
+import { SignatureResponseData } from "@/app/Repositories/Signature/data";
 import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
 import Button from "../components/forms/Button";
 import ActivitiesGeneratorTab from "../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
@@ -1031,6 +1032,43 @@ const DocumentTemplateContent = ({
 
   const isUserAuthorized = currentTracker?.user_id === state.loggedInUser?.id;
 
+  // Check if user has signed the document (for signature type blocks)
+  const hasUserSigned = useMemo(() => {
+    // Find signature type blocks in state.body
+    const signatureBlock = state.body.find((item) => item.type === "signature");
+
+    if (signatureBlock && signatureBlock.content?.signature) {
+      // Access the signatures array from the nested structure
+      const signatures = (signatureBlock.content.signature as any)
+        ?.signatures as SignatureResponseData[];
+
+      if (
+        !signatures ||
+        !Array.isArray(signatures) ||
+        signatures.length === 0
+      ) {
+        return false;
+      }
+
+      // Find signature for current user
+      const userSignature = signatures.find(
+        (sig) => sig.user_id === state.loggedInUser?.id
+      );
+
+      // If user signature exists but is null/empty, they haven't signed
+      if (
+        userSignature &&
+        (!userSignature.signature || userSignature.signature.trim() === "")
+      ) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return true; // Default to true if no signature blocks or user has signed
+  }, [state.body, state.loggedInUser?.id]);
+
   useEffect(() => {
     if (mode === "update") {
       setIsEditor(false); // Start in preview mode for existing documents
@@ -1038,8 +1076,6 @@ const DocumentTemplateContent = ({
       setIsEditor(true); // Start in editor mode for new documents
     }
   }, [mode]);
-
-  console.log(state.body[2].content);
 
   return (
     <div className="document__template__content">
@@ -1094,13 +1130,14 @@ const DocumentTemplateContent = ({
                   !isUserAuthorized ||
                   // Disable passed and complete actions if signature is required
                   (currentTracker?.should_be_signed === "yes" &&
+                    !hasUserSigned &&
                     (page.action.action_status === "passed" ||
                       page.action.action_status === "complete")) ||
                   (page.action.action_status === "passed" && !canPass) ||
+                  (page.action.action_status === "complete" && !canComplete) ||
                   (page.action.action_status === "stalled" && !canStall) ||
                   (page.action.action_status === "processing" && !canProcess) ||
                   (page.action.action_status === "reversed" && !canReverse) ||
-                  (page.action.action_status === "complete" && !canComplete) ||
                   (page.action.action_status === "cancelled" && !canCancel) ||
                   (page.action.action_status === "appeal" && !canAppeal) ||
                   (page.action.action_status === "escalate" && !canEscalate);
