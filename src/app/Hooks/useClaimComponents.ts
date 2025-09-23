@@ -105,7 +105,7 @@ export const useClaimComponents = () => {
             setCities(cities);
           }
         } catch (error) {
-          console.error(error);
+          // Error occurred
         }
       };
       getDependencies();

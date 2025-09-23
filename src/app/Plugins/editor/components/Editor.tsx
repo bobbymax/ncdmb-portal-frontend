@@ -119,7 +119,7 @@ const validateDocumentStructure = (doc: any): Descendant[] => {
 
     return cleanDoc;
   } catch (error) {
-    console.error("Error validating document structure:", error);
+    // Error validating document structure
     return createDefaultDocument();
   }
 };
@@ -152,7 +152,7 @@ const Editor: React.FC<EditorProps> = ({
     try {
       return validateDocumentStructure(value);
     } catch (error) {
-      console.error("Error validating initial value:", error);
+      // Error validating initial value
       return createDefaultDocument();
     }
   }, [value]);
@@ -205,7 +205,7 @@ const Editor: React.FC<EditorProps> = ({
 
         setHasError(false);
       } catch (error) {
-        console.error("Error in handleChange:", error);
+        // Error in handleChange
         setHasError(true);
 
         // Fallback to safe content
@@ -222,7 +222,7 @@ const Editor: React.FC<EditorProps> = ({
     async (rows: number, cols: number) => {
       try {
         if (hasError) {
-          console.warn("Cannot insert table while document has errors");
+          // Cannot insert table while document has errors
           return;
         }
 
@@ -230,7 +230,7 @@ const Editor: React.FC<EditorProps> = ({
         insertTable(editor, rows, cols);
         setShowTableModal(false);
       } catch (error) {
-        console.error("Error inserting table:", error);
+        // Error inserting table
         alert("Failed to insert table. Please try again.");
       }
     },

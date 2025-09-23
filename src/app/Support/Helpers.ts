@@ -243,7 +243,7 @@ export const getDistanceInKm = async (
     const distance = response.data.rows[0].element[0].distance.value;
     return distance / 1000;
   } catch (error) {
-    console.error("Error fetching distance:", error);
+    // Error fetching distance
     return null;
   }
 };
@@ -601,9 +601,7 @@ export const fetchFilesFromUrls = async (
 
         // Check for successful fetch
         if (!response.ok) {
-          console.error(
-            `Error fetching file from ${path}: ${response.statusText}`
-          );
+          // Error fetching file
           return null; // Skip this file
         }
 
@@ -616,7 +614,7 @@ export const fetchFilesFromUrls = async (
         // Return the constructed File object
         return new File([blob], fileName, { type: fileType });
       } catch (error) {
-        console.error(`Failed to fetch file from ${path}: ${error}`);
+        // Failed to fetch file
         return null; // Skip this file
       }
     })

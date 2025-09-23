@@ -33,7 +33,7 @@ const useResolvers = () => {
 
       return serviceBundle;
     } catch (error) {
-      console.error(`Failed to resolve service: ${serviceName}`, error);
+      // Failed to resolve service
       return null;
     }
   };

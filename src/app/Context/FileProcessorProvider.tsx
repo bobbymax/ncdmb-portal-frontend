@@ -158,7 +158,7 @@ export const FileProcessorProvider = ({
       return state[label as keyof typeof state];
     }
 
-    console.warn(`Invalid key '${label}' used in getState.`);
+    // Invalid key used in getState
     return undefined;
   };
 

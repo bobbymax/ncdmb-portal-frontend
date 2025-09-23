@@ -26441,43 +26441,26 @@ html.modal-open {
 
 /* Document Template Paper Header */
 .document__template__paper__header {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 250, 252, 0.9) 100%
-  );
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: transparent;
+  border: none;
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 16px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
 }
 
 .document__template__paper__header:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
+  transform: none;
 }
 
 /* Dark theme for header */
 [data-theme="dark"] .document__template__paper__header {
-  background: linear-gradient(
-    135deg,
-    rgba(30, 41, 59, 0.95) 0%,
-    rgba(51, 65, 85, 0.9) 100%
-  );
-  border-color: rgba(71, 85, 105, 0.8);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
-    0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  background: transparent;
+  border: none;
 }
 
 [data-theme="dark"] .document__template__paper__header:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
-    0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  transform: none;
 }
 
 /* Document Template Paper Panel - Drop In Animation */

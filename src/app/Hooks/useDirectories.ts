@@ -43,7 +43,7 @@ const useDirectories = <
         setCollection(data as AccessibleResourceMap[K][]);
       }
     } catch (err) {
-      console.error("Failed to fetch directory:", err);
+      // Failed to fetch directory
       setError(err);
     } finally {
       setLoading(false);

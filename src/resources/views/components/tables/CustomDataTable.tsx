@@ -124,7 +124,7 @@ const CustomDataTable = ({
               onExportData(dataToExport);
             }
           } catch (error) {
-            console.error("Export failed:", error);
+            // Export failed
             Alert.error(
               "Export Failed",
               "Failed to export data. Please try again."
@@ -173,7 +173,7 @@ const CustomDataTable = ({
         const searchFiltered = manager.applySearch(totalFiltered, searchTerm);
         setFilteredData(searchFiltered);
       } catch (err) {
-        console.error("Data processing error:", err);
+        // Data processing error
         setError("Failed to process data. Please refresh the page.");
         setTableData([]);
         setFilteredData([]);

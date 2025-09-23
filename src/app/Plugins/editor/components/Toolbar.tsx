@@ -32,7 +32,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           className={`toolbar-button ${isActive ? "active" : ""}`}
           onMouseDown={(e) => {
             e.preventDefault();
-            console.log(`Format button clicked: ${format}`);
+            // Format button clicked
             toggleMark(editor, format);
           }}
           title={label}
@@ -54,7 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           className={`toolbar-button ${isActive ? "active" : ""}`}
           onMouseDown={(e) => {
             e.preventDefault();
-            console.log(`Block button clicked: ${format}`);
+            // Block button clicked
             toggleBlock(editor, format);
           }}
           title={label}

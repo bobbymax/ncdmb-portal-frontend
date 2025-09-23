@@ -91,7 +91,7 @@ export const useResourceActions = <T extends BaseRepository>(
               item.id === data.id ? data : item
             );
           default:
-            console.warn("Unknown action provided:", action);
+            // Unknown action provided
             return prevCollection;
         }
       });

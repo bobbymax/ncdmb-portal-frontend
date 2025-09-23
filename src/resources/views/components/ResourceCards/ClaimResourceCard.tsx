@@ -43,7 +43,7 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
 
   const identifier: DeskComponentPropTypes = "expense";
 
-  // console.log(state);
+  // Debug logging removed for production
 
   const expenseState = useMemo(() => {
     return state.resourceLinks.find((link) => link.type === identifier);
@@ -199,12 +199,12 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
     if (state.existingDocument) {
       const existingClaim = state.existingDocument
         .documentable as unknown as ClaimResponseData;
-      // console.log(existingClaim);
+      // Existing claim data processed
 
       setClaimState((prev) => ({
         ...prev,
-        start_date: existingClaim.start_date,
-        end_date: existingClaim.end_date,
+        start_date: existingClaim.start_date || "",
+        end_date: existingClaim.end_date || "",
         departure_city_id: existingClaim.departure_city_id,
         destination_city_id: existingClaim.destination_city_id,
         airport_id: existingClaim.airport_id,
@@ -249,7 +249,7 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
     getDependencies();
   }, [repository]);
 
-  // console.log(claimState);
+  // Debug logging removed for production
 
   return (
     <div className="document__generator__container">

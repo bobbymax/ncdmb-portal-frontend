@@ -230,7 +230,7 @@ export const useForm = <T extends BaseRepository>(
         const response = await Repository.dependencies();
         setDependencies(response);
       } catch (error) {
-        console.error("Error fetching dependencies:", error);
+        // Error fetching dependencies
       }
     };
 

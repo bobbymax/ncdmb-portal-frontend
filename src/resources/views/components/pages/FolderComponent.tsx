@@ -38,32 +38,32 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
 
       setCurrentTracker(currentTracker as ProgressTrackerResponseData);
 
-      drafts.forEach((draft) => {
-        const { history = [] } = draft;
+      // drafts.forEach((draft) => {
+      //   const { history = [] } = draft;
 
-        const latestAmount =
-          history.length > 0
-            ? history.reduce((max, item) =>
-                (item?.version_number ?? 0) > (max?.version_number ?? 0)
-                  ? item
-                  : max
-              ).amount
-            : document.amount;
+      //   const latestAmount =
+      //     history.length > 0
+      //       ? history.reduce((max, item) =>
+      //           (item?.version_number ?? 0) > (max?.version_number ?? 0)
+      //             ? item
+      //             : max
+      //         ).amount
+      //       : document.approved_amount;
 
-        setAmount(formatCurrency(Number(latestAmount)));
+      //   setAmount(formatCurrency(Number(latestAmount)));
 
-        history.forEach((action) => {
-          const staffId = action.authorising_officer?.id;
-          const staff = action.authorising_officer;
+      //   history.forEach((action) => {
+      //     const staffId = action.authorising_officer?.id;
+      //     const staff = action.authorising_officer;
 
-          if (staffId && staff && !approvalsMap.has(staffId)) {
-            approvalsMap.set(
-              staffId,
-              action?.authorising_officer as AuthorisingOfficerProps
-            );
-          }
-        });
-      });
+      //     if (staffId && staff && !approvalsMap.has(staffId)) {
+      //       approvalsMap.set(
+      //         staffId,
+      //         action?.authorising_officer as AuthorisingOfficerProps
+      //       );
+      //     }
+      //   });
+      // });
 
       setOfficers(Array.from(approvalsMap.values()));
     }

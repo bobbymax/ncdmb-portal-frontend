@@ -73,7 +73,7 @@ const Folders: React.FC<
     const archived = documents.filter((doc) => doc.is_archived === 1).length;
     const active = total - archived;
     const totalAmount = documents.reduce(
-      (sum, doc) => sum + (doc.amount || 0),
+      (sum, doc) => sum + (Number(doc.approved_amount) || 0),
       0
     );
 
@@ -106,9 +106,7 @@ const Folders: React.FC<
 
   const handleBulkAction = (action: string) => {
     // Handle bulk actions like archive, delete, etc.
-    console.log(
-      `Bulk action: ${action} on ${selectedDocuments.size} documents`
-    );
+    // Bulk action executed
     setSelectedDocuments(new Set());
   };
 
@@ -332,21 +330,21 @@ const Folders: React.FC<
               <Button
                 label="Recent Documents"
                 variant="outline"
-                handleClick={() => console.log("Show recent")}
+                handleClick={() => {}}
                 size="xs"
                 icon="ri-time-line"
               />
               <Button
                 label="Favorites"
                 variant="outline"
-                handleClick={() => console.log("Show favorites")}
+                handleClick={() => {}}
                 size="xs"
                 icon="ri-heart-line"
               />
               <Button
                 label="Shared with Me"
                 variant="outline"
-                handleClick={() => console.log("Show shared")}
+                handleClick={() => {}}
                 size="xs"
                 icon="ri-share-line"
               />
@@ -436,14 +434,14 @@ const Folders: React.FC<
                   <Button
                     label="Create Document"
                     variant="primary"
-                    handleClick={() => console.log("Create document")}
+                    handleClick={() => {}}
                     size="sm"
                     icon="ri-add-line"
                   />
                   <Button
                     label="Import Documents"
                     variant="outline"
-                    handleClick={() => console.log("Import documents")}
+                    handleClick={() => {}}
                     size="sm"
                     icon="ri-download-line"
                   />

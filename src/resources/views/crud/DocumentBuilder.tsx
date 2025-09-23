@@ -59,7 +59,7 @@ const DocumentBuilder: React.FC<
 
       return Component;
     } catch (error) {
-      console.error(`Failed to load component for service: ${service}`, error);
+      // Failed to load component for service
       return null;
     }
   }, [service]);

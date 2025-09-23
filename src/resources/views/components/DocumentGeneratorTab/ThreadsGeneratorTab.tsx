@@ -1,16 +1,14 @@
-import React, { useState, useEffect, ChangeEvent, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { useAuth } from "app/Context/AuthContext";
 import moment from "moment";
 import { DataOptionsProps } from "../forms/MultiSelect";
-import Select from "../forms/Select";
-import Textarea from "../forms/Textarea";
 import {
   DocumentCategoryResponseData,
-  PointerThreadProps,
   PointerActivityTypesProps,
-  CategoryProgressTrackerProps,
 } from "@/app/Repositories/DocumentCategory/data";
+import { ThreadResponseData } from "@/app/Repositories/Thread/data";
+import usePusherSocket from "../../../../features/chat/usePusherSocket";
 
 type CommentType =
   | "comment"
@@ -64,6 +62,25 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [showChatView, setShowChatView] = useState(false);
 
+  // WebSocket connection state
+  const [currentThreadId, setCurrentThreadId] = useState<number | null>(null);
+
+  // Thread database status tracking
+  const [threadDatabaseStatus, setThreadDatabaseStatus] = useState<
+    Map<string, boolean>
+  >(new Map());
+
+  // Initialize thread database status with existing threads from backend
+  useEffect(() => {
+    if (state.threads && state.threads.length > 0) {
+      const initialStatus = new Map<string, boolean>();
+      state.threads.forEach((thread) => {
+        initialStatus.set(thread.identifier, true);
+      });
+      setThreadDatabaseStatus(initialStatus);
+    }
+  }, [state.threads]);
+
   // Activity types for tabs
   const activityTypes: ("all" | PointerActivityTypesProps)[] = [
     "all",
@@ -111,7 +128,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
     const existingThreads = (state.threads || []).filter(
       (thread) => thread.pointer_identifier === currentTracker.identifier
     );
-    const threads: PointerThreadProps[] = [...existingThreads];
+    const threads: ThreadResponseData[] = [...existingThreads];
 
     // Helper function to check if a thread already exists between two users
     const threadExists = (ownerId: number, recipientId: number): boolean => {
@@ -128,7 +145,8 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
     if (loggedInUserId === user_id && loggedInUserId !== created_by) {
       // Check if thread already exists between owner and creator
       if (!threadExists(user_id, created_by || 0)) {
-        const thread: PointerThreadProps = {
+        const thread: ThreadResponseData = {
+          id: Date.now(), // Temporary ID for display threads
           pointer_identifier: currentTracker.identifier,
           recipient_id: created_by || 0,
           identifier: `thread_${user_id}_${created_by || 0}_${
@@ -161,7 +179,8 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
         if (user_id !== created_by) {
           // Thread with document owner
           if (!threadExists(loggedInUserId, user_id || 0)) {
-            const thread: PointerThreadProps = {
+            const thread: ThreadResponseData = {
+              id: Date.now(), // Temporary ID for display threads
               pointer_identifier: currentTracker.identifier,
               recipient_id: user_id || 0,
               identifier: `thread_${loggedInUserId}_${user_id}_${
@@ -181,7 +200,8 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
 
           // Thread with document creator
           if (created_by && !threadExists(loggedInUserId, created_by)) {
-            const thread: PointerThreadProps = {
+            const thread: ThreadResponseData = {
+              id: Date.now(), // Temporary ID for display threads
               pointer_identifier: currentTracker.identifier,
               recipient_id: created_by,
               identifier: `thread_${loggedInUserId}_${created_by}_${
@@ -201,7 +221,8 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
         } else {
           // Owner and creator are the same, create only one thread
           if (!threadExists(loggedInUserId, user_id || 0)) {
-            const thread: PointerThreadProps = {
+            const thread: ThreadResponseData = {
+              id: Date.now(), // Temporary ID for display threads
               pointer_identifier: currentTracker.identifier,
               recipient_id: user_id || 0,
               identifier: `thread_${loggedInUserId}_${user_id}_${
@@ -231,6 +252,82 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
     actions,
   ]);
 
+  // Get current thread data for WebSocket - prioritize existing threads from backend
+  const currentThreadData = useMemo(() => {
+    if (!currentThreadId || !selectedChat) return undefined;
+
+    // First check if thread exists in actual state.threads (from backend)
+    const existingThread = (state.threads || []).find(
+      (thread) => thread.identifier === selectedChat
+    );
+    if (existingThread) {
+      return existingThread;
+    }
+
+    // Fallback to generated threads if not found in backend threads
+    return allThreads.find((thread) => thread.identifier === selectedChat);
+  }, [currentThreadId, selectedChat, state.threads, allThreads]);
+
+  // Initialize WebSocket connection when a chat is selected
+  const {
+    conversations: realtimeConversations,
+    send: sendRealtimeMessage,
+    chatToken,
+    isTokenLoading,
+    fetchChatToken,
+    connectionState,
+    reconnect,
+  } = usePusherSocket({
+    threadId: currentThreadId || 0,
+    threadData: currentThreadData,
+    isThreadInDatabase: threadDatabaseStatus.get(selectedChat || "") ?? false,
+    selectedCategory: selectedCategory,
+    globalThreads: state.threads || [], // Use actual backend threads, not generated ones
+    selectedChatId: selectedChat || undefined,
+    documentData: state.existingDocument
+      ? {
+          id: state.existingDocument.id,
+          user_id: state.existingDocument.user_id || 0,
+          created_by: state.existingDocument.created_by || 0,
+          pointer: state.existingDocument.pointer || "",
+        }
+      : undefined,
+    loggedInUser: state.loggedInUser,
+    trackers: state.trackers || [],
+    onThreadCreated: () => {
+      if (selectedChat) {
+        setThreadDatabaseStatus((prev) =>
+          new Map(prev).set(selectedChat, true)
+        );
+      }
+    },
+    onThreadUpdated: (updatedThread: ThreadResponseData) => {
+      // Update the global threads state with the updated thread
+      const updatedThreads = (state.threads || []).map((thread) =>
+        thread.identifier === updatedThread.identifier ? updatedThread : thread
+      );
+      actions.setThreads(updatedThreads);
+    },
+  });
+
+  // Debug logging removed for production
+
+  // Get category color function (shared utility)
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "queried":
+        return "#dc2626"; // Danger red
+      case "escalated":
+        return "#059669"; // Army green
+      case "reviewed":
+        return "#1e40af"; // Navy blue
+      case "question":
+        return "#ea580c"; // Orange
+      default:
+        return "#6b7280"; // Neutral grey
+    }
+  };
+
   // Convert threads to chat format
   const chatThreads = useMemo(() => {
     return allThreads.map((thread) => {
@@ -254,21 +351,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )[0];
 
-      // Determine the category color based on the last conversation from thread owner
-      const getCategoryColor = (category: string) => {
-        switch (category) {
-          case "queried":
-            return "#dc2626"; // Danger red
-          case "escalated":
-            return "#059669"; // Army green
-          case "reviewed":
-            return "#1e40af"; // Navy blue
-          case "question":
-            return "#ea580c"; // Orange
-          default:
-            return "#6b7280"; // Neutral gray
-        }
-      };
+      // Use the shared getCategoryColor function
 
       // Use the last conversation's category, or fall back to thread category
       const displayCategory =
@@ -350,118 +433,37 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
     }
   };
 
-  // Handle adding message to a specific thread
-  const handleAddMessageToThread = (threadId: string, message: string) => {
+  // Handle adding message to a specific thread using WebSocket
+  const handleAddMessageToThread = async (
+    threadId: string,
+    message: string
+  ) => {
     if (!message.trim() || !state.loggedInUser || !state.existingDocument)
       return;
 
-    const newConversation = {
-      id: crypto.randomUUID(),
-      thread_id: threadId,
-      message: message.trim(),
-      created_at: new Date().toISOString(),
-      user: {
-        id: state.loggedInUser.id,
-        name: state.loggedInUser.name || "Unknown User",
-        email: state.loggedInUser.email || "",
-        avatar: state.loggedInUser.name?.charAt(0) || "U",
-      },
-      replies: [],
-      type: "comment" as const,
-      category: selectedCategory,
-      is_pinned: false,
-      is_deleted: false,
-      delivered: true,
-      marked_as_read: false,
-    };
+    // Send via WebSocket - thread creation is now handled by useConversationSocket
+    if (currentThreadId && chatToken && state.existingDocument?.id) {
+      try {
+        const result = await sendRealtimeMessage(
+          state.existingDocument.id,
+          message.trim()
+        );
+        if (result) {
+          // Show visual feedback that category was updated
+          setCategoryUpdated(true);
+          setTimeout(() => setCategoryUpdated(false), 2000);
 
-    // Find the current tracker based on pointer
-    const currentTracker = state.trackers.find(
-      (tracker) => tracker.identifier === state.existingDocument?.pointer
-    );
-
-    if (!currentTracker) return;
-
-    // Check if the thread exists in state.threads
-    const existingThread = (state.threads || []).find(
-      (thread) => thread.identifier === threadId
-    );
-
-    let updatedThreads = [...(state.threads || [])];
-
-    if (!existingThread) {
-      // Create a new thread if it doesn't exist
-      const { user_id, created_by } = state.existingDocument;
-      const loggedInUserId = state.loggedInUser.id;
-
-      // Determine the recipient based on proper thread creation logic
-      let recipientId: number;
-      let threadOwnerId: number;
-
-      // If logged-in user is the document owner but NOT the creator
-      if (loggedInUserId === user_id && loggedInUserId !== created_by) {
-        threadOwnerId = user_id; // Document owner as thread owner
-        recipientId = created_by || 0; // Creator as recipient
-      }
-      // If logged-in user is neither owner nor creator
-      else if (loggedInUserId !== user_id && loggedInUserId !== created_by) {
-        // Check if user has permission through tracker
-        const hasDirectPermission = currentTracker.user_id === loggedInUserId;
-        const hasGroupPermission =
-          currentTracker.user_id === 0 &&
-          state.loggedInUser.groups?.some(
-            (group) => group.id === currentTracker.group_id
-          );
-
-        if (hasDirectPermission || hasGroupPermission) {
-          threadOwnerId = loggedInUserId; // Logged-in user as thread owner
-          // For third-party users, we need to determine which thread they're trying to access
-          // This should be handled by the threadId parameter, but for now use owner as default
-          recipientId = user_id || 0;
-        } else {
-          // User has no permission - cannot create thread
+          // Reset category selection to default after sending message
+          setSelectedCategory("question");
           return;
         }
-      } else {
-        // Logged-in user is the creator - cannot create threads
-        return;
+      } catch (error) {
+        // WebSocket send failed
+        // Note: No fallback to local state - thread creation is centralized in useConversationSocket
       }
-
-      const newThread: PointerThreadProps = {
-        pointer_identifier: currentTracker.identifier,
-        recipient_id: recipientId,
-        identifier: threadId,
-        thread_owner_id: threadOwnerId,
-        category: selectedCategory,
-        conversations: [newConversation],
-        priority: "medium",
-        status: "pending",
-        state: "open",
-        created_at: new Date().toISOString(),
-      };
-
-      updatedThreads.push(newThread);
     } else {
-      // Update existing thread with new conversation
-      updatedThreads = updatedThreads.map((thread) =>
-        thread.identifier === threadId
-          ? {
-              ...thread,
-              conversations: [...thread.conversations, newConversation],
-            }
-          : thread
-      );
+      // Cannot send message: missing currentThreadId, chatToken, or document ID
     }
-
-    // Update global state using setThreads
-    actions.setThreads(updatedThreads);
-
-    // Show visual feedback that category was updated
-    setCategoryUpdated(true);
-    setTimeout(() => setCategoryUpdated(false), 2000);
-
-    // Reset category selection to default after sending message
-    setSelectedCategory("question");
   };
 
   // Handle Enter key press for sending messages
@@ -486,81 +488,23 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
   });
 
   const handleChatSelect = (chatId: string) => {
-    // Ensure the thread exists in global state before selecting
-    const currentTracker = state.trackers.find(
-      (tracker) => tracker.identifier === state.existingDocument?.pointer
-    );
-
-    if (currentTracker) {
-      const existingThread = (state.threads || []).find(
-        (thread) => thread.identifier === chatId
-      );
-
-      if (!existingThread) {
-        // Create the thread if it doesn't exist
-        const { user_id, created_by } = state.existingDocument!;
-        const loggedInUserId = state.loggedInUser!.id;
-
-        // Determine the recipient based on proper thread creation logic
-        let recipientId: number;
-        let threadOwnerId: number;
-
-        // If logged-in user is the document owner but NOT the creator
-        if (loggedInUserId === user_id && loggedInUserId !== created_by) {
-          threadOwnerId = user_id; // Document owner as thread owner
-          recipientId = created_by || 0; // Creator as recipient
-        }
-        // If logged-in user is neither owner nor creator
-        else if (loggedInUserId !== user_id && loggedInUserId !== created_by) {
-          // Check if user has permission through tracker
-          const hasDirectPermission = currentTracker.user_id === loggedInUserId;
-          const hasGroupPermission =
-            currentTracker.user_id === 0 &&
-            state.loggedInUser?.groups?.some(
-              (group) => group.id === currentTracker.group_id
-            );
-
-          if (hasDirectPermission || hasGroupPermission) {
-            threadOwnerId = loggedInUserId; // Logged-in user as thread owner
-            // For third-party users, we need to determine which thread they're trying to access
-            // This should be handled by the chatId parameter, but for now use owner as default
-            recipientId = user_id || 0;
-          } else {
-            // User has no permission - cannot create thread
-            return;
-          }
-        } else {
-          // Logged-in user is the creator - cannot create threads
-          return;
-        }
-
-        const newThread: PointerThreadProps = {
-          pointer_identifier: currentTracker.identifier,
-          recipient_id: recipientId,
-          identifier: chatId,
-          thread_owner_id: threadOwnerId,
-          category: selectedCategory,
-          conversations: [],
-          priority: "medium",
-          status: "pending",
-          state: "open",
-          created_at: new Date().toISOString(),
-        };
-
-        const updatedThreads = [...(state.threads || []), newThread];
-
-        // Update global state using setThreads
-        actions.setThreads(updatedThreads);
-      }
-    }
-
+    // Simplified: Just select the chat, thread creation is handled by useConversationSocket
     setSelectedChat(chatId);
     setShowChatView(true);
+
+    // Initialize WebSocket connection with thread ID
+    // Extract numeric thread ID from the chatId (assuming format like "thread_1_2_pointer_1234567890")
+    const threadIdMatch = chatId.match(/thread_(\d+)_\d+_.*_(\d+)/);
+    if (threadIdMatch) {
+      const threadId = parseInt(threadIdMatch[2]); // Use the timestamp as thread ID
+      setCurrentThreadId(threadId);
+    }
   };
 
   const handleBackToList = () => {
     setShowChatView(false);
     setSelectedChat(null);
+    setCurrentThreadId(null); // Disconnect WebSocket
   };
 
   // Handle marking messages as read when viewing a conversation
@@ -613,22 +557,6 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
       setSelectedCategory(categoryToUse);
     }
   }, [selectedChat, showChatView, selectedChatData]);
-
-  // Get category color function
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "queried":
-        return "#dc2626"; // Danger red
-      case "escalated":
-        return "#059669"; // Army green
-      case "reviewed":
-        return "#1e40af"; // Navy blue
-      case "question":
-        return "#ea580c"; // Orange
-      default:
-        return "#6b7280"; // Neutral grey
-    }
-  };
 
   // Get category icon function
   const getCategoryIcon = (category: string) => {
@@ -827,6 +755,41 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
               </div>
             </div>
             <div className="chat-header__actions">
+              {/* Connection Status Indicator */}
+              <div className="chat-header__connection-status">
+                {isTokenLoading ? (
+                  <span className="connection-status connection-status--loading">
+                    <i className="ri-loader-4-line"></i>
+                    Connecting...
+                  </span>
+                ) : connectionState === "connected" && chatToken ? (
+                  <span className="connection-status connection-status--connected">
+                    <i className="ri-wifi-line"></i>
+                    Connected
+                  </span>
+                ) : connectionState === "connecting" ? (
+                  <span className="connection-status connection-status--loading">
+                    <i className="ri-loader-4-line"></i>
+                    Connecting...
+                  </span>
+                ) : (
+                  <div className="connection-status connection-status--disconnected">
+                    <span>
+                      <i className="ri-wifi-off-line"></i>
+                      {connectionState === "failed"
+                        ? "Connection Failed"
+                        : "Offline"}
+                    </span>
+                    <button
+                      className="connection-retry-btn"
+                      onClick={reconnect}
+                      title="Retry connection"
+                    >
+                      <i className="ri-refresh-line"></i>
+                    </button>
+                  </div>
+                )}
+              </div>
               <button className="chat-header__action-btn" title="Voice call">
                 <i className="ri-phone-line"></i>
               </button>
@@ -841,14 +804,49 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
 
           {/* Chat Messages */}
           <div className="chat-messages">
-            {selectedChatData?.threadData?.conversations &&
-            selectedChatData.threadData.conversations.length > 0 ? (
-              selectedChatData.threadData.conversations.map((conversation) => {
+            {/* Display real-time messages if available, otherwise fallback to local state */}
+            {(() => {
+              const conversations =
+                realtimeConversations && realtimeConversations.length > 0
+                  ? realtimeConversations
+                  : selectedChatData?.threadData?.conversations || [];
+
+              // Sort conversations by created_at in ascending order (oldest first)
+              const sortedConversations = conversations.sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime()
+              );
+
+              return sortedConversations;
+            })().length > 0 ? (
+              // Use real-time messages if available, otherwise use local state
+              (() => {
+                const conversations =
+                  realtimeConversations && realtimeConversations.length > 0
+                    ? realtimeConversations
+                    : selectedChatData?.threadData?.conversations || [];
+
+                // Sort conversations by created_at in ascending order (oldest first)
+                const sortedConversations = conversations.sort(
+                  (a, b) =>
+                    new Date(a.created_at).getTime() -
+                    new Date(b.created_at).getTime()
+                );
+
+                return sortedConversations;
+              })().map((conversation) => {
+                // Safe property access with fallbacks
+                const conversationUser = conversation?.user || {};
+                const userId = conversationUser?.id || null;
+
                 const isThreadOwner =
-                  conversation.user.id ===
-                  selectedChatData.threadData.thread_owner_id;
-                const isLoggedInUser =
-                  conversation.user.id === state.loggedInUser?.id;
+                  userId === selectedChatData?.threadData?.thread_owner_id;
+                const isLoggedInUser = userId === state.loggedInUser?.id;
+
+                // For message positioning: if user is the logged-in user, show on right (outgoing)
+                // If user is not the logged-in user, show on left (incoming)
+                const isOutgoing = isLoggedInUser;
 
                 const categoryColor = isThreadOwner
                   ? getCategoryColor(conversation.category)
@@ -858,7 +856,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
                   <div
                     key={conversation.id}
                     className={`chat-message chat-message--${
-                      isLoggedInUser ? "outgoing" : "incoming"
+                      isOutgoing ? "outgoing" : "incoming"
                     } ${isThreadOwner ? "chat-message--thread-owner" : ""}`}
                     style={
                       isThreadOwner
@@ -870,8 +868,10 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
                   >
                     <div className="chat-message__avatar">
                       <img
-                        src={`https://ui-avatars.com/api/?name=${conversation.user.name}&background=3b82f6&color=fff&size=96`}
-                        alt={conversation.user.name}
+                        src={`https://ui-avatars.com/api/?name=${
+                          conversationUser?.name || "User"
+                        }&background=3b82f6&color=fff&size=96`}
+                        alt={conversationUser?.name || "User"}
                       />
                       {isThreadOwner && categoryColor && (
                         <div
@@ -899,7 +899,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
                             "MMM D, h:mm a"
                           )}
                         </div>
-                        {conversation.user.id === state.loggedInUser?.id && (
+                        {isOutgoing && (
                           <div className="chat-message__status">
                             {conversation.marked_as_read ? (
                               <i className="ri-check-double-line chat-message__status-icon"></i>
@@ -996,7 +996,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
                 placeholder="Type a message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => handleKeyPress(e, selectedChat || "")}
+                onKeyDown={(e) => handleKeyPress(e, selectedChat || "")}
                 rows={1}
               />
               <div className="chat-input__actions">

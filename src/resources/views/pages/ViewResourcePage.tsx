@@ -70,7 +70,7 @@ const renderDocumentDetail = <T, D>(
       </Suspense>
     );
   } catch (error) {
-    console.error(`Error loading component: ${sanitizedComponent}`, error);
+    // Error loading component
     return <div>Error loading component: {sanitizedComponent}</div>;
   }
 };

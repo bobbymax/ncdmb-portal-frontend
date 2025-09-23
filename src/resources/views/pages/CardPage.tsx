@@ -29,7 +29,7 @@ const CardPage = ({
     }
   };
 
-  // console.log(collection);
+  // Debug logging removed for production
 
   return (
     <div className="card-page-component">

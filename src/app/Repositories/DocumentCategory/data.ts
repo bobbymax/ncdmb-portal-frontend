@@ -34,8 +34,9 @@ export type PointerActivityTypesProps =
   | "responded";
 
 export type PointerThreadConversationProps = {
-  id: string;
+  id: string | number;
   thread_id: number | string;
+  document_id: number;
   sender_id?: number;
   message: string;
   created_at: string;
@@ -53,23 +54,6 @@ export type PointerThreadConversationProps = {
   is_deleted: boolean;
   delivered: boolean;
   marked_as_read: boolean;
-};
-
-export type PointerThreadProps = {
-  pointer_identifier: string;
-  resource?: unknown;
-  identifier: string;
-  icon?: string;
-  thread_owner_id: number; // logged in user id
-  recipient_id: number;
-  action?: string;
-  category: PointerActivityTypesProps;
-  conversations: PointerThreadConversationProps[];
-  priority: "low" | "medium" | "high";
-  status: "pending" | "resolved" | "rejected";
-  state: "open" | "closed";
-  created_at: string;
-  updated_at?: string;
 };
 
 export type CategoryProgressTrackerProps = {

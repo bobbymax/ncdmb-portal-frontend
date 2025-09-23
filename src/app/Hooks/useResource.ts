@@ -69,7 +69,7 @@ const useResource = <T extends BaseResponse, D extends BaseRepository>(
         const response = await repo.dependencies();
         setDependencies(response);
       } catch (error) {
-        console.error("Error fetching dependencies:", error);
+        // Error fetching dependencies
       }
     };
 

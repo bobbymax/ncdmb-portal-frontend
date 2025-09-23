@@ -43,15 +43,10 @@ const ResourceGeneratorTab: React.FC<ResourceGeneratorTabProps> = ({
         if (Component) {
           setResourceCardComponent(() => Component);
         } else {
-          console.warn(
-            `Component ${componentName} not found or has no default export`
-          );
+          // Component not found or has no default export
         }
       } catch (error) {
-        console.error(
-          `Failed to load resource card component: ${componentName}`,
-          error
-        );
+        // Failed to load resource card component
       } finally {
         setIsLoading(false);
       }
@@ -72,10 +67,7 @@ const ResourceGeneratorTab: React.FC<ResourceGeneratorTabProps> = ({
           setResourceData(responseData);
         }
       } catch (error) {
-        console.error(
-          `Failed to load response data for service: ${category.service}`,
-          error
-        );
+        // Failed to load response data for service
       }
     };
 

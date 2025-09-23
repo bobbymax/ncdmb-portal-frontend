@@ -193,6 +193,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Template/data"
   },
   {
+    "key": "Thread",
+    "path": "../app/Repositories/Thread/data"
+  },
+  {
     "key": "Threshold",
     "path": "../app/Repositories/Threshold/data"
   },

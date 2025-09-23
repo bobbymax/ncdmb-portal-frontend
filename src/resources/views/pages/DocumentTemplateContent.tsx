@@ -71,6 +71,7 @@ const DocumentTemplateContent = ({
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isEditor, setIsEditor] = useState(false);
+  const [showPdfView, setShowPdfView] = useState(false);
 
   // Initialize useCore hook for workflow actions
   const {
@@ -427,7 +428,7 @@ const DocumentTemplateContent = ({
             const uploadObjects = await Promise.all(filePromises);
             actions.setUploads(uploadObjects);
           } catch (error) {
-            console.error("❌ Error converting uploads to files:", error);
+            // Error converting uploads to files
           }
         };
 
@@ -716,7 +717,7 @@ const DocumentTemplateContent = ({
           newContentBlock.id
         );
       } catch (error) {
-        console.error("Error parsing block data:", error);
+        // Error parsing block data
       }
     } else if (
       dragType.startsWith("body-item-") &&
@@ -827,10 +828,10 @@ const DocumentTemplateContent = ({
           }
           break;
         default:
-          console.warn(`Unknown action status: ${action.action_status}`);
+        // Unknown action status
       }
     } catch (error) {
-      console.error("Workflow action failed:", error);
+      // Workflow action failed
     }
   };
 
@@ -953,7 +954,7 @@ const DocumentTemplateContent = ({
         );
       }
     } catch (error) {
-      console.error("Error generating document:", error);
+      // Error generating document
       Alert.error(
         "Generation Failed",
         "An unexpected error occurred. Please try again."
@@ -1077,6 +1078,8 @@ const DocumentTemplateContent = ({
     }
   }, [mode]);
 
+  console.log(state.existingDocument?.uploads);
+
   return (
     <div className="document__template__content">
       <div className="document__template__paper">
@@ -1084,6 +1087,7 @@ const DocumentTemplateContent = ({
         <div className="document__template__paper__header flex align center between">
           {/* Switch isEditor */}
           {(mode === "update" &&
+            !state.existingDocument?.is_completed &&
             (state.loggedInUser?.id === state.existingDocument?.user_id ||
               state.loggedInUser?.id === state.existingDocument?.created_by)) ||
           mode === "store" ? (
@@ -1112,6 +1116,18 @@ const DocumentTemplateContent = ({
               </div>
             )}
 
+            {state.existingDocument?.is_completed == true && (
+              <div
+                style={{
+                  padding: "0.2rem .8rem",
+                }}
+                className="workflow__loading flex align center gap-sm"
+              >
+                <i className="ri-bubble-chart-line"></i>
+                <span>{state.existingDocument?.status}</span>
+              </div>
+            )}
+
             {/* Workflow Error Display */}
             {workflowError && (
               <div className="workflow__error flex align center gap-sm">
@@ -1126,6 +1142,7 @@ const DocumentTemplateContent = ({
                 // Determine if this action is disabled based on workflow state
                 const isActionDisabled =
                   isEditor ||
+                  state.existingDocument?.is_completed ||
                   isWorkflowLoading ||
                   !isUserAuthorized ||
                   // Disable passed and complete actions if signature is required
@@ -1154,6 +1171,24 @@ const DocumentTemplateContent = ({
                   />
                 );
               })}
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: "0 1.8rem",
+          }}
+          className="page__flipped"
+        >
+          {/* Page Flipped Content */}
+          <div
+            className={`page__flipped__toggler ${
+              showPdfView ? "toggled-right" : ""
+            }`}
+            onClick={() => setShowPdfView(!showPdfView)}
+          >
+            <span className="toggle-label left">Document</span>
+            <span className="toggle-label right">Uploads</span>
           </div>
         </div>
 
@@ -1204,25 +1239,30 @@ const DocumentTemplateContent = ({
             </div>
           </div>
         )}
-        <div className="document__template__paper__sheet">
-          {/* A4 Paper Sheet Area */}
-          <A4Sheet
-            state={state}
-            actions={actions}
-            currentPageActions={currentPage}
-            handleDragStart={handleDragStart}
-            handleDragOver={handleDragOver}
-            handleDrop={handleDrop}
-            handleDragEnter={handleDragEnter}
-            handleAddResourceLink={handleAddResourceLink}
-            handleManageItem={handleManageItem}
-            handleRemoveItem={handleRemoveItem}
-            editingItems={editingItems}
-            TemplateHeader={TemplateHeader}
-            currentTracker={currentTracker}
-            isEditor={isEditor}
-          />
-        </div>
+
+        {showPdfView ? (
+          <div className="uploaded__files">{/* Uploaded Files */}</div>
+        ) : (
+          <div className="document__template__paper__sheet">
+            {/* A4 Paper Sheet Area */}
+            <A4Sheet
+              state={state}
+              actions={actions}
+              currentPageActions={currentPage}
+              handleDragStart={handleDragStart}
+              handleDragOver={handleDragOver}
+              handleDrop={handleDrop}
+              handleDragEnter={handleDragEnter}
+              handleAddResourceLink={handleAddResourceLink}
+              handleManageItem={handleManageItem}
+              handleRemoveItem={handleRemoveItem}
+              editingItems={editingItems}
+              TemplateHeader={TemplateHeader}
+              currentTracker={currentTracker}
+              isEditor={isEditor}
+            />
+          </div>
+        )}
       </div>
       <div className="document__template__configuration">
         {/* Configuration Tabs */}

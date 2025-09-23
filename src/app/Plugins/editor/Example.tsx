@@ -13,7 +13,7 @@ const EditorExample: React.FC = () => {
   ]);
 
   const handleSave = (value: Descendant[]) => {
-    console.log("Saving content:", value);
+    // Saving content
     // In a real app, you would save this to your database
     alert("Content saved! Check the console for the data structure.");
   };
@@ -23,7 +23,7 @@ const EditorExample: React.FC = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         const fakeUrl = `https://example.com/uploads/${file.name}`;
-        console.log("File uploaded:", file.name, "URL:", fakeUrl);
+        // File uploaded
         resolve(fakeUrl);
       }, 1000);
     });
@@ -49,7 +49,7 @@ const EditorExample: React.FC = () => {
             url: "/users/2",
           },
         ];
-        console.log("Database query:", query, "Results:", mockRecords);
+        // Database query executed
         resolve(mockRecords);
       }, 500);
     });

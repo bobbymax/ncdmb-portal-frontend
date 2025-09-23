@@ -24,12 +24,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { PermissionTypes } from "@/app/Repositories/ProgressTracker/data";
 import { BlockResponseData } from "@/app/Repositories/Block/data";
+import { WorkflowResponseData } from "@/app/Repositories/Workflow/data";
 
 export type ProcessActivitiesProps = {
   id: number;
   identifier: string;
   title: string;
   workflow_stage_id: number;
+  workflow_id: number;
   group_id: number;
   department_id: number;
   action_label: string;
@@ -51,6 +53,7 @@ export type SelectedActionsProps = {
 
 type DependencyProps = {
   users: UserResponseData[];
+  workflows: WorkflowResponseData[];
   workflowStages: WorkflowStageResponseData[];
   groups: GroupResponseData[];
   departments: DepartmentResponseData[];
@@ -77,6 +80,7 @@ const DocumentCategoryConfiguration: React.FC<
       id: 0,
       identifier: "",
       title: "",
+      workflow_id: 0,
       workflow_stage_id: 0,
       group_id: 0,
       department_id: 0,
@@ -105,6 +109,7 @@ const DocumentCategoryConfiguration: React.FC<
   const [postProcessingActivities, setPostProcessingActivities] = useState<
     ProcessActivitiesProps[]
   >([]);
+
   const [showPostProcessingForm, setShowPostProcessingForm] = useState(false);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
@@ -119,12 +124,14 @@ const DocumentCategoryConfiguration: React.FC<
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
 
   const [selectedOptions, setSelectedOptions] = useState<{
+    workflow: DataOptionsProps | null;
     workflow_stage: DataOptionsProps | null;
     group: DataOptionsProps | null;
     department: DataOptionsProps | null;
     user: DataOptionsProps | null;
     trigger_action: DataOptionsProps | null;
   }>({
+    workflow: null,
     workflow_stage: null,
     group: null,
     department: null,
@@ -218,6 +225,7 @@ const DocumentCategoryConfiguration: React.FC<
 
   const {
     users = [],
+    workflows = [],
     workflowStages = [],
     groups = [],
     departments = [],
@@ -302,7 +310,7 @@ const DocumentCategoryConfiguration: React.FC<
     </div>
   );
 
-  // console.log(state.meta_data?.activities);
+  // Debug logging removed for production
 
   useEffect(() => {
     if (state.meta_data) {
@@ -517,7 +525,9 @@ const DocumentCategoryConfiguration: React.FC<
                 formatOptions(selectedGroups, "id", "name"),
                 selectedOptions.group,
                 handleSelectionChange("group"),
-                "Group"
+                "Group",
+                false,
+                6
               )}
               <div className="col-md-6 mb-3">
                 <Select
@@ -546,7 +556,16 @@ const DocumentCategoryConfiguration: React.FC<
                 />
               </div>
               {renderMultiSelect(
-                "Trigger Activity",
+                "Trigger Workflow",
+                formatOptions(workflows, "id", "name", true),
+                selectedOptions.workflow,
+                handleSelectionChange("workflow"),
+                "Workflow",
+                false,
+                6
+              )}
+              {renderMultiSelect(
+                "Trigger Action",
                 formatOptions(processActions, "id", "name", true),
                 selectedOptions.trigger_action,
                 handleSelectionChange("trigger_action"),
@@ -580,6 +599,7 @@ const DocumentCategoryConfiguration: React.FC<
                       identifier: `activity_${Date.now()}`, // Generate unique identifier
                       title: documentConfigState.title,
                       workflow_stage_id: documentConfigState.workflow_stage_id,
+                      workflow_id: documentConfigState.workflow_id || 0,
                       group_id: documentConfigState.group_id || 0,
                       department_id: documentConfigState.department_id || 0,
                       action_label: documentConfigState.action_label || "",
@@ -595,12 +615,12 @@ const DocumentCategoryConfiguration: React.FC<
                       blocks: [], // Initialize empty blocks array
                     };
 
-                    // console.log("Creating new activity:", newActivity);
+                    // Creating new activity
 
                     // Add to postProcessingActivities
                     setPostProcessingActivities((prev) => {
                       const updated = [...prev, newActivity];
-                      // console.log("Updated activities:", updated);
+                      // Updated activities
                       return updated;
                     });
 
@@ -610,6 +630,7 @@ const DocumentCategoryConfiguration: React.FC<
                       identifier: "",
                       title: "",
                       workflow_stage_id: 0,
+                      workflow_id: 0,
                       group_id: 0,
                       department_id: 0,
                       action_label: "",
@@ -625,6 +646,7 @@ const DocumentCategoryConfiguration: React.FC<
 
                     // Reset selected options
                     setSelectedOptions({
+                      workflow: null,
                       workflow_stage: null,
                       group: null,
                       department: null,
@@ -668,6 +690,9 @@ const DocumentCategoryConfiguration: React.FC<
                       const triggerAction = documentActions.find(
                         (action) => action.id === activity.trigger_action_id
                       );
+                      // const workflow = workflows.find(
+                      //   (wf) => wf.id === activity.trigger_action_id
+                      // );
 
                       return (
                         <div
@@ -774,7 +799,7 @@ const DocumentCategoryConfiguration: React.FC<
                               onClick={(e) => {
                                 e.stopPropagation(); // Prevent card expansion
                                 // TODO: Implement edit functionality
-                                //  console.log("Edit activity:", activity);
+                                // Edit activity
                               }}
                               title="Edit Activity"
                             >

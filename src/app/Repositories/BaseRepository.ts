@@ -4,7 +4,7 @@ import {
   ColumnData,
 } from "../../resources/views/components/tables/CustomDataTable";
 import { AxiosResponse } from "axios";
-import { DocumentableData } from "app/Hooks/useWorkflow";
+
 export interface BaseResponse {
   id: number;
 }
@@ -178,7 +178,7 @@ export abstract class BaseRepository extends RepositoryService {
           const fileName = path.split("/").pop() || `file-${idx}`;
           return new File([response.blob], fileName, { type: response.type });
         } catch (error) {
-          console.error("Error fetching file:", error);
+          // Error fetching file
           return null;
         }
       })

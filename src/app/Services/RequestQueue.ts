@@ -70,7 +70,7 @@ class RequestQueue {
           resolve(result);
         } catch (error) {
           if (attempt < retries) {
-            console.warn(`Retrying request... Attempt ${attempt + 1}`);
+            // Retrying request
             executeRequest(attempt + 1);
           } else {
             reject(error);

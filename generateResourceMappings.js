@@ -29,4 +29,4 @@ fs.writeFileSync(
   "utf8"
 );
 
-console.log("✅ Successfully generated resourceFiles.ts with dynamic imports.");
+// Successfully generated resourceFiles.ts with dynamic imports

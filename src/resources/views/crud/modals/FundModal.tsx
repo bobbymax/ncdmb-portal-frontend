@@ -61,7 +61,7 @@ const FundModal: React.FC<ModalValueProps> = ({
             onSubmit(state, "store");
           }
         } catch (error) {
-          console.error("Error saving this Fund: ", error);
+          // Error saving this Fund
         }
       }
     });

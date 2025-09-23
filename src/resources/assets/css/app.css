@@ -13,6 +13,8 @@
 @import "app/Plugins/editor/styles.css";
 @import "ui.css";
 @import "threads.css";
+@import "modern-sidebar.css";
+@import "flat-folder-redesign.css"; /* Added for flat folder redesign */
 /* @import "global.css"; */
 
 :root {

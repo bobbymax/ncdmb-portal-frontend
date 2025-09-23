@@ -1,10 +1,11 @@
 import { AuthPageResponseData } from "app/Repositories/Page/data";
 import { Link } from "react-router-dom";
 import CompanyLogo from "../pages/CompanyLogo";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import NewBrandLogo from "../pages/NewBrandLogo";
 import AlternateLogo from "../pages/AlternateLogo";
 import TextInput from "../forms/TextInput";
+import ThemeToggle from "../ThemeToggle";
 
 interface SidebarProps {
   navigation: AuthPageResponseData[];
@@ -24,6 +25,7 @@ const Aside = ({
   activePath,
 }: SidebarProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
   const closeMobileSidebar = () => {
     const sidebar = document.getElementById("sidebar-wrapper");
@@ -31,6 +33,46 @@ const Aside = ({
       sidebar.classList.remove("sidebar-open");
     }
   };
+
+  const toggleExpanded = (itemId: number) => {
+    setExpandedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        // If already expanded, collapse it
+        newSet.delete(itemId);
+      } else {
+        // Clear all other expanded items and expand this one
+        newSet.clear();
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  // Auto-expand items that contain the active path
+  useEffect(() => {
+    const findActiveParent = (items: NavigationItem[]): number | null => {
+      for (const item of items) {
+        if (item.children && item.children.length > 0) {
+          // Check if any child matches the active path
+          const hasActiveChild = item.children.some(
+            (child) =>
+              child.path === activePath ||
+              (child.children && findActiveParent(child.children))
+          );
+          if (hasActiveChild) {
+            return item.id;
+          }
+        }
+      }
+      return null;
+    };
+
+    const activeParentId = findActiveParent(navigation);
+    if (activeParentId) {
+      setExpandedItems(new Set([activeParentId]));
+    }
+  }, [activePath, navigation]);
 
   const groupNavigation = (nav: NavigationItem[]): NavigationItem[] => {
     const map = new Map<
@@ -101,25 +143,28 @@ const Aside = ({
     return items.map((nav) => {
       const hasChildren = nav.children && nav.children.length > 0;
       const isActive = nav.path === activePath;
+      const isExpanded = expandedItems.has(nav.id);
 
       return (
         <div className="new__nav__item" key={nav.id}>
           {hasChildren ? (
             <>
               <div
-                className={`parent__nav flex align between ${
-                  isActive ? "active" : ""
-                }`}
+                className={`parent__nav flex align ${isActive ? "active" : ""}`}
+                onClick={() => toggleExpanded(nav.id)}
+                data-tooltip={nav.name}
               >
                 <div className="smaller__detais flex align gap-md">
                   <i className={nav.icon} />
                   <p>{nav.name}</p>
                 </div>
-
-                {/* <i className="ri-arrow-down-s-line" /> */}
               </div>
 
-              <div className="new__dropdown__menu__section">
+              <div
+                className={`new__dropdown__menu__section transition-all duration-200 ${
+                  isExpanded ? "block" : "hidden"
+                }`}
+              >
                 {renderNavigation(nav.children ?? [], activePath)}
               </div>
             </>
@@ -127,6 +172,7 @@ const Aside = ({
             <Link
               to={nav.path}
               className={`child__nav__link ${isActive ? "active" : ""}`}
+              data-tooltip={nav.name}
             >
               <div className="smaller__detais flex align gap-md">
                 <i className={nav.icon} />
@@ -171,15 +217,12 @@ const Aside = ({
         </button>
 
         {/* Logo Section */}
-        {/* <CompanyLogo color="primary" text /> */}
         <div className="brand-name">
-          {/* <NewBrandLogo /> */}
           <AlternateLogo />
         </div>
-        {/* End Logo Section */}
-        <div className="mb-4"></div>
+
+        {/* Search Section */}
         <div className="mb-4">
-          {/* Search Bar */}
           <TextInput
             type="text"
             placeholder="Search navigation..."
@@ -189,35 +232,43 @@ const Aside = ({
             width={100}
           />
         </div>
+
         {/* Navigation Section */}
         <div className="new__nav__container">
-          <div className="new__nav__item">
-            <div className={`parent__nav flex align between`}>
-              <div className="smaller__detais flex align gap-md">
-                <i className="ri-dashboard-line" />
-                <p>Insights</p>
-              </div>
-
-              {/* <i className="ri-arrow-down-s-line" /> */}
-            </div>
-
-            <div className="new__dropdown__menu__section">
-              <Link
-                to="/dashboard"
-                className={`child__nav__link ${
-                  activePath === "/dashboard" ? "active" : ""
-                }`}
-              >
+          <div className="nav-content">
+            {/* Dashboard Section */}
+            <div className="new__nav__item">
+              <div className={`parent__nav flex align`}>
                 <div className="smaller__detais flex align gap-md">
-                  <i className="ri-bank-line" />
+                  <i className="ri-dashboard-line" />
                   <p>Dashboard</p>
                 </div>
-              </Link>
+              </div>
+
+              <div className="new__dropdown__menu__section">
+                <Link
+                  to="/insights"
+                  className={`child__nav__link ${
+                    activePath === "/insights" ? "active" : ""
+                  }`}
+                >
+                  <div className="smaller__detais flex align gap-md">
+                    <i className="ri-bar-chart-line" />
+                    <p>Insights</p>
+                  </div>
+                </Link>
+              </div>
             </div>
+
+            {/* Main Navigation */}
+            {links}
           </div>
-          {links}
+
+          {/* Theme Toggle */}
+          <div className="theme-toggle-section">
+            <ThemeToggle />
+          </div>
         </div>
-        {/* End Naviagtion Section */}
       </div>
     </aside>
   );

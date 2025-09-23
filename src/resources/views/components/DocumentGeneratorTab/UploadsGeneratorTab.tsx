@@ -105,7 +105,7 @@ const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({
 
         setUploadedFiles(validFiles);
       } catch (error) {
-        console.error("Error initializing uploaded files:", error);
+        // Error initializing uploaded files
         setUploadedFiles([]);
       }
     } else {
@@ -198,10 +198,10 @@ const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({
         // Note: Don't update local state here - let useEffect handle it
         // when global state changes
       } else {
-        console.warn(`File with name "${fileName}" not found in uploads`);
+        // File not found in uploads
       }
     } catch (error) {
-      console.error("Error removing file:", error);
+      // Error removing file
       // Fallback: try to update global state directly
       try {
         const currentFiles = state.uploads.filter((upload: any) => {
@@ -224,7 +224,7 @@ const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({
           return newProgress;
         });
       } catch (fallbackError) {
-        console.error("Fallback file removal also failed:", fallbackError);
+        // Fallback file removal also failed
       }
     }
   };

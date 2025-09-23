@@ -50,7 +50,7 @@ export abstract class RepositoryService implements IRepository {
       };
     } catch (error) {
       const err = error as AxiosError;
-      console.error("File cannot be found: ", err.message);
+      // File cannot be found
       const errorMessage = this.isServerErrorResponse(err.response?.data)
         ? err.response?.data.message
         : "File cannot be found";
@@ -69,7 +69,7 @@ export abstract class RepositoryService implements IRepository {
       return { code, ...response.data };
     } catch (error) {
       const err = error as AxiosError;
-      console.error("Collection cannot be found: ", err.message);
+      // Collection cannot be found
       // Use type guard here
       const errorMessage = this.isServerErrorResponse(err.response?.data)
         ? err.response?.data.message
@@ -93,10 +93,7 @@ export abstract class RepositoryService implements IRepository {
       const code = response.status;
       return { code, ...response.data };
     } catch (error) {
-      console.error(
-        `Resource with value ${param} could not be found on our servers`,
-        error
-      );
+      // Resource could not be found on our servers
       return {
         code: 500,
         data: { id: 0 },
@@ -118,7 +115,7 @@ export abstract class RepositoryService implements IRepository {
       const code = response.status;
       return { code, ...response.data };
     } catch (error) {
-      console.error("This record was not created", error);
+      // This record was not created
       return {
         code: 500,
         data: { id: 0 },
@@ -142,7 +139,7 @@ export abstract class RepositoryService implements IRepository {
 
       return { code, ...response.data };
     } catch (error) {
-      console.error("This Record was not found on our database!!", error);
+      // This Record was not found on our database
       return {
         code: 500,
         data: { id: 0 },
@@ -161,7 +158,7 @@ export abstract class RepositoryService implements IRepository {
       const code = response.status;
       return { code, ...response.data };
     } catch (error) {
-      console.error("The delete action was not carried out!!", error);
+      // The delete action was not carried out
       return {
         code: 500,
         data: { id: 0 },

@@ -53,7 +53,7 @@ const useEditableComponent = <D extends BaseRepository, T extends BaseResponse>(
     try {
       return lazy(() => import(`resources/views/editors/${modelName}Editor`));
     } catch (e) {
-      console.warn(`Editor not found for model: ${modelName}`);
+      // Editor not found for model
       return null;
     }
   }, [modelName]);

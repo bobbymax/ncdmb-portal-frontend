@@ -154,7 +154,7 @@ const Dashboard = () => {
           setDocuments(documents);
         }
       } catch (error) {
-        console.error("Error fetching documents:", error);
+        // Error fetching documents
       } finally {
         setIsLoading(false);
       }

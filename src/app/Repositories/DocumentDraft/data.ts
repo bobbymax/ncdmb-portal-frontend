@@ -21,41 +21,18 @@ export type AuthorisingOfficerProps = {
 
 export interface DocumentDraftResponseData extends BaseResponse {
   document_id: number;
-  sub_document_reference_id?: number;
-  document_type_id: number;
   document_action_id: number;
   group_id: number;
   progress_tracker_id: number;
-  created_by_user_id: number;
   current_workflow_stage_id: number;
   department_id: number;
-  authorising_staff_id: number;
-  document_draftable_id: number;
-  document_draftable_type: string;
   amount: string;
   taxable_amount: string;
-  file_path: string;
-  digital_signature_path: string;
-  draftable: DraftableResponseData | null;
-  template: FileTemplateResponseData | null;
-  signature: string;
-  resource_type: string;
   status: string;
   ref: string;
   order?: number;
-  authorising_officer?: AuthorisingOfficerProps | null;
-  staff?: {
-    id: number;
-    name: string;
-    staff_no: string | number;
-    grade_level: string;
-    email: string;
-  } | null;
+  operator?: AuthorisingOfficerProps | null;
   action?: Partial<DocumentActionResponseData> | null;
-  approval?: SignatureResponseData | null;
-  history?: Partial<DocumentDraftResponseData>[];
-  upload?: UploadResponseData | null;
-  type: "attention" | "paper" | "response";
   version_number?: number;
   created_at?: string;
   updated_at?: string;

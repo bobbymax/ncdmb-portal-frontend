@@ -1,3 +1,5 @@
+import { ApiService } from "../app/Services/ApiService";
+
 /**
  * Centralized Token Provider for WebSocket Authentication
  * Manages chat-specific authentication tokens for Laravel Echo and real-time features
@@ -7,12 +9,16 @@ class TokenProvider {
   private currentToken: string | null = null;
   private tokenExpiry: number | null = null;
   private listeners: ((token: string | null) => void)[] = [];
+  private apiService: ApiService;
 
   private constructor() {
     // Initialize with token from localStorage if available
     this.currentToken = localStorage.getItem("chat_token");
     const expiry = localStorage.getItem("chat_token_expiry");
     this.tokenExpiry = expiry ? parseInt(expiry) : null;
+
+    // Initialize API service for proper request handling
+    this.apiService = new ApiService();
   }
 
   static getInstance(): TokenProvider {
@@ -107,35 +113,27 @@ class TokenProvider {
 
   /**
    * Fetch a new chat token from the server
-   * This method uses session-based authentication to get a chat token
+   * This method uses your existing API service with identity markers and request queue
    * @returns Promise<string | null> - The new token or null if failed
    */
   async fetchChatToken(): Promise<string | null> {
     try {
-      const response = await fetch("/api/chat-token", {
-        method: "GET",
-        credentials: "include", // Include session cookies
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await this.apiService.get<{
+        token: string;
+        expires_in: number;
+        user: {
+          id: number;
+          name: string;
+          email: string;
+        };
+      }>("chat-token");
 
-      if (!response.ok) {
-        console.error("Failed to fetch chat token:", response.statusText);
-        return null;
+      if (response.data && response.data.token) {
+        this.setToken(response.data.token, response.data.expires_in);
+        return response.data.token;
       }
-
-      const data = await response.json();
-
-      if (data.token) {
-        this.setToken(data.token, data.expires_in);
-        return data.token;
-      }
-
       return null;
-    } catch (error) {
-      console.error("Error fetching chat token:", error);
+    } catch (error: any) {
       return null;
     }
   }

@@ -126,6 +126,7 @@
     "@types/lodash": "^4.17.13",
     "@types/number-to-words": "^1.2.3",
     "@types/pluralize": "^0.0.33",
+    "@types/pusher-js": "^4.2.2",
     "@types/react-signature-canvas": "^1.0.6",
     "@types/slate": "^0.47.16",
     "@types/sprintf-js": "^1.1.4",

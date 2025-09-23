@@ -94,7 +94,7 @@ const Configuration: React.FC<
       setData(cleanedData.rows); // Store cleaned data for preview
       setColumns(cleanedData.columns);
     } catch (error) {
-      console.error("Error processing file:", error);
+      // Error processing file
       alert("Error processing file.");
     }
 

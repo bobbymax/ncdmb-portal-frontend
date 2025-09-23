@@ -4,6 +4,7 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import ThreadRepository from "app/Repositories/Thread/ThreadRepository";
 import InvoiceRepository from "app/Repositories/Invoice/InvoiceRepository";
 import MilestoneRepository from "app/Repositories/Milestone/MilestoneRepository";
 import ProjectRepository from "app/Repositories/Project/ProjectRepository";
@@ -65,6 +66,7 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+  new ThreadRepository(),
   new InvoiceRepository(),
   new MilestoneRepository(),
   new ProjectRepository(),
@@ -197,7 +199,7 @@ export const response = async (name: string): Promise<any> => {
     const module = await import(`app/Repositories/${folderName}/data`);
     return module.default || module;
   } catch (error) {
-    console.error(`Response data for '${name}' not found.`);
+    // Response data not found
     return null;
   }
 };

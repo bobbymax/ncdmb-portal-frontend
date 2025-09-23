@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Clear token from TokenProvider
       TokenProvider.getInstance().clearToken();
     } catch (error) {
-      console.error("Logout failed:", error);
+      // Logout failed
       throw new Error(`Something went wrong ${error}`);
     }
   };

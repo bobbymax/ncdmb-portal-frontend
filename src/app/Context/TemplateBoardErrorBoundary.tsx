@@ -29,11 +29,7 @@ class TemplateBoardErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to console
-    console.error(
-      "TemplateBoard Error Boundary caught an error:",
-      error,
-      errorInfo
-    );
+    // TemplateBoard Error Boundary caught an error
 
     // Call custom error handler if provided
     if (this.props.onError) {

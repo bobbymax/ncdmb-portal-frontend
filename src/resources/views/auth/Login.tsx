@@ -1,12 +1,10 @@
 import { FormEvent, useState } from "react";
-import Button from "../components/forms/Button";
 import { useNavigate } from "react-router-dom";
 import { useStateContext } from "app/Context/ContentContext";
 import { getLoggedInUser, loginStaff } from "app/init";
 import { AxiosResponse } from "axios";
 import { AuthUserResponseData, useAuth } from "app/Context/AuthContext";
 import Cookies from "js-cookie";
-import NewBrandLogo from "../components/pages/NewBrandLogo";
 import { Link } from "react-router-dom";
 import LoginTextInputWithIcon from "../components/forms/LoginTextInputWithIcon";
 import CustomButton from "../components/forms/CustomButton";
@@ -42,11 +40,29 @@ const Login = () => {
 
       if (staff) {
         // Save user ID in cookies
-        Cookies.set("user_id", staff?.data?.data?.id?.toString(), {
+        const cookieOptions = {
           expires: 7,
-          secure: true,
-          sameSite: "Strict",
-        });
+          secure: window.location.protocol === "https:", // Only secure on HTTPS
+          sameSite: "lax" as const, // Less restrictive for better compatibility
+        };
+
+        // Setting cookie with options
+
+        try {
+          Cookies.set(
+            "user_id",
+            staff?.data?.data?.id?.toString(),
+            cookieOptions
+          );
+          // Cookie set successfully
+        } catch (cookieError) {
+          // Cookie setting failed (possibly incognito mode)
+          // Using localStorage fallback for user_id
+          localStorage.setItem(
+            "user_id",
+            staff?.data?.data?.id?.toString() || ""
+          );
+        }
 
         const {
           pages = [],
@@ -74,8 +90,9 @@ const Login = () => {
           navigate("/desk/folders");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       // Error during login
+      // Login failed
     } finally {
       setIsLoading(false);
       setIsAnimating(false);

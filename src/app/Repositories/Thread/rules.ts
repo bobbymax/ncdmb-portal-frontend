@@ -1,0 +1,1 @@
+export const threadRules: { [key: string]: string } = {};

@@ -17,9 +17,17 @@ const apiInstance = axios.create({
 
 const getCsrfToken = async (): Promise<void> => {
   try {
-    await apiInstance.get("/sanctum/csrf-cookie");
-  } catch (error) {
-    console.error("Failed Getting CSRF Token: ", error);
+    // Initializing CSRF token
+
+    const response = await apiInstance.get("/sanctum/csrf-cookie");
+    // CSRF token initialized successfully
+
+    // Check if CSRF token was set
+    const xsrfToken = Cookies.get("XSRF-TOKEN");
+    // XSRF-TOKEN cookie status checked
+  } catch (error: any) {
+    // Failed Getting CSRF Token
+    console.error("Error getting CSRF token:", error);
   }
 };
 
@@ -31,9 +39,17 @@ export const loginStaff = async (data: {
 }) => {
   try {
     await getCsrfToken();
-    return apiInstance.post("api/login", data);
-  } catch (error) {
-    console.error("Failed logging staff in: ", error);
+
+    // Attempting login
+
+    const response = await apiInstance.post("/api/login", data);
+    // Login successful
+
+    return response;
+  } catch (error: any) {
+    // Failed logging staff in
+    console.error("Error logging staff in:", error);
+    throw error; // Re-throw to be caught by the Login component
   }
 };
 

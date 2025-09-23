@@ -4,8 +4,8 @@ import {
   CategoryWorkflowProps,
   DocumentCategoryResponseData,
   DocumentMetaDataProps,
-  PointerThreadProps,
 } from "../Repositories/DocumentCategory/data";
+import { ThreadResponseData } from "../Repositories/Thread/data";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect";
 import { BlockResponseData } from "../Repositories/Block/data";
@@ -110,7 +110,7 @@ export interface PaperBoardState {
   mode: "store" | "update";
   preferences: SettingsProps;
   watchers: WatcherProps[];
-  threads: PointerThreadProps[];
+  threads: ThreadResponseData[];
   currentPointer: string | null;
   accessLevel: AccessLevelProps;
   sync: boolean;
@@ -339,11 +339,11 @@ export type PaperBoardAction =
     }
   | {
       type: "SET_THREADS";
-      payload: PointerThreadProps[];
+      payload: ThreadResponseData[];
     }
   | {
       type: "UPDATE_THREADS";
-      payload: PointerThreadProps;
+      payload: ThreadResponseData;
     }
   | {
       type: "SET_EXISTING_DOCUMENT";
@@ -425,8 +425,8 @@ export interface PaperBoardContextType {
     setWatchers: (watchers: WatcherProps[]) => void;
     setRequirements: (requirements: DocumentRequirementProps[]) => void;
     updateRequirements: (requirements: DocumentRequirementProps) => void;
-    setThreads: (threads: PointerThreadProps[]) => void;
-    updateThreads: (threads: PointerThreadProps) => void;
+    setThreads: (threads: ThreadResponseData[]) => void;
+    updateThreads: (threads: ThreadResponseData) => void;
     setExistingDocument: (document: DocumentResponseData | null) => void;
     setCurrentPointer: (pointer: string | null) => void;
     setAccessLevel: (accessLevel: AccessLevelProps) => void;

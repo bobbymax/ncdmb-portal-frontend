@@ -13,7 +13,7 @@ export const initializeCsrfToken = async (): Promise<void> => {
   try {
     await accessPoint.get("/sanctum/csrf-cookie");
   } catch (error) {
-    console.error("Failed to get CSRF cookie:", error);
+    // Failed to get CSRF cookie
   }
 };
 

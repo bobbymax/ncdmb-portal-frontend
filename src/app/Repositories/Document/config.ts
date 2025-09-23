@@ -42,6 +42,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     owner: null,
     progress_tracker_id: 0,
     threads: [],
+    is_completed: false,
   },
   actions: [
     {

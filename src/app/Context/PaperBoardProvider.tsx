@@ -26,8 +26,8 @@ import { DocumentResponseData } from "../Repositories/Document/data";
 import {
   DocumentCategoryResponseData,
   DocumentMetaDataProps,
-  PointerThreadProps,
 } from "../Repositories/DocumentCategory/data";
+import { ThreadResponseData } from "../Repositories/Thread/data";
 import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import {
@@ -123,7 +123,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
             });
           }
         } catch (error) {
-          console.error("Error loading activities from localStorage:", error);
+          // Error loading activities from localStorage
         }
       }
       hasLoadedActivities.current = true;
@@ -506,10 +506,10 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       updateRequirements: (requirements: DocumentRequirementProps) => {
         dispatch({ type: "UPDATE_REQUIREMENTS", payload: requirements });
       },
-      setThreads: (threads: PointerThreadProps[]) => {
+      setThreads: (threads: ThreadResponseData[]) => {
         dispatch({ type: "SET_THREADS", payload: threads });
       },
-      updateThreads: (threads: PointerThreadProps) => {
+      updateThreads: (threads: ThreadResponseData) => {
         dispatch({ type: "UPDATE_THREADS", payload: threads });
       },
       setExistingDocument: (document: DocumentResponseData | null) => {

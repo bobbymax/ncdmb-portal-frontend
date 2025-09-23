@@ -132,7 +132,7 @@ export const insertTable = (
 ): void => {
   // Validate input parameters
   if (rows < 1 || rows > 20 || cols < 1 || cols > 20) {
-    console.warn("Invalid table dimensions:", { rows, cols });
+    // Invalid table dimensions
     return;
   }
 
@@ -152,7 +152,7 @@ export const insertTable = (
     );
 
     if (match) {
-      console.warn("Cannot insert table inside existing table");
+      // Cannot insert table inside existing table
       return;
     }
   }
@@ -196,7 +196,7 @@ export const insertTable = (
     // Don't try to position cursor - let user click into table
     // This prevents the path resolution error
   } catch (error) {
-    console.error("Error inserting table:", error);
+    // Error inserting table
   }
 };
 

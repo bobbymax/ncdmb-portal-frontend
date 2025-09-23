@@ -1,14 +1,11 @@
-import { DocumentableData } from "app/Hooks/useWorkflow";
 import { BaseResponse } from "../BaseRepository";
 import { DocumentDraftResponseData } from "../DocumentDraft/data";
 import { DocumentTypeResponseData } from "../DocumentType/data";
 import { WorkflowResponseData } from "../Workflow/data";
 import { DocumentUpdateResponseData } from "../DocumentUpdate/data";
 import { DocumentActionResponseData } from "../DocumentAction/data";
-import {
-  DocumentMetaDataProps,
-  PointerThreadProps,
-} from "../DocumentCategory/data";
+import { DocumentMetaDataProps } from "../DocumentCategory/data";
+import { ThreadResponseData } from "../Thread/data";
 import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
 import {
   SettingsProps,
@@ -80,8 +77,8 @@ export interface DocumentResponseData extends BaseResponse {
   description: string;
   file_path: string;
   document_template: string;
-  documentable?: DocumentableData;
   status: string;
+  is_completed: boolean;
   drafts: DocumentDraftResponseData[]; // ignore
   // action?: DocumentActionProps | null // ignore
   workflow: WorkflowResponseData | null; // ignore
@@ -90,6 +87,7 @@ export interface DocumentResponseData extends BaseResponse {
   document_type: DocumentTypeResponseData | null;
   linked_drafts?: DocumentDraftResponseData[]; // ignore
   complete_or_linked_drafts?: DocumentDraftResponseData[]; // ignore
+  documentable?: unknown;
   dept?: string;
   updates?: DocumentUpdateResponseData[]; // ignore
   action?: Partial<DocumentActionResponseData> | null; // ignore
@@ -98,11 +96,11 @@ export interface DocumentResponseData extends BaseResponse {
   uploaded_requirements?: DocumentRequirementResponseData[];
   preferences?: SettingsProps;
   pointer?: string;
-  threads?: PointerThreadProps[];
+  threads?: ThreadResponseData[];
   watchers?: WatcherProps[];
   contents?: ContentBlock[];
   config?: ProcessFlowConfigProps;
-  amount?: number;
+  approved_amount?: number;
   is_archived: number;
   created_at?: string;
   updated_at?: string;

@@ -106,7 +106,7 @@ const useFilters = (iterables: DocumentResponseData[]) => {
         });
       }
 
-      amounts.push(doc.amount ?? 0);
+      amounts.push(doc.approved_amount ?? 0);
 
       const created = new Date(doc.created_at ?? "");
       if (!isNaN(created.getTime())) {
@@ -184,7 +184,7 @@ const useFilters = (iterables: DocumentResponseData[]) => {
 
     // AMOUNT RANGE filter
     filtered = filtered.filter((doc) => {
-      const amount = doc.amount ?? 0;
+      const amount = doc.approved_amount ?? 0;
       return amount <= currentAmount;
     });
 

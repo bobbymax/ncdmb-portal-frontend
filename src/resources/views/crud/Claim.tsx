@@ -216,7 +216,7 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
       const page = getPage(pathname, pages);
 
       if (!page) {
-        console.error("Page must be found");
+        // Page must be found
       }
 
       const categories = page?.documentType?.categories;

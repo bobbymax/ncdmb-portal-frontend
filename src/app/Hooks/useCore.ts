@@ -1,9 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { DocumentActivity, usePaperBoard } from "app/Context/PaperBoardContext";
-import {
-  CategoryProgressTrackerProps,
-  PointerThreadProps,
-} from "app/Repositories/DocumentCategory/data";
+import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/data";
+import { ThreadResponseData } from "app/Repositories/Thread/data";
 import { DocumentCategoryResponseData } from "app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
@@ -24,7 +22,7 @@ export type ActionStatus =
 export interface WorkflowActionPayload {
   currentPointer: string;
   body: ContentBlock[];
-  threads: PointerThreadProps[];
+  threads: ThreadResponseData[];
   service: string;
   action_status: ActionStatus;
   action_id: number;
@@ -183,7 +181,7 @@ export const useCore = (
     return null;
   }, [currentTracker, state.trackers]);
 
-  // console.log(state.trackers);
+  // Debug logging removed for production
 
   // Validation methods
   const canPass = useMemo(() => {
@@ -279,7 +277,7 @@ export const useCore = (
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Simulate success response
-        console.log("Workflow action executed:", serverData);
+        // Workflow action executed
 
         // Update local state
         if (newPointer) {

@@ -63,7 +63,7 @@ const A4Sheet: React.FC<A4SheetProps> = ({
   TemplateHeader,
   isEditor,
 }) => {
-  // console.log(currentTracker);
+  // Debug logging removed for production
 
   return (
     <div className="a4__sheet" data-context={isEditor ? "generator" : "desk"}>

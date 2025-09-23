@@ -21,7 +21,7 @@ const CKEditorWrapper: React.FC<Props> = ({ value, onChange }) => {
     //     try {
     //       editor.destroy();
     //     } catch (error) {
-    //       console.warn("CKEditor destroy error:", error);
+    //       // CKEditor destroy error
     //     }
     //   }
 

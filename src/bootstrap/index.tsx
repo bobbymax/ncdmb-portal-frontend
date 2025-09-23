@@ -17,7 +17,7 @@ import ManageResourcePage from "resources/views/pages/ManageResourcePage";
 import { ActionMeta } from "react-select";
 import CardPage from "resources/views/pages/CardPage";
 import ViewResourcePage from "resources/views/pages/ViewResourcePage";
-import FileDocket from "resources/views/pages/FileDocket";
+// import FileDocket from "resources/views/pages/FileDocket";
 import Builder from "resources/views/pages/Builder";
 import PageLoader from "resources/views/components/loaders/PageLoader";
 import { TemplateResponseData } from "@/app/Repositories/Template/data";
@@ -173,7 +173,8 @@ const renderRoute = <T extends BaseRepository>(
           ) : view.type === "generator" ? (
             <GenerateDocument {...componentProps} />
           ) : view.type === "docket" ? (
-            <FileDocket {...componentProps} />
+            // <FileDocket {...componentProps} />
+            <div>FileDocket</div>
           ) : view.type === "configurator" ? (
             <BuildTemplate {...componentProps} />
           ) : (
