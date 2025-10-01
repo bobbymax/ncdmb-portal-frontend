@@ -5,6 +5,7 @@
   background: rgba(15, 15, 15, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  overflow-y: visible;
 }
 
 /* Document template paper container dark theme */
@@ -318,6 +319,7 @@
 @media (max-width: 768px) {
   [data-theme="dark"] .document__template__content {
     background: rgba(10, 10, 10, 0.98);
+    overflow-y: visible;
   }
 
   [data-theme="dark"] .document__template__paper {

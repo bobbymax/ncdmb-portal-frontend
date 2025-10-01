@@ -72,6 +72,7 @@ const A4Sheet: React.FC<A4SheetProps> = ({
         className="a4__sheet__logo"
         style={{
           backgroundImage: `url(${organizationLogo})`,
+          opacity: 0.04,
         }}
       />
 

@@ -22,6 +22,18 @@ const flatFolderMinifiedFile =
 const flatFolderBackupFile =
   "src/resources/assets/css/flat-folder-redesign.backup.css";
 
+const messagingSourceFile = "src/resources/assets/css/document-messaging.css";
+const messagingMinifiedFile =
+  "src/resources/assets/css/document-messaging.min.css";
+const messagingBackupFile =
+  "src/resources/assets/css/document-messaging.backup.css";
+
+const formElementsSourceFile = "src/resources/assets/css/form-elements.css";
+const formElementsMinifiedFile =
+  "src/resources/assets/css/form-elements.min.css";
+const formElementsBackupFile =
+  "src/resources/assets/css/form-elements.backup.css";
+
 try {
   // Check if source file exists
   if (!fs.existsSync(sourceFile)) {
@@ -117,6 +129,81 @@ try {
     );
 
     // Minified flat folder file size and reduction logged
+  }
+
+  // Process document-messaging.css
+  if (fs.existsSync(messagingSourceFile)) {
+    // Processing document-messaging.css
+
+    // Get original messaging file size
+    const messagingOriginalStats = fs.statSync(messagingSourceFile);
+    const messagingOriginalSizeKB = Math.round(
+      messagingOriginalStats.size / 1024
+    );
+
+    // Original messaging file size logged
+
+    // Create backup
+    // Creating messaging backup
+    fs.copyFileSync(messagingSourceFile, messagingBackupFile);
+
+    // Minify messaging CSS
+    // Minifying messaging CSS
+    execSync(`npx cssnano ${messagingSourceFile} ${messagingMinifiedFile}`, {
+      stdio: "inherit",
+    });
+
+    // Get minified messaging file size
+    const messagingMinifiedStats = fs.statSync(messagingMinifiedFile);
+    const messagingMinifiedSizeKB = Math.round(
+      messagingMinifiedStats.size / 1024
+    );
+    const messagingReductionPercent = Math.round(
+      ((messagingOriginalSizeKB - messagingMinifiedSizeKB) /
+        messagingOriginalSizeKB) *
+        100
+    );
+
+    // Minified messaging file size and reduction logged
+  }
+
+  // Process form-elements.css
+  if (fs.existsSync(formElementsSourceFile)) {
+    // Processing form-elements.css
+
+    // Get original form elements file size
+    const formElementsOriginalStats = fs.statSync(formElementsSourceFile);
+    const formElementsOriginalSizeKB = Math.round(
+      formElementsOriginalStats.size / 1024
+    );
+
+    // Original form elements file size logged
+
+    // Create backup
+    // Creating form elements backup
+    fs.copyFileSync(formElementsSourceFile, formElementsBackupFile);
+
+    // Minify form elements CSS
+    // Minifying form elements CSS
+    execSync(
+      `npx cssnano ${formElementsSourceFile} ${formElementsMinifiedFile}`,
+      {
+        stdio: "inherit",
+      }
+    );
+
+    // Get minified form elements file size
+    const formElementsMinifiedStats = fs.statSync(formElementsMinifiedFile);
+    const formElementsMinifiedSizeKB = Math.round(
+      formElementsMinifiedStats.size / 1024
+    );
+    const formElementsReductionPercent = Math.round(
+      ((formElementsOriginalSizeKB - formElementsMinifiedSizeKB) /
+        formElementsOriginalSizeKB) *
+        100
+    );
+
+    // Minified form elements file size and reduction logged
   }
 } catch (error) {
   console.error("❌ Error building CSS:", error.message);

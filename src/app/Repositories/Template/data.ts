@@ -24,7 +24,9 @@ export type TemplateProcessConfigProps = {
 export interface TemplateResponseData extends BaseResponse {
   document_category_id: number;
   name: string;
-  header: "banner" | "memo" | "resource";
+  header: "banner" | "memo" | "resource" | "white-form" | "payment-voucher";
+  signature_display: "group" | "name" | "both";
+  with_dates: 0 | 1;
   category?: DocumentCategoryResponseData | null;
   config?: TemplateProcessConfigProps;
   body?: ContentAreaProps[];

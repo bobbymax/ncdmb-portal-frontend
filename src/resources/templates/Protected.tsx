@@ -63,9 +63,14 @@ const Protected = ({ children }: ProtectedProps) => {
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
     const sidebar = document.getElementById("sidebar-wrapper");
+    const wrapper = document.getElementById("wrapper");
 
     if (sidebar) {
       sidebar.classList.toggle("sidebar-collapsed");
+    }
+
+    if (wrapper) {
+      wrapper.classList.toggle("sidebar-collapsed");
     }
   };
 

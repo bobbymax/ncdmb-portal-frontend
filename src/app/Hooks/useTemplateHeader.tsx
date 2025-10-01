@@ -4,6 +4,7 @@ import { TemplateProcessProps } from "app/Repositories/Template/data";
 import {
   InternalMemoHeader,
   ResourceHeader,
+  WhiteFormHeader,
 } from "resources/templates/headers";
 import moment from "moment";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
@@ -50,6 +51,10 @@ export const useTemplateHeader = (
       switch (header) {
         case "banner":
           return null;
+        case "white-form":
+          return (
+            <WhiteFormHeader code={code} tagline={tagline} title={title} />
+          );
         case "resource":
           return <ResourceHeader configState={configState} />;
         default:

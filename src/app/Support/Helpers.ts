@@ -640,3 +640,70 @@ export const handleProgressFlow = (
 
   return Math.round((draftCount * 100) / trackers.length);
 };
+
+/**
+ * Formats a number or string to currency format with configurable options
+ *
+ * @param amount - The amount to format (string or number)
+ * @param options - Formatting options
+ * @returns Formatted currency string
+ */
+export const formatCurrencyCompact = (
+  amount: string | number,
+  options: {
+    currency?: string;
+    showCurrency?: boolean;
+    decimals?: number;
+    locale?: string;
+    compactThreshold?: number; // Minimum value to use compact format
+  } = {}
+): string => {
+  const {
+    currency = "₦",
+    showCurrency = true,
+    decimals = 2,
+    locale = "en-US",
+    compactThreshold = 1000,
+  } = options;
+
+  // Convert to number and handle invalid inputs
+  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+
+  if (isNaN(numAmount) || numAmount === 0) {
+    return showCurrency ? `${currency}0.00` : "0.00";
+  }
+
+  // Only use compact format if amount is above threshold
+  if (Math.abs(numAmount) >= compactThreshold) {
+    // Define abbreviations and their values
+    const abbreviations = [
+      { value: 1e12, symbol: "T" }, // Trillion
+      { value: 1e9, symbol: "B" }, // Billion
+      { value: 1e6, symbol: "M" }, // Million
+      { value: 1e3, symbol: "K" }, // Thousand
+    ];
+
+    // Find the appropriate abbreviation
+    for (const { value, symbol } of abbreviations) {
+      if (Math.abs(numAmount) >= value) {
+        const abbreviated = numAmount / value;
+        const formatted = abbreviated.toFixed(decimals);
+
+        // Remove trailing zeros after decimal point
+        const cleanFormatted = parseFloat(formatted).toString();
+
+        return showCurrency
+          ? `${currency}${cleanFormatted}${symbol}`
+          : `${cleanFormatted}${symbol}`;
+      }
+    }
+  }
+
+  // For amounts below threshold, format with commas and specified decimal places
+  const formatted = numAmount.toLocaleString(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+
+  return showCurrency ? `${currency}${formatted}` : formatted;
+};

@@ -7,7 +7,7 @@ import FolderComponent from "../components/pages/FolderComponent";
 import useFilters from "app/Hooks/useFilters";
 import Select from "../components/forms/Select";
 import RangeSlider from "../components/forms/RangeSlider";
-import { formatCurrency } from "app/Support/Helpers";
+import { formatCurrency, formatCurrencyCompact } from "app/Support/Helpers";
 import moment from "moment";
 import MultiSelect from "../components/forms/MultiSelect";
 import Button from "../components/forms/Button";
@@ -155,7 +155,7 @@ const Folders: React.FC<
               <i className="ri-money-dollar-circle-line"></i>
             </div>
             <div className="stat-content">
-              <h3>{formatCurrency(stats.totalAmount)}</h3>
+              <h3>{formatCurrencyCompact(stats.totalAmount)}</h3>
               <p>Total Value</p>
             </div>
           </div>
@@ -209,7 +209,7 @@ const Folders: React.FC<
               <div className="amount-display">
                 <span className="amount-label">Current:</span>
                 <span className="amount-value">
-                  {formatCurrency(currentAmount)}
+                  {formatCurrencyCompact(currentAmount)}
                 </span>
               </div>
             </div>

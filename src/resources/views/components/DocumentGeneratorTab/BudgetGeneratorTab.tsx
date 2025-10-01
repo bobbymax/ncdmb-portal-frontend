@@ -86,6 +86,18 @@ const BudgetGeneratorTab: React.FC<BudgetGeneratorTabProps> = ({
     </div>
   );
 
+  useEffect(() => {
+    if (state.fund && state.resources.funds.length > 0) {
+      const matchingFund = state.resources.funds.find(
+        (fund) => fund.id === state.fund?.value
+      );
+      if (matchingFund) {
+        setSelectedFundData(matchingFund);
+        setSelectedOptions((prev) => ({ ...prev, fund: state.fund }));
+      }
+    }
+  }, [state.fund, state.resources.funds]);
+
   return (
     <div className="budget__generator__tab">
       <div className="budget__header">

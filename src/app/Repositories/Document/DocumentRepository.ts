@@ -85,6 +85,9 @@ export default class DocumentRepository extends BaseRepository {
       config: data.config ?? null,
       created_by: data.created_by ?? 0,
       is_completed: data.is_completed ?? false,
+      budget_year: data.budget_year ?? 0,
+      type: data.type ?? "staff",
+      fund_id: data.fund_id ?? 0,
     };
   }
   public associatedResources: DependencyProps[] =

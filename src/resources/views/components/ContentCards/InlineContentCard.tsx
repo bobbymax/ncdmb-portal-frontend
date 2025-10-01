@@ -13,6 +13,7 @@ import {
   InvoiceContentCard,
   RequisitionContentCard,
   SignatureContentCard,
+  PaymentBatchContentCard,
 } from "./index";
 import { ContextType } from "app/Context/PaperBoardContext";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
@@ -117,6 +118,14 @@ const InlineContentCard: React.FC<InlineContentCardProps> = ({
           isEditing={isEditing}
           currentTracker={currentTracker}
           currentPageActions={currentPageActions}
+        />
+      );
+    case "payment_batch":
+      return (
+        <PaymentBatchContentCard
+          item={item}
+          onClose={onClose}
+          isEditing={isEditing}
         />
       );
     default:

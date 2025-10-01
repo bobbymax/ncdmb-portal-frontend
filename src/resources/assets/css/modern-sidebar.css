@@ -56,17 +56,8 @@
 
 /* ===== SIDEBAR CONTAINER ===== */
 #sidebar-wrapper {
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
-  width: 16rem;
-  height: 100vh;
-  position: fixed;
   left: 0;
   top: 0;
-  z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 /* Custom Scrollbar */
@@ -314,8 +305,6 @@
   padding: 1rem 0.75rem;
 }
 
-.sidebar-collapsed .brand-name,
-.sidebar-collapsed .mb-4,
 .sidebar-collapsed .smaller__detais p,
 .sidebar-collapsed .new__dropdown__menu__section {
   display: none;

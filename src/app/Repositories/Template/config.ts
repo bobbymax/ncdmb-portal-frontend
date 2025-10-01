@@ -10,6 +10,8 @@ export const templateConfig: ConfigProp<TemplateResponseData> = {
     "body",
     "footer",
     "active",
+    "signature_display",
+    "with_dates",
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
@@ -27,6 +29,8 @@ export const templateConfig: ConfigProp<TemplateResponseData> = {
     body: [],
     footer: "",
     active: 1,
+    signature_display: "group",
+    with_dates: 0,
   },
   actions: [
     {
@@ -36,14 +40,6 @@ export const templateConfig: ConfigProp<TemplateResponseData> = {
       conditions: [],
       operator: "and",
       display: "Manage",
-    },
-    {
-      label: "builder",
-      icon: "ri-layout-grid-line",
-      variant: "dark",
-      conditions: [],
-      operator: "and",
-      display: "Builder",
     },
   ],
 };

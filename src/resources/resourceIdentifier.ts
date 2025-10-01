@@ -169,6 +169,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Role/data"
   },
   {
+    "key": "Setting",
+    "path": "../app/Repositories/Setting/data"
+  },
+  {
     "key": "Signatory",
     "path": "../app/Repositories/Signatory/data"
   },

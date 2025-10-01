@@ -14,6 +14,9 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     "progress_tracker_id",
     "document_reference_id",
     "threads",
+    "budget_year",
+    "type",
+    "fund_id",
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
@@ -43,6 +46,9 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     progress_tracker_id: 0,
     threads: [],
     is_completed: false,
+    budget_year: 0,
+    type: "staff",
+    fund_id: 0,
   },
   actions: [
     {

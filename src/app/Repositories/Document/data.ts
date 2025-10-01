@@ -58,6 +58,7 @@ export interface DocumentOwnerData {
   }[];
   department: string;
   grade_level: string;
+  staff_no: string;
 }
 
 export interface DocumentResponseData extends BaseResponse {
@@ -78,8 +79,11 @@ export interface DocumentResponseData extends BaseResponse {
   file_path: string;
   document_template: string;
   status: string;
+  budget_year: number;
   is_completed: boolean;
+  type: "staff" | "third-party";
   drafts: DocumentDraftResponseData[]; // ignore
+  fund_id: number;
   // action?: DocumentActionProps | null // ignore
   workflow: WorkflowResponseData | null; // ignore
   uploads?: UploadResponseData[];

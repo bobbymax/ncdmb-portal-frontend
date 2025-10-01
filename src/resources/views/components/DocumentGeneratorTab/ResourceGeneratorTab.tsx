@@ -123,8 +123,6 @@ const ResourceGeneratorTab: React.FC<ResourceGeneratorTabProps> = ({
         category={category}
         repository={repository}
         responseData={resourceData}
-        globalState={state}
-        actions={actions}
       />
     </div>
   );

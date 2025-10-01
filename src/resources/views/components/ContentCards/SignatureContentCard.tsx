@@ -87,12 +87,16 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     const existingSignatures =
       (item.content?.signature as any)?.signatures || [];
 
+    // console.log(existingSignatures);
+
     return signableStages.map(
       (stage: CategoryProgressTrackerProps, index: number) => {
         // Find the user from state.resources.users based on stage.user_id
         const user = state.resources?.users?.find(
           (u: UserResponseData) => u.id === stage.user_id
         );
+
+        // console.log(user);
 
         // Check if we have existing signature data for this stage
         const existingSignature = existingSignatures.find(
@@ -216,6 +220,8 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   if (!state.category || state.category.signature_type === "none") {
     return null; // Don't render anything if no signatures
   }
+
+  // console.log(state.category?.signature_type);
 
   // Determine container class based on signature type
   const getContainerClass = () => {

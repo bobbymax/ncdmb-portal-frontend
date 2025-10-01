@@ -1,0 +1,46 @@
+import { ViewsProps } from "../BaseRepository";
+
+export const settingViews: ViewsProps[] = [
+  {
+    title: "List of Settings",
+    server_url: "settings",
+    component: "Settings",
+    frontend_path: "/admin-centre/settings",
+    type: "index",
+    tag: "Add Setting",
+    mode: "list",
+  },
+  {
+    title: "Application Configuration",
+    server_url: "settings",
+    component: "SiteConfig",
+    frontend_path: "/admin-centre/configuration",
+    type: "card",
+    tag: "",
+    mode: "update",
+    action: "Save Configuration",
+    index_path: "/admin-centre/settings",
+  },
+  {
+    title: "Create Setting",
+    server_url: "settings",
+    component: "Setting",
+    frontend_path: "/admin-centre/settings/create",
+    type: "form",
+    tag: "",
+    mode: "store",
+    action: "Add Setting",
+    index_path: "/admin-centre/settings",
+  },
+  {
+    title: "Manage Setting",
+    server_url: "settings",
+    component: "Setting",
+    frontend_path: "/admin-centre/settings/:id/manage",
+    type: "form",
+    tag: "",
+    mode: "update",
+    action: "Update Record",
+    index_path: "/admin-centre/settings",
+  },
+];

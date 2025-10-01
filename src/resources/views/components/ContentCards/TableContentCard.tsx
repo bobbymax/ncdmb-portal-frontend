@@ -22,6 +22,7 @@ const TableContentCard: React.FC<TableContentCardProps> = ({
       content: {
         id: item.id,
         order: item.order,
+        payment_batch: undefined,
         paper_title: undefined,
         title: undefined,
         paragraph: undefined,

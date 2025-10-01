@@ -59,10 +59,10 @@ const Template: React.FC<FormPageComponentProps<TemplateResponseData>> = ({
           defaultValue={0}
           defaultCheckDisabled
           label="Document Category"
-          size="sm"
+          size="xl"
         />
       </div>
-      <div className="col-md-7 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           valueKey="value"
           labelKey="label"
@@ -73,14 +73,51 @@ const Template: React.FC<FormPageComponentProps<TemplateResponseData>> = ({
             { value: "memo", label: "Memo" },
             { value: "banner", label: "Banner" },
             { value: "resource", label: "Resource" },
+            { value: "white-form", label: "White Form" },
+            { value: "payment-voucher", label: "Payment Voucher" },
           ]}
           defaultValue=""
           defaultCheckDisabled
           label="Header Block"
-          size="sm"
+          size="xl"
         />
       </div>
-      <div className="col-md-7 mb-3">
+      <div className="col-md-3 mb-3">
+        <Select
+          valueKey="value"
+          labelKey="label"
+          name="signature_display"
+          value={state.signature_display}
+          onChange={handleChange}
+          options={[
+            { value: "group", label: "Group" },
+            { value: "name", label: "Name" },
+            { value: "both", label: "Both" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          label="Signature Display"
+          size="xl"
+        />
+      </div>
+      <div className="col-md-3 mb-3">
+        <Select
+          valueKey="value"
+          labelKey="label"
+          name="with_dates"
+          value={state.with_dates}
+          onChange={handleChange}
+          options={[
+            { value: 0, label: "No" },
+            { value: 1, label: "Yes" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          label="With Dates"
+          size="xl"
+        />
+      </div>
+      <div className="col-md-4 mb-3">
         <TextInput
           label="Name"
           name="name"

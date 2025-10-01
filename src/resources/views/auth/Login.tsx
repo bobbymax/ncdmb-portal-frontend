@@ -101,9 +101,8 @@ const Login = () => {
 
   return (
     <div className="sign_in_container">
-      <div className="flex column gap-md">
+      <div className="login-form-card">
         <CompanyLogo />
-        <div className="mb-4"></div>
 
         <form onSubmit={handleSubmit}>
           <div className="row">

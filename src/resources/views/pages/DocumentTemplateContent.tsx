@@ -2,7 +2,7 @@ import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import {
   DocumentCategoryResponseData,
   CategoryProgressTrackerProps,
-} from "@/app/Repositories/DocumentCategory/data";
+} from "app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
@@ -21,15 +21,20 @@ import A4Sheet from "../components/pages/A4Sheet";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
 import { PaperTitleContent } from "../components/ContentCards/PaperTitleContentCard";
-import ThreadsGeneratorTab from "../components/DocumentGeneratorTab/ThreadsGeneratorTab";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 import { SignatureResponseData } from "@/app/Repositories/Signature/data";
 import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
 import Button from "../components/forms/Button";
 import ActivitiesGeneratorTab from "../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
+import PdfViewer from "../components/pages/PdfViewer";
+import PrintDocumentNew from "../components/pages/PrintDocumentNew";
+import DocumentMessaging from "../components/pages/DocumentMessaging";
+import { usePdfMerger } from "app/Hooks/usePdfMerger";
+import { useStateContext } from "app/Context/ContentContext";
 
 export type DeskComponentPropTypes =
   | "paper_title"
+  | "payment_batch"
   | "title"
   | "paragraph"
   | "expense"
@@ -71,7 +76,23 @@ const DocumentTemplateContent = ({
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isEditor, setIsEditor] = useState(false);
-  const [showPdfView, setShowPdfView] = useState(false);
+  const [viewMode, setViewMode] = useState<"document" | "uploads" | "print">(
+    "document"
+  );
+  const documentElementRef = useRef<HTMLDivElement>(null);
+
+  const { config } = useStateContext();
+
+  const period = useMemo(() => config("jolt_budget_year"), [config]);
+
+  // PDF Merger hook
+  const {
+    mergedPdfUrl,
+    isLoading: isPdfLoading,
+    error: pdfError,
+    generateMergedPdf,
+    clearPdf,
+  } = usePdfMerger(state.existingDocument?.uploads);
 
   // Initialize useCore hook for workflow actions
   const {
@@ -125,12 +146,6 @@ const DocumentTemplateContent = ({
       id: "activities",
       label: "Activities",
       icon: "ri-line-chart-line",
-      isEditor: false,
-    },
-    {
-      id: "threads",
-      label: "Threads",
-      icon: "ri-chat-3-line",
       isEditor: false,
     },
     {
@@ -223,6 +238,35 @@ const DocumentTemplateContent = ({
         });
       }
 
+      // Sync fund - get the correct fund from state.resources.funds
+      if (
+        state.existingDocument.fund_id &&
+        state.existingDocument.fund_id > 0
+      ) {
+        // First try to find the fund in state.resources.funds
+        const matchingFund = state.resources?.funds?.find(
+          (fund) => fund.id === state.existingDocument!.fund_id
+        );
+
+        if (matchingFund) {
+          actions.setFund({
+            value: matchingFund.id,
+            label: matchingFund?.name ?? "",
+          });
+        } else if ((state.existingDocument as any)?.fund?.label) {
+          // Fallback to existing document fund data
+          actions.setFund({
+            value: state.existingDocument.fund_id,
+            label: (state.existingDocument as any).fund.label,
+          });
+        } else {
+          // Set fund with just the ID if no label is available
+          actions.setFund({
+            value: state.existingDocument.fund_id,
+            label: `Fund ${state.existingDocument.fund_id}`,
+          });
+        }
+      }
       // Sync meta data
       if (state.existingDocument.meta_data) {
         actions.setMetaData(state.existingDocument.meta_data);
@@ -867,6 +911,8 @@ const DocumentTemplateContent = ({
     }
   };
 
+  // console.log(state);
+
   const handleDocumentGenerationComplete = async () => {
     try {
       // Convert File objects to data URLs
@@ -924,6 +970,7 @@ const DocumentTemplateContent = ({
         ),
         approval_memo: state.approval_memo,
         threads: state.threads,
+        budget_year: period,
       };
 
       // Ensure preferences are populated before submission
@@ -1078,249 +1125,304 @@ const DocumentTemplateContent = ({
     }
   }, [mode]);
 
-  console.log(state.existingDocument?.uploads);
+  // Generate PDF when switching to uploads view
+  useEffect(() => {
+    if (
+      viewMode === "uploads" &&
+      state.existingDocument?.uploads &&
+      state.existingDocument.uploads.length > 0
+    ) {
+      generateMergedPdf();
+    } else if (viewMode !== "uploads") {
+      clearPdf();
+    }
+  }, [viewMode, state.existingDocument?.uploads]);
 
   return (
     <div className="document__template__content">
-      <div className="document__template__paper">
-        {/* Paper Header */}
-        <div className="document__template__paper__header flex align center between">
-          {/* Switch isEditor */}
-          {(mode === "update" &&
-            !state.existingDocument?.is_completed &&
-            (state.loggedInUser?.id === state.existingDocument?.user_id ||
-              state.loggedInUser?.id === state.existingDocument?.created_by)) ||
-          mode === "store" ? (
-            <div className="switch__editor">
-              <input
-                type="checkbox"
-                id="editor-switch"
-                checked={isEditor}
-                onChange={() => {
-                  setIsEditor(!isEditor);
-                  logDocumentToggle(!isEditor);
-                }}
-              />
-              <label htmlFor="editor-switch">
-                {isEditor ? "Editor" : "Preview"}
-              </label>
-            </div>
-          ) : null}
-
-          <div className="document__template__paper__header__actions flex align gap-md">
-            {/* Workflow Loading Indicator */}
-            {isWorkflowLoading && (
-              <div className="workflow__loading flex align center gap-sm">
-                <i className="ri-loader-4-line animate-spin"></i>
-                <span>Processing...</span>
-              </div>
-            )}
-
-            {state.existingDocument?.is_completed == true && (
-              <div
-                style={{
-                  padding: "0.2rem .8rem",
-                }}
-                className="workflow__loading flex align center gap-sm"
-              >
-                <i className="ri-bubble-chart-line"></i>
-                <span>{state.existingDocument?.status}</span>
-              </div>
-            )}
-
-            {/* Workflow Error Display */}
-            {workflowError && (
-              <div className="workflow__error flex align center gap-sm">
-                <i className="ri-error-warning-line text-danger"></i>
-                <span className="text-danger">{workflowError}</span>
-              </div>
-            )}
-
-            {/* Workflow Actions - only show in update mode */}
-            {mode === "update" &&
-              currentPage.map((page, idx) => {
-                // Determine if this action is disabled based on workflow state
-                const isActionDisabled =
-                  isEditor ||
-                  state.existingDocument?.is_completed ||
-                  isWorkflowLoading ||
-                  !isUserAuthorized ||
-                  // Disable passed and complete actions if signature is required
-                  (currentTracker?.should_be_signed === "yes" &&
-                    !hasUserSigned &&
-                    (page.action.action_status === "passed" ||
-                      page.action.action_status === "complete")) ||
-                  (page.action.action_status === "passed" && !canPass) ||
-                  (page.action.action_status === "complete" && !canComplete) ||
-                  (page.action.action_status === "stalled" && !canStall) ||
-                  (page.action.action_status === "processing" && !canProcess) ||
-                  (page.action.action_status === "reversed" && !canReverse) ||
-                  (page.action.action_status === "cancelled" && !canCancel) ||
-                  (page.action.action_status === "appeal" && !canAppeal) ||
-                  (page.action.action_status === "escalate" && !canEscalate);
-
-                return (
-                  <Button
-                    key={idx}
-                    label={page.action.button_text}
-                    icon={page.action.icon}
-                    handleClick={() => handleWorkflowAction(page.action)}
-                    variant={page.action.variant}
-                    size="sm"
-                    isDisabled={isActionDisabled}
+      <div className="row">
+        <div className="col-md-7 mb-3">
+          <div className="document__template__paper">
+            {/* Paper Header */}
+            <div className="document__template__paper__header flex align center between">
+              {/* Switch isEditor */}
+              {(mode === "update" &&
+                !state.existingDocument?.is_completed &&
+                (state.loggedInUser?.id === state.existingDocument?.user_id ||
+                  state.loggedInUser?.id ===
+                    state.existingDocument?.created_by)) ||
+              mode === "store" ? (
+                <div className="switch__editor">
+                  <input
+                    type="checkbox"
+                    id="editor-switch"
+                    checked={isEditor}
+                    onChange={() => {
+                      setIsEditor(!isEditor);
+                      logDocumentToggle(!isEditor);
+                    }}
                   />
-                );
-              })}
-          </div>
-        </div>
+                  <label htmlFor="editor-switch">
+                    {isEditor ? "Editor" : "Preview"}
+                  </label>
+                </div>
+              ) : null}
 
-        <div
-          style={{
-            padding: "0 1.8rem",
-          }}
-          className="page__flipped"
-        >
-          {/* Page Flipped Content */}
-          <div
-            className={`page__flipped__toggler ${
-              showPdfView ? "toggled-right" : ""
-            }`}
-            onClick={() => setShowPdfView(!showPdfView)}
-          >
-            <span className="toggle-label left">Document</span>
-            <span className="toggle-label right">Uploads</span>
-          </div>
-        </div>
-
-        {/* Paper Panel */}
-        {isEditor && (
-          <div className="document__template__paper__panel">
-            {/* Toolbar with blocks */}
-            <div className="paper__toolbar">
-              <div className="toolbar__blocks">
-                {displayBlocks && displayBlocks.length > 0 ? (
-                  displayBlocks.map((block) => (
-                    <div
-                      key={block.id}
-                      className="toolbar__block"
-                      draggable
-                      onDragStart={(e) => handleBlockDragStart(e, block)}
-                    >
-                      <div className="block__icon">
-                        <i className={block.icon}></i>
-                      </div>
-                      <div className="block__name">{block.title}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="toolbar__empty">
-                    <i className="ri-layout-grid-line"></i>
-                    <span>No blocks available</span>
+              <div className="document__template__paper__header__actions flex align gap-md">
+                {/* Workflow Loading Indicator */}
+                {isWorkflowLoading && (
+                  <div className="workflow__loading flex align center gap-sm">
+                    <i className="ri-loader-4-line animate-spin"></i>
+                    <span>Processing...</span>
                   </div>
                 )}
+
+                {state.existingDocument?.is_completed == true && (
+                  <div
+                    style={{
+                      padding: "0.2rem .8rem",
+                    }}
+                    className="workflow__loading flex align center gap-sm"
+                  >
+                    <i className="ri-bubble-chart-line"></i>
+                    <span>{state.existingDocument?.status}</span>
+                  </div>
+                )}
+
+                {/* Workflow Error Display */}
+                {workflowError && (
+                  <div className="workflow__error flex align center gap-sm">
+                    <i className="ri-error-warning-line text-danger"></i>
+                    <span className="text-danger">{workflowError}</span>
+                  </div>
+                )}
+
+                {/* Workflow Actions - only show in update mode */}
+                {mode === "update" &&
+                  currentPage.map((page, idx) => {
+                    // Determine if this action is disabled based on workflow state
+                    const isActionDisabled =
+                      isEditor ||
+                      state.existingDocument?.is_completed ||
+                      isWorkflowLoading ||
+                      !isUserAuthorized ||
+                      // Disable passed and complete actions if signature is required
+                      (currentTracker?.should_be_signed === "yes" &&
+                        !hasUserSigned &&
+                        (page.action.action_status === "passed" ||
+                          page.action.action_status === "complete")) ||
+                      (page.action.action_status === "passed" && !canPass) ||
+                      (page.action.action_status === "complete" &&
+                        !canComplete) ||
+                      (page.action.action_status === "stalled" && !canStall) ||
+                      (page.action.action_status === "processing" &&
+                        !canProcess) ||
+                      (page.action.action_status === "reversed" &&
+                        !canReverse) ||
+                      (page.action.action_status === "cancelled" &&
+                        !canCancel) ||
+                      (page.action.action_status === "appeal" && !canAppeal) ||
+                      (page.action.action_status === "escalate" &&
+                        !canEscalate);
+
+                    return (
+                      <Button
+                        key={idx}
+                        label={page.action.button_text}
+                        icon={page.action.icon}
+                        handleClick={() => handleWorkflowAction(page.action)}
+                        variant={page.action.variant}
+                        size="sm"
+                        isDisabled={isActionDisabled}
+                      />
+                    );
+                  })}
               </div>
-              <div className="toolbar__actions">
-                <button
-                  className="generate__document__btn"
-                  onClick={handleGenerateDocument}
-                >
-                  <i
-                    className={
-                      state.existingDocument
-                        ? "ri-database-2-line"
-                        : "ri-store-line"
-                    }
-                  ></i>
-                  <span>
-                    {state.existingDocument ? "Update" : "Generate"} Document
+            </div>
+
+            {mode === "update" && (
+              <div
+                style={{
+                  padding: "0 1.8rem",
+                }}
+                className="page__flipped"
+              >
+                {/* Page Flipped Content */}
+                <div className={`page__flipped__toggler state-${viewMode}`}>
+                  <span
+                    className="toggle-label left"
+                    onClick={() => setViewMode("document")}
+                  >
+                    <i className="ri-file-text-line"></i>
+                    <span>Document</span>
                   </span>
-                </button>
+                  <span
+                    className="toggle-label center"
+                    onClick={() => setViewMode("uploads")}
+                  >
+                    <i className="ri-upload-cloud-line"></i>
+                    <span>Uploads</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Paper Panel */}
+            {isEditor && (
+              <div className="document__template__paper__panel">
+                {/* Toolbar with blocks */}
+                <div className="paper__toolbar">
+                  <div className="toolbar__blocks">
+                    {displayBlocks && displayBlocks.length > 0 ? (
+                      displayBlocks.map((block) => (
+                        <div
+                          key={block.id}
+                          className="toolbar__block"
+                          draggable
+                          onDragStart={(e) => handleBlockDragStart(e, block)}
+                        >
+                          <div className="block__icon">
+                            <i className={block.icon}></i>
+                          </div>
+                          <div className="block__name">{block.title}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="toolbar__empty">
+                        <i className="ri-layout-grid-line"></i>
+                        <span>No blocks available</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="toolbar__actions">
+                    <button
+                      className="generate__document__btn"
+                      onClick={handleGenerateDocument}
+                    >
+                      <i
+                        className={
+                          state.existingDocument
+                            ? "ri-database-2-line"
+                            : "ri-store-line"
+                        }
+                      ></i>
+                      <span>
+                        {state.existingDocument ? "Update" : "Generate"}{" "}
+                        Document
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Always render document element for snapshot, but hide when not in document mode */}
+            <div
+              className="document__template__paper__sheet"
+              ref={documentElementRef}
+              style={{
+                display: viewMode === "document" ? "flex" : "none",
+                position: viewMode !== "document" ? "absolute" : "relative",
+                left: viewMode !== "document" ? "-9999px" : "auto",
+              }}
+            >
+              {/* A4 Paper Sheet Area */}
+              <A4Sheet
+                state={state}
+                actions={actions}
+                currentPageActions={currentPage}
+                handleDragStart={handleDragStart}
+                handleDragOver={handleDragOver}
+                handleDrop={handleDrop}
+                handleDragEnter={handleDragEnter}
+                handleAddResourceLink={handleAddResourceLink}
+                handleManageItem={handleManageItem}
+                handleRemoveItem={handleRemoveItem}
+                editingItems={editingItems}
+                TemplateHeader={TemplateHeader}
+                currentTracker={currentTracker}
+                isEditor={isEditor}
+              />
+            </div>
+
+            {/* Render current view */}
+            {viewMode === "uploads" && (
+              <div className="uploaded__files" style={{ width: 838 }}>
+                <PdfViewer
+                  pdfUrl={mergedPdfUrl}
+                  isLoading={isPdfLoading}
+                  error={pdfError}
+                  onGeneratePdf={generateMergedPdf}
+                  className="uploaded-files-pdf-viewer"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="col-md-5 mb-3">
+          <div className="document__template__configuration">
+            {/* Configuration Tabs */}
+            <div className="configuration__tabs">
+              <div className="tabs__header">
+                {tabOrder.map((tab, index) => (
+                  <div
+                    key={tab.id}
+                    className={`tab__item ${
+                      activeTab === tab.id ? "active" : ""
+                    }`}
+                    data-tab={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    draggable
+                    onDragStart={(e) => handleTabDragStart(e, index)}
+                    onDragOver={(e) => handleTabDragOver(e)}
+                    onDragEnter={(e) => handleTabDragEnter(e, index)}
+                    onDragLeave={handleTabDragLeave}
+                    onDrop={(e) => handleTabDrop(e, index)}
+                    style={{
+                      display: tab.isEditor === isEditor ? "flex" : "none",
+                    }}
+                  >
+                    <i className={tab.icon}></i>
+                    <span>{tab.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="tabs__content">
+                {tabOrder.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className={`tab__panel ${
+                      activeTab === tab.id ? "active" : ""
+                    }`}
+                    data-tab={tab.id}
+                  >
+                    <div className="panel__content">
+                      {tab.id === "budget" && (
+                        <BudgetGeneratorTab category={category} />
+                      )}
+                      {tab.id === "uploads" && (
+                        <UploadsGeneratorTab category={category} />
+                      )}
+                      {tab.id === "resource" && (
+                        <ResourceGeneratorTab category={category} />
+                      )}
+                      {tab.id === "settings" && (
+                        <SettingsGeneratorTab category={category} />
+                      )}
+                      {tab.id === "activities" && (
+                        <ActivitiesGeneratorTab category={category} />
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
-
-        {showPdfView ? (
-          <div className="uploaded__files">{/* Uploaded Files */}</div>
-        ) : (
-          <div className="document__template__paper__sheet">
-            {/* A4 Paper Sheet Area */}
-            <A4Sheet
-              state={state}
-              actions={actions}
-              currentPageActions={currentPage}
-              handleDragStart={handleDragStart}
-              handleDragOver={handleDragOver}
-              handleDrop={handleDrop}
-              handleDragEnter={handleDragEnter}
-              handleAddResourceLink={handleAddResourceLink}
-              handleManageItem={handleManageItem}
-              handleRemoveItem={handleRemoveItem}
-              editingItems={editingItems}
-              TemplateHeader={TemplateHeader}
-              currentTracker={currentTracker}
-              isEditor={isEditor}
-            />
-          </div>
-        )}
-      </div>
-      <div className="document__template__configuration">
-        {/* Configuration Tabs */}
-        <div className="configuration__tabs">
-          <div className="tabs__header">
-            {tabOrder.map((tab, index) => (
-              <div
-                key={tab.id}
-                className={`tab__item ${activeTab === tab.id ? "active" : ""}`}
-                data-tab={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                draggable
-                onDragStart={(e) => handleTabDragStart(e, index)}
-                onDragOver={(e) => handleTabDragOver(e)}
-                onDragEnter={(e) => handleTabDragEnter(e, index)}
-                onDragLeave={handleTabDragLeave}
-                onDrop={(e) => handleTabDrop(e, index)}
-                style={{
-                  display: tab.isEditor === isEditor ? "flex" : "none",
-                }}
-              >
-                <i className={tab.icon}></i>
-                <span>{tab.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="tabs__content">
-            {tabOrder.map((tab) => (
-              <div
-                key={tab.id}
-                className={`tab__panel ${activeTab === tab.id ? "active" : ""}`}
-                data-tab={tab.id}
-              >
-                <div className="panel__content">
-                  {tab.id === "budget" && (
-                    <BudgetGeneratorTab category={category} />
-                  )}
-                  {tab.id === "uploads" && (
-                    <UploadsGeneratorTab category={category} />
-                  )}
-                  {tab.id === "resource" && (
-                    <ResourceGeneratorTab category={category} />
-                  )}
-                  {tab.id === "threads" && (
-                    <ThreadsGeneratorTab category={category} />
-                  )}
-                  {tab.id === "settings" && (
-                    <SettingsGeneratorTab category={category} />
-                  )}
-                  {tab.id === "activities" && (
-                    <ActivitiesGeneratorTab category={category} />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
+
+      {/* LinkedIn-style Messaging Component */}
+      <DocumentMessaging category={category} />
     </div>
   );
 };

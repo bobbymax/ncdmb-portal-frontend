@@ -37,6 +37,8 @@ export default class TemplateRepository extends BaseRepository {
       body: data.body ?? [],
       footer: data.footer ?? "",
       active: data.active ?? 0,
+      signature_display: data.signature_display ?? "group",
+      with_dates: data.with_dates ?? 0,
       blocks: data.blocks ?? [],
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
