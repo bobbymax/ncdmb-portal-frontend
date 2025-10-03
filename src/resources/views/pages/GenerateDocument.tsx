@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import useDocumentGenerator from "app/Hooks/useDocumentGenerator";
 import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import { PageProps } from "@/bootstrap";
@@ -12,8 +13,26 @@ const GenerateDocument = ({
   BuilderComponent,
 }: PageProps<BaseRepository>) => {
   const params = useParams();
-  const { category, editedContents, existingDocument } =
+  const { category, editedContents, existingDocument, isBuilding } =
     useDocumentGenerator(params);
+
+  // Prevent mode switching until data is fully loaded to avoid re-initialization
+  const [stableMode, setStableMode] = useState<"store" | "update">("store");
+
+  useEffect(() => {
+    console.log("Mode switch check:", {
+      isBuilding,
+      existingDocument: !!existingDocument,
+      stableMode,
+    });
+    if (existingDocument) {
+      // Switch to update mode as soon as document exists, regardless of isBuilding
+      setStableMode("update");
+    }
+  }, [isBuilding, existingDocument]);
+
+  // Removed loading state check to prevent infinite loading on new document creation
+  // The component will render normally while building
 
   return (
     <PaperBoardErrorBoundary>
@@ -23,7 +42,7 @@ const GenerateDocument = ({
           ResourceGeneratorComponent={BuilderComponent}
           category={category}
           editedContents={editedContents}
-          mode={existingDocument ? "update" : "store"}
+          mode={stableMode}
           existingDocument={existingDocument}
         />
       </PaperBoardProvider>

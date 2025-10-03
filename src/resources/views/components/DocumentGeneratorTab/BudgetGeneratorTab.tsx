@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { FundResponseData } from "app/Repositories/Fund/data";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
-import useDirectories from "app/Hooks/useDirectories";
-import { repo } from "bootstrap/repositories";
+import { usePaperBoardResources } from "app/Hooks/usePaperBoardResources";
 import MultiSelect, { DataOptionsProps } from "../forms/MultiSelect";
 import { ActionMeta } from "react-select";
 import { formatOptions } from "app/Support/Helpers";
@@ -17,17 +16,29 @@ const BudgetGeneratorTab: React.FC<BudgetGeneratorTabProps> = ({
   category,
 }) => {
   const { state, actions } = usePaperBoard();
-  const { collection: funds } = useDirectories(repo("fund"), "funds");
+
+  // Use PaperBoard resources instead of individual API calls
+  const { funds, isLoading: fundsLoading } = usePaperBoardResources();
+  const fundsError = null; // Error handling is done centrally
 
   const [selectedOptions, setSelectedOptions] = useState<{
     fund: DataOptionsProps | null;
   }>({
-    fund: null,
+    fund: state.fund, // Initialize with global state
   });
 
   const [selectedFundData, setSelectedFundData] =
     useState<FundResponseData | null>(null);
 
+  // Memoized fund options to prevent unnecessary re-renders
+  const fundOptions = useMemo(() => {
+    return funds.map((fund) => ({
+      value: fund.id,
+      label: fund.name || `Fund ${fund.id}`,
+    }));
+  }, [funds]);
+
+  // Optimized selection handler
   const handleSelectionChange = useCallback(
     (key: keyof typeof selectedOptions) => (newValue: unknown) => {
       const updatedValue = newValue as DataOptionsProps;
@@ -113,14 +124,26 @@ const BudgetGeneratorTab: React.FC<BudgetGeneratorTabProps> = ({
         </div>
       </div>
       <div className="budget__form">
-        {renderMultiSelect(
-          "Budget Head",
-          formatOptions(funds, "id", "name"),
-          selectedOptions.fund,
-          handleSelectionChange("fund"),
-          "Budget Head",
-          false,
-          12
+        {fundsLoading ? (
+          <div className="budget__loading">
+            <i className="ri-loader-4-line animate-spin"></i>
+            <span>Loading funds...</span>
+          </div>
+        ) : fundsError ? (
+          <div className="budget__error">
+            <i className="ri-error-warning-line"></i>
+            <span>Failed to load funds</span>
+          </div>
+        ) : (
+          renderMultiSelect(
+            "Budget Head",
+            fundOptions,
+            selectedOptions.fund,
+            handleSelectionChange("fund"),
+            "Budget Head",
+            fundsLoading,
+            12
+          )
         )}
       </div>
 

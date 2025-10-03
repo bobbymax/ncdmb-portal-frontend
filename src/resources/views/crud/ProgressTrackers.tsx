@@ -14,56 +14,105 @@ const ProgressTrackers: React.FC<
   const endpoint = useMemo(() => "https://portal.test", []);
 
   return (
-    <div className="row">
+    <div className="workflows-tech-grid">
       {collection.map((workflow, i) => (
-        <div className="col-md-6 mb-3" key={i}>
-          <div className="custom-card workflow__card">
-            <p className="title mb-3">{workflow.name}</p>
+        <div className="workflow-tech-card" key={i}>
+          {/* Card Header */}
+          <div className="workflow-header">
+            <div className="workflow-title-section">
+              <div className="workflow-icon">
+                <i className="ri-flow-chart"></i>
+              </div>
+              <div className="workflow-info">
+                <h3 className="workflow-name">{workflow.name}</h3>
+                <p className="workflow-stats">
+                  <span className="stat-item">
+                    <i className="ri-node-tree"></i>
+                    {workflow.trackers.length} Stages
+                  </span>
+                </p>
+              </div>
+            </div>
+            <div className="workflow-status">
+              <div className="status-indicator active"></div>
+              <span className="status-text">Active</span>
+            </div>
+          </div>
 
-            <div className="trackers__section flex align mt-4">
-              {workflow.trackers.length > 0 ? (
-                workflow.trackers.map((tracker, i) => (
-                  <div
-                    className="tracker__custom__item flex column align gap-md"
-                    key={i}
-                  >
-                    <img
-                      src={`${endpoint}${tracker.stage?.stage_category?.icon_path}`}
-                      alt=""
-                    />
-                    <small className="stage__name">{tracker.stage?.name}</small>
-                    {i + 1 < workflow.trackers.length && (
-                      <div className="line__arrow">
-                        <img src={arrow} alt="Flow Arrow" />
+          {/* Workflow Flow Visualization */}
+          <div className="workflow-flow-container">
+            {workflow.trackers.length > 0 ? (
+              <div className="workflow-pipeline">
+                {workflow.trackers.map((tracker, index) => (
+                  <div key={index} className="pipeline-node">
+                    <div className="node-container">
+                      <div className="node-icon">
+                        <img
+                          src={`${endpoint}${tracker.stage?.stage_category?.icon_path}`}
+                          alt={tracker.stage?.name}
+                        />
+                      </div>
+                      <div className="node-content">
+                        <span className="node-label">
+                          {tracker.stage?.name}
+                        </span>
+                        <span className="node-order">#{index + 1}</span>
+                      </div>
+                    </div>
+                    {index + 1 < workflow.trackers.length && (
+                      <div className="flow-connector">
+                        <div className="connector-line"></div>
+                        <div className="connector-arrow">
+                          <i className="ri-arrow-right-s-line"></i>
+                        </div>
                       </div>
                     )}
                   </div>
-                ))
-              ) : (
-                <p>No trackers Available for this workflow</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-workflow">
+                <div className="empty-icon">
+                  <i className="ri-flow-chart"></i>
+                </div>
+                <p className="empty-message">No stages configured</p>
+                <small className="empty-subtitle">
+                  Add stages to create a workflow
+                </small>
+              </div>
+            )}
+          </div>
 
-            <div className="mt-5 flex align gap-md">
-              <Button
-                label="Edit Workflow"
-                size="xs"
-                handleClick={() => {
-                  navigate(
-                    `/admin-centre/progress-trackers/${workflow.id}/manage`
-                  );
-                }}
-                variant="dark"
-                icon="ri-list-settings-line"
-              />
-              <Button
-                label="Reset Trackers"
-                size="xs"
-                handleClick={() => {}}
-                variant="danger"
-                icon="ri-file-shred-line"
-              />
-            </div>
+          {/* Action Panel */}
+          <div className="workflow-actions">
+            <button
+              type="button"
+              className="action-btn primary"
+              onClick={() => {
+                navigate(
+                  `/admin-centre/progress-trackers/${workflow.id}/manage`
+                );
+              }}
+            >
+              <i className="ri-settings-3-line"></i>
+              <span>Configure</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn secondary"
+              onClick={() => {}}
+            >
+              <i className="ri-refresh-line"></i>
+              <span>Reset</span>
+            </button>
+            <button
+              type="button"
+              className="action-btn tertiary"
+              onClick={() => {}}
+            >
+              <i className="ri-eye-line"></i>
+              <span>Preview</span>
+            </button>
           </div>
         </div>
       ))}

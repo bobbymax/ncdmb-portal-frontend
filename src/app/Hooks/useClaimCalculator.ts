@@ -489,6 +489,8 @@ const useClaimCalculator = () => {
       destination: destination,
     };
 
+    console.log("🔍 Distance API Request:", { takeoff, destination, params });
+
     const response = await claimRepo.collection("distance", params);
 
     if (response) {

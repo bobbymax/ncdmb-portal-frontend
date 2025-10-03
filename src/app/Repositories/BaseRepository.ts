@@ -97,6 +97,12 @@ export interface ViewsProps {
 }
 export type JsonResponse = BaseResponse & Record<string, any>;
 export abstract class BaseRepository extends RepositoryService {
+  // Static cache for dependencies to avoid duplicate requests
+  private static _dependenciesCache: Record<
+    string,
+    { data: JsonResponse; timestamp: number }
+  > = {};
+
   // This is the path for the frontend route of the repository
   public abstract fillables: Array<keyof JsonResponse>;
   public abstract rules: { [key: string]: string };
@@ -193,6 +199,20 @@ export abstract class BaseRepository extends RepositoryService {
       return Promise.resolve({} as JsonResponse);
     }
 
+    // Use a static cache to avoid duplicate requests
+    const cacheKey = `${this.constructor.name}_dependencies`;
+    if (
+      BaseRepository._dependenciesCache &&
+      BaseRepository._dependenciesCache[cacheKey]
+    ) {
+      const cached = BaseRepository._dependenciesCache[cacheKey];
+      const now = Date.now();
+      if (now - cached.timestamp < 300000) {
+        // 5 minute cache
+        return cached.data;
+      }
+    }
+
     const requests: Promise<AxiosResponse<ApiResponse>>[] =
       this.associatedResources.map(
         (item) =>
@@ -204,9 +224,20 @@ export abstract class BaseRepository extends RepositoryService {
     const responses = await Promise.all(requests);
     const collection = responses.map((res) => res.data.data);
 
-    return collection.reduce((acc, resSet, i) => {
+    const result = collection.reduce((acc, resSet, i) => {
       acc[this.associatedResources[i].name] = resSet;
       return acc;
     }, {} as JsonResponse);
+
+    // Cache the result
+    if (!BaseRepository._dependenciesCache) {
+      BaseRepository._dependenciesCache = {};
+    }
+    BaseRepository._dependenciesCache[cacheKey] = {
+      data: result,
+      timestamp: Date.now(),
+    };
+
+    return result;
   };
 }

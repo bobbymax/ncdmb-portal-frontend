@@ -7,6 +7,7 @@ import {
 import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useRequestManager } from "app/Context/RequestManagerContext";
 
 interface RestData {
   shouldFetch?: boolean;
@@ -29,6 +30,7 @@ export const useResourceActions = <T extends BaseRepository>(
   const [resourceError, setResourceError] = useState<string | null>(null);
 
   const repo = useMemo(() => Repository, [Repository]);
+  const { addRequest } = useRequestManager();
 
   const back = () => {
     navigate(-1);
@@ -40,7 +42,9 @@ export const useResourceActions = <T extends BaseRepository>(
       setComponentLoading(true);
       setResourceError(null);
       try {
-        const { data } = await repo.collection(View.server_url);
+        const { data } = await addRequest(() =>
+          repo.collection(View.server_url)
+        );
         setCollection(Array.isArray(data) ? data : [data]);
       } catch (err: unknown) {
         handleError(err, signal);
@@ -57,7 +61,9 @@ export const useResourceActions = <T extends BaseRepository>(
       setLoading(true);
       setResourceError(null);
       try {
-        const { data } = await repo.show(View.server_url, value);
+        const { data } = await addRequest(() =>
+          repo.show(View.server_url, value)
+        );
         setRaw(Array.isArray(data) ? null : _.isObject(data) ? data : null);
       } catch (err: unknown) {
         handleError(err, signal);

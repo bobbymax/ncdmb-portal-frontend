@@ -300,124 +300,176 @@ const ProgressTracker: React.FC<
   );
 
   return (
-    <>
-      {renderMultiSelect(
-        "Workflow",
-        formatOptions(workflows, "id", "name"),
-        selectedOptions.workflow,
-        handleSelectionChange("workflow"),
-        "Workflow",
-        3
-      )}
+    <div className="progress-tracker-modern">
+      {/* Header Section */}
+      <div className="tracker-header">
+        <div className="header-content">
+          <h2 className="tracker-title">
+            <i className="ri-flow-chart"></i>
+            Workflow Progress Tracker
+          </h2>
+          <p className="tracker-subtitle">
+            Configure and manage your workflow stages
+          </p>
+        </div>
+        {renderMultiSelect(
+          "Select Workflow",
+          formatOptions(workflows, "id", "name"),
+          selectedOptions.workflow,
+          handleSelectionChange("workflow"),
+          "Choose a workflow to configure",
+          4
+        )}
+      </div>
 
-      <div className="tracker__container">
-        <div className="row">
-          <div className="col-md-8">
-            <div className="desk_stages flex align gap-lg">
-              {stages.map((stage, index) => (
-                <div key={index} className="desk_stages_index">
-                  <div className="process__image">
-                    <img
-                      src={backendUrl + stage.stage_category?.icon_path}
-                      alt="Process Icon"
-                    />
-                  </div>
-                  <div className="process_details mt-3">
-                    <h5 className="mb-2">{stage.name}</h5>
-                  </div>
-                  <div className="footer__design mt-4">
-                    <Button
-                      label="Add to Tracker Queue"
-                      size="xs"
-                      variant="dark"
-                      icon="ri-archive-stack-line"
-                      handleClick={() => handleAddToQueue(stage)}
-                      // isDisabled
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* Main Content Grid */}
+      <div className="tracker-main-grid">
+        {/* Stages Section */}
+        <div className="stages-section">
+          <div className="section-header">
+            <h3 className="section-title">
+              <i className="ri-stack-line"></i>
+              Available Stages
+            </h3>
+            <p className="section-subtitle">Add stages to your tracker queue</p>
           </div>
-          <div className="col-md-4">
-            <div className="queue__board">
-              <h4 className="mb-4">Queued Trackers</h4>
 
-              <div className="queue__container flex column gap-md">
-                {queue.map((list, idx) => (
-                  <div className="tracker__item flex column" key={idx}>
-                    <div className="order_line flex align gap-md">
-                      <div className="number__widget">{list.order}</div>
-                      <p>
-                        {list.stage_name}
-                        <br />
-                        <small>
-                          {getGroup(list.workflow_stage_id, list.group_id)}
-                        </small>
-                        <br />
-                        <small>
-                          {documentTypes.find(
-                            (doc) => doc.value === list.document_type_id
-                          )?.label ?? "No Document Type!!"}
-                        </small>
-                      </p>
+          <div className="stages-grid">
+            {stages.map((stage, index) => (
+              <div key={index} className="stage-card">
+                <div className="stage-icon">
+                  <img
+                    src={backendUrl + stage.stage_category?.icon_path}
+                    alt={stage.name}
+                  />
+                </div>
+                <div className="stage-content">
+                  <h4 className="stage-name">{stage.name}</h4>
+                  <p className="stage-description">Click to add to queue</p>
+                </div>
+                <button
+                  type="button"
+                  className="add-stage-btn"
+                  onClick={() => handleAddToQueue(stage)}
+                  disabled={loading}
+                >
+                  <i className="ri-add-line"></i>
+                  Add
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Queue Section */}
+        <div className="queue-section">
+          <div className="section-header">
+            <h3 className="section-title">
+              <i className="ri-list-check-2"></i>
+              Tracker Queue
+              <span className="queue-count">({queue.length})</span>
+            </h3>
+            <p className="section-subtitle">Manage your workflow sequence</p>
+          </div>
+
+          <div className="queue-container">
+            {queue.length === 0 ? (
+              <div className="empty-queue">
+                <i className="ri-inbox-line"></i>
+                <p>No stages in queue</p>
+                <small>Add stages from the left panel to get started</small>
+              </div>
+            ) : (
+              <div className="queue-list">
+                {queue.map((item, idx) => (
+                  <div className="queue-item" key={idx}>
+                    <div className="item-header">
+                      <div className="item-order">
+                        <span className="order-number">{item.order}</span>
+                      </div>
+                      <div className="item-info">
+                        <h4 className="item-title">{item.stage_name}</h4>
+                        <div className="item-meta">
+                          <span className="meta-item">
+                            <i className="ri-group-line"></i>
+                            {getGroup(item.workflow_stage_id, item.group_id)}
+                          </span>
+                          <span className="meta-item">
+                            <i className="ri-file-list-line"></i>
+                            {documentTypes.find(
+                              (doc) => doc.value === item.document_type_id
+                            )?.label ?? "No Document Type"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="mid__section mb-3">
-                      <div className="item__section mb-2">
-                        <small>Actions:</small>
-                        <div className="stones_container">
-                          {list.actions.length > 0 ? (
-                            list.actions.map((action, i) => (
-                              <div key={i} className="stones actions">
+
+                    <div className="item-details">
+                      <div className="detail-group">
+                        <label className="detail-label">
+                          <i className="ri-play-circle-line"></i>
+                          Actions
+                        </label>
+                        <div className="detail-tags">
+                          {item.actions.length > 0 ? (
+                            item.actions.map((action, i) => (
+                              <span key={i} className="detail-tag actions">
                                 {action.label}
-                              </div>
+                              </span>
                             ))
                           ) : (
-                            <div className="stones actions">no actions</div>
+                            <span className="detail-tag empty">No actions</span>
                           )}
                         </div>
                       </div>
-                      <div className="item__section mb-2">
-                        <small>Distribution Lists:</small>
-                        <div className="stones_container">
-                          {list.recipients.length > 0 ? (
-                            list.recipients.map((mailer, i) => (
-                              <div key={i} className="stones distribution">
-                                {mailer.label}
-                              </div>
+
+                      <div className="detail-group">
+                        <label className="detail-label">
+                          <i className="ri-mail-line"></i>
+                          Recipients
+                        </label>
+                        <div className="detail-tags">
+                          {item.recipients.length > 0 ? (
+                            item.recipients.map((recipient, i) => (
+                              <span key={i} className="detail-tag recipients">
+                                {recipient.label}
+                              </span>
                             ))
                           ) : (
-                            <div className="stones distribution">
-                              empty list
-                            </div>
+                            <span className="detail-tag empty">
+                              No recipients
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="process_actions flex align">
-                      <CardButton
-                        icon="ri-settings-2-line"
-                        label="Manage"
-                        variant="dark"
-                        handleClick={() => manageTracker(list)}
-                        size="sm"
-                      />
-                      <CardButton
-                        label="Remove"
-                        icon="ri-close-large-line"
-                        variant="danger"
-                        handleClick={() => handleRemoveTracker(list)}
-                        size="sm"
-                      />
+
+                    <div className="item-actions">
+                      <button
+                        type="button"
+                        className="action-btn manage"
+                        onClick={() => manageTracker(item)}
+                      >
+                        <i className="ri-settings-3-line"></i>
+                        Manage
+                      </button>
+                      <button
+                        type="button"
+                        className="action-btn remove"
+                        onClick={() => handleRemoveTracker(item)}
+                      >
+                        <i className="ri-delete-bin-line"></i>
+                        Remove
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

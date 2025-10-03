@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import SignatureCanvas from "../capsules/SignatureCanvas";
@@ -128,6 +134,14 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     (item.content?.signature as any)?.signatures,
   ]);
 
+  // Use ref to access current signatures without causing re-renders
+  const signaturesRef = useRef<SignatureResponseData[]>(signatures);
+
+  // Update ref when signatures change
+  useEffect(() => {
+    signaturesRef.current = signatures;
+  }, [signatures]);
+
   const currentSignature: SignatureResponseData | null = useMemo(() => {
     return (
       signatures.find(
@@ -138,32 +152,40 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     );
   }, [signatures, currentTracker, state.loggedInUser]);
 
-  // Handle signature save callback
-  const handleSignatureSave = (signatureData: string, signatureId: number) => {
-    // Update the signature in the signatures array
-    const updatedSignatures = signatures.map((sig) =>
-      sig.id === signatureId ? { ...sig, signature: signatureData } : sig
-    );
+  if (state.configState && currentSignature) {
+    console.log(state.configState[currentSignature?.flow_type]);
+  }
 
-    // Update the item content with new signature data
-    const updatedItem = {
-      ...item,
-      content: {
-        id: item.id,
-        order: item.order,
-        signature: {
-          signatures: updatedSignatures,
-        },
-      } as SheetProps,
-    };
+  // Handle signature save callback - use ref to avoid circular dependencies
+  const handleSignatureSave = useCallback(
+    (signatureData: string, signatureId: number) => {
+      // Get current signatures from ref to avoid stale closure
+      const currentSignatures = signaturesRef.current;
+      const updatedSignatures = currentSignatures.map((sig) =>
+        sig.id === signatureId ? { ...sig, signature: signatureData } : sig
+      );
 
-    // Update the body with the new signature data
-    const newBody = state.body.map((bodyItem) =>
-      bodyItem.id === item.id ? updatedItem : bodyItem
-    );
+      // Update the item content with new signature data
+      const updatedItem = {
+        ...item,
+        content: {
+          id: item.id,
+          order: item.order,
+          signature: {
+            signatures: updatedSignatures,
+          },
+        } as SheetProps,
+      };
 
-    actions.setBody(newBody);
-  };
+      // Update the body with the new signature data
+      const newBody = state.body.map((bodyItem) =>
+        bodyItem.id === item.id ? updatedItem : bodyItem
+      );
+
+      actions.setBody(newBody);
+    },
+    [item, state.body, actions] // No signatures dependency - use ref instead
+  );
 
   // Update global state with signature data when configState or signatures change
   useEffect(() => {
@@ -239,24 +261,45 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     }
   };
 
+  // Memoize signature display to avoid context re-renders
+  const signatureDisplay = useMemo(() => {
+    return state.category?.template?.signature_display;
+  }, [state.category?.template?.signature_display]);
+
   return (
     <div className={getContainerClass()}>
-      {signatures.map((signature: SignatureResponseData, index: number) => (
-        <div key={signature.id} className="signature__item">
-          <SignatureCanvas
-            signatureUrl={signature.signature}
-            signature={signature}
-            canSign={
-              state.loggedInUser?.id === signature.user_id &&
-              signature.flow_type === currentTracker?.flow_type
-            }
-            selectedAction={signatureButton}
-            onSignatureSave={(signatureData: string) =>
-              handleSignatureSave(signatureData, signature.id)
-            }
-          />
-        </div>
-      ))}
+      <h3 className="approvals__heading">Approvals</h3>
+      {signatures.map((signature: SignatureResponseData, index: number) => {
+        // Get the group for this specific signature's flow_type
+        const group = state.resources.groups.find(
+          (group) =>
+            group.id ===
+            state.configState?.[signature?.flow_type ?? "from"]?.group_id
+        );
+
+        return (
+          <div key={signature.id} className="signature__item">
+            <SignatureCanvas
+              signatureUrl={signature.signature}
+              signature={signature}
+              category={state.category}
+              tracker={
+                state.configState?.[signature?.flow_type ?? "from"] ?? null
+              }
+              canSign={
+                state.loggedInUser?.id === signature.user_id &&
+                signature.flow_type === currentTracker?.flow_type
+              }
+              selectedAction={signatureButton}
+              onSignatureSave={(signatureData: string) =>
+                handleSignatureSave(signatureData, signature.id)
+              }
+              groupName={group?.name}
+              templateSignatureDisplay={signatureDisplay}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -51,6 +51,8 @@ const SignatureSlot = ({
                     }}
                     signatureUrl={signature.signature}
                     signature={showName ? signature : null}
+                    category={null}
+                    tracker={null}
                   />
                 </div>
               ) : (

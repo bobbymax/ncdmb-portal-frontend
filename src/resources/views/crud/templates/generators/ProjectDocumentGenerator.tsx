@@ -7,8 +7,7 @@ import MultiSelect, {
 } from "resources/views/components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
 import { ActionMeta } from "react-select";
-import useDirectories from "app/Hooks/useDirectories";
-import { repo } from "bootstrap/repositories";
+import { usePaperBoardResources } from "app/Hooks/usePaperBoardResources";
 
 const ProjectDocumentGenerator: React.FC<
   DocumentBuilderComponentProps<ProjectRepository, ProjectResponseData>
@@ -28,7 +27,8 @@ const ProjectDocumentGenerator: React.FC<
     project: null,
   });
 
-  const { collection: projects } = useDirectories(repo("project"), "projects");
+  // Use PaperBoard resources instead of individual API calls
+  const { projects } = usePaperBoardResources();
 
   const [project, setProject] = useState<ProjectResponseData | null>(null);
 

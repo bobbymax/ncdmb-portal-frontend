@@ -13,6 +13,7 @@ import { DefaultErrorHandler } from "../Handlers/DefaultErrorHandler";
 import Alert from "app/Support/Alert";
 import { useStateContext } from "app/Context/ContentContext";
 import { ActionMeta } from "react-select";
+import { useRequestManager } from "app/Context/RequestManagerContext";
 
 // Define constants for action types to avoid hardcoding strings
 const ACTION_STORE = "store";
@@ -35,6 +36,7 @@ export const useForm = <T extends BaseRepository>(
   { onFormSubmit, handleValidationErrors }: UseFormProps
 ) => {
   const repo = useMemo(() => Repository, []); // Remove Repository dependency to prevent infinite re-renders
+  const { addRequest } = useRequestManager();
   const [state, setState] = useState<JsonResponse>(() => ({
     ...repo.getState(),
   }));
@@ -227,7 +229,7 @@ export const useForm = <T extends BaseRepository>(
   useEffect(() => {
     const getDependencies = async () => {
       try {
-        const response = await Repository.dependencies();
+        const response = await addRequest(() => Repository.dependencies());
         setDependencies(response);
       } catch (error) {
         // Error fetching dependencies
@@ -237,7 +239,7 @@ export const useForm = <T extends BaseRepository>(
     if (Repository.associatedResources.length > 0) {
       getDependencies();
     }
-  }, []); // Remove Repository dependency to prevent infinite re-renders
+  }, [addRequest]); // Remove Repository dependency to prevent infinite re-renders
 
   return {
     state,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
 import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
@@ -9,6 +9,9 @@ import {
   PaymentBatchContentDocumentProps,
 } from "../ContentCards/PaymentBatchContentCard";
 import { getContentBlockByType } from "../../../../app/Utils/ContentBlockUtils";
+import { useDebouncedCallback } from "app/Hooks/useDebounce";
+import useBatchRequests from "app/Hooks/useBatchRequests";
+import { useRequestManager } from "app/Context/RequestManagerContext";
 
 interface PaymentbatchResourceCardProps {
   category: DocumentCategoryResponseData;
@@ -22,179 +25,217 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
   responseData,
 }) => {
   const { state, actions } = usePaperBoard();
+  const { addRequest } = useRequestManager();
+  const { addRequest: addBatchRequest } = useBatchRequests(150, 5);
 
   const [queued, setQueued] = useState<DocumentResponseData[]>([]);
   const [totalQueuedAmount, setTotalQueuedAmount] = useState(0);
   const [visibleCards, setVisibleCards] = useState<Set<number>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  // Fetch function - memoized to prevent recreation
+  const fetchQueued = useCallback(async () => {
+    if (!repository || hasFetched) return;
+
+    try {
+      setIsLoading(true);
+
+      // Use batch request for better performance
+      const response = await addBatchRequest(() =>
+        repository.collection("collated/queued/documents")
+      );
+
+      if (response && response.data) {
+        const queued = response.data as DocumentResponseData[];
+
+        const categoried =
+          queued?.filter((item) => item.type === category?.type) ?? [];
+
+        setQueued(categoried);
+        setTotalQueuedAmount(
+          categoried.reduce(
+            (acc, curr) => acc + (Number(curr?.approved_amount) ?? 0),
+            0
+          )
+        );
+        setHasFetched(true);
+
+        // Optimized animation with reduced delay
+        categoried.forEach((_, index) => {
+          setTimeout(() => {
+            setVisibleCards((prev) => new Set([...prev, index]));
+          }, index * 50);
+        });
+      } else {
+        setQueued([]);
+        setHasFetched(true);
+      }
+    } catch (error) {
+      setQueued([]);
+      setHasFetched(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [repository, category?.type, addBatchRequest, hasFetched]);
 
   useEffect(() => {
-    if (repository) {
-      const fetchDraftsInBatchQueue = async () => {
-        const response = await repository.collection(
-          "collated/queued/documents"
-        );
-
-        if (response.code === 200 && response.data) {
-          const queued = response.data as DocumentResponseData[];
-          const categoried =
-            queued.filter((item) => item.type === category?.type) ?? [];
-
-          setQueued(categoried);
-          setTotalQueuedAmount(
-            categoried.reduce(
-              (acc, curr) => acc + (Number(curr?.approved_amount) ?? 0),
-              0
-            )
-          );
-
-          // Trigger animation for visible cards
-          categoried.forEach((_, index) => {
-            setTimeout(() => {
-              setVisibleCards((prev) => new Set([...prev, index]));
-            }, index * 100);
-          });
-        }
-      };
-
-      fetchDraftsInBatchQueue();
+    // Reset state when category changes
+    if (hasFetched) {
+      setHasFetched(false);
+      setQueued([]);
+      setVisibleCards(new Set());
+      setTotalQueuedAmount(0);
     }
-  }, [repository, category?.type]);
+  }, [category?.type]);
 
-  // Get current payment batch content from global state
-  const getPaymentBatchContent = (): PaymentBatchContentProps | null => {
-    const contentBlock = getContentBlockByType(state.body, "payment_batch");
-    return (
-      (contentBlock?.content?.payment_batch as PaymentBatchContentProps) || null
-    );
-  };
+  useEffect(() => {
+    // Only fetch once when component mounts or when category type changes
+    if (!hasFetched) {
+      fetchQueued();
+    }
+  }, [fetchQueued, hasFetched]);
+
+  // Memoized helper functions to prevent unnecessary re-renders
+  const getPaymentBatchContent =
+    useMemo((): PaymentBatchContentProps | null => {
+      const contentBlock = getContentBlockByType(state.body, "payment_batch");
+      return (
+        (contentBlock?.content?.payment_batch as PaymentBatchContentProps) ||
+        null
+      );
+    }, [state.body]);
 
   // Get selected documents from global state
-  const getSelectedDocuments = (): PaymentBatchContentDocumentProps[] => {
-    const paymentBatchContent = getPaymentBatchContent();
-    return paymentBatchContent?.documents || [];
-  };
+  const getSelectedDocuments =
+    useMemo((): PaymentBatchContentDocumentProps[] => {
+      const paymentBatchContent = getPaymentBatchContent;
+      return paymentBatchContent?.documents || [];
+    }, [getPaymentBatchContent]);
 
   // Get max allowed documents based on category type
-  const getMaxAllowedDocuments = (): number => {
+  const getMaxAllowedDocuments = useMemo((): number => {
     if (category?.type === "staff") return 6;
     if (category?.type === "third-party") return 1;
     return queued.length; // No limit for other types
-  };
+  }, [category?.type, queued.length]);
 
-  // Generate document with UUID identifier
-  const generateDocumentWithIdentifier = (
-    document: DocumentResponseData
-  ): PaymentBatchContentDocumentProps => {
-    // Generate unique identifier with timestamp and mixed characters
-    const generateUniqueIdentifier = (): string => {
-      const timestamp = Date.now().toString();
-      const uuid = crypto.randomUUID().replace(/-/g, "");
+  // Generate document with UUID identifier - memoized to prevent recreation
+  const generateDocumentWithIdentifier = useCallback(
+    (document: DocumentResponseData): PaymentBatchContentDocumentProps => {
+      // Generate unique identifier with timestamp and mixed characters
+      const generateUniqueIdentifier = (): string => {
+        const timestamp = Date.now().toString();
+        const uuid = crypto.randomUUID().replace(/-/g, "");
 
-      // Mix timestamp and UUID characters for enhanced uniqueness
-      const mixed = [];
-      const maxLength = Math.max(timestamp.length, uuid.length);
+        // Mix timestamp and UUID characters for enhanced uniqueness
+        const mixed = [];
+        const maxLength = Math.max(timestamp.length, uuid.length);
 
-      for (let i = 0; i < maxLength; i++) {
-        if (i < timestamp.length) {
-          mixed.push(timestamp[i]);
+        for (let i = 0; i < maxLength; i++) {
+          if (i < timestamp.length) {
+            mixed.push(timestamp[i]);
+          }
+          if (i < uuid.length) {
+            mixed.push(uuid[i]);
+          }
         }
-        if (i < uuid.length) {
-          mixed.push(uuid[i]);
-        }
-      }
 
-      return mixed.join("");
-    };
+        return mixed.join("");
+      };
 
-    return {
-      ...document,
-      identifier: generateUniqueIdentifier(), // Generate unique identifier with timestamp
-    };
-  };
+      return {
+        ...document,
+        identifier: generateUniqueIdentifier(), // Generate unique identifier with timestamp
+      };
+    },
+    []
+  );
 
-  // Update payment batch content in global state
-  const updatePaymentBatchContent = (
-    selectedDocuments: DocumentResponseData[]
-  ) => {
-    const contentBlock = state.body.find(
-      (body) =>
-        body.type === "payment_batch" ||
-        body.block?.data_type === "payment_batch"
-    );
+  // Update payment batch content in global state - memoized to prevent recreation
+  const updatePaymentBatchContent = useCallback(
+    (selectedDocuments: DocumentResponseData[]) => {
+      const contentBlock = state.body.find(
+        (body) =>
+          body.type === "payment_batch" ||
+          body.block?.data_type === "payment_batch"
+      );
 
-    if (!contentBlock) return;
+      if (!contentBlock) return;
 
-    // Calculate auto-generated fields
-    const no_of_payments = selectedDocuments.length;
-    const total_amount = selectedDocuments.reduce(
-      (sum, doc) => sum + (Number(doc.approved_amount) || 0),
-      0
-    );
+      // Calculate auto-generated fields
+      const no_of_payments = selectedDocuments.length;
+      const total_amount = selectedDocuments.reduce(
+        (sum, doc) => sum + (Number(doc.approved_amount) || 0),
+        0
+      );
 
-    let purpose: string;
-    if (selectedDocuments.length === 1) {
-      purpose = selectedDocuments[0].title;
-    } else {
-      purpose = `Payment Batch for ${selectedDocuments.length} Documents`;
-    }
-
-    const updatedPaymentBatchContent: PaymentBatchContentProps = {
-      purpose,
-      no_of_payments,
-      total_amount,
-      documents: selectedDocuments.map(generateDocumentWithIdentifier), // Generate identifiers
-    };
-
-    // Update the content block
-    const updatedContentBlock = {
-      ...contentBlock,
-      content: {
-        ...contentBlock.content,
-        payment_batch: updatedPaymentBatchContent,
-      } as any, // Type assertion to handle the complex SheetProps structure
-    };
-
-    actions.updateBody(updatedContentBlock, "payment_batch");
-  };
-
-  const handleDocumentSelect = (
-    document: DocumentResponseData,
-    isSelected: boolean
-  ) => {
-    const currentSelected = getSelectedDocuments();
-    const maxAllowed = getMaxAllowedDocuments();
-
-    let newSelected: DocumentResponseData[];
-
-    if (isSelected) {
-      // Add document if not at max limit
-      if (currentSelected.length < maxAllowed) {
-        // Convert current selected back to DocumentResponseData format for processing
-        const currentAsDocs = currentSelected.map((doc) => {
-          const { identifier, ...docData } = doc;
-          return docData;
-        });
-        newSelected = [...currentAsDocs, document];
+      let purpose: string;
+      if (selectedDocuments.length === 1) {
+        purpose = selectedDocuments[0].title;
       } else {
-        // At max limit, ignore the selection
-        return;
+        purpose = `Payment Batch for ${selectedDocuments.length} Documents`;
       }
-    } else {
-      // Remove document - convert back to DocumentResponseData format
-      newSelected = currentSelected
-        .filter((doc) => doc.id !== document.id)
-        .map((doc) => {
-          const { identifier, ...docData } = doc;
-          return docData;
-        });
-    }
 
-    updatePaymentBatchContent(newSelected);
-  };
+      const updatedPaymentBatchContent: PaymentBatchContentProps = {
+        purpose,
+        no_of_payments,
+        total_amount,
+        documents: selectedDocuments.map(generateDocumentWithIdentifier), // Generate identifiers
+      };
 
-  const handleSelectAll = () => {
-    const currentSelected = getSelectedDocuments();
-    const maxAllowed = getMaxAllowedDocuments();
+      // Update the content block
+      const updatedContentBlock = {
+        ...contentBlock,
+        content: {
+          ...contentBlock.content,
+          payment_batch: updatedPaymentBatchContent,
+        } as any, // Type assertion to handle the complex SheetProps structure
+      };
+
+      actions.updateBody(updatedContentBlock, "payment_batch");
+    },
+    [state.body, actions, generateDocumentWithIdentifier]
+  );
+
+  const handleDocumentSelect = useCallback(
+    (document: DocumentResponseData, isSelected: boolean) => {
+      const currentSelected = getSelectedDocuments;
+      const maxAllowed = getMaxAllowedDocuments;
+
+      let newSelected: DocumentResponseData[];
+
+      if (isSelected) {
+        // Add document if not at max limit
+        if (currentSelected.length < maxAllowed) {
+          // Convert current selected back to DocumentResponseData format for processing
+          const currentAsDocs = currentSelected.map((doc) => {
+            const { identifier, ...docData } = doc;
+            return docData;
+          });
+          newSelected = [...currentAsDocs, document];
+        } else {
+          // At max limit, ignore the selection
+          return;
+        }
+      } else {
+        // Remove document - convert back to DocumentResponseData format
+        newSelected = currentSelected
+          .filter((doc) => doc.id !== document.id)
+          .map((doc) => {
+            const { identifier, ...docData } = doc;
+            return docData;
+          });
+      }
+
+      updatePaymentBatchContent(newSelected);
+    },
+    [getSelectedDocuments, getMaxAllowedDocuments, updatePaymentBatchContent]
+  );
+
+  const handleSelectAll = useCallback(() => {
+    const currentSelected = getSelectedDocuments;
+    const maxAllowed = getMaxAllowedDocuments;
 
     let newSelected: DocumentResponseData[];
 
@@ -207,7 +248,12 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
     }
 
     updatePaymentBatchContent(newSelected);
-  };
+  }, [
+    getSelectedDocuments,
+    getMaxAllowedDocuments,
+    queued,
+    updatePaymentBatchContent,
+  ]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-NG", {
@@ -232,10 +278,19 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
     }
   };
 
-  console.log(getSelectedDocuments());
-
   return (
     <div className="paymentbatch-resource-card">
+      {/* Loading State */}
+      {isLoading && (
+        <div className="paymentbatch-loading">
+          <i className="ri-loader-4-line animate-spin"></i>
+          <span>
+            Loading queued documents for {category?.name || "this category"}...
+          </span>
+          <small>Checking for documents ready for batch processing</small>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="paymentbatch-header">
         <div className="paymentbatch-title">
@@ -254,14 +309,14 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
               onClick={handleSelectAll}
               className="paymentbatch-select-all-btn"
             >
-              {getSelectedDocuments().length ===
-              Math.min(queued.length, getMaxAllowedDocuments())
+              {getSelectedDocuments.length ===
+              Math.min(queued.length, getMaxAllowedDocuments)
                 ? "Deselect All"
                 : "Select All"}
             </button>
-            {getSelectedDocuments().length > 0 && (
+            {getSelectedDocuments.length > 0 && (
               <span className="paymentbatch-selected-count">
-                {getSelectedDocuments().length} selected
+                {getSelectedDocuments.length} selected
               </span>
             )}
           </div>
@@ -278,6 +333,13 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
               Documents will appear here when they&apos;re ready for batch
               processing
             </p>
+            {/* Debug information */}
+            <div style={{ marginTop: "10px", fontSize: "12px", color: "#666" }}>
+              <p>Debug Info:</p>
+              <p>Category Type: {category?.type || "undefined"}</p>
+              <p>Has Fetched: {hasFetched ? "Yes" : "No"}</p>
+              <p>Is Loading: {isLoading ? "Yes" : "No"}</p>
+            </div>
           </div>
         ) : (
           <div className="paymentbatch-documents-list">
@@ -287,7 +349,7 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
                 className={`paymentbatch-document-card ${
                   visibleCards.has(index) ? "paymentbatch-card-visible" : ""
                 } ${
-                  getSelectedDocuments().some((doc) => doc.id === document.id)
+                  getSelectedDocuments.some((doc) => doc.id === document.id)
                     ? "paymentbatch-card-selected"
                     : ""
                 }`}
@@ -297,7 +359,7 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
                   <input
                     type="checkbox"
                     id={`document-${document.id}`}
-                    checked={getSelectedDocuments().some(
+                    checked={getSelectedDocuments.some(
                       (doc) => doc.id === document.id
                     )}
                     onChange={(e) =>
@@ -396,16 +458,16 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
       </div>
 
       {/* Footer with Batch Actions */}
-      {getSelectedDocuments().length > 0 && (
+      {getSelectedDocuments.length > 0 && (
         <div className="paymentbatch-footer">
           <div className="paymentbatch-batch-summary">
             <span className="paymentbatch-batch-text">
-              {getSelectedDocuments().length} documents selected
+              {getSelectedDocuments.length} documents selected
             </span>
             <span className="paymentbatch-batch-amount">
               Total:{" "}
               {formatCurrency(
-                getSelectedDocuments().reduce(
+                getSelectedDocuments.reduce(
                   (acc, curr) => acc + (Number(curr?.approved_amount) ?? 0),
                   0
                 )

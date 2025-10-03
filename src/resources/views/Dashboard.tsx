@@ -163,6 +163,65 @@ const Dashboard = () => {
     fetchDocs();
   }, []);
 
+  // Skeleton loading component for dashboard
+  const DashboardSkeleton = () => (
+    <div className="dashboard-grid">
+      {/* Top Analytics Cards Skeleton */}
+      <div className="analytics-cards">
+        {[...Array(4)].map((_, index) => (
+          <div key={index} className="analytics-card skeleton-card">
+            <div className="card-icon skeleton-icon"></div>
+            <div className="card-content">
+              <div className="skeleton-line skeleton-value"></div>
+              <div className="skeleton-line skeleton-label"></div>
+              <div className="skeleton-line skeleton-change"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Main Analytics Chart Skeleton */}
+      <div className="main-analytics-widget">
+        <div className="widget-header">
+          <div className="widget-title">
+            <div className="skeleton-line skeleton-title"></div>
+            <div className="skeleton-line skeleton-subtitle"></div>
+          </div>
+          <div className="widget-actions">
+            <div className="skeleton-line skeleton-date-picker"></div>
+          </div>
+        </div>
+        <div className="widget-content">
+          <div className="skeleton-chart" style={{ height: "300px" }}></div>
+        </div>
+      </div>
+
+      {/* Status Cards Skeleton */}
+      <div className="status-widget">
+        <div className="widget-header">
+          <div className="widget-title">
+            <div className="skeleton-line skeleton-title"></div>
+            <div className="skeleton-line skeleton-subtitle"></div>
+          </div>
+        </div>
+        <div className="widget-content">
+          <div className="status-grid">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="status-item skeleton-status">
+                <div className="status-icon skeleton-icon"></div>
+                <div className="status-info">
+                  <div className="skeleton-line skeleton-status-value"></div>
+                  <div className="skeleton-line skeleton-status-label"></div>
+                </div>
+                <div className="skeleton-line skeleton-percentage"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="modern-dashboard">
       {/* Header Section */}
@@ -198,13 +257,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Dashboard Grid */}
-      <ResourceLoader
-        isLoading={isLoading || (documents.length === 0 && !noRecordFound)}
-        message="Loading Dashboard..."
-        variant="spinner"
-        size="large"
-      >
+      {/* Main Dashboard Grid with Skeleton Loading */}
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : (
         <div className="dashboard-grid">
           {/* Top Analytics Cards */}
           <div className="analytics-cards">
@@ -465,7 +521,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </ResourceLoader>
+      )}
     </div>
   );
 };

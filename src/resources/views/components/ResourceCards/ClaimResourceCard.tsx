@@ -9,7 +9,7 @@ import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategor
 import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import { ClaimResponseData } from "@/app/Repositories/Claim/data";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
-import useDirectories from "app/Hooks/useDirectories";
+import { usePaperBoardResources } from "app/Hooks/usePaperBoardResources";
 import { useAuth } from "app/Context/AuthContext";
 import useClaimCalculator from "app/Hooks/useClaimCalculator";
 import {
@@ -37,7 +37,9 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
 }) => {
   const { staff } = useAuth();
   const { state, actions } = usePaperBoard();
-  const { collection: departments } = useDirectories(repository, "departments");
+  // Use PaperBoard resources instead of individual API calls
+  const { departments, isLoading: departmentsLoading } =
+    usePaperBoardResources();
   const { getDistance, calculate, cities, allowances } = useClaimCalculator();
   const [dependencies, setDependencies] = useState<unknown>(null);
 

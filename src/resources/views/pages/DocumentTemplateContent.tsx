@@ -4,19 +4,34 @@ import {
   CategoryProgressTrackerProps,
 } from "app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  Suspense,
+  lazy,
+} from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
 import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
-import {
-  BudgetGeneratorTab,
-  UploadsGeneratorTab,
-  ResourceGeneratorTab,
-  SettingsGeneratorTab,
-} from "../components/DocumentGeneratorTab";
+
+// Lazy load heavy components
+const BudgetGeneratorTab = lazy(
+  () => import("../components/DocumentGeneratorTab/BudgetGeneratorTab")
+);
+const UploadsGeneratorTab = lazy(
+  () => import("../components/DocumentGeneratorTab/UploadsGeneratorTab")
+);
+const ResourceGeneratorTab = lazy(
+  () => import("../components/DocumentGeneratorTab/ResourceGeneratorTab")
+);
+const SettingsGeneratorTab = lazy(
+  () => import("../components/DocumentGeneratorTab/SettingsGeneratorTab")
+);
 import A4Sheet from "../components/pages/A4Sheet";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
@@ -79,6 +94,7 @@ const DocumentTemplateContent = ({
   const [viewMode, setViewMode] = useState<"document" | "uploads" | "print">(
     "document"
   );
+  const [isSyncing, setIsSyncing] = useState(false);
   const documentElementRef = useRef<HTMLDivElement>(null);
 
   const { config } = useStateContext();
@@ -177,7 +193,7 @@ const DocumentTemplateContent = ({
         hasSyncedRef.current = false;
       }
     }
-  }, [propExistingDocument, state.existingDocument, actions]);
+  }, [propExistingDocument, state.existingDocument]); // Removed actions from dependencies to prevent re-render loops
 
   // Reset sync flag when document changes or component unmounts
   useEffect(() => {
@@ -207,6 +223,7 @@ const DocumentTemplateContent = ({
 
     // Run sync when existingDocument is available and we haven't synced this document yet
     if (state.existingDocument && !hasSyncedRef.current) {
+      setIsSyncing(true);
       hasSyncedRef.current = state.existingDocument.id; // Store document ID instead of just true
 
       // Sync config state FIRST (highest priority)
@@ -508,6 +525,13 @@ const DocumentTemplateContent = ({
     propExistingDocument,
   ]);
 
+  // Set syncing to false after sync operations complete
+  useEffect(() => {
+    if (hasSyncedRef.current && isSyncing) {
+      setIsSyncing(false);
+    }
+  }, [hasSyncedRef.current, isSyncing]);
+
   // Effect to sync requirements whenever they become available
   useEffect(() => {
     if (
@@ -543,7 +567,7 @@ const DocumentTemplateContent = ({
   }, [
     state.requirements,
     state.existingDocument?.uploaded_requirements,
-    actions,
+    // Removed actions from dependencies to prevent re-render loops
   ]);
 
   // Effect to sync threads whenever they become available from existing document
@@ -608,7 +632,7 @@ const DocumentTemplateContent = ({
         actions.setThreads([]);
       }
     }
-  }, [state.existingDocument?.threads, actions]);
+  }, [state.existingDocument?.threads]); // Removed actions from dependencies to prevent re-render loops
 
   // Sample blocks for demonstration when state.blocks is empty
   const sampleBlocks = [
@@ -1048,14 +1072,21 @@ const DocumentTemplateContent = ({
   }, [state.configState, state.trackers]);
 
   // Update global trackers when transformedTrackers change
+  // Use a ref to track the last updated value and prevent infinite loops
+  const lastTrackerUpdateRef = useRef<string>("");
   useEffect(() => {
+    const transformedStr = JSON.stringify(transformedTrackers);
+    const stateStr = JSON.stringify(state.trackers);
+
     if (
       transformedTrackers.length > 0 &&
-      JSON.stringify(transformedTrackers) !== JSON.stringify(state.trackers)
+      transformedStr !== stateStr &&
+      transformedStr !== lastTrackerUpdateRef.current
     ) {
+      lastTrackerUpdateRef.current = transformedStr;
       actions.setTrackers(transformedTrackers);
     }
-  }, [transformedTrackers, state.trackers, actions]);
+  }, [transformedTrackers, state.trackers]); // Removed actions from dependencies to prevent re-render loops
 
   const currentTracker: CategoryProgressTrackerProps | null = useMemo(() => {
     if (state.currentPointer) {
@@ -1140,6 +1171,45 @@ const DocumentTemplateContent = ({
 
   return (
     <div className="document__template__content">
+      {/* Sync Loading Overlay */}
+      {isSyncing && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+            }}
+          >
+            <div
+              className="skeleton-line"
+              style={{
+                width: "20px",
+                height: "20px",
+                borderRadius: "50%",
+                animation: "skeleton-loading 1s infinite",
+              }}
+            ></div>
+            <span>Syncing document data...</span>
+          </div>
+        </div>
+      )}
       <div className="row">
         <div className="col-md-7 mb-3">
           <div className="document__template__paper">
@@ -1397,21 +1467,30 @@ const DocumentTemplateContent = ({
                     data-tab={tab.id}
                   >
                     <div className="panel__content">
-                      {tab.id === "budget" && (
-                        <BudgetGeneratorTab category={category} />
-                      )}
-                      {tab.id === "uploads" && (
-                        <UploadsGeneratorTab category={category} />
-                      )}
-                      {tab.id === "resource" && (
-                        <ResourceGeneratorTab category={category} />
-                      )}
-                      {tab.id === "settings" && (
-                        <SettingsGeneratorTab category={category} />
-                      )}
-                      {tab.id === "activities" && (
-                        <ActivitiesGeneratorTab category={category} />
-                      )}
+                      <Suspense
+                        fallback={
+                          <div className="tab__loading">
+                            <i className="ri-loader-4-line animate-spin"></i>
+                            <span>Loading tab...</span>
+                          </div>
+                        }
+                      >
+                        {tab.id === "budget" && (
+                          <BudgetGeneratorTab category={category} />
+                        )}
+                        {tab.id === "uploads" && (
+                          <UploadsGeneratorTab category={category} />
+                        )}
+                        {tab.id === "resource" && (
+                          <ResourceGeneratorTab category={category} />
+                        )}
+                        {tab.id === "settings" && (
+                          <SettingsGeneratorTab category={category} />
+                        )}
+                        {tab.id === "activities" && (
+                          <ActivitiesGeneratorTab category={category} />
+                        )}
+                      </Suspense>
                     </div>
                   </div>
                 ))}

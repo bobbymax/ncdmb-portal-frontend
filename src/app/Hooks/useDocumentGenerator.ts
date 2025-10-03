@@ -16,10 +16,12 @@ import {
 } from "../Context/PaperBoardContext";
 import { useAuth } from "../Context/AuthContext";
 import { DocumentResponseData } from "../Repositories/Document/data";
+import { useRequestManager } from "app/Context/RequestManagerContext";
 
 const useDocumentGenerator = (params: unknown) => {
   const { staff } = useAuth();
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
+  const { addRequest } = useRequestManager();
   const [existingDocument, setExistingDocument] =
     useState<DocumentResponseData | null>(null);
   const [category, setCategory] = useState<DocumentCategoryResponseData | null>(
@@ -78,7 +80,7 @@ const useDocumentGenerator = (params: unknown) => {
 
   useEffect(() => {
     const fetchResources = async () => {
-      const response = await categoryRepo.dependencies();
+      const response = await addRequest(() => categoryRepo.dependencies());
 
       if (response) {
         const resources = response as unknown as ResourceProps;
@@ -87,7 +89,7 @@ const useDocumentGenerator = (params: unknown) => {
     };
 
     fetchResources();
-  }, []);
+  }, [addRequest, categoryRepo]);
 
   useEffect(() => {
     if (params && _.has(params, "id")) {
@@ -97,7 +99,9 @@ const useDocumentGenerator = (params: unknown) => {
         const documentId = Number(params.documentId);
 
         const fetchDocument = async () => {
-          const response = await categoryRepo.show("documents", documentId);
+          const response = await addRequest(() =>
+            categoryRepo.show("documents", documentId)
+          );
 
           if (response && _.has(response, "data")) {
             const document = response.data as DocumentResponseData;
@@ -109,7 +113,9 @@ const useDocumentGenerator = (params: unknown) => {
       }
 
       const fetchCategory = async () => {
-        const response = await categoryRepo.show("documentCategories", id);
+        const response = await addRequest(() =>
+          categoryRepo.show("documentCategories", id)
+        );
 
         if (response && _.has(response, "data")) {
           const category = response.data as DocumentCategoryResponseData;
@@ -174,7 +180,7 @@ const useDocumentGenerator = (params: unknown) => {
 
       fetchCategory();
     }
-  }, [params]);
+  }, [params, addRequest, categoryRepo]);
 
   return {
     category,

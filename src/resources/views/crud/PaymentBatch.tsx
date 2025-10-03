@@ -20,6 +20,7 @@ const PaymentBatch: React.FC<
   const [expenditures, setExpenditures] = useState<ExpenditureResponseData[]>(
     []
   );
+  const [isLoadingExpenditures, setIsLoadingExpenditures] = useState(true);
 
   const {
     stacks,
@@ -36,6 +37,7 @@ const PaymentBatch: React.FC<
   useEffect(() => {
     const fetchDraftsInBatchQueue = async () => {
       try {
+        setIsLoadingExpenditures(true);
         const response = await draftRepo.collection(
           "document/documentDrafts/in-batch-queue"
         );
@@ -44,6 +46,8 @@ const PaymentBatch: React.FC<
         }
       } catch (error) {
         // Error processing payment batch
+      } finally {
+        setIsLoadingExpenditures(false);
       }
     };
 
@@ -67,26 +71,79 @@ const PaymentBatch: React.FC<
     }
   }, [staff, fund, category]);
 
+  // Skeleton loading component for lobby
+  const LobbySkeleton = () => (
+    <div className="lobby__container">
+      <div className="top__area flex align between mb-3">
+        <div
+          className="skeleton-line skeleton-title"
+          style={{ height: "24px", width: "80px" }}
+        ></div>
+        <div
+          className="skeleton-line skeleton-button"
+          style={{ height: "32px", width: "120px", borderRadius: "6px" }}
+        ></div>
+      </div>
+      <div className="queue">
+        <div className="row">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="col-md-4 mb-3">
+              <div
+                className="custom-card file__card skeleton-card"
+                style={{ minHeight: "200px" }}
+              >
+                <div
+                  className="skeleton-line"
+                  style={{ height: "16px", width: "80%", marginBottom: "12px" }}
+                ></div>
+                <div
+                  className="skeleton-line"
+                  style={{ height: "14px", width: "60%", marginBottom: "8px" }}
+                ></div>
+                <div
+                  className="skeleton-line"
+                  style={{ height: "14px", width: "40%", marginBottom: "16px" }}
+                ></div>
+                <div
+                  className="skeleton-line skeleton-button"
+                  style={{
+                    height: "28px",
+                    width: "100px",
+                    borderRadius: "4px",
+                  }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className="col-md-8 mb-3">
-        <div className="lobby__container">
-          <div className="top__area flex align between mb-3">
-            <h3 className="mb-4">Lobby</h3>
-            <Button
-              label="Reset Lobby"
-              variant="danger"
-              icon="ri-refresh-line"
-              handleClick={resetLobbyQueue}
-              size="xs"
-            />
-          </div>
-          <div className="queue">
-            <div className="row">
-              <LobbyList stacks={stacks} onAddToQueue={addToQueue} />
+        {isLoadingExpenditures ? (
+          <LobbySkeleton />
+        ) : (
+          <div className="lobby__container">
+            <div className="top__area flex align between mb-3">
+              <h3 className="mb-4">Lobby</h3>
+              <Button
+                label="Reset Lobby"
+                variant="danger"
+                icon="ri-refresh-line"
+                handleClick={resetLobbyQueue}
+                size="xs"
+              />
+            </div>
+            <div className="queue">
+              <div className="row">
+                <LobbyList stacks={stacks} onAddToQueue={addToQueue} />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="col-md-4 mb-3">
         <div className="queue__board__title">

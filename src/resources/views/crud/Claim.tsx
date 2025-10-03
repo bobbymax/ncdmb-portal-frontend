@@ -328,15 +328,29 @@ const Claim: React.FC<FormPageComponentProps<ClaimResponseData>> = ({
           </div>
 
           <div className="col-md-12 mb-3">
-            <MultiSelect
-              label="Sponsoring Department"
-              options={departments}
-              value={selectedDepartment}
-              onChange={handleDepartmentChange}
-              placeholder="Sponsor"
-              isSearchable
-              isDisabled={loading}
-            />
+            {departments.length === 0 ? (
+              <div>
+                <label className="form-label">Sponsoring Department</label>
+                <div
+                  className="skeleton-line"
+                  style={{
+                    height: "40px",
+                    borderRadius: "6px",
+                    marginTop: "8px",
+                  }}
+                ></div>
+              </div>
+            ) : (
+              <MultiSelect
+                label="Sponsoring Department"
+                options={departments}
+                value={selectedDepartment}
+                onChange={handleDepartmentChange}
+                placeholder="Sponsor"
+                isSearchable
+                isDisabled={loading}
+              />
+            )}
           </div>
 
           <div className="col-md-12 mb-4">

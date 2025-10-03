@@ -7,6 +7,7 @@ import Aside from "resources/views/components/partials/Aside";
 import { useAuth } from "app/Context/AuthContext";
 import { LoaderProvider } from "app/Context/LoaderProvider";
 import { ThemeProvider } from "app/Context/ThemeContext";
+import { RequestManagerProvider } from "app/Context/RequestManagerContext";
 
 const App = () => {
   const { staff } = useAuth();
@@ -29,10 +30,12 @@ const App = () => {
     // </div>
     <ThemeProvider>
       <LoaderProvider>
-        <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
-          {staff && <MemoizedSidebar />}
-          <Main />
-        </div>
+        <RequestManagerProvider batchDelay={100} maxBatchSize={8}>
+          <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
+            {staff && <MemoizedSidebar />}
+            <Main />
+          </div>
+        </RequestManagerProvider>
       </LoaderProvider>
     </ThemeProvider>
   );

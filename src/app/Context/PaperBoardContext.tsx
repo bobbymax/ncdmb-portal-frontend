@@ -63,6 +63,7 @@ export type ResourceProps = {
   carders: CarderResponseData[];
   documentTypes: DocumentTypeResponseData[];
   workflows: WorkflowResponseData[];
+  projects: any[]; // Add projects to ResourceProps
 };
 
 export interface DocumentRequirementProps
@@ -435,6 +436,10 @@ export interface PaperBoardContextType {
     addDocumentActivity: (activity: DocumentActivity) => void;
     clearDocumentActivities: () => void;
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
+    // NEW: Batch loading methods
+    loadAllResources: () => Promise<void>;
+    getResourceData: (resourceType: keyof ResourceProps) => any[];
+    areResourcesLoaded: () => boolean;
   };
 }
 

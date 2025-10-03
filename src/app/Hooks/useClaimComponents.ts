@@ -13,9 +13,11 @@ import { getEarliestAndLatestDates } from "app/Support/Helpers";
 import { TripExpenseGenerator } from "app/Support/TripExpenseGenerator";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
+import { useRequestManager } from "app/Context/RequestManagerContext";
 
 export const useClaimComponents = () => {
   const { staff } = useAuth();
+  const { addRequest } = useRequestManager();
 
   const claimRepo = useMemo(() => new ClaimRepository(), []);
   const tripRepo = useMemo(() => new TripRepository(), []);
@@ -97,7 +99,7 @@ export const useClaimComponents = () => {
     if (staff) {
       const getDependencies = async () => {
         try {
-          const response = await claimRepo.dependencies();
+          const response = await addRequest(() => claimRepo.dependencies());
 
           if (response) {
             const { allowances = [], cities = [] } = response;
@@ -112,7 +114,7 @@ export const useClaimComponents = () => {
       setRemunerations(staff?.remunerations ?? []);
       setGradeLevelId(staff?.grade_level_id ?? 0);
     }
-  }, [staff]);
+  }, [staff, addRequest, claimRepo]);
 
   useEffect(() => {
     const { earliest } = getEarliestAndLatestDates(

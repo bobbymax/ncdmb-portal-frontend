@@ -278,11 +278,43 @@ const CustomDataTable = ({
       </div>
       {/* Loading State */}
       {isLoading && (
-        <div className="loading-state mb-4 p-8 text-center">
-          <div className="loading-spinner mb-2">
-            <i className="ri-loader-4-line animate-spin text-2xl text-blue-500"></i>
-          </div>
-          <p className="text-gray-600">Loading data...</p>
+        <div style={{ overflowX: "auto" }}>
+          <table className="data-table">
+            <thead>
+              <tr>
+                {columns.map((col, index) => (
+                  <th key={index}>
+                    <div
+                      className="skeleton-line"
+                      style={{
+                        height: "16px",
+                        width: "80%",
+                        margin: "8px auto",
+                      }}
+                    ></div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[...Array(5)].map((_, rowIndex) => (
+                <tr key={rowIndex}>
+                  {columns.map((col, colIndex) => (
+                    <td key={colIndex}>
+                      <div
+                        className="skeleton-line"
+                        style={{
+                          height: "14px",
+                          width: colIndex === 0 ? "60%" : "80%",
+                          margin: "6px 0",
+                        }}
+                      ></div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

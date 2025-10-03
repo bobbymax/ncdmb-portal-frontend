@@ -64,3 +64,198 @@
   line-height: 1.4;
   text-transform: none;
 }
+
+/* Skeleton Loading Styles for CLS Optimization */
+.skeleton-card {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-value {
+  height: 24px;
+  width: 60px;
+}
+
+.skeleton-label {
+  height: 16px;
+  width: 80px;
+}
+
+.skeleton-change {
+  height: 14px;
+  width: 50px;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 120px;
+  margin-bottom: 4px;
+}
+
+.skeleton-subtitle {
+  height: 14px;
+  width: 180px;
+}
+
+.skeleton-date-picker {
+  height: 32px;
+  width: 120px;
+  border-radius: 6px;
+}
+
+.skeleton-chart {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-status {
+  opacity: 0.7;
+}
+
+.skeleton-status-value {
+  height: 20px;
+  width: 30px;
+}
+
+.skeleton-status-label {
+  height: 14px;
+  width: 60px;
+}
+
+.skeleton-percentage {
+  height: 16px;
+  width: 40px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Signature Display Styles */
+.signature__user__info {
+  margin-top: 4px;
+}
+
+.signature__user__name {
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  display: block;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+/* Group name display */
+.signature__group__name {
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #d1fae5;
+}
+
+/* Individual name display */
+.signature__individual__name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Both group and individual display */
+.signature__both__display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.signature__group__lead {
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  line-height: 1.2;
+  margin-bottom: 1px;
+}
+
+.signature__individual__sub {
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.2;
+  font-style: italic;
+}
+
+/* Approvals heading styling - Unique class to avoid conflicts */
+.approvals__heading {
+  text-align: left !important;
+  text-transform: uppercase !important;
+  background-color: #059669 !important; /* Primary green color */
+  color: #f8fafc !important; /* Almost white color */
+  padding: 12px 16px !important; /* Subtle padding */
+  margin: 0 0 16px 0 !important;
+  font-family: "Poppins", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1.4rem !important;
+  border-radius: 6px !important;
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border: 3px solid red !important; /* Debug border to confirm styles are applied */
+}
+
+/* Override canvas__block flex-direction when dates are enabled */
+.canvas__block:has(.date__spanner__container) {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.signature_spanner__container {
+  flex: 1;
+}
+
+.date__spanner__container {
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 120px;
+}
+
+.signature__date__info {
+  margin-top: 4px;
+  text-align: right;
+}

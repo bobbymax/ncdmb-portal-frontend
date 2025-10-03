@@ -55,7 +55,7 @@ function ResourceEditableComponent<T extends BaseResponse>({
 }: EditableResourceProps<T>): JSX.Element {
   const resourceRepo = useMemo(
     () => repo(toServiceName(extractModelName(service))),
-    []
+    [service]
   );
 
   const resourceName = toTitleCase(extractModelName(service));

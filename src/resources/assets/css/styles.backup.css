@@ -23977,7 +23977,6 @@ body,
 
 /* Signature canvas styling */
 .signature-container {
-  max-width: 85%;
   max-height: 100px;
   border-bottom: 1px dashed #999;
   border-radius: 4px;
