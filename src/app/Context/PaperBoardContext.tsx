@@ -436,8 +436,7 @@ export interface PaperBoardContextType {
     addDocumentActivity: (activity: DocumentActivity) => void;
     clearDocumentActivities: () => void;
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
-    // NEW: Batch loading methods
-    loadAllResources: () => Promise<void>;
+    // Resource management methods (delegated to ResourceContext)
     getResourceData: (resourceType: keyof ResourceProps) => any[];
     areResourcesLoaded: () => boolean;
   };

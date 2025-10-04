@@ -8,6 +8,7 @@ import { useAuth } from "app/Context/AuthContext";
 import { LoaderProvider } from "app/Context/LoaderProvider";
 import { ThemeProvider } from "app/Context/ThemeContext";
 import { RequestManagerProvider } from "app/Context/RequestManagerContext";
+import { ResourceProvider } from "app/Context/ResourceContext";
 import PerformanceDebugger from "./components/PerformanceDebugger";
 
 const App = () => {
@@ -32,11 +33,13 @@ const App = () => {
     <ThemeProvider>
       <LoaderProvider>
         <RequestManagerProvider batchDelay={100} maxBatchSize={8}>
-          <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
-            {staff && <MemoizedSidebar />}
-            <Main />
-            <PerformanceDebugger />
-          </div>
+          <ResourceProvider>
+            <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
+              {staff && <MemoizedSidebar />}
+              <Main />
+              <PerformanceDebugger />
+            </div>
+          </ResourceProvider>
         </RequestManagerProvider>
       </LoaderProvider>
     </ThemeProvider>
