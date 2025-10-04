@@ -1,10 +1,11 @@
 import CryptoJS from "crypto-js";
+import { ENV } from "../../config/env";
 
 class RequestQueue {
   private queue: (() => Promise<any>)[] = [];
   private isProcessing = false;
-  private SECRET_KEY = "ncdmb-staff-user";
-  private IV = "1234567890123456";
+  private SECRET_KEY = ENV.ENCRYPTION_KEY;
+  private IV = ENV.ENCRYPTION_IV;
 
   private encryptData(data: any): string {
     if (!this.SECRET_KEY) {

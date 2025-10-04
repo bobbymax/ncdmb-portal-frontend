@@ -11,11 +11,16 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { RemunerationResponseData } from "app/Repositories/Remuneration/data";
 import { ExpenseResponseData } from "app/Repositories/Expense/data";
 import moment from "moment";
+import { ENV } from "../../config/env";
 
 export type DependencyProps = {
   allowances: AllowanceResponseData[];
   cities: CityResponseData[];
 };
+
+// Enhanced caching for claim calculations
+const CALCULATOR_CACHE = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = ENV.CACHE_TTL; // 5 minutes default
 
 export type DistanceMatrixProps = {
   rows: {
@@ -248,6 +253,26 @@ const useClaimCalculator = () => {
       route: "one-way" | "return",
       airport: DataOptionsProps | null
     ): ExpenseResponseData[] => {
+      // Create cache key from calculation parameters
+      const cacheKey = JSON.stringify({
+        rems: rems.map((r) => ({ id: r.id, amount: r.amount })),
+        grade_level_id,
+        startDate,
+        endDate,
+        takeoff: takeoff?.value,
+        destination: destination?.value,
+        modeOfTransportation,
+        isResident,
+        distance,
+        route,
+        airport: airport?.value,
+      });
+
+      // Check cache first
+      const cached = CALCULATOR_CACHE.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+      }
       const computableAllowances: AllowanceWithMeta[] = [];
 
       const eventStartDate = moment(startDate);
@@ -475,6 +500,12 @@ const useClaimCalculator = () => {
         airport ? airport.label : ""
       );
 
+      // Cache the result
+      CALCULATOR_CACHE.set(cacheKey, {
+        data: constructedExpenses,
+        timestamp: Date.now(),
+      });
+
       return constructedExpenses;
     },
     [cities, allowances]
@@ -510,6 +541,22 @@ const useClaimCalculator = () => {
     setCities(cities);
   }, [dependencies]);
 
+  // Cache management functions
+  const clearCache = useCallback(() => {
+    CALCULATOR_CACHE.clear();
+  }, []);
+
+  const getCacheStats = useCallback(() => {
+    return {
+      size: CALCULATOR_CACHE.size,
+      entries: Array.from(CALCULATOR_CACHE.entries()).map(([key, value]) => ({
+        key: key.substring(0, 50) + "...",
+        age: Date.now() - value.timestamp,
+        expired: Date.now() - value.timestamp >= CACHE_TTL,
+      })),
+    };
+  }, []);
+
   return {
     calculate,
     loading,
@@ -520,6 +567,9 @@ const useClaimCalculator = () => {
     countWeekdays,
     getNumOfDays,
     formDescription,
+    // Enhanced cache management
+    clearCache,
+    getCacheStats,
   };
 };
 

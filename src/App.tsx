@@ -8,6 +8,7 @@ import { useAuth } from "app/Context/AuthContext";
 import { LoaderProvider } from "app/Context/LoaderProvider";
 import { ThemeProvider } from "app/Context/ThemeContext";
 import { RequestManagerProvider } from "app/Context/RequestManagerContext";
+import PerformanceDebugger from "./components/PerformanceDebugger";
 
 const App = () => {
   const { staff } = useAuth();
@@ -34,6 +35,7 @@ const App = () => {
           <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
             {staff && <MemoizedSidebar />}
             <Main />
+            <PerformanceDebugger />
           </div>
         </RequestManagerProvider>
       </LoaderProvider>

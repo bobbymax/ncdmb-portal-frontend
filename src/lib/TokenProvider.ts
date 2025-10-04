@@ -155,6 +155,29 @@ class TokenProvider {
     const timeLeft = Math.floor((this.tokenExpiry - Date.now()) / 1000);
     return Math.max(0, timeLeft);
   }
+
+  /**
+   * Check if token is expiring soon (within threshold)
+   * @param thresholdMinutes - Minutes before expiry to consider "soon"
+   * @returns True if token expires within threshold
+   */
+  isTokenExpiringSoon(thresholdMinutes: number = 5): boolean {
+    if (!this.tokenExpiry) return false;
+    const threshold = thresholdMinutes * 60 * 1000;
+    return Date.now() > this.tokenExpiry - threshold;
+  }
+
+  /**
+   * Get a valid token, refreshing if needed
+   * @returns Promise<string | null> - Valid token or null
+   */
+  async getValidToken(): Promise<string | null> {
+    if (this.isTokenExpiringSoon()) {
+      // Token is expiring soon, try to refresh
+      return await this.fetchChatToken();
+    }
+    return this.currentToken;
+  }
 }
 
 export default TokenProvider;

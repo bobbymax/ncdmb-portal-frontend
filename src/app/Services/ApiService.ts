@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import apiInstance from "app/init";
 import { queue } from "./RequestQueue";
 import CryptoJS from "crypto-js";
+import PerformanceTracker from "../../utils/PerformanceTracker";
 
 export class ApiService {
   private api: AxiosInstance;
@@ -34,9 +35,10 @@ export class ApiService {
     config: AxiosRequestConfig,
     data?: any
   ): Promise<AxiosResponse<T>> {
+    const startTime = performance.now();
     const userId = this.getUserId() || null;
 
-    return queue.addRequest(
+    const result = await queue.addRequest(
       (identityMarker, metadata) =>
         this.api({
           ...config,
@@ -53,6 +55,12 @@ export class ApiService {
         }).then((res) => res),
       userId
     );
+
+    // Track API performance
+    const duration = performance.now() - startTime;
+    PerformanceTracker.trackApiCall(config.url || "unknown", duration);
+
+    return result;
   }
 
   async fetcher<T>(
