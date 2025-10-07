@@ -5,9 +5,8 @@ import {
   PaperBoardContext,
   PaperBoardContextType,
   PaperBoardState,
-  ResourceProps,
 } from "./PaperBoardContext";
-import { useResourceContext } from "./ResourceContext";
+// ResourceContext import removed - resources no longer managed here
 import {
   useEffect,
   useMemo,
@@ -53,7 +52,6 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { addRequest } = useRequestManager();
-  const { resources: resourceContextData } = useResourceContext();
   const initialState: PaperBoardState = {
     isLoading: false,
     hasError: false,
@@ -87,7 +85,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     uploads: [],
     fund: null,
     approval_memo: null,
-    resources: resourceContextData,
+    // resources removed - now managed by ResourceContext
     loggedInUser: undefined,
     preferences: {
       priority: "medium",
@@ -161,7 +159,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     body: urlBody,
     isBuilding: urlIsBuilding,
     metaData: urlMetaData,
-    resources: urlResources,
+    // resources removed - now managed by ResourceContext
     loggedInUser: staff,
     requirements: urlRequirements,
     existingDocument,
@@ -256,20 +254,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       dispatch({ type: "SET_META_DATA", payload: urlMetaData });
     }
 
-    // Improved resources initialization logic
-    if (urlResources && Object.keys(urlResources).length > 0) {
-      // Check if resources have meaningful data (not just empty arrays/objects)
-      const hasResources = Object.values(urlResources).some((resource) =>
-        Array.isArray(resource)
-          ? resource.length > 0
-          : resource !== null && resource !== undefined
-      );
-
-      if (hasResources && !initializedRef.current.resources) {
-        initializedRef.current.resources = true;
-        dispatch({ type: "SET_RESOURCES", payload: urlResources });
-      }
-    }
+    // Resources initialization removed - now handled by ResourceContext
 
     if (
       urlEditedContents.length > 0 &&
@@ -328,7 +313,6 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     urlBody,
     urlIsBuilding,
     urlMetaData,
-    urlResources, // Added urlResources to dependencies
     state.category,
     state.template,
     state.contents,
@@ -336,29 +320,13 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     state.workflow,
     state.body,
     state.metaData,
-    state.resources,
     state.loggedInUser,
     staff,
     urlRequirements,
     existingDocument,
   ]);
 
-  // Separate effect for handling resources updates
-  useEffect(() => {
-    if (urlResources && Object.keys(urlResources).length > 0) {
-      // Check if resources have meaningful data
-      const hasResources = Object.values(urlResources).some((resource) =>
-        Array.isArray(resource)
-          ? resource.length > 0
-          : resource !== null && resource !== undefined
-      );
-
-      if (hasResources) {
-        // Always update resources when they become available
-        dispatch({ type: "SET_RESOURCES", payload: urlResources });
-      }
-    }
-  }, [urlResources]);
+  // Resources update effect removed - now handled by ResourceContext
 
   const actions = {
     setCategory: (category: DocumentCategoryResponseData | null) => {
@@ -485,9 +453,7 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     updateMetaData: (metaData: DocumentMetaDataProps | null) => {
       dispatch({ type: "UPDATE_META_DATA", payload: metaData });
     },
-    setResources: (resources: ResourceProps) => {
-      dispatch({ type: "SET_RESOURCES", payload: resources });
-    },
+    // setResources removed - resources now managed by ResourceContext
     setLoggedInUser: (user: AuthUserResponseData | undefined) => {
       dispatch({ type: "SET_LOGGED_IN_USER", payload: user });
     },
@@ -538,25 +504,10 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
       dispatch({ type: "SET_TRACKERS", payload: trackers });
     },
 
-    // Resource management is now handled by ResourceContext
-    // These methods are kept for backward compatibility but delegate to ResourceContext
-    getResourceData: useCallback(
-      (resourceType: keyof ResourceProps) => {
-        return resourceContextData?.[resourceType] || [];
-      },
-      [resourceContextData]
-    ),
-
-    areResourcesLoaded: useCallback(() => {
-      return (
-        (resourceContextData?.departments?.length || 0) > 0 ||
-        (resourceContextData?.users?.length || 0) > 0 ||
-        (resourceContextData?.groups?.length || 0) > 0
-      );
-    }, [resourceContextData]),
+    // Resource management methods removed - use ResourceContext directly
   };
 
-  // Resources are now automatically loaded by ResourceContext based on route
+  // Resources are now managed by ResourceContext
 
   const contextValue: PaperBoardContextType = {
     state,

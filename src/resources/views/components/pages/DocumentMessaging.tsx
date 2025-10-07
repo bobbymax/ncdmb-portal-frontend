@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import { useAuth } from "app/Context/AuthContext";
 import moment from "moment";
 import {
@@ -15,6 +16,7 @@ interface DocumentMessagingProps {
 
 const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
   const { state, actions } = usePaperBoard();
+  const { getResourceById } = useResourceContext();
   const { staff } = useAuth();
 
   // Main messaging state
@@ -57,6 +59,39 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
     "question",
   ];
 
+  // Check permissions and set access level - moved to useEffect to avoid setState during render
+  useEffect(() => {
+    if (!state.existingDocument || !state.trackers || !state.loggedInUser) {
+      return;
+    }
+
+    const { user_id, created_by, pointer } = state.existingDocument;
+    const loggedInUserId = state.loggedInUser.id;
+
+    // Find the current tracker based on pointer
+    const currentTracker = state.trackers.find(
+      (tracker) => tracker.identifier === pointer
+    );
+
+    if (!currentTracker) return;
+
+    // Check permissions for non-owner/non-creator users
+    if (loggedInUserId !== user_id && loggedInUserId !== created_by) {
+      // Check if user has permission through tracker
+      const hasDirectPermission = currentTracker.user_id === loggedInUserId;
+      const hasGroupPermission =
+        currentTracker.user_id === 0 &&
+        state.loggedInUser.groups?.some(
+          (group) => group.id === currentTracker.group_id
+        );
+
+      if (!hasDirectPermission && !hasGroupPermission) {
+        // User has no permission - set access level to lock
+        actions.setAccessLevel("lock");
+      }
+    }
+  }, [state.existingDocument, state.trackers, state.loggedInUser]);
+
   // Get all threads from state.threads (existing from document + generated for display)
   const allThreads = useMemo(() => {
     if (!state.existingDocument || !state.trackers || !state.loggedInUser) {
@@ -84,8 +119,7 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
         );
 
       if (!hasDirectPermission && !hasGroupPermission) {
-        // User has no permission - set access level to lock
-        actions.setAccessLevel("lock");
+        // User has no permission - return empty array (access level set in useEffect)
         return [];
       }
     }
@@ -303,9 +337,7 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
           : thread.thread_owner_id; // If logged-in user is not the thread owner, show thread owner
 
       // Get user info for the other person in the conversation
-      const otherUser = state.resources.users.find(
-        (user) => user.id === otherUserId
-      );
+      const otherUser = getResourceById("users", otherUserId);
 
       // Get the last conversation from the thread owner to determine category
       const lastConversationFromOwner = thread.conversations
@@ -361,7 +393,7 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
         categoryIcon: getCategoryIcon(displayCategory),
       };
     });
-  }, [allThreads, state.resources.users, state.loggedInUser?.id]);
+  }, [allThreads, getResourceById, state.loggedInUser?.id]);
 
   // Filter threads based on search and active tab
   const filteredThreads = chatThreads.filter((thread) => {
@@ -673,6 +705,7 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
   reconnect,
   state,
 }) => {
+  const { getResourceById } = useResourceContext();
   const selectedThreadData = threadData;
 
   return (
@@ -684,16 +717,14 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
             <img
               src={`https://ui-avatars.com/api/?name=${
                 selectedThreadData?.thread_owner_id === state.loggedInUser?.id
-                  ? state.resources.users
-                      .find(
-                        (u: any) => u.id === selectedThreadData?.recipient_id
-                      )
-                      ?.name?.charAt(0) || "U"
-                  : state.resources.users
-                      .find(
-                        (u: any) => u.id === selectedThreadData?.thread_owner_id
-                      )
-                      ?.name?.charAt(0) || "U"
+                  ? getResourceById(
+                      "users",
+                      selectedThreadData?.recipient_id || 0
+                    )?.name?.charAt(0) || "U"
+                  : getResourceById(
+                      "users",
+                      selectedThreadData?.thread_owner_id || 0
+                    )?.name?.charAt(0) || "U"
               }&background=3b82f6&color=fff&size=96`}
               alt="User"
             />
@@ -701,11 +732,13 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
           <div className="individual-chat__info">
             <h3>
               {selectedThreadData?.thread_owner_id === state.loggedInUser?.id
-                ? state.resources.users.find(
-                    (u: any) => u.id === selectedThreadData?.recipient_id
+                ? getResourceById(
+                    "users",
+                    selectedThreadData?.recipient_id || 0
                   )?.name || "User"
-                : state.resources.users.find(
-                    (u: any) => u.id === selectedThreadData?.thread_owner_id
+                : getResourceById(
+                    "users",
+                    selectedThreadData?.thread_owner_id || 0
                   )?.name || "User"}
             </h3>
             <p>Online</p>

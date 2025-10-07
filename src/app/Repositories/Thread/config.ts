@@ -13,6 +13,7 @@ export const threadConfig: ConfigProp<ThreadResponseData> = {
     "status",
     "state",
     "created_at",
+    "document_id",
   ],
   associatedResources: [],
   state: {
@@ -27,6 +28,7 @@ export const threadConfig: ConfigProp<ThreadResponseData> = {
     status: "pending",
     state: "open",
     created_at: new Date().toISOString(),
+    document_id: 0,
   },
   actions: [
     {

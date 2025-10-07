@@ -6,6 +6,7 @@ import {
 
 export interface ThreadResponseData extends BaseResponse {
   pointer_identifier: string;
+  document_id?: number;
   resource?: unknown;
   identifier: string;
   icon?: string;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import _ from "lodash";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import {
@@ -10,10 +10,7 @@ import { repo } from "bootstrap/repositories";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { BlockResponseData } from "../Repositories/Block/data";
-import {
-  DocumentRequirementProps,
-  ResourceProps,
-} from "../Context/PaperBoardContext";
+import { DocumentRequirementProps } from "../Context/PaperBoardContext";
 import { useAuth } from "../Context/AuthContext";
 import { DocumentResponseData } from "../Repositories/Document/data";
 import { useRequestManager } from "app/Context/RequestManagerContext";
@@ -43,7 +40,7 @@ const useDocumentGenerator = (params: unknown) => {
   const [workflow, setWorkflow] = useState<any>(null);
   const [body, setBody] = useState<ContentBlock[]>([]);
   const [isBuilding, setIsBuilding] = useState<boolean>(true);
-  const [resources, setResources] = useState<ResourceProps | null>(null);
+  // Resources now managed by ResourceContext - no longer needed here
 
   const contents: ContentBlock[] = useMemo(
     () => category?.content ?? [],
@@ -52,7 +49,8 @@ const useDocumentGenerator = (params: unknown) => {
 
   const [editedContents, setEditedContents] = useState<ContentBlock[]>([]);
 
-  const updateEditedContents = (updatedContent: ContentBlock) => {
+  // Memoized callbacks to prevent re-renders
+  const updateEditedContents = useCallback((updatedContent: ContentBlock) => {
     setEditedContents((prev) => {
       return prev.map((block) => {
         if (block.id === updatedContent.id) {
@@ -61,13 +59,16 @@ const useDocumentGenerator = (params: unknown) => {
         return block;
       });
     });
-  };
+  }, []);
 
-  const updateEditedContentsOrder = (reorderedContents: ContentBlock[]) => {
-    setEditedContents(reorderedContents);
-  };
+  const updateEditedContentsOrder = useCallback(
+    (reorderedContents: ContentBlock[]) => {
+      setEditedContents(reorderedContents);
+    },
+    []
+  );
 
-  const removeEditedContent = (blockId: string) => {
+  const removeEditedContent = useCallback((blockId: string) => {
     setEditedContents((prev) => {
       const filteredContents = prev.filter((content) => content.id !== blockId);
 
@@ -76,110 +77,107 @@ const useDocumentGenerator = (params: unknown) => {
         order: index + 1,
       }));
     });
-  };
+  }, []);
 
+  // Resources fetching removed - now handled by ResourceContext
+
+  // Optimized category and document fetching
   useEffect(() => {
-    const fetchResources = async () => {
-      const response = await addRequest(() => categoryRepo.dependencies());
+    if (!params || !_.has(params, "id")) return;
 
-      if (response) {
-        const resources = response as unknown as ResourceProps;
-        setResources(resources);
-      }
-    };
+    const id = Number(params.id);
+    const documentId = _.has(params, "documentId")
+      ? Number(params.documentId)
+      : null;
 
-    fetchResources();
-  }, [addRequest, categoryRepo]);
-
-  useEffect(() => {
-    if (params && _.has(params, "id")) {
-      const id = Number(params.id);
-
-      if (_.has(params, "documentId")) {
-        const documentId = Number(params.documentId);
-
-        const fetchDocument = async () => {
-          const response = await addRequest(() =>
+    const fetchData = async () => {
+      try {
+        // Fetch document if documentId exists
+        let existingDocData: DocumentResponseData | null = null;
+        if (documentId) {
+          const documentResponse = await addRequest(() =>
             categoryRepo.show("documents", documentId)
           );
-
-          if (response && _.has(response, "data")) {
-            const document = response.data as DocumentResponseData;
-            setExistingDocument(document);
+          if (documentResponse?.data) {
+            existingDocData = documentResponse.data as DocumentResponseData;
+            setExistingDocument(existingDocData);
           }
-        };
+        }
 
-        fetchDocument();
-      }
-
-      const fetchCategory = async () => {
-        const response = await addRequest(() =>
+        // Fetch category
+        const categoryResponse = await addRequest(() =>
           categoryRepo.show("documentCategories", id)
         );
 
-        if (response && _.has(response, "data")) {
-          const category = response.data as DocumentCategoryResponseData;
+        if (categoryResponse?.data) {
+          const categoryData =
+            categoryResponse.data as DocumentCategoryResponseData;
 
-          if (category.template) {
-            setTemplate(category.template);
+          // Batch all state updates to prevent multiple re-renders
+          setCategory(categoryData);
+
+          if (categoryData.template) {
+            setTemplate(categoryData.template);
           }
 
-          if (category.config) {
-            setConfigState(category.config as ProcessFlowConfigProps);
+          // Prioritize existing document's config over category config
+          if (existingDocData?.config) {
+            setConfigState(existingDocData.config as ProcessFlowConfigProps);
+          } else if (categoryData.config) {
+            setConfigState(categoryData.config as ProcessFlowConfigProps);
           }
 
-          // Initialize blocks from category.blocks
-          if (category.blocks && Array.isArray(category.blocks)) {
-            setBlocks(category.blocks);
+          if (categoryData.blocks && Array.isArray(categoryData.blocks)) {
+            setBlocks(categoryData.blocks);
           }
 
-          // Initialize workflow from category.workflow
-          if (category.workflow) {
-            setWorkflow(category.workflow);
+          // Prioritize existing document's workflow over category workflow
+          if (existingDocData?.workflow) {
+            setWorkflow(existingDocData.workflow);
+            // Note: existing document workflow might not have trackers in the same format
+            // Keep using category trackers as fallback for now
+            if (
+              categoryData.workflow?.trackers &&
+              Array.isArray(categoryData.workflow.trackers)
+            ) {
+              setTrackers(categoryData.workflow.trackers);
+            }
+          } else if (categoryData.workflow) {
+            setWorkflow(categoryData.workflow);
+
+            if (
+              categoryData.workflow.trackers &&
+              Array.isArray(categoryData.workflow.trackers)
+            ) {
+              setTrackers(categoryData.workflow.trackers);
+            }
           }
 
-          // Initialize trackers from category.workflow?.trackers
-          if (
-            category.workflow?.trackers &&
-            Array.isArray(category.workflow.trackers)
-          ) {
-            setTrackers(category.workflow.trackers);
+          if (categoryData.content && Array.isArray(categoryData.content)) {
+            setBody(categoryData.content);
+            setEditedContents(categoryData.content);
           }
 
-          // Initialize body from category.content
-          if (category.content && Array.isArray(category.content)) {
-            setBody(category.content);
+          if (categoryData.meta_data) {
+            setMetaData(categoryData.meta_data);
           }
 
-          if (category.content) {
-            setEditedContents((prev) => {
-              if (prev.length > 0) {
-                return prev;
-              }
-              return category.content ?? [];
-            });
-          }
-
-          if (category.meta_data) {
-            setMetaData(category.meta_data);
-          }
-
-          if (category.requirements) {
+          if (categoryData.requirements) {
             setRequirements(
-              category.requirements.map((requirement) => ({
+              categoryData.requirements.map((requirement) => ({
                 ...requirement,
                 is_required: requirement.priority === "high",
                 is_present: false,
               }))
             );
           }
-
-          setCategory(category);
         }
-      };
+      } catch (error) {
+        console.error("Error fetching document data:", error);
+      }
+    };
 
-      fetchCategory();
-    }
+    fetchData();
   }, [params, addRequest, categoryRepo]);
 
   return {
@@ -201,7 +199,7 @@ const useDocumentGenerator = (params: unknown) => {
     isBuilding,
     setIsBuilding,
     metaData,
-    resources,
+    // resources removed - now handled by ResourceContext
     loggedInUser: staff,
     requirements,
     existingDocument,

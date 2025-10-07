@@ -2,7 +2,7 @@ import { ViewsProps } from "../BaseRepository";
 
 export const folderViews: ViewsProps[] = [
   {
-    title: "Desk Folders",
+    title: "Desk",
     server_url: "documents",
     component: "Folders",
     frontend_path: "/desk/folders",

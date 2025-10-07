@@ -9,6 +9,7 @@ import { ProcessFlowConfigProps } from "../views/crud/DocumentWorkflow";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
 import { DeskComponentPropTypes } from "../views/pages/DocumentTemplateContent";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import { useEffect, useMemo, useState } from "react";
 import { useStateContext } from "app/Context/ContentContext";
 import { FundResponseData } from "@/app/Repositories/Fund/data";
@@ -25,6 +26,7 @@ export const WhiteFormHeader = ({
   title?: string | null;
 }) => {
   const { state } = usePaperBoard();
+  const { getResourceById } = useResourceContext();
   const { config } = useStateContext();
 
   const [fund, setFund] = useState<FundResponseData | null>(null);
@@ -38,22 +40,28 @@ export const WhiteFormHeader = ({
   };
 
   const department = useMemo(() => {
+    // First try to get from configState (for new documents)
     const from = state.configState?.from;
-    if (!from) return null;
-    return state.resources.departments.find(
-      (department) => department.id === from.department_id
-    );
-  }, [state.configState]);
+    if (from?.department_id) {
+      return getResourceById("departments", from.department_id);
+    }
+
+    // Fallback: try to get from existing document (for existing documents)
+    if (state.existingDocument?.department_id) {
+      return getResourceById(
+        "departments",
+        state.existingDocument.department_id
+      );
+    }
+
+    return null;
+  }, [state.configState, state.existingDocument, getResourceById]);
 
   const directorate = useMemo(() => {
     if (!department) return null;
 
-    return (
-      state.resources.departments.find(
-        (dept) => dept.id === department.parentId
-      ) ?? department
-    );
-  }, [department]);
+    return getResourceById("departments", department.parentId) ?? department;
+  }, [department, getResourceById]);
 
   useEffect(() => {
     const paymentBatchContent = getPaymentBatchContent();
@@ -63,15 +71,13 @@ export const WhiteFormHeader = ({
   }, [state.body]);
 
   useEffect(() => {
-    if (state.fund && state.resources.funds.length > 0) {
-      const fund = state.resources.funds.find(
-        (fund) => fund.id === state.fund?.value
-      );
+    if (state.fund?.value) {
+      const fund = getResourceById("funds", state.fund.value);
       if (fund) {
         setFund(fund);
       }
     }
-  }, [state.fund, state.resources.funds]);
+  }, [state.fund, getResourceById]);
 
   return (
     <div className="printable__page__header mb-4">

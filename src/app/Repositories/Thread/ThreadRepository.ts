@@ -2,7 +2,12 @@ import {
   ColumnData,
   ButtonsProp,
 } from "resources/views/components/tables/CustomDataTable";
-import { BaseRepository, DependencyProps, ViewsProps } from "../BaseRepository";
+import {
+  BaseRepository,
+  DependencyProps,
+  JsonResponse,
+  ViewsProps,
+} from "../BaseRepository";
 import { ThreadResponseData } from "./data";
 import { threadRules } from "./rules";
 import { threadViews } from "./views";
@@ -16,7 +21,7 @@ export default class ThreadRepository extends BaseRepository {
   protected state: ThreadResponseData = threadConfig.state;
   public columns: ColumnData[] = threadColumns;
   public actions: ButtonsProp[] = threadConfig.actions;
-  public fromJson(data: ThreadResponseData): ThreadResponseData {
+  public fromJson(data: JsonResponse): ThreadResponseData {
     return {
       id: data.id ?? 0,
       pointer_identifier: data.pointer_identifier ?? "",
@@ -30,6 +35,7 @@ export default class ThreadRepository extends BaseRepository {
       state: data.state ?? "open",
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
+      document_id: data.document_id ?? 0,
     };
   }
   public associatedResources: DependencyProps[] =

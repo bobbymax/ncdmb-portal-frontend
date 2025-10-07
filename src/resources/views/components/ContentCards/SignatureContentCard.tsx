@@ -7,15 +7,13 @@ import React, {
 } from "react";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import SignatureCanvas from "../capsules/SignatureCanvas";
 import { SignatureResponseData } from "app/Repositories/Signature/data";
 import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
-import { UserResponseData } from "@/app/Repositories/User/data";
 import { SheetProps } from "../../pages/DocumentTemplateContent";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
-import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
-import Button from "../forms/Button";
 
 interface SignatureContentCardProps {
   item: ContentBlock;
@@ -33,51 +31,51 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   currentPageActions,
 }) => {
   const { state, actions } = usePaperBoard();
-  const [isDisplayed, setIsDisplayed] = useState<boolean>(false);
+  const { getResourceById } = useResourceContext();
   // Use ref to track previous configState to detect actual changes
   const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
 
   // Get stages that should be signed from configState
-  const signableStages: CategoryProgressTrackerProps[] = [];
-  if (state.configState) {
-    // "from" must always be first (top or left)
-    if (
-      state.configState.from &&
-      state.configState.from.should_be_signed === "yes"
-    ) {
-      signableStages.push({
-        ...state.configState.from,
-        order: signableStages.length + 1,
-        flow_type: "from",
-      });
+  const signableStages: CategoryProgressTrackerProps[] = useMemo(() => {
+    const stages: CategoryProgressTrackerProps[] = [];
+    if (state.configState) {
+      // "from" must always be first (top or left)
+      if (
+        state.configState.from &&
+        state.configState.from.should_be_signed === "yes"
+      ) {
+        stages.push({
+          ...state.configState.from,
+          order: stages.length + 1,
+          flow_type: "from",
+        });
+      }
+      if (
+        state.configState.through &&
+        state.configState.through.should_be_signed === "yes"
+      ) {
+        stages.push({
+          ...state.configState.through,
+          order: stages.length + 1,
+          flow_type: "through",
+        });
+      }
+      if (
+        state.configState.to &&
+        state.configState.to.should_be_signed === "yes"
+      ) {
+        stages.push({
+          ...state.configState.to,
+          order: stages.length + 1,
+          flow_type: "to",
+        });
+      }
     }
-    if (
-      state.configState.through &&
-      state.configState.through.should_be_signed === "yes"
-    ) {
-      signableStages.push({
-        ...state.configState.through,
-        order: signableStages.length + 1,
-        flow_type: "through",
-      });
-    }
-    if (
-      state.configState.to &&
-      state.configState.to.should_be_signed === "yes"
-    ) {
-      signableStages.push({
-        ...state.configState.to,
-        order: signableStages.length + 1,
-        flow_type: "to",
-      });
-    }
-  }
-
-  if (signableStages.length === 0) {
-    return null; // No stages to sign
-  }
+    return stages;
+  }, [state.configState]);
 
   const signatureButton: SelectedActionsProps | null = useMemo(() => {
+    if (signableStages.length === 0) return null;
     return (
       currentPageActions.find(
         (page) =>
@@ -85,52 +83,54 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
           page.action.category === "signature"
       ) ?? null
     );
-  }, [currentTracker, currentPageActions]);
+  }, [currentTracker, currentPageActions, signableStages.length]);
 
-  // Create signature data using actual user information from state.resources.users
-  const signatures: SignatureResponseData[] = React.useMemo(() => {
+  // Create signature data using actual user information from ResourceContext
+  const signatures: SignatureResponseData[] = useMemo(() => {
+    if (signableStages.length === 0) return [];
     // Get existing signature data from the item content if it exists
     const existingSignatures =
       (item.content?.signature as any)?.signatures || [];
 
-    // console.log(existingSignatures);
-
     return signableStages.map(
       (stage: CategoryProgressTrackerProps, index: number) => {
-        // Find the user from state.resources.users based on stage.user_id
-        const user = state.resources?.users?.find(
-          (u: UserResponseData) => u.id === stage.user_id
-        );
+        // Find the user from ResourceContext based on stage.user_id
+        const user = getResourceById("users", stage.user_id);
 
-        // console.log(user);
-
-        // Check if we have existing signature data for this stage
+        // Find existing signature for this stage
         const existingSignature = existingSignatures.find(
-          (sig: SignatureResponseData) =>
-            sig.user_id === stage.user_id && sig.flow_type === stage.flow_type
+          (sig: any) => sig.flow_type === stage.flow_type
         );
 
         return {
-          id: index + 1,
-          signatory_id: stage.workflow_stage_id,
-          order: stage.order,
+          id: existingSignature?.id || index + 1,
+          signatory_id: stage.user_id,
           user_id: stage.user_id,
-          document_draft_id: 1,
-          type: stage.signatory_type || "owner",
-          approving_officer: {
-            name: user?.name || `User ${stage.user_id}`,
-            grade_level: user?.grade_level || "Unknown",
-          },
-          signature: existingSignature?.signature || "",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          document_draft_id: 0, // Will be set when document is created
+          type: "signatory" as any, // Default type
           flow_type: stage.flow_type,
-        };
+          signature: existingSignature?.signature || null,
+          user: user || null,
+          group_id: stage.group_id,
+          order: stage.order,
+          approving_officer: user
+            ? {
+                name:
+                  `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+                  user.name ||
+                  "Unknown User",
+                grade_level: user.grade_level || "",
+              }
+            : {
+                name: `User ID: ${stage.user_id}`,
+                grade_level: "",
+              },
+        } as SignatureResponseData;
       }
     );
   }, [
     signableStages,
-    state.resources?.users,
+    getResourceById,
     (item.content?.signature as any)?.signatures,
   ]);
 
@@ -151,10 +151,6 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       ) ?? null
     );
   }, [signatures, currentTracker, state.loggedInUser]);
-
-  if (state.configState && currentSignature) {
-    console.log(state.configState[currentSignature?.flow_type]);
-  }
 
   // Handle signature save callback - use ref to avoid circular dependencies
   const handleSignatureSave = useCallback(
@@ -184,7 +180,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
 
       actions.setBody(newBody);
     },
-    [item, state.body, actions] // No signatures dependency - use ref instead
+    [item, state.body, actions]
   );
 
   // Update global state with signature data when configState or signatures change
@@ -220,62 +216,54 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     }
   }, [signatures, item.id, actions, state.configState]);
 
+  // Memoize signature display to avoid context re-renders
+  const signatureDisplay = useMemo(() => {
+    return state.category?.template?.signature_display;
+  }, [state.category?.template?.signature_display]);
+
+  // Early return after all hooks are called
+  if (signableStages.length === 0) {
+    return null; // No stages to sign
+  }
+
   if (isEditing) {
     return (
       <div className="inline__content__card signature__card">
         <div className="inline__card__header">
           <h5>Signature Configuration</h5>
         </div>
-        <div className="inline__card__content">
-          <p>Signature configuration coming soon...</p>
-          <div className="inline__card__actions">
-            <button className="btn__secondary" onClick={onClose}>
-              Close
-            </button>
-          </div>
+        <div className="inline__card__body">
+          <p>Configure signature settings for this document.</p>
         </div>
       </div>
     );
   }
 
-  // View mode - Check if signatures should be displayed
-  if (!state.category || state.category.signature_type === "none") {
-    return null; // Don't render anything if no signatures
-  }
-
-  // console.log(state.category?.signature_type);
-
-  // Determine container class based on signature type
   const getContainerClass = () => {
-    switch (state.category?.signature_type) {
-      case "flex":
-        return "signature__container__box view__mode signature__flex";
-      case "boxed":
-        return "signature__container__box view__mode signature__boxed";
-      case "stacked":
-        return "signature__container__box view__mode signature__stacked";
-      case "flush":
-        return "signature__container__box view__mode signature__flush";
+    if (!state.category?.template?.signature_display) {
+      return "signature__container__box view__mode";
+    }
+
+    switch (state.category.template.signature_display) {
+      case "group":
+        return "signature__container__box group__mode";
+      case "name":
+        return "signature__container__box name__mode";
+      case "both":
+        return "signature__container__box both__mode";
       default:
         return "signature__container__box view__mode";
     }
   };
 
-  // Memoize signature display to avoid context re-renders
-  const signatureDisplay = useMemo(() => {
-    return state.category?.template?.signature_display;
-  }, [state.category?.template?.signature_display]);
-
   return (
     <div className={getContainerClass()}>
       <h3 className="approvals__heading">Approvals</h3>
-      {signatures.map((signature: SignatureResponseData, index: number) => {
+      {signatures.map((signature: SignatureResponseData) => {
         // Get the group for this specific signature's flow_type
-        const group = state.resources.groups.find(
-          (group) =>
-            group.id ===
-            state.configState?.[signature?.flow_type ?? "from"]?.group_id
-        );
+        const groupId =
+          state.configState?.[signature?.flow_type ?? "from"]?.group_id;
+        const group = groupId ? getResourceById("groups", groupId) : null;
 
         return (
           <div key={signature.id} className="signature__item">

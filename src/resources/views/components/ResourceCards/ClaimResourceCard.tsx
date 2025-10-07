@@ -45,8 +45,6 @@ const ClaimResourceCard: React.FC<ClaimResourceCardProps> = ({
 
   const identifier: DeskComponentPropTypes = "expense";
 
-  // Debug logging removed for production
-
   const expenseState = useMemo(() => {
     return state.resourceLinks.find((link) => link.type === identifier);
   }, [state.resourceLinks, identifier]);

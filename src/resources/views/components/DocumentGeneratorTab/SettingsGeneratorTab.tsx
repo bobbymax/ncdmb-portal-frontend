@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import {
   ProcessFlowConfigProps,
   ProcessFlowType,
@@ -50,6 +51,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
 }) => {
   const { openWorkflow, closeModal } = useModal();
   const { state, actions } = usePaperBoard();
+  const { getResourceById, getResource, resources } = useResourceContext();
   const [selectedScope, setSelectedScope] = useState<string>("private");
 
   // Initialize preferences with default values if they don't exist
@@ -294,43 +296,41 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
     }> = [];
 
     // Search users
-    if (state.resources.users) {
-      state.resources.users.forEach((user) => {
-        if (
-          user.name?.toLowerCase().includes(query) ||
-          user.email?.toLowerCase().includes(query)
-        ) {
-          results.push({
-            id: user.id,
-            type: "user",
-            name: user.name || `User ${user.id}`,
-            email: user.email,
-          });
-        }
-      });
-    }
+    const users = getResource("users") || [];
+    users.forEach((user) => {
+      if (
+        user.name?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query)
+      ) {
+        results.push({
+          id: user.id,
+          type: "user",
+          name: user.name || `User ${user.id}`,
+          email: user.email,
+        });
+      }
+    });
 
     // Search groups
-    if (state.resources.groups) {
-      state.resources.groups.forEach((group) => {
-        if (
-          group.name?.toLowerCase().includes(query) ||
-          group.label?.toLowerCase().includes(query) ||
-          group.scope?.toLowerCase().includes(query)
-        ) {
-          results.push({
-            id: group.id,
-            type: "group",
-            name: group.name || `Group ${group.id}`,
-            description: `${group.label} (${group.scope})`,
-          });
-        }
-      });
-    }
+    const groups = getResource("groups") || [];
+    groups.forEach((group) => {
+      if (
+        group.name?.toLowerCase().includes(query) ||
+        group.label?.toLowerCase().includes(query) ||
+        group.scope?.toLowerCase().includes(query)
+      ) {
+        results.push({
+          id: group.id,
+          type: "group",
+          name: group.name || `Group ${group.id}`,
+          description: `${group.label} (${group.scope})`,
+        });
+      }
+    });
 
     // Limit results to first 10
     return results.slice(0, 10);
-  }, [watcherSearchQuery, state.resources.users, state.resources.groups]);
+  }, [watcherSearchQuery, getResourceById]);
 
   // Select a watcher
   const selectWatcher = (watcher: WatcherProps) => {
@@ -395,7 +395,7 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
         data: config || null,
         isUpdating: !!config,
         handleSubmit: handleWorkflowConfigChange,
-        dependencies: state.resources as WorkflowDependencyProps,
+        dependencies: resources as WorkflowDependencyProps,
       },
       state.configState?.[type]
     );
@@ -456,29 +456,26 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                           {state.configState?.from ? (
                             <>
                               <p className="workflow__stage__description">
-                                {state.resources.workflowStages?.find(
-                                  (stage) =>
-                                    stage.id ===
-                                    state.configState?.from?.workflow_stage_id
+                                {getResourceById(
+                                  "workflowStages",
+                                  state.configState?.from?.workflow_stage_id
                                 )?.name ||
                                   `Stage ID: ${state.configState.from.workflow_stage_id}`}
                               </p>
                               <div className="workflow__stage__metadata">
                                 <span className="watcher__metadata__item">
                                   <i className="ri-group-line"></i>
-                                  {state.resources.groups?.find(
-                                    (group) =>
-                                      group.id ===
-                                      state.configState?.from?.group_id
+                                  {getResourceById(
+                                    "groups",
+                                    state.configState?.from?.group_id
                                   )?.name ||
                                     `Group ID: ${state.configState.from.group_id}`}
                                 </span>
                                 <span className="watcher__metadata__item">
                                   <i className="ri-building-line"></i>
-                                  {state.resources.departments?.find(
-                                    (dept) =>
-                                      dept.id ===
-                                      state.configState?.from?.department_id
+                                  {getResourceById(
+                                    "departments",
+                                    state.configState?.from?.department_id
                                   )?.name ||
                                     `Dept ID: ${state.configState.from.department_id}`}
                                 </span>
@@ -553,30 +550,26 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                           {state.configState?.through ? (
                             <>
                               <p className="workflow__stage__description">
-                                {state.resources.workflowStages?.find(
-                                  (stage) =>
-                                    stage.id ===
-                                    state.configState?.through
-                                      ?.workflow_stage_id
+                                {getResourceById(
+                                  "workflowStages",
+                                  state.configState?.through?.workflow_stage_id
                                 )?.name ||
                                   `Stage ID: ${state.configState.through.workflow_stage_id}`}
                               </p>
                               <div className="workflow__stage__metadata">
                                 <span className="watcher__metadata__item">
                                   <i className="ri-group-line"></i>
-                                  {state.resources.groups?.find(
-                                    (group) =>
-                                      group.id ===
-                                      state.configState?.through?.group_id
+                                  {getResourceById(
+                                    "groups",
+                                    state.configState?.through?.group_id
                                   )?.name ||
                                     `Group ID: ${state.configState.through.group_id}`}
                                 </span>
                                 <span className="watcher__metadata__item">
                                   <i className="ri-building-line"></i>
-                                  {state.resources.departments?.find(
-                                    (dept) =>
-                                      dept.id ===
-                                      state.configState?.through?.department_id
+                                  {getResourceById(
+                                    "departments",
+                                    state.configState?.through?.department_id
                                   )?.name ||
                                     `Dept ID: ${state.configState.through.department_id}`}
                                 </span>
@@ -649,29 +642,26 @@ const SettingsGeneratorTab: React.FC<SettingsGeneratorTabProps> = ({
                           {state.configState?.to ? (
                             <>
                               <p className="workflow__stage__description">
-                                {state.resources.workflowStages?.find(
-                                  (stage) =>
-                                    stage.id ===
-                                    state.configState?.to?.workflow_stage_id
+                                {getResourceById(
+                                  "workflowStages",
+                                  state.configState?.to?.workflow_stage_id
                                 )?.name ||
                                   `Stage ID: ${state.configState.to.workflow_stage_id}`}
                               </p>
                               <div className="workflow__stage__metadata">
                                 <span className="watcher__metadata__item">
                                   <i className="ri-group-line"></i>
-                                  {state.resources.groups?.find(
-                                    (group) =>
-                                      group.id ===
-                                      state.configState?.to?.group_id
+                                  {getResourceById(
+                                    "groups",
+                                    state.configState?.to?.group_id
                                   )?.name ||
                                     `Group ID: ${state.configState.to.group_id}`}
                                 </span>
                                 <span className="watcher__metadata__item">
                                   <i className="ri-building-line"></i>
-                                  {state.resources.departments?.find(
-                                    (dept) =>
-                                      dept.id ===
-                                      state.configState?.to?.department_id
+                                  {getResourceById(
+                                    "departments",
+                                    state.configState?.to?.department_id
                                   )?.name ||
                                     `Dept ID: ${state.configState.to.department_id}`}
                                 </span>

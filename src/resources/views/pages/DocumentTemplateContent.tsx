@@ -2,6 +2,7 @@ import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import {
   DocumentCategoryResponseData,
   CategoryProgressTrackerProps,
+  PointerActivityTypesProps,
 } from "app/Repositories/DocumentCategory/data";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
 import React, {
@@ -9,10 +10,12 @@ import React, {
   useEffect,
   useRef,
   useMemo,
+  useCallback,
   Suspense,
   lazy,
 } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
@@ -46,6 +49,7 @@ import PrintDocumentNew from "../components/pages/PrintDocumentNew";
 import DocumentMessaging from "../components/pages/DocumentMessaging";
 import { usePdfMerger } from "app/Hooks/usePdfMerger";
 import { useStateContext } from "app/Context/ContentContext";
+import { ThreadResponseData } from "@/app/Repositories/Thread/data";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -87,6 +91,7 @@ const DocumentTemplateContent = ({
   existingDocument: propExistingDocument,
 }: DocumentTemplateContentProps) => {
   const { state, actions } = usePaperBoard();
+  const { getResourceById } = useResourceContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -255,14 +260,15 @@ const DocumentTemplateContent = ({
         });
       }
 
-      // Sync fund - get the correct fund from state.resources.funds
+      // Sync fund - get the correct fund from ResourceContext
       if (
         state.existingDocument.fund_id &&
         state.existingDocument.fund_id > 0
       ) {
-        // First try to find the fund in state.resources.funds
-        const matchingFund = state.resources?.funds?.find(
-          (fund) => fund.id === state.existingDocument!.fund_id
+        // Get fund from ResourceContext
+        const matchingFund = getResourceById(
+          "funds",
+          state.existingDocument!.fund_id
         );
 
         if (matchingFund) {
@@ -647,180 +653,198 @@ const DocumentTemplateContent = ({
   const displayBlocks =
     state.blocks && state.blocks.length > 0 ? state.blocks : sampleBlocks;
 
-  const handleTabChange = (tabName: string) => {
-    setActiveTab(tabName);
-    logTabSwitch(tabName);
-  };
+  const handleTabChange = useCallback(
+    (tabName: string) => {
+      setActiveTab(tabName);
+      logTabSwitch(tabName);
+    },
+    [logTabSwitch]
+  );
 
-  // Tab reordering handlers
-  const handleTabDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedTabIndex(index);
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", `tab-${index}`);
-  };
+  // Tab reordering handlers - memoized to prevent re-renders
+  const handleTabDragStart = useCallback(
+    (e: React.DragEvent, index: number) => {
+      setDraggedTabIndex(index);
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", `tab-${index}`);
+    },
+    []
+  );
 
-  const handleTabDragOver = (e: React.DragEvent) => {
+  const handleTabDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-  };
+  }, []);
 
-  const handleTabDragEnter = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedTabIndex !== null && draggedTabIndex !== index) {
-      const target = e.currentTarget as HTMLElement;
-      target.classList.add("tab-drag-over");
-    }
-  };
+  const handleTabDragEnter = useCallback(
+    (e: React.DragEvent, index: number) => {
+      e.preventDefault();
+      if (draggedTabIndex !== null && draggedTabIndex !== index) {
+        const target = e.currentTarget as HTMLElement;
+        target.classList.add("tab-drag-over");
+      }
+    },
+    [draggedTabIndex]
+  );
 
-  const handleTabDragLeave = (e: React.DragEvent) => {
+  const handleTabDragLeave = useCallback((e: React.DragEvent) => {
     const target = e.currentTarget as HTMLElement;
     target.classList.remove("tab-drag-over");
-  };
+  }, []);
 
-  const handleTabDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
+  const handleTabDrop = useCallback(
+    (e: React.DragEvent, dropIndex: number) => {
+      e.preventDefault();
 
-    if (draggedTabIndex !== null && draggedTabIndex !== dropIndex) {
-      const newTabOrder = [...tabOrder];
-      const [draggedTab] = newTabOrder.splice(draggedTabIndex, 1);
-      newTabOrder.splice(dropIndex, 0, draggedTab);
+      if (draggedTabIndex !== null && draggedTabIndex !== dropIndex) {
+        const newTabOrder = [...tabOrder];
+        const [draggedTab] = newTabOrder.splice(draggedTabIndex, 1);
+        newTabOrder.splice(dropIndex, 0, draggedTab);
 
-      setTabOrder(newTabOrder);
+        setTabOrder(newTabOrder);
 
-      // Update active tab if the dragged tab was active
-      if (activeTab === draggedTab.id) {
-        setActiveTab(draggedTab.id);
+        // Update active tab if the dragged tab was active
+        if (activeTab === draggedTab.id) {
+          setActiveTab(draggedTab.id);
+        }
       }
-    }
 
-    // Remove drag-over classes
-    document.querySelectorAll(".tab__item").forEach((tab) => {
-      tab.classList.remove("tab-drag-over");
-    });
+      // Remove drag-over classes
+      document.querySelectorAll(".tab__item").forEach((tab) => {
+        tab.classList.remove("tab-drag-over");
+      });
 
-    setDraggedTabIndex(null);
-  };
+      setDraggedTabIndex(null);
+    },
+    [draggedTabIndex, tabOrder, activeTab]
+  );
 
-  // Drag and Drop handlers for body items (reordering)
-  const handleDragStart = (e: React.DragEvent, index: number) => {
+  // Drag and Drop handlers for body items (reordering) - memoized
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `body-item-${index}`);
-  };
+  }, []);
 
-  // Drag and Drop handlers for toolbar blocks (adding new items)
-  const handleBlockDragStart = (e: React.DragEvent, block: any) => {
+  // Drag and Drop handlers for toolbar blocks (adding new items) - memoized
+  const handleBlockDragStart = useCallback((e: React.DragEvent, block: any) => {
     e.dataTransfer.effectAllowed = "copy";
     e.dataTransfer.setData("application/json", JSON.stringify(block));
     e.dataTransfer.setData("text/plain", "toolbar-block");
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const dragType = e.dataTransfer.types.includes("application/json")
       ? "copy"
       : "move";
     e.dataTransfer.dropEffect = dragType;
-  };
+  }, []);
 
-  const handleDragEnter = (e: React.DragEvent, index?: number) => {
-    e.preventDefault();
-    const dragType = e.dataTransfer.types.includes("application/json");
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent, index?: number) => {
+      e.preventDefault();
+      const dragType = e.dataTransfer.types.includes("application/json");
 
-    if (dragType) {
-      // Toolbar block being dragged - highlight sheet content
-      const sheetContent =
-        e.currentTarget.closest(".sheet__content") || e.currentTarget;
-      sheetContent.classList.add("drag-over");
-    } else if (
-      draggedIndex !== null &&
-      index !== undefined &&
-      draggedIndex !== index
-    ) {
-      // Body item being reordered - highlight specific item
-      const target = e.currentTarget as HTMLElement;
-      target.classList.add("drag-over");
-    }
-  };
+      if (dragType) {
+        // Toolbar block being dragged - highlight sheet content
+        const sheetContent =
+          e.currentTarget.closest(".sheet__content") || e.currentTarget;
+        sheetContent.classList.add("drag-over");
+      } else if (
+        draggedIndex !== null &&
+        index !== undefined &&
+        draggedIndex !== index
+      ) {
+        // Body item being reordered - highlight specific item
+        const target = e.currentTarget as HTMLElement;
+        target.classList.add("drag-over");
+      }
+    },
+    [draggedIndex]
+  );
 
-  const handleDrop = (e: React.DragEvent, dropIndex?: number) => {
-    e.preventDefault();
+  const handleDrop = useCallback(
+    (e: React.DragEvent, dropIndex?: number) => {
+      e.preventDefault();
 
-    const dragType = e.dataTransfer.getData("text/plain");
+      const dragType = e.dataTransfer.getData("text/plain");
 
-    if (dragType === "toolbar-block") {
-      // Handle dropping a toolbar block
-      try {
-        const blockData = JSON.parse(
-          e.dataTransfer.getData("application/json")
-        );
-        const newContentBlock: ContentBlock = {
-          id: crypto.randomUUID(),
-          type: blockData.data_type,
-          block: blockData,
-          order: state.body.length + 1,
-          content: null,
-          comments: [],
-        };
+      if (dragType === "toolbar-block") {
+        // Handle dropping a toolbar block
+        try {
+          const blockData = JSON.parse(
+            e.dataTransfer.getData("application/json")
+          );
+          const newContentBlock: ContentBlock = {
+            id: crypto.randomUUID(),
+            type: blockData.data_type,
+            block: blockData,
+            order: state.body.length + 1,
+            content: null,
+            comments: [],
+          };
 
-        const newBody = [...state.body];
-        if (dropIndex !== undefined) {
-          // Insert at specific position
-          newBody.splice(dropIndex, 0, newContentBlock);
-          // Update order for all items
-          newBody.forEach((item, index) => {
-            item.order = index + 1;
-          });
-        } else {
-          // Add at the end
-          newBody.push(newContentBlock);
+          const newBody = [...state.body];
+          if (dropIndex !== undefined) {
+            // Insert at specific position
+            newBody.splice(dropIndex, 0, newContentBlock);
+            // Update order for all items
+            newBody.forEach((item, index) => {
+              item.order = index + 1;
+            });
+          } else {
+            // Add at the end
+            newBody.push(newContentBlock);
+          }
+
+          actions.setBody(newBody);
+
+          // Log the content addition
+          logContentAction(
+            "content_add",
+            blockData.data_type,
+            newContentBlock.id
+          );
+        } catch (error) {
+          // Error parsing block data
         }
+      } else if (
+        dragType.startsWith("body-item-") &&
+        draggedIndex !== null &&
+        dropIndex !== undefined &&
+        draggedIndex !== dropIndex
+      ) {
+        // Handle reordering body items
+        const newBody = [...state.body];
+        const [draggedItem] = newBody.splice(draggedIndex, 1);
+        newBody.splice(dropIndex, 0, draggedItem);
+
+        // Update order for all items
+        newBody.forEach((item, index) => {
+          item.order = index + 1;
+        });
 
         actions.setBody(newBody);
 
-        // Log the content addition
-        logContentAction(
-          "content_add",
-          blockData.data_type,
-          newContentBlock.id
-        );
-      } catch (error) {
-        // Error parsing block data
+        // Log the content reordering
+        logContentAction("content_reorder", draggedItem.type, draggedItem.id);
       }
-    } else if (
-      dragType.startsWith("body-item-") &&
-      draggedIndex !== null &&
-      dropIndex !== undefined &&
-      draggedIndex !== dropIndex
-    ) {
-      // Handle reordering body items
-      const newBody = [...state.body];
-      const [draggedItem] = newBody.splice(draggedIndex, 1);
-      newBody.splice(dropIndex, 0, draggedItem);
 
-      // Update order for all items
-      newBody.forEach((item, index) => {
-        item.order = index + 1;
+      // Remove drag-over class from all items
+      document.querySelectorAll(".body__item").forEach((item) => {
+        item.classList.remove("drag-over");
+      });
+      document.querySelectorAll(".sheet__content").forEach((item) => {
+        item.classList.remove("drag-over");
       });
 
-      actions.setBody(newBody);
+      setDraggedIndex(null);
+    },
+    [draggedIndex, state.body, actions, logContentAction]
+  );
 
-      // Log the content reordering
-      logContentAction("content_reorder", draggedItem.type, draggedItem.id);
-    }
-
-    // Remove drag-over class from all items
-    document.querySelectorAll(".body__item").forEach((item) => {
-      item.classList.remove("drag-over");
-    });
-    document.querySelectorAll(".sheet__content").forEach((item) => {
-      item.classList.remove("drag-over");
-    });
-
-    setDraggedIndex(null);
-  };
-
-  const handleManageItem = (itemId: string) => {
+  const handleManageItem = useCallback((itemId: string) => {
     setEditingItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(itemId)) {
@@ -830,114 +854,141 @@ const DocumentTemplateContent = ({
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleRemoveItem = (itemId: string) => {
-    const itemToRemove = state.body.find((item) => item.id === itemId);
-    const newBody = state.body.filter((item) => item.id !== itemId);
-    actions.setBody(newBody);
+  const handleRemoveItem = useCallback(
+    (itemId: string) => {
+      const itemToRemove = state.body.find((item) => item.id === itemId);
+      const newBody = state.body.filter((item) => item.id !== itemId);
+      actions.setBody(newBody);
 
-    // Log the removal
-    if (itemToRemove) {
-      logContentAction("content_remove", itemToRemove.type, itemId);
-    }
-  };
-
-  // Handle workflow actions
-  const handleWorkflowAction = async (action: DocumentActionResponseData) => {
-    try {
-      switch (action.action_status) {
-        case "passed":
-          if (canPass) {
-            await pass(action.id, undefined, action.draft_status);
-            logWorkflowAction("passed");
-          }
-          break;
-        case "stalled":
-          if (canStall) {
-            await stall(action.id, undefined, action.draft_status);
-            logWorkflowAction("stalled");
-          }
-          break;
-        case "processing":
-          if (canProcess) {
-            await process(action.id, undefined, action.draft_status);
-            logWorkflowAction("processing");
-          }
-          break;
-        case "reversed":
-          if (canReverse) {
-            await reverse(action.id, undefined, action.draft_status);
-            logWorkflowAction("reversed");
-          }
-          break;
-        case "complete":
-          if (canComplete) {
-            await complete(action.id, undefined, action.draft_status);
-            logWorkflowAction("complete");
-          }
-          break;
-        case "cancelled":
-          if (canCancel) {
-            await cancel(action.id, undefined, action.draft_status);
-            logWorkflowAction("cancelled");
-          }
-          break;
-        case "appeal":
-          if (canAppeal) {
-            await appeal(action.id, undefined, action.draft_status);
-            logWorkflowAction("appeal");
-          }
-          break;
-        case "escalate":
-          if (canEscalate) {
-            await escalate(action.id, undefined, action.draft_status);
-            logWorkflowAction("escalate");
-          }
-          break;
-        default:
-        // Unknown action status
+      // Log the removal
+      if (itemToRemove) {
+        logContentAction("content_remove", itemToRemove.type, itemId);
       }
-    } catch (error) {
-      // Workflow action failed
-    }
-  };
+    },
+    [state.body, actions, logContentAction]
+  );
 
-  const handleAddResourceLink = (contentBlock: ContentBlock) => {
-    // Check if the content block is already in resourceLinks
-    const isAlreadyLinked = state.resourceLinks?.some(
-      (link) => link.id === contentBlock.id
-    );
+  // Handle workflow actions - memoized
+  const handleWorkflowAction = useCallback(
+    async (action: DocumentActionResponseData) => {
+      try {
+        switch (action.action_status) {
+          case "passed":
+            if (canPass) {
+              await pass(action.id, undefined, action.draft_status);
+              logWorkflowAction("passed");
+            }
+            break;
+          case "stalled":
+            if (canStall) {
+              await stall(action.id, undefined, action.draft_status);
+              logWorkflowAction("stalled");
+            }
+            break;
+          case "processing":
+            if (canProcess) {
+              await process(action.id, undefined, action.draft_status);
+              logWorkflowAction("processing");
+            }
+            break;
+          case "reversed":
+            if (canReverse) {
+              await reverse(action.id, undefined, action.draft_status);
+              logWorkflowAction("reversed");
+            }
+            break;
+          case "complete":
+            if (canComplete) {
+              await complete(action.id, undefined, action.draft_status);
+              logWorkflowAction("complete");
+            }
+            break;
+          case "cancelled":
+            if (canCancel) {
+              await cancel(action.id, undefined, action.draft_status);
+              logWorkflowAction("cancelled");
+            }
+            break;
+          case "appeal":
+            if (canAppeal) {
+              await appeal(action.id, undefined, action.draft_status);
+              logWorkflowAction("appeal");
+            }
+            break;
+          case "escalate":
+            if (canEscalate) {
+              await escalate(action.id, undefined, action.draft_status);
+              logWorkflowAction("escalate");
+            }
+            break;
+          default:
+          // Unknown action status
+        }
+      } catch (error) {
+        // Workflow action failed
+      }
+    },
+    [
+      canPass,
+      canStall,
+      canProcess,
+      canReverse,
+      canComplete,
+      canCancel,
+      canAppeal,
+      canEscalate,
+      pass,
+      stall,
+      process,
+      reverse,
+      complete,
+      cancel,
+      appeal,
+      escalate,
+      logWorkflowAction,
+    ]
+  );
 
-    if (isAlreadyLinked) {
-      // If already linked, remove it
-      const updatedResourceLinks =
-        state.resourceLinks?.filter((link) => link.id !== contentBlock.id) ||
-        [];
-      actions.setResourceLinks(updatedResourceLinks);
-      logResourceLink("unlinked", contentBlock.id);
-    } else {
-      // If not linked, add it
-      const updatedResourceLinks = [
-        ...(state.resourceLinks || []),
-        contentBlock,
-      ];
-      actions.setResourceLinks(updatedResourceLinks);
-      logResourceLink("linked", contentBlock.id);
-    }
-  };
+  const handleAddResourceLink = useCallback(
+    (contentBlock: ContentBlock) => {
+      // Check if the content block is already in resourceLinks
+      const isAlreadyLinked = state.resourceLinks?.some(
+        (link) => link.id === contentBlock.id
+      );
 
-  const handleGenerateDocument = async () => {
+      if (isAlreadyLinked) {
+        // If already linked, remove it
+        const updatedResourceLinks =
+          state.resourceLinks?.filter((link) => link.id !== contentBlock.id) ||
+          [];
+        actions.setResourceLinks(updatedResourceLinks);
+        logResourceLink("unlinked", contentBlock.id);
+      } else {
+        // If not linked, add it
+        const updatedResourceLinks = [
+          ...(state.resourceLinks || []),
+          contentBlock,
+        ];
+        actions.setResourceLinks(updatedResourceLinks);
+        logResourceLink("linked", contentBlock.id);
+      }
+    },
+    [state.resourceLinks, actions, logResourceLink]
+  );
+
+  const handleGenerateDocument = useCallback(async () => {
     // Show progress modal using global function
     if (window.showDocumentProgressModal) {
       window.showDocumentProgressModal(handleDocumentGenerationComplete);
       logDocumentGenerate();
     }
-  };
+  }, [logDocumentGenerate]);
 
   // console.log(state);
 
-  const handleDocumentGenerationComplete = async () => {
+  const handleDocumentGenerationComplete = useCallback(async () => {
     try {
       // Convert File objects to data URLs
       const uploadDataUrls = await Promise.all(
@@ -957,6 +1008,27 @@ const DocumentTemplateContent = ({
 
       const paperTitleState = state.body.find(
         (link) => link.type === "paper_title"
+      );
+
+      // Generate Threads from the transformed trackers
+      const conversations: ThreadResponseData[] = transformedTrackers.map(
+        (tracker) => {
+          return {
+            pointer_identifier: tracker.identifier,
+            identifier: `thread_${tracker.user_id}_${
+              state.loggedInUser?.id ?? 0
+            }_${tracker.identifier}_${Date.now()}`,
+            thread_owner_id: tracker.user_id,
+            recipient_id: state.loggedInUser?.id ?? 0,
+            category: "question" as PointerActivityTypesProps,
+            conversations: [],
+            priority: "medium",
+            status: "pending",
+            state: "open",
+            created_at: new Date().toISOString(),
+            id: Date.now(),
+          };
+        }
       );
 
       const document = {
@@ -993,8 +1065,8 @@ const DocumentTemplateContent = ({
           (requirement) => requirement.is_present
         ),
         approval_memo: state.approval_memo,
-        threads: state.threads,
         budget_year: period,
+        conversations,
       };
 
       // Ensure preferences are populated before submission
@@ -1031,7 +1103,26 @@ const DocumentTemplateContent = ({
         "An unexpected error occurred. Please try again."
       );
     }
-  };
+  }, [
+    state.uploads,
+    state.trackers,
+    state.body,
+    state.documentState,
+    state.configState,
+    state.template,
+    category,
+    state.existingDocument,
+    state.fund,
+    state.metaData,
+    state.watchers,
+    state.loggedInUser,
+    state.requirements,
+    state.approval_memo,
+    state.threads,
+    period,
+    actions,
+    navigate,
+  ]);
 
   // Transform configState to CategoryProgressTrackerProps[] and update global trackers
   const transformedTrackers: CategoryProgressTrackerProps[] = useMemo(() => {
@@ -1506,4 +1597,13 @@ const DocumentTemplateContent = ({
   );
 };
 
-export default DocumentTemplateContent;
+// Memoize the component to prevent unnecessary re-renders
+export default React.memo(DocumentTemplateContent, (prevProps, nextProps) => {
+  // Only re-render if these critical props change
+  return (
+    prevProps.mode === nextProps.mode &&
+    prevProps.existingDocument?.id === nextProps.existingDocument?.id &&
+    prevProps.category?.id === nextProps.category?.id &&
+    prevProps.editedContents.length === nextProps.editedContents.length
+  );
+});

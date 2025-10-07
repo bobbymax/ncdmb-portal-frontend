@@ -884,6 +884,7 @@ b {
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition with sidebar */
   height: 100%;
+  overflow-y: auto;
 }
 
 .mid__banner p {
@@ -2159,7 +2160,6 @@ p.claim-description {
 }
 
 .table-container,
-.custom-card,
 .conflict_claim_item {
   background-color: var(--color-white);
   padding: var(--card-padding-xl);
@@ -2170,25 +2170,7 @@ p.claim-description {
 }
 
 .custom-card {
-  background-image: url("../images/buildings.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  background-blend-mode: soft-light;
-  background-color: var(--color-border-lighter);
-  background-origin: border-box;
   position: relative;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.6);
-    z-index: -1;
-  }
 }
 
 /* Top Header New Styling */

@@ -23968,7 +23968,9 @@ body,
 /* Custom Checkbox Styling */
 .custom__checkbox {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .checkbox__input {
@@ -23980,52 +23982,69 @@ body,
 }
 
 .checkbox__label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox__label .checkbox__checkmark {
   display: inline-block;
   width: 24px;
   height: 24px;
   background: #ffffff;
   border: 2px solid rgba(19, 117, 71, 0.3);
   border-radius: 6px;
-  cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-.checkbox__label:hover {
+.checkbox__label:hover .checkbox__checkmark {
   border-color: rgba(19, 117, 71, 0.5);
   background: rgba(19, 117, 71, 0.05);
 }
 
-.checkbox__input:checked + .checkbox__label {
+.checkbox__input:checked + .checkbox__label .checkbox__checkmark {
   background: linear-gradient(135deg, #13a547 0%, #10b981 100%);
   border-color: #13a547;
   box-shadow: 0 4px 12px rgba(19, 117, 71, 0.3);
 }
 
-.checkbox__checkmark {
+.checkbox__checkmark i {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.checkbox__input:checked + .checkbox__label .checkbox__checkmark {
+.checkbox__input:checked + .checkbox__label .checkbox__checkmark i {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
 
-.checkbox__checkmark i {
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
+.checkbox__text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--form-text-primary, #1e293b);
+  line-height: 1.5;
+}
+
+.checkbox__input:disabled + .checkbox__label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkbox__input:disabled + .checkbox__label .checkbox__checkmark {
+  background: rgba(226, 232, 240, 0.5);
+  border-color: rgba(203, 213, 225, 0.5);
 }
 
 .requirement__content {

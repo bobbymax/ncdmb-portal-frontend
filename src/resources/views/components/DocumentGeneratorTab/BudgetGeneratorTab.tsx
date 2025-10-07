@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { FundResponseData } from "app/Repositories/Fund/data";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
@@ -16,6 +17,7 @@ const BudgetGeneratorTab: React.FC<BudgetGeneratorTabProps> = ({
   category,
 }) => {
   const { state, actions } = usePaperBoard();
+  const { getResourceById } = useResourceContext();
 
   // Use PaperBoard resources instead of individual API calls
   const { funds, isLoading: fundsLoading } = usePaperBoardResources();
@@ -98,16 +100,14 @@ const BudgetGeneratorTab: React.FC<BudgetGeneratorTabProps> = ({
   );
 
   useEffect(() => {
-    if (state.fund && state.resources.funds.length > 0) {
-      const matchingFund = state.resources.funds.find(
-        (fund) => fund.id === state.fund?.value
-      );
+    if (state.fund?.value) {
+      const matchingFund = getResourceById("funds", state.fund.value);
       if (matchingFund) {
         setSelectedFundData(matchingFund);
         setSelectedOptions((prev) => ({ ...prev, fund: state.fund }));
       }
     }
-  }, [state.fund, state.resources.funds]);
+  }, [state.fund, getResourceById]);
 
   return (
     <div className="budget__generator__tab">

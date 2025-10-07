@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import { useResourceContext } from "app/Context/ResourceContext";
 import { useAuth } from "app/Context/AuthContext";
 import moment from "moment";
 import { DataOptionsProps } from "../forms/MultiSelect";
@@ -37,6 +38,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
   category,
 }) => {
   const { state, actions } = usePaperBoard();
+  const { getResourceById } = useResourceContext();
   const { staff } = useAuth();
   const [comments, setComments] = useState<CommentProps[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -339,9 +341,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
           : thread.thread_owner_id; // If logged-in user is not the thread owner, show thread owner
 
       // Get user info for the other person in the conversation
-      const otherUser = state.resources.users.find(
-        (user) => user.id === otherUserId
-      );
+      const otherUser = getResourceById("users", otherUserId);
 
       // Get the last conversation from the thread owner to determine category
       const lastConversationFromOwner = thread.conversations
@@ -399,7 +399,7 @@ const ThreadsGeneratorTab: React.FC<CommentsGeneratorTabProps> = ({
         categoryIcon: getCategoryIcon(displayCategory),
       };
     });
-  }, [allThreads, state.resources.users, state.loggedInUser?.id]);
+  }, [allThreads, getResourceById, state.loggedInUser?.id]);
 
   useEffect(() => {
     // Initialize comments from global state

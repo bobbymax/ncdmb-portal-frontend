@@ -127,60 +127,8 @@ const ResourceContext = createContext<ResourceContextType | null>(null);
 
 // Route to resource mapping configuration
 const ROUTE_RESOURCE_MAP: RouteResourceMap = {
-  // Document management routes
-  "/desk/folders": ["departments", "users", "funds", "groups"],
-  "/desk/claims": [
-    "departments",
-    "users",
-    "funds",
-    "groups",
-    "workflowStages",
-    "documentActions",
-  ],
-  "/desk/payment-batches": [
-    "departments",
-    "users",
-    "funds",
-    "groups",
-    "workflowStages",
-  ],
-  "/desk/progress-trackers": [
-    "departments",
-    "users",
-    "workflowStages",
-    "documentActions",
-  ],
-
-  // Document builder routes
-  "/desk/builder": [
-    "departments",
-    "users",
-    "funds",
-    "groups",
-    "workflowStages",
-    "documentActions",
-    "carders",
-    "documentTypes",
-    "workflows",
-  ],
-  "/desk/templates": [
-    "departments",
-    "users",
-    "funds",
-    "groups",
-    "workflowStages",
-    "documentActions",
-  ],
-
-  // Settings and admin routes
-  "/desk/settings": [
-    "departments",
-    "users",
-    "groups",
-    "workflowStages",
-    "documentActions",
-  ],
-  "/desk/admin": [
+  // Only load resources for document routes
+  "/desk/folders/category/:id/*": [
     "departments",
     "users",
     "funds",
@@ -192,8 +140,38 @@ const ROUTE_RESOURCE_MAP: RouteResourceMap = {
     "workflows",
   ],
 
-  // Default fallback - load essential resources
-  default: ["departments", "users", "funds", "groups"],
+  // Default fallback - no resources loaded for other routes
+  default: [],
+};
+
+// Helper function to match route patterns
+const matchRoutePattern = (route: string, pattern: string): boolean => {
+  // Convert pattern to regex
+  const regexPattern = pattern
+    .replace(/\//g, "\\/") // Escape forward slashes
+    .replace(/:id/g, "\\d+") // Match :id with digits
+    .replace(/\*/g, ".*"); // Match * with any characters
+
+  const regex = new RegExp(`^${regexPattern}`);
+  return regex.test(route);
+};
+
+// Helper function to get resources for a route
+const getResourcesForRoute = (route: string): ResourceType[] => {
+  // Check for exact matches first
+  if (ROUTE_RESOURCE_MAP[route]) {
+    return ROUTE_RESOURCE_MAP[route];
+  }
+
+  // Check for pattern matches
+  for (const [pattern, resources] of Object.entries(ROUTE_RESOURCE_MAP)) {
+    if (pattern !== "default" && matchRoutePattern(route, pattern)) {
+      return resources;
+    }
+  }
+
+  // Return default resources
+  return ROUTE_RESOURCE_MAP["default"];
 };
 
 // Resource provider component
@@ -246,7 +224,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
 
   // Update cache when user changes and clear resources when user logs out
   useEffect(() => {
-    if (staff?.id && staff?.is_logged_in) {
+    if (staff?.id) {
       // User is logged in - update cache
       setCache((prev) => ({
         ...prev,
@@ -255,7 +233,6 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       }));
     } else {
       // User is not logged in - clear resources and cache
-      console.log("🧹 User logged out, clearing resources");
       setResources({
         users: [],
         departments: [],
@@ -275,7 +252,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         timestamp: Date.now(),
       }));
     }
-  }, [staff?.id, staff?.is_logged_in]);
+  }, [staff?.id]);
 
   // Repository mapping
   const repositoryMap = useMemo(
@@ -338,8 +315,12 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       forceRefresh = false
     ): Promise<void> => {
       // Don't load resources if user is not logged in
-      if (!staff?.id || !staff?.is_logged_in) {
-        console.log("⏸️ Skipping resource loading - user not logged in");
+      if (!staff?.id) {
+        return;
+      }
+
+      // Skip if no resources to load
+      if (resourceTypes.length === 0) {
         return;
       }
 
@@ -349,7 +330,6 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         !isCacheExpired() &&
         areResourcesLoaded(resourceTypes)
       ) {
-        console.log("Using cached resources for:", resourceTypes);
         return;
       }
 
@@ -359,11 +339,8 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         : resourceTypes.filter((type) => !isResourceLoaded(type));
 
       if (resourcesToLoad.length === 0) {
-        console.log("All requested resources already loaded");
         return;
       }
-
-      console.log("Loading resources:", resourcesToLoad);
 
       // Set loading states
       setLoading((prev) => {
@@ -384,6 +361,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
             return Promise.resolve({ data: [] as string[] });
           }
           const repoInstance = repositoryMap[type]();
+
           return addRequest(() => repoInstance.collection(type));
         });
 
@@ -399,11 +377,6 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
 
           if (result.status === "fulfilled") {
             newResources[resourceType] = (result.value.data || []) as any;
-            console.log(
-              `✅ Loaded ${resourceType}:`,
-              result.value.data?.length || 0,
-              "items"
-            );
           } else {
             console.error(`❌ Failed to load ${resourceType}:`, result.reason);
             newResources[resourceType] = [] as any;
@@ -428,10 +401,6 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
           `batch-resources-${resourcesToLoad.join("-")}`,
           duration
         );
-
-        console.log(
-          `🚀 Resource loading completed in ${duration.toFixed(2)}ms`
-        );
       } catch (error) {
         console.error("Failed to load resources:", error);
 
@@ -447,7 +416,6 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     },
     [
       staff?.id,
-      staff?.is_logged_in,
       isCacheExpired,
       areResourcesLoaded,
       isResourceLoaded,
@@ -462,16 +430,15 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
   const loadResourcesForRoute = useCallback(
     async (route: string): Promise<void> => {
       // Don't load resources if user is not logged in
-      if (!staff?.id || !staff?.is_logged_in) {
-        console.log("⏸️ Skipping resource loading - user not logged in");
+      if (!staff?.id) {
         return;
       }
 
-      const requiredResources =
-        ROUTE_RESOURCE_MAP[route] || ROUTE_RESOURCE_MAP["default"];
+      const requiredResources = getResourcesForRoute(route);
+
       await loadResources(requiredResources);
     },
-    [loadResources, staff?.id, staff?.is_logged_in]
+    [loadResources, staff?.id]
   );
 
   // Get resource data
@@ -519,27 +486,14 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       ...prev,
       timestamp: Date.now(),
     }));
-
-    console.log("🧹 Resource cache cleared");
   }, []);
 
   // Auto-load resources for current route - ONLY when user is logged in
   useEffect(() => {
-    if (staff?.id && staff?.is_logged_in) {
-      console.log(
-        "🔄 User is logged in, loading resources for route:",
-        location.pathname
-      );
+    if (staff?.id) {
       loadResourcesForRoute(location.pathname);
-    } else {
-      console.log("⏸️ User not logged in, skipping resource loading");
     }
-  }, [
-    location.pathname,
-    staff?.id,
-    staff?.is_logged_in,
-    loadResourcesForRoute,
-  ]);
+  }, [location.pathname, staff?.id]);
 
   // Context value
   const contextValue: ResourceContextType = useMemo(

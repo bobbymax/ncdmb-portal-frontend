@@ -226,11 +226,7 @@ export const paperBoardReducer = (
         ...state,
         metaData: action.payload,
       };
-    case "SET_RESOURCES":
-      return {
-        ...state,
-        resources: action.payload,
-      };
+    // SET_RESOURCES case removed - resources now managed by ResourceContext
     case "SET_LOGGED_IN_USER":
       return {
         ...state,

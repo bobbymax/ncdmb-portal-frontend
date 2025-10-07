@@ -19,14 +19,6 @@ import {
 } from "@/resources/views/pages/DocumentTemplateContent";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
-import { UserResponseData } from "../Repositories/User/data";
-import { DepartmentResponseData } from "../Repositories/Department/data";
-import { FundResponseData } from "../Repositories/Fund/data";
-import { GroupResponseData } from "../Repositories/Group/data";
-import { WorkflowStageResponseData } from "../Repositories/WorkflowStage/data";
-import { DocumentActionResponseData } from "../Repositories/DocumentAction/data";
-import { CarderResponseData } from "../Repositories/Carder/data";
-import { DocumentTypeResponseData } from "../Repositories/DocumentType/data";
 import { AuthUserResponseData } from "./AuthContext";
 import {
   SettingsProps,
@@ -52,19 +44,7 @@ export interface DocumentActivity {
   };
 }
 
-export type ResourceProps = {
-  users: UserResponseData[];
-  departments: DepartmentResponseData[];
-  funds: FundResponseData[];
-  groups: GroupResponseData[];
-  workflowStages: WorkflowStageResponseData[];
-  documentActions: DocumentActionResponseData[];
-  services: string[];
-  carders: CarderResponseData[];
-  documentTypes: DocumentTypeResponseData[];
-  workflows: WorkflowResponseData[];
-  projects: any[]; // Add projects to ResourceProps
-};
+// ResourceProps moved to ResourceContext - no longer needed here
 
 export interface DocumentRequirementProps
   extends DocumentRequirementResponseData {
@@ -116,8 +96,7 @@ export interface PaperBoardState {
   accessLevel: AccessLevelProps;
   sync: boolean;
 
-  // Resources
-  resources: ResourceProps;
+  // Resources are now managed by ResourceContext
   loggedInUser: AuthUserResponseData | undefined;
   requirements: DocumentRequirementProps[];
   existingDocument: DocumentResponseData | null;
@@ -318,10 +297,7 @@ export type PaperBoardAction =
       type: "UPDATE_META_DATA";
       payload: DocumentMetaDataProps | null;
     }
-  | {
-      type: "SET_RESOURCES";
-      payload: ResourceProps;
-    }
+  // SET_RESOURCES action removed - resources now managed by ResourceContext
   | {
       type: "SET_LOGGED_IN_USER";
       payload: AuthUserResponseData | undefined;
@@ -419,7 +395,7 @@ export interface PaperBoardContextType {
     updateDocumentOwner: (document: DataOptionsProps | null) => void;
     setMetaData: (metaData: DocumentMetaDataProps | null) => void;
     updateMetaData: (metaData: DocumentMetaDataProps | null) => void;
-    setResources: (resources: ResourceProps) => void;
+    // setResources removed - resources now managed by ResourceContext
     setLoggedInUser: (user: AuthUserResponseData | undefined) => void;
     setPreferences: (preferences: SettingsProps) => void;
     updatePreferences: (preferences: SettingsProps) => void;
@@ -436,9 +412,7 @@ export interface PaperBoardContextType {
     addDocumentActivity: (activity: DocumentActivity) => void;
     clearDocumentActivities: () => void;
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
-    // Resource management methods (delegated to ResourceContext)
-    getResourceData: (resourceType: keyof ResourceProps) => any[];
-    areResourcesLoaded: () => boolean;
+    // Resource management methods removed - use ResourceContext directly
   };
 }
 
