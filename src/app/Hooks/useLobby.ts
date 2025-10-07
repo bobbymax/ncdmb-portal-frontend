@@ -38,19 +38,19 @@ const useLobby = (
 
     const item = stacks[index];
 
-    // Set type and fund_id from the first added item
-    if (queue.length === 0) {
-      const paymentType = staffPayments.includes(
-        item?.expenditureable?.type ?? ""
-      )
-        ? "staff"
-        : "third-party";
-      setQueueType(paymentType);
-      setFund({
-        ...item?.fund,
-        id: item?.fund_id,
-      } as FundProps & { id: number });
-    }
+    // // Set type and fund_id from the first added item
+    // if (queue.length === 0) {
+    //   const paymentType = staffPayments.includes(
+    //     item?.expenditureable?.type ?? ""
+    //   )
+    //     ? "staff"
+    //     : "third-party";
+    //   setQueueType(paymentType);
+    //   setFund({
+    //     ...item?.fund,
+    //     id: item?.fund_id,
+    //   } as FundProps & { id: number });
+    // }
 
     // Check constraints
     const limit = queueType === "staff" ? 6 : 1;

@@ -23,6 +23,7 @@ import _ from "lodash";
 import { repo } from "bootstrap/repositories";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { WidgetResponseData } from "app/Repositories/Widget/data";
+import { ProcessCardResponseData } from "@/app/Repositories/ProcessCard/data";
 
 interface DependencyProps {
   workflows: WorkflowResponseData[];
@@ -32,6 +33,7 @@ interface DependencyProps {
   departments: DepartmentResponseData[];
   signatories: SignatoryResponseData[];
   widgets: WidgetResponseData[];
+  processCards: ProcessCardResponseData[];
 }
 
 const ProgressTracker: React.FC<
@@ -47,6 +49,7 @@ const ProgressTracker: React.FC<
   const [departments, setDepartments] = useState<DataOptionsProps[]>([]);
   const [queue, setQueue] = useState<ServerTrackerData[]>([]);
   const [widgets, setWidgets] = useState<DataOptionsProps[]>([]);
+  const [processCards, setProcessCards] = useState<DataOptionsProps[]>([]);
 
   const trackerRepo = useMemo(() => repo("progress_tracker"), []);
 
@@ -60,6 +63,7 @@ const ProgressTracker: React.FC<
     document_type_id: 0,
     signatory_id: 0,
     internal_process_id: 0,
+    process_card_id: 0,
     order: 0,
     permission: "r",
     stage_name: "",
@@ -73,8 +77,10 @@ const ProgressTracker: React.FC<
 
   const [selectedOptions, setSelectedOptions] = useState<{
     workflow: DataOptionsProps | null;
+    process_card: DataOptionsProps | null;
   }>({
     workflow: null,
+    process_card: null,
   });
 
   const handleAddToQueue = (stage: WorkflowStageResponseData) => {
@@ -82,6 +88,7 @@ const ProgressTracker: React.FC<
       id: 0,
       identifier: generateUniqueString(32),
       workflow_stage_id: stage.id,
+      process_card_id: 0,
       group_id: 0,
       department_id: 0,
       carder_id: 0,
@@ -137,6 +144,7 @@ const ProgressTracker: React.FC<
             signatories,
             workflows,
             widgets,
+            processCards,
           ],
         },
         trackerState
@@ -212,6 +220,7 @@ const ProgressTracker: React.FC<
         departments = [],
         signatories = [],
         widgets = [],
+        processCards = [],
       } = dependencies as DependencyProps;
 
       setWorkflows(workflows);
@@ -224,6 +233,7 @@ const ProgressTracker: React.FC<
       setSignatories(signatories);
       setDocumentTypes(formatOptions(documentTypes, "id", "name"));
       setWidgets(formatOptions(widgets, "id", "title", true));
+      setProcessCards(formatOptions(processCards, "id", "name"));
     }
   }, [dependencies]);
 
@@ -244,6 +254,7 @@ const ProgressTracker: React.FC<
           value: currentWorkflow?.id,
           label: currentWorkflow?.name as string,
         },
+        process_card: null,
       });
 
       if (setState) {
@@ -254,6 +265,7 @@ const ProgressTracker: React.FC<
       }
 
       const trackers = currentWorkflow?.trackers;
+
       const queued: ServerTrackerData[] = trackers
         ? trackers?.map((tracker) => ({
             id: tracker.order,
@@ -264,6 +276,7 @@ const ProgressTracker: React.FC<
             department_id: tracker.department_id,
             carder_id: tracker.carder_id,
             signatory_id: tracker.signatory_id,
+            process_card_id: tracker.process_card_id,
             permission: tracker.permission,
             document_type_id: tracker.document_type_id,
             internal_process_id: tracker.internal_process_id,
@@ -277,6 +290,8 @@ const ProgressTracker: React.FC<
       setQueue(queued);
     }
   }, [mode, workflows]);
+
+  // console.log(queue);
 
   const renderMultiSelect = (
     label: string,

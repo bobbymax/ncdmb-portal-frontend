@@ -19,9 +19,6 @@ export const expenditureConfig: ConfigProp<ExpenditureResponseData> = {
     "expense_type",
     "currency",
     "cbn_current_rate",
-    "document_reference_id",
-    "expenditureable_id",
-    "expenditureable_type",
   ],
   associatedResources: [{ name: "funds", url: "funds" }],
   state: {

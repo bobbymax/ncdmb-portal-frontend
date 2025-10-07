@@ -179,7 +179,7 @@ const Payment: React.FC<FormPageComponentProps<PaymentResponseData>> = ({
             />
           </div>
           <div className="col-md-12 mb-3">
-            <div className="expenditure__board flex align gap-xl">
+            {/* <div className="expenditure__board flex align gap-xl">
               {expenditures.map((exp, i) => (
                 <div className="custom-card file__card exp__items" key={i}>
                   <small className="beneficiary">
@@ -200,7 +200,7 @@ const Payment: React.FC<FormPageComponentProps<PaymentResponseData>> = ({
                   />
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* Left Side */}

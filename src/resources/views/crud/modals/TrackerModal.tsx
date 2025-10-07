@@ -1,6 +1,5 @@
 import { useStateContext } from "app/Context/ContentContext";
 import { ModalValueProps, useModal } from "app/Context/ModalContext";
-import { DocumentTypeResponseData } from "app/Repositories/DocumentType/data";
 import { ServerTrackerData } from "app/Repositories/ProgressTracker/data";
 import { SignatoryResponseData } from "app/Repositories/Signatory/data";
 import { WorkflowResponseData } from "app/Repositories/Workflow/data";
@@ -26,7 +25,8 @@ type DependencyProps = [
   stages: WorkflowStageResponseData[],
   signatories: SignatoryResponseData[],
   workflows: WorkflowResponseData[],
-  widgets: DataOptionsProps[]
+  widgets: DataOptionsProps[],
+  processCards: DataOptionsProps[]
 ];
 
 const TrackerModal: React.FC<ModalValueProps> = ({
@@ -49,10 +49,11 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     signatories,
     workflows,
     widgets,
+    processCards,
   ] = useMemo(() => {
     return dependencies
       ? (dependencies as DependencyProps)
-      : [[], [], [], [], [], [], []];
+      : [[], [], [], [], [], [], [], []];
   }, [dependencies]);
 
   const [groups, setGroups] = useState<DataOptionsProps[]>([]);
@@ -72,6 +73,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     actions: DataOptionsProps[];
     recipients: DataOptionsProps[];
     widgets: DataOptionsProps[];
+    process_card: DataOptionsProps | null;
   }>({
     group: null,
     department: null,
@@ -83,6 +85,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
     actions: [],
     recipients: [],
     widgets: [],
+    process_card: null,
   });
 
   /**
@@ -125,6 +128,8 @@ const TrackerModal: React.FC<ModalValueProps> = ({
    */
   useEffect(() => {
     if (data && groups.length > 0) {
+      // console.log(data);
+
       const raw = data as ServerTrackerData;
       updateModalState(identifier, raw);
 
@@ -164,6 +169,18 @@ const TrackerModal: React.FC<ModalValueProps> = ({
         recipients: raw.recipients ?? [],
         widgets:
           raw.widgets?.length < 1 ? [{ value: 0, label: "None" }] : raw.widgets,
+        process_card: processCards.find(
+          (proc) => proc.value === raw.process_card_id
+        )
+          ? {
+              value: processCards.find(
+                (proc) => proc.value === raw.process_card_id
+              )?.value,
+              label:
+                processCards.find((proc) => proc.value === raw.process_card_id)
+                  ?.label ?? "",
+            }
+          : null,
       }));
     }
   }, [data, groups]);
@@ -276,8 +293,17 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           handleSelectionChange("widgets"),
           "Widgets",
           false,
-          6,
+          4,
           true
+        )}
+        {renderMultiSelect(
+          "Process Card",
+          processCards,
+          selectedOptions.process_card,
+          handleSelectionChange("process_card"),
+          "Process Card",
+          false,
+          4
         )}
         {renderMultiSelect(
           "Permissions",
@@ -286,7 +312,7 @@ const TrackerModal: React.FC<ModalValueProps> = ({
           handleSelectionChange("permission"),
           "Permisison",
           false,
-          6
+          4
         )}
         <div className="col-md-12">
           <Button

@@ -106,6 +106,7 @@ const useWorkflowTransformer = ({
         id: 0, // Will be set by backend
         workflow_id: 0, // Will be set by backend
         workflow_stage_id: Number(state.stage.value),
+        process_card_id: 0, // Will be set by backend
         identifier: trackerIdentifier,
         document_type_id: category.document_type_id,
         group_id: Number(state.group.value),

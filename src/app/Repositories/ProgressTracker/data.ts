@@ -6,6 +6,7 @@ import { GroupResponseData } from "../Group/data";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { DocumentActionResponseData } from "../DocumentAction/data";
 import { WidgetResponseData } from "../Widget/data";
+import { ProcessCardResponseData } from "../ProcessCard/data";
 
 export type PermissionTypes = "r" | "rw" | "rwx";
 
@@ -13,6 +14,7 @@ export type ServerTrackerData = {
   id: number;
   identifier: string;
   workflow_stage_id: number;
+  process_card_id: number;
   group_id: number;
   department_id: number;
   carder_id: number;
@@ -32,6 +34,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
   workflow_stage_id: number;
   identifier?: string;
   document_type_id: number;
+  process_card_id: number;
   group_id: number;
   carder_id: number;
   department_id: number;
@@ -51,6 +54,7 @@ export interface ProgressTrackerResponseData extends BaseResponse {
     name: string;
     abv: string;
   };
+  process_card?: ProcessCardResponseData | null;
   widgets?: WidgetResponseData[];
   created_at?: string;
   updated_at?: string;

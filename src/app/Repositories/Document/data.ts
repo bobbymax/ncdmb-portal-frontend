@@ -13,6 +13,7 @@ import {
 } from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import { ProgressTrackerResponseData } from "../ProgressTracker/data";
 
 export interface UploadResponseData extends BaseResponse {
   user_id: number;
@@ -86,6 +87,7 @@ export interface DocumentResponseData extends BaseResponse {
   fund_id: number;
   // action?: DocumentActionProps | null // ignore
   workflow: WorkflowResponseData | null; // ignore
+  processes?: ProgressTrackerResponseData[];
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;

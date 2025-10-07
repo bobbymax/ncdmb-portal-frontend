@@ -50,6 +50,7 @@ import DocumentMessaging from "../components/pages/DocumentMessaging";
 import { usePdfMerger } from "app/Hooks/usePdfMerger";
 import { useStateContext } from "app/Context/ContentContext";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
+import ProcessGeneratorTab from "../components/DocumentGeneratorTab/ProcessGeneratorTab";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -162,6 +163,12 @@ const DocumentTemplateContent = ({
       label: "Resource",
       icon: "ri-database-2-line",
       isEditor: true,
+    },
+    {
+      id: "process",
+      label: "Process",
+      icon: "ri-swap-2-line",
+      isEditor: false,
     },
     {
       id: "activities",
@@ -986,7 +993,7 @@ const DocumentTemplateContent = ({
     }
   }, [logDocumentGenerate]);
 
-  // console.log(state);
+  // console.log(state.existingDocument);
 
   const handleDocumentGenerationComplete = useCallback(async () => {
     try {
@@ -1580,6 +1587,9 @@ const DocumentTemplateContent = ({
                         )}
                         {tab.id === "activities" && (
                           <ActivitiesGeneratorTab category={category} />
+                        )}
+                        {tab.id === "process" && (
+                          <ProcessGeneratorTab category={category} />
                         )}
                       </Suspense>
                     </div>

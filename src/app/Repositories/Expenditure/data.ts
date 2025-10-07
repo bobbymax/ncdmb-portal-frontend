@@ -8,49 +8,26 @@ export type FundProps = {
   total_approved_amount: number;
 };
 
-type ControllerProps = {
-  name: string;
-  staff_no: string;
-  department: string;
-  role: string;
-};
-
-export type ExpenditureableProps = {
-  [key: string]: unknown;
-  id: number;
-  user_id?: number;
-  department_id?: number;
-  fund_id?: number;
-  code?: string;
-  type: string;
-  owner?: {
-    grade_level: string;
-    name: string;
-    staff_no: string;
-  };
-  beneficiary: BeneficiaryProps;
-  vendor?: {
-    name: string;
-    registration_no: string;
-    address: string;
-    phone: string;
-    email: string;
-  };
-};
-
 // @owner means department here
 // so this is the department the expenditure belongs to
-type OwnerProps = {
-  name: string;
-  abv: string;
-  department_payment_code: string;
+type LinkedDocumentProps = {
+  title: string;
+  ref: string;
+  published_at: string;
+  published_by: {
+    name: string;
+    staff_no: string;
+    department: string;
+  };
+  approved_amount: number;
+  type: string;
 };
 export interface ExpenditureResponseData extends BaseResponse {
   user_id: number;
   department_id: number;
   fund_id: number;
   document_draft_id: number;
-  document_reference_id?: number;
+  linked_document?: LinkedDocumentProps | null;
   code: string;
   purpose: string;
   additional_info: string;
@@ -65,14 +42,7 @@ export interface ExpenditureResponseData extends BaseResponse {
   budget_year: number;
   expense_type: "staff" | "third-party";
   is_archived: number;
-  expenditureable_id?: number;
-  expenditureable_type?: string;
-  expenditureable?: ExpenditureableProps | null;
   fund?: FundProps | null;
-  controller?: ControllerProps | null;
-  trackable_draft_id?: number;
-  owner?: OwnerProps | null;
-  beneficiary?: BeneficiaryProps | null;
   created_at?: string;
   updated_at?: string;
 }

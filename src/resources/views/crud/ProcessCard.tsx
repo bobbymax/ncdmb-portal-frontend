@@ -793,6 +793,425 @@ const ProcessCard: React.FC<
               />
             </div>
 
+            {/* Advanced Automation Section */}
+            <div className="col-md-12 mb-3 mt-3">
+              <div
+                style={{
+                  borderBottom: "1px solid var(--form-border-light)",
+                  paddingBottom: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--form-text-secondary)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  <i className="ri-magic-line"></i> Advanced Automation (90%
+                  Goal)
+                </strong>
+              </div>
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Auto-Attach to Payments"
+                name="rules.auto_attach_to_payments"
+                checked={state.rules?.auto_attach_to_payments ?? false}
+                onChange={handleRuleCheckboxChange("auto_attach_to_payments")}
+                helpText="Automatically attach to matching payments"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Auto-Execute on Create"
+                name="rules.auto_execute_on_create"
+                checked={state.rules?.auto_execute_on_create ?? false}
+                onChange={handleRuleCheckboxChange("auto_execute_on_create")}
+                helpText="Execute when payment is created"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Auto-Execute on Approval"
+                name="rules.auto_execute_on_approval"
+                checked={state.rules?.auto_execute_on_approval ?? false}
+                onChange={handleRuleCheckboxChange("auto_execute_on_approval")}
+                helpText="Execute when payment is approved"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Auto-Execute on Settlement"
+                name="rules.auto_execute_on_settlement"
+                checked={state.rules?.auto_execute_on_settlement ?? false}
+                onChange={handleRuleCheckboxChange(
+                  "auto_execute_on_settlement"
+                )}
+                helpText="Execute when payment is settled"
+              />
+            </div>
+
+            {/* Matching Criteria Subsection */}
+            <div className="col-md-12 mt-3 mb-2">
+              <small
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  color: "var(--form-text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                <i className="ri-search-line"></i> Auto-Matching Criteria
+              </small>
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Match by Service"
+                name="rules.match_by_service"
+                checked={state.rules?.match_by_service ?? false}
+                onChange={handleRuleCheckboxChange("match_by_service")}
+                helpText="Match payments by service name"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Match by Document Type"
+                name="rules.match_by_document_type"
+                checked={state.rules?.match_by_document_type ?? false}
+                onChange={handleRuleCheckboxChange("match_by_document_type")}
+                helpText="Match payments by document type"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Match by Ledger"
+                name="rules.match_by_ledger"
+                checked={state.rules?.match_by_ledger ?? false}
+                onChange={handleRuleCheckboxChange("match_by_ledger")}
+                helpText="Match payments by ledger"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Match by Amount Range"
+                name="rules.match_by_amount_range"
+                checked={state.rules?.match_by_amount_range ?? false}
+                onChange={handleRuleCheckboxChange("match_by_amount_range")}
+                helpText="Match payments by amount range"
+              />
+            </div>
+
+            {state.rules?.match_by_amount_range && (
+              <>
+                <div className="col-md-6 mb-3">
+                  <TextInput
+                    label="Minimum Amount"
+                    name="rules.min_amount"
+                    type="number"
+                    value={state.rules?.min_amount?.toString() || "0"}
+                    onChange={(e) =>
+                      handleRuleChange("min_amount", Number(e.target.value))
+                    }
+                    placeholder="0"
+                    size="sm"
+                    min={0}
+                  />
+                </div>
+
+                <div className="col-md-6 mb-3">
+                  <TextInput
+                    label="Maximum Amount"
+                    name="rules.max_amount"
+                    type="number"
+                    value={state.rules?.max_amount?.toString() || "0"}
+                    onChange={(e) =>
+                      handleRuleChange("max_amount", Number(e.target.value))
+                    }
+                    placeholder="0"
+                    size="sm"
+                    min={0}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Error Handling Subsection */}
+            <div className="col-md-12 mt-3 mb-2">
+              <small
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  color: "var(--form-text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                <i className="ri-error-warning-line"></i> Error Handling
+              </small>
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Auto-Retry on Failure"
+                name="rules.auto_retry_on_failure"
+                checked={state.rules?.auto_retry_on_failure ?? false}
+                onChange={handleRuleCheckboxChange("auto_retry_on_failure")}
+                helpText="Retry execution if it fails"
+              />
+            </div>
+
+            <div className="col-md-3 mb-3">
+              <TextInput
+                label="Retry Attempts"
+                name="rules.retry_attempts"
+                type="number"
+                value={state.rules?.retry_attempts?.toString() || "3"}
+                onChange={(e) =>
+                  handleRuleChange("retry_attempts", Number(e.target.value))
+                }
+                placeholder="3"
+                size="sm"
+                min={1}
+                max={10}
+                isDisabled={!state.rules?.auto_retry_on_failure}
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Notify on Failure"
+                name="rules.notify_on_failure"
+                checked={state.rules?.notify_on_failure ?? false}
+                onChange={handleRuleCheckboxChange("notify_on_failure")}
+                helpText="Send notification on failure"
+              />
+            </div>
+
+            <div className="col-md-3 mb-2">
+              <Checkbox
+                label="Escalate Repeated Failures"
+                name="rules.escalate_on_repeated_failure"
+                checked={state.rules?.escalate_on_repeated_failure ?? false}
+                onChange={handleRuleCheckboxChange(
+                  "escalate_on_repeated_failure"
+                )}
+                helpText="Escalate after multiple failures"
+              />
+            </div>
+
+            {/* Batch & Schedule Subsection */}
+            <div className="col-md-12 mt-3 mb-2">
+              <small
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  color: "var(--form-text-secondary)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                <i className="ri-calendar-schedule-line"></i> Batch & Scheduling
+              </small>
+            </div>
+
+            <div className="col-md-6 mb-2">
+              <Checkbox
+                label="Auto-Process Batch"
+                name="rules.auto_process_batch"
+                checked={state.rules?.auto_process_batch ?? false}
+                onChange={handleRuleCheckboxChange("auto_process_batch")}
+                helpText="Process entire batch automatically"
+              />
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <TextInput
+                label="Batch Execution Time"
+                name="rules.batch_execution_time"
+                type="time"
+                value={state.rules?.batch_execution_time || "23:00"}
+                onChange={(e) =>
+                  handleRuleChange("batch_execution_time", e.target.value)
+                }
+                placeholder="23:00"
+                size="sm"
+              />
+            </div>
+
+            <div className="col-md-6 mb-2">
+              <Checkbox
+                label="Auto-Close Period"
+                name="rules.auto_close_period"
+                checked={state.rules?.auto_close_period ?? false}
+                onChange={handleRuleCheckboxChange("auto_close_period")}
+                helpText="Automatically close accounting period"
+              />
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <TextInput
+                label="Period Close Day"
+                name="rules.period_close_day"
+                type="number"
+                value={state.rules?.period_close_day?.toString() || "5"}
+                onChange={(e) =>
+                  handleRuleChange("period_close_day", Number(e.target.value))
+                }
+                placeholder="5"
+                size="sm"
+                min={1}
+                max={28}
+                isDisabled={!state.rules?.auto_close_period}
+              />
+            </div>
+
+            {/* Stage-Aware Execution Section */}
+            <div className="col-md-12 mb-3 mt-3">
+              <div
+                style={{
+                  borderBottom: "1px solid var(--form-border-light)",
+                  paddingBottom: "0.5rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--form-text-secondary)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  <i className="ri-route-line"></i> Stage-Aware Execution
+                  (ProgressTracker)
+                </strong>
+              </div>
+            </div>
+
+            <div className="col-md-12 mb-2">
+              <small
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--form-text-muted)",
+                  fontStyle: "italic",
+                }}
+              >
+                Configure when this ProcessCard executes based on workflow stage
+                order. Attached to ProgressTracker stages via{" "}
+                <code>process_card_id</code>.
+              </small>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <TextInput
+                label="Min Stage Order (don't execute before)"
+                name="rules.min_stage_order"
+                type="number"
+                value={state.rules?.min_stage_order?.toString() || "1"}
+                onChange={(e) =>
+                  handleRuleChange("min_stage_order", Number(e.target.value))
+                }
+                placeholder="1"
+                size="sm"
+                min={1}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <TextInput
+                label="Max Stage Order (don't execute after)"
+                name="rules.max_stage_order"
+                type="number"
+                value={state.rules?.max_stage_order?.toString() || "99"}
+                onChange={(e) =>
+                  handleRuleChange("max_stage_order", Number(e.target.value))
+                }
+                placeholder="99"
+                size="sm"
+                min={1}
+              />
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <Checkbox
+                label="Execute at Final Stage Only"
+                name="rules.execute_at_final_stage_only"
+                checked={state.rules?.execute_at_final_stage_only ?? false}
+                onChange={handleRuleCheckboxChange(
+                  "execute_at_final_stage_only"
+                )}
+                helpText="Only execute at the last workflow stage"
+              />
+            </div>
+
+            <div className="col-md-12 mb-3">
+              <TextInput
+                label="Execute at Specific Stages (comma-separated, empty=all)"
+                name="rules.execute_at_stages"
+                type="text"
+                value={
+                  Array.isArray(state.rules?.execute_at_stages)
+                    ? state.rules.execute_at_stages.join(", ")
+                    : ""
+                }
+                onChange={(e) => {
+                  const stages = e.target.value
+                    .split(",")
+                    .map((s) => parseInt(s.trim()))
+                    .filter((n) => !isNaN(n));
+                  handleRuleChange("execute_at_stages", stages);
+                }}
+                placeholder="e.g., 1, 3, 5 (leave empty for all stages)"
+                size="sm"
+              />
+            </div>
+
+            <div className="col-md-6 mb-2">
+              <Checkbox
+                label="Requires Custom Inputs"
+                name="rules.requires_custom_inputs"
+                checked={state.rules?.requires_custom_inputs ?? false}
+                onChange={handleRuleCheckboxChange("requires_custom_inputs")}
+                helpText="Wait for user to provide custom inputs"
+              />
+            </div>
+
+            {state.rules?.requires_custom_inputs && (
+              <div className="col-md-6 mb-3">
+                <TextInput
+                  label="Required Input Fields (comma-separated)"
+                  name="rules.custom_input_fields"
+                  type="text"
+                  value={
+                    Array.isArray(state.rules?.custom_input_fields)
+                      ? state.rules.custom_input_fields.join(", ")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const fields = e.target.value
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter((s) => s.length > 0);
+                    handleRuleChange("custom_input_fields", fields);
+                  }}
+                  placeholder="e.g., approval_amount, custom_note"
+                  size="sm"
+                />
+              </div>
+            )}
+
             {/* AI Analysis Section */}
             <div className="col-md-12 mb-3 mt-3">
               <div

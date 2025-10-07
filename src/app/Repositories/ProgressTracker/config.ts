@@ -11,6 +11,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     { name: "departments", url: "departments" },
     { name: "signatories", url: "signatories" },
     { name: "widgets", url: "widgets" },
+    { name: "processCards", url: "processCards" },
   ],
   state: {
     id: 0,
@@ -33,6 +34,7 @@ export const progressTrackerConfig: ConfigProp<ProgressTrackerResponseData> = {
     recipients: [],
     loadedActions: [],
     widgets: [],
+    process_card_id: 0,
   },
   actions: [
     {

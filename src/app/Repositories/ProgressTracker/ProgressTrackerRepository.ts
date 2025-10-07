@@ -41,6 +41,8 @@ export default class ProgressTrackerRepository extends BaseRepository {
       carder: data.carder ?? null,
       order: data.order ?? 0,
       group: data.group ?? null,
+      process_card_id: data.process_card_id ?? 0,
+      process_card: data.process_card ?? null,
       actions: formatOptions(data.actions, "id", "button_text") ?? [],
       recipients: formatOptions(data.recipients, "id", "name") ?? [],
       department: data.department ?? null,

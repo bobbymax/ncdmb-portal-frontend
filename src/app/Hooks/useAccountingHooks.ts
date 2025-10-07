@@ -81,12 +81,6 @@ const useAccountingHooks = (
     currency: payment.currency ?? "NGN",
     payment_method: "bank-transfer",
     payment_id: payment.id,
-    beneficiary_id: addBeneficiary
-      ? payment.expenditure?.expenditureable?.beneficiary?.beneficiary_id
-      : rule.entity_id,
-    beneficiary_type: addBeneficiary
-      ? payment.expenditure?.expenditureable?.beneficiary?.resource_type
-      : "App\\Models\\Entity",
     status: "pending",
     trail_balance: balance,
     flag: ruleFlag ?? rule.flag,
