@@ -124,116 +124,125 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
   const priorityInfo = getPriorityInfo();
 
   return (
-    <div className="document-card">
-      {/* Priority Indicator Dot */}
+    <div className="folder-card-modern">
+      {/* Corner Accent */}
       <div
-        className="priority-dot"
-        style={{
-          backgroundColor: priorityInfo.bgColor,
-        }}
+        className="card-accent"
+        style={{ backgroundColor: priorityInfo.bgColor }}
       ></div>
 
-      {/* Compact Header */}
-      <div className="card-header">
-        <div className="header-top">
-          <div className="document-type-badge">
-            <i className="ri-file-text-line"></i>
-            <span>
-              {toTitleCase(extractModelName(document.documentable_type ?? ""))}
-            </span>
-          </div>
-          <div className="badges-row">
-            <div
-              className="status-badge"
-              style={{
-                background: statusInfo.bgColor,
-                color: statusInfo.color,
-              }}
-            >
-              <i className={statusInfo.icon}></i>
-              <span>{statusInfo.text}</span>
-            </div>
-          </div>
+      {/* Floating Status Badge */}
+      <div
+        className="floating-status-badge"
+        style={{
+          background: statusInfo.bgColor,
+          color: statusInfo.color,
+        }}
+      >
+        <i className={statusInfo.icon}></i>
+        <span>{statusInfo.text}</span>
+      </div>
+
+      {/* Card Header */}
+      <div className="folder-card-header">
+        <div className="document-type-pill">
+          <i className="ri-file-text-line"></i>
+          <span>
+            {toTitleCase(extractModelName(document.documentable_type ?? ""))}
+          </span>
         </div>
-        <div className="document-ref">
+        <div className="document-ref-modern">
           <i className="ri-hashtag"></i>
           <span>{document.ref}</span>
         </div>
       </div>
 
-      {/* Compact Content */}
-      <div className="card-content">
-        <h3 className="document-title">{except(document.title, 45)}</h3>
+      {/* Card Body */}
+      <div className="folder-card-body">
+        <h3 className="document-title-modern" title={document.title}>
+          {except(document.title, 50)}
+        </h3>
 
-        <div className="document-meta-compact">
-          <div className="meta-item">
+        <div className="document-meta-grid">
+          <div className="meta-item-modern">
             <i className="ri-calendar-line"></i>
-            <span>{moment(document.created_at).format("MMM DD")}</span>
+            <span>{moment(document.created_at).format("MMM DD, YYYY")}</span>
           </div>
           {amount && (
-            <div className="meta-item">
+            <div className="meta-item-modern highlight">
               <i className="ri-money-dollar-circle-line"></i>
               <span>{amount}</span>
             </div>
           )}
-          <div className="meta-item">
+          <div className="meta-item-modern">
             <i className="ri-user-line"></i>
-            <span>{document.owner?.name || "Unknown"}</span>
+            <span>{except(document.owner?.name || "Unknown", 20)}</span>
           </div>
         </div>
 
-        {/* Compact Progress */}
-        <div className="progress-compact">
-          <div className="progress-info">
-            <span className="progress-label">Progress</span>
-            <span className="progress-count">
-              {officers.length}/{currentTracker.order || 1}
+        {/* Modern Progress Bar */}
+        <div className="progress-section-modern">
+          <div className="progress-header-modern">
+            <span className="progress-label-modern">Workflow Progress</span>
+            <span className="progress-percentage">
+              {Math.round(
+                (officers.length / (currentTracker.order || 1)) * 100
+              )}
+              %
             </span>
           </div>
-          <div className="progress-bar-compact">
+          <div className="progress-track-modern">
             <div
-              className="progress-fill"
+              className="progress-fill-modern"
               style={{
                 width: `${Math.min(
                   (officers.length / (currentTracker.order || 1)) * 100,
                   100
                 )}%`,
-                backgroundColor: statusInfo.color,
+                background: statusInfo.bgColor,
               }}
-            ></div>
+            >
+              <div className="progress-glow"></div>
+            </div>
+          </div>
+          <div className="progress-steps-modern">
+            <span>
+              {officers.length} of {currentTracker.order || 1} completed
+            </span>
           </div>
         </div>
 
-        {/* Compact Reviewers */}
+        {/* Reviewers Avatars */}
         {officers.length > 0 && (
-          <div className="reviewers-compact">
-            <div className="reviewers-avatars">
-              {officers.slice(0, 4).map((officer) => {
+          <div className="reviewers-section-modern">
+            <span className="reviewers-label">Reviewers</span>
+            <div className="reviewers-avatars-modern">
+              {officers.slice(0, 3).map((officer) => {
                 const namePaths = officer.name.trim().split(" ");
                 const initials =
                   (namePaths[0]?.[0] ?? "") + (namePaths[1]?.[0] ?? "");
                 return (
                   <div
                     key={officer.id}
-                    className="reviewer-avatar-compact"
+                    className="reviewer-avatar-modern"
                     title={officer.name}
                   >
                     {officer.avatar ? (
                       <img
-                        src="https://placehold.co/24x24"
+                        src="https://placehold.co/32x32"
                         alt={officer.name}
                       />
                     ) : (
-                      <div className="avatar-initials">
+                      <div className="avatar-initials-modern">
                         {initials.toUpperCase()}
                       </div>
                     )}
                   </div>
                 );
               })}
-              {officers.length > 4 && (
-                <div className="more-reviewers-compact">
-                  +{officers.length - 4}
+              {officers.length > 3 && (
+                <div className="more-reviewers-modern">
+                  <span>+{officers.length - 3}</span>
                 </div>
               )}
             </div>
@@ -241,28 +250,30 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
         )}
       </div>
 
-      {/* Compact Footer */}
-      <div className="card-footer">
-        <Button
-          label="Open"
-          icon="ri-external-link-line"
-          handleClick={() => openFolder(document)}
-          variant="primary"
-          size="xs"
-          rounded
-        />
-        <div className="footer-actions">
-          <button className="action-btn" title="Add to favorites">
+      {/* Card Footer */}
+      <div className="folder-card-footer">
+        <button
+          className="open-btn-modern"
+          onClick={() => openFolder(document)}
+        >
+          <span>Open Document</span>
+          <i className="ri-arrow-right-line"></i>
+        </button>
+        <div className="footer-actions-modern">
+          <button className="action-btn-modern" title="Add to favorites">
             <i className="ri-heart-line"></i>
           </button>
-          <button className="action-btn" title="Share document">
+          <button className="action-btn-modern" title="Share document">
             <i className="ri-share-line"></i>
           </button>
-          <button className="action-btn" title="More options">
+          <button className="action-btn-modern" title="More options">
             <i className="ri-more-2-line"></i>
           </button>
         </div>
       </div>
+
+      {/* Hover Overlay Effect */}
+      <div className="card-overlay-modern"></div>
     </div>
   );
 };

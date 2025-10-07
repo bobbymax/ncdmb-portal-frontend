@@ -25034,12 +25034,8 @@ html.modal-open {
 
 /* Desk Header */
 .desk-header {
-  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
   border-radius: 16px;
-  padding: 2rem;
-  margin-bottom: 2rem;
   color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {

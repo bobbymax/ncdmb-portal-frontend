@@ -119,60 +119,94 @@ const Folders: React.FC<
   };
 
   return (
-    <div className="document-desk">
-      {/* Statistics Cards */}
-      <div className="stats-section">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <i className="ri-file-text-line"></i>
+    <div className="folder-desk">
+      {/* Statistics Cards - Sleek Design */}
+      <div className="stats-section-modern">
+        <div className="stats-grid-modern">
+          <div className="stat-card-modern primary">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-file-text-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Total Documents</p>
+                <h3 className="stat-value">{stats.total}</h3>
+              </div>
             </div>
-            <div className="stat-content">
-              <h3>{stats.total}</h3>
-              <p>Total Documents</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon active">
-              <i className="ri-checkbox-circle-line"></i>
-            </div>
-            <div className="stat-content">
-              <h3>{stats.active}</h3>
-              <p>Active Documents</p>
+            <div className="stat-trend">
+              <i className="ri-arrow-up-line"></i>
+              <span>12%</span>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon archived">
-              <i className="ri-archive-line"></i>
+
+          <div className="stat-card-modern success">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-checkbox-circle-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Active</p>
+                <h3 className="stat-value">{stats.active}</h3>
+              </div>
             </div>
-            <div className="stat-content">
-              <h3>{stats.archived}</h3>
-              <p>Archived</p>
+            <div className="stat-trend positive">
+              <i className="ri-arrow-up-line"></i>
+              <span>8%</span>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon amount">
-              <i className="ri-money-dollar-circle-line"></i>
+
+          <div className="stat-card-modern warning">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-archive-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Archived</p>
+                <h3 className="stat-value">{stats.archived}</h3>
+              </div>
             </div>
-            <div className="stat-content">
-              <h3>{formatCurrencyCompact(stats.totalAmount)}</h3>
-              <p>Total Value</p>
+            <div className="stat-trend">
+              <i className="ri-arrow-down-line"></i>
+              <span>3%</span>
+            </div>
+          </div>
+
+          <div className="stat-card-modern info">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-money-dollar-circle-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Total Value</p>
+                <h3 className="stat-value">
+                  {formatCurrencyCompact(stats.totalAmount)}
+                </h3>
+              </div>
+            </div>
+            <div className="stat-trend positive">
+              <i className="ri-arrow-up-line"></i>
+              <span>15%</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="desk-main">
+      <div className="desk-main-modern">
         {/* Left Panel - Filters & Actions */}
-        <div className="desk-sidebar">
-          <div className="sidebar-section">
-            <h3 className="section-title">
-              <i className="ri-search-line"></i>
-              Search & Filters
-            </h3>
+        <div className="desk-sidebar-modern">
+          <div className="sidebar-card">
+            <div className="sidebar-header">
+              <i className="ri-filter-3-line"></i>
+              <h3>Filters</h3>
+            </div>
 
-            <div className="filter-group">
+            <div className="search-box-modern">
+              <i className="ri-search-line search-icon"></i>
               <TextInput
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
@@ -267,159 +301,169 @@ const Folders: React.FC<
               />
             </div>
 
-            <div className="filter-actions">
+            <div className="filter-actions-modern">
               <Button
-                label="Reset Filters"
-                variant="danger"
+                label="Reset All"
+                variant="outline"
                 handleClick={() => resetFilters()}
                 size="xs"
-                icon="ri-filter-off-line"
+                icon="ri-refresh-line"
               />
             </div>
           </div>
 
           {/* Bulk Actions Panel */}
           {selectedDocuments.size > 0 && (
-            <div className="sidebar-section bulk-actions">
-              <h3 className="section-title">
+            <div className="sidebar-card bulk-card">
+              <div className="sidebar-header">
                 <i className="ri-checkbox-multiple-line"></i>
-                Bulk Actions ({selectedDocuments.size})
-              </h3>
+                <h3>Bulk Actions</h3>
+                <span className="badge-count">{selectedDocuments.size}</span>
+              </div>
 
-              <div className="bulk-actions-grid">
-                <Button
-                  label="Archive"
-                  variant="warning"
-                  handleClick={() => handleBulkAction("archive")}
-                  size="xs"
-                  icon="ri-archive-line"
-                />
-                <Button
-                  label="Export"
-                  variant="outline"
-                  handleClick={() => handleBulkAction("export")}
-                  size="xs"
-                  icon="ri-download-line"
-                />
-                <Button
-                  label="Share"
-                  variant="info"
-                  handleClick={() => handleBulkAction("share")}
-                  size="xs"
-                  icon="ri-share-line"
-                />
-                <Button
-                  label="Delete"
-                  variant="danger"
-                  handleClick={() => handleBulkAction("delete")}
-                  size="xs"
-                  icon="ri-delete-bin-line"
-                />
+              <div className="bulk-actions-modern">
+                <button
+                  className="bulk-btn archive"
+                  onClick={() => handleBulkAction("archive")}
+                >
+                  <i className="ri-archive-line"></i>
+                  <span>Archive</span>
+                </button>
+                <button
+                  className="bulk-btn export"
+                  onClick={() => handleBulkAction("export")}
+                >
+                  <i className="ri-download-line"></i>
+                  <span>Export</span>
+                </button>
+                <button
+                  className="bulk-btn share"
+                  onClick={() => handleBulkAction("share")}
+                >
+                  <i className="ri-share-line"></i>
+                  <span>Share</span>
+                </button>
+                <button
+                  className="bulk-btn delete"
+                  onClick={() => handleBulkAction("delete")}
+                >
+                  <i className="ri-delete-bin-line"></i>
+                  <span>Delete</span>
+                </button>
               </div>
             </div>
           )}
 
           {/* Quick Actions */}
-          <div className="sidebar-section">
-            <h3 className="section-title">
+          <div className="sidebar-card quick-card">
+            <div className="sidebar-header">
               <i className="ri-flashlight-line"></i>
-              Quick Actions
-            </h3>
+              <h3>Quick Access</h3>
+            </div>
 
-            <div className="quick-actions">
-              <Button
-                label="Recent Documents"
-                variant="outline"
-                handleClick={() => {}}
-                size="xs"
-                icon="ri-time-line"
-              />
-              <Button
-                label="Favorites"
-                variant="outline"
-                handleClick={() => {}}
-                size="xs"
-                icon="ri-heart-line"
-              />
-              <Button
-                label="Shared with Me"
-                variant="outline"
-                handleClick={() => {}}
-                size="xs"
-                icon="ri-share-line"
-              />
+            <div className="quick-links">
+              <button className="quick-link">
+                <i className="ri-time-line"></i>
+                <span>Recent</span>
+                <div className="quick-link-badge">12</div>
+              </button>
+              <button className="quick-link">
+                <i className="ri-heart-line"></i>
+                <span>Favorites</span>
+                <div className="quick-link-badge">8</div>
+              </button>
+              <button className="quick-link">
+                <i className="ri-share-line"></i>
+                <span>Shared</span>
+                <div className="quick-link-badge">5</div>
+              </button>
+              <button className="quick-link">
+                <i className="ri-star-line"></i>
+                <span>Important</span>
+                <div className="quick-link-badge">3</div>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Right Panel - Document Display */}
-        <div className="desk-content">
+        <div className="desk-content-modern">
           {/* Content Header */}
-          <div className="content-header">
-            <div className="content-controls">
-              <div className="view-toggle">
-                <Button
-                  label="Grid"
-                  variant={activeView === "grid" ? "primary" : "outline"}
-                  handleClick={() => setActiveView("grid")}
-                  size="xs"
-                  icon="ri-grid-line"
-                />
-                <Button
-                  label="List"
-                  variant={activeView === "list" ? "primary" : "outline"}
-                  handleClick={() => setActiveView("list")}
-                  size="xs"
-                  icon="ri-list-check"
-                />
+          <div className="content-header-modern">
+            <div className="header-left">
+              <div className="view-toggle-modern">
+                <button
+                  className={`view-btn ${
+                    activeView === "grid" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveView("grid")}
+                  title="Grid View"
+                >
+                  <i className="ri-layout-grid-line"></i>
+                </button>
+                <button
+                  className={`view-btn ${
+                    activeView === "list" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveView("list")}
+                  title="List View"
+                >
+                  <i className="ri-list-check"></i>
+                </button>
               </div>
 
-              <div className="group-toggle">
-                <Button
-                  label={groupByType ? "Grouped by Type" : "All Documents"}
-                  variant={groupByType ? "primary" : "outline"}
-                  handleClick={() => setGroupByType(!groupByType)}
-                  size="xs"
-                  icon={groupByType ? "ri-folder-line" : "ri-file-list-line"}
-                />
+              <div className="group-toggle-modern">
+                <button
+                  className={`group-btn ${groupByType ? "active" : ""}`}
+                  onClick={() => setGroupByType(!groupByType)}
+                >
+                  <i
+                    className={
+                      groupByType ? "ri-folder-line" : "ri-file-list-line"
+                    }
+                  ></i>
+                  <span>{groupByType ? "Grouped" : "All Files"}</span>
+                </button>
               </div>
             </div>
 
-            <div className="content-actions">
-              <Button
-                label="Select All"
-                variant={
-                  selectedDocuments.size === documents.length
-                    ? "primary"
-                    : "outline"
-                }
-                handleClick={handleSelectAll}
-                size="xs"
-                icon="ri-checkbox-multiple-line"
-              />
-              <span className="selection-count">
-                {selectedDocuments.size > 0 &&
-                  `${selectedDocuments.size} selected`}
-              </span>
+            <div className="header-right">
+              <button
+                className={`select-all-btn ${
+                  selectedDocuments.size === documents.length ? "active" : ""
+                }`}
+                onClick={handleSelectAll}
+              >
+                <i className="ri-checkbox-multiple-line"></i>
+                <span>
+                  {selectedDocuments.size > 0
+                    ? `${selectedDocuments.size} selected`
+                    : "Select All"}
+                </span>
+              </button>
             </div>
           </div>
 
           {/* Documents Display */}
           {isLoading ? (
-            <ResourceLoader
-              isLoading={true}
-              message="Loading documents..."
-              variant="character"
-              size="large"
-            >
-              <div></div>
-            </ResourceLoader>
+            <div className="loading-state-modern">
+              <ResourceLoader
+                isLoading={true}
+                message="Loading documents..."
+                variant="character"
+                size="large"
+              >
+                <div></div>
+              </ResourceLoader>
+            </div>
           ) : documents.length === 0 ? (
-            <div className="documents-empty-state">
-              <div className="empty-state-icon">
-                <i className="ri-folder-open-line"></i>
+            <div className="empty-state-modern">
+              <div className="empty-state-visual">
+                <div className="empty-state-circle">
+                  <i className="ri-folder-open-line"></i>
+                </div>
               </div>
-              <div className="empty-state-content">
+              <div className="empty-state-text">
                 <h3>No Documents Found</h3>
                 <p>
                   {searchValue ||
@@ -430,70 +474,73 @@ const Folders: React.FC<
                     ? "No documents match your current filters. Try adjusting your search criteria."
                     : "Get started by creating your first document or importing existing ones."}
                 </p>
-                <div className="empty-state-actions">
-                  <Button
-                    label="Create Document"
-                    variant="primary"
-                    handleClick={() => {}}
-                    size="sm"
-                    icon="ri-add-line"
-                  />
-                  <Button
-                    label="Import Documents"
-                    variant="outline"
-                    handleClick={() => {}}
-                    size="sm"
-                    icon="ri-download-line"
-                  />
-                  {searchValue ||
+              </div>
+              <div className="empty-state-actions-modern">
+                <button className="empty-action-btn primary">
+                  <i className="ri-add-line"></i>
+                  <span>Create Document</span>
+                </button>
+                <button className="empty-action-btn outline">
+                  <i className="ri-download-line"></i>
+                  <span>Import Documents</span>
+                </button>
+                {(searchValue ||
                   category ||
                   documentOwner ||
                   department ||
-                  action ? (
-                    <Button
-                      label="Clear Filters"
-                      variant="outline"
-                      handleClick={() => resetFilters()}
-                      size="sm"
-                      icon="ri-filter-off-line"
-                    />
-                  ) : null}
-                </div>
+                  action) && (
+                  <button
+                    className="empty-action-btn outline"
+                    onClick={() => resetFilters()}
+                  >
+                    <i className="ri-filter-off-line"></i>
+                    <span>Clear Filters</span>
+                  </button>
+                )}
               </div>
             </div>
           ) : (
-            <div className="documents-container">
+            <div className="documents-container-modern">
               {Object.entries(groupedDocuments).map(
                 ([groupName, groupDocs]) => (
-                  <div key={groupName} className="document-group">
+                  <div key={groupName} className="document-group-modern">
                     {groupByType && (
-                      <div className="group-header">
-                        <h3 className="group-title">
-                          <i className="ri-folder-line"></i>
-                          {groupName}
-                          <span className="group-count">
-                            ({groupDocs.length})
+                      <div className="group-header-modern">
+                        <div className="group-title-area">
+                          <i className="ri-folder-3-line"></i>
+                          <h3>{groupName}</h3>
+                          <span className="group-badge">
+                            {groupDocs.length}
                           </span>
-                        </h3>
+                        </div>
+                        <div className="group-line"></div>
                       </div>
                     )}
 
                     <div
-                      className={`documents-grid ${
+                      className={`documents-grid-modern ${
                         activeView === "list" ? "list-view" : ""
                       }`}
                     >
                       {groupDocs.map((document) => (
-                        <div key={document.id} className="document-item">
-                          <div className="document-selector">
+                        <div
+                          key={document.id}
+                          className="document-wrapper-modern"
+                        >
+                          <div className="document-selector-modern">
                             <input
                               type="checkbox"
                               checked={selectedDocuments.has(document.id)}
                               onChange={() =>
                                 handleDocumentSelection(document.id)
                               }
-                              className="document-checkbox"
+                              className="modern-checkbox"
+                              id={`doc-${document.id}`}
                             />
+                            <label
+                              htmlFor={`doc-${document.id}`}
+                              className="checkbox-label"
+                            ></label>
                           </div>
 
                           <FolderComponent

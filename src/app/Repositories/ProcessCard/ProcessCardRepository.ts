@@ -25,7 +25,7 @@ export default class ProcessCardRepository extends BaseRepository {
       service: data.service ?? "",
       name: data.name ?? "",
       component: data.component ?? "",
-      rules: data.rules ?? [],
+      rules: data.rules ?? processCardConfig.state.rules,
       is_disabled: data.is_disabled ?? false,
       document_type: data.document_type ?? null,
       ledger: data.ledger ?? null,
