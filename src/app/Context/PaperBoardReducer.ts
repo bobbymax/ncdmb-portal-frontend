@@ -267,11 +267,15 @@ export const paperBoardReducer = (
     case "UPDATE_THREADS":
       return {
         ...state,
-        threads: state.threads.map((thread) =>
-          thread.pointer_identifier === action.payload.pointer_identifier
-            ? action.payload
-            : thread
-        ),
+        threads: state.threads.some(
+          (t) => t.identifier === action.payload.identifier
+        )
+          ? state.threads.map((thread) =>
+              thread.identifier === action.payload.identifier
+                ? action.payload
+                : thread
+            )
+          : [...state.threads, action.payload], // Add if not exists
       };
     case "SET_EXISTING_DOCUMENT":
       return {

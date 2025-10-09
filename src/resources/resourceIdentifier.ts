@@ -1,6 +1,14 @@
 
 export const resourceFiles = [
   {
+    "key": "AccountPosting",
+    "path": "../app/Repositories/AccountPosting/data"
+  },
+  {
+    "key": "AccountingAuditTrail",
+    "path": "../app/Repositories/AccountingAuditTrail/data"
+  },
+  {
     "key": "Allowance",
     "path": "../app/Repositories/Allowance/data"
   },
@@ -93,6 +101,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Fund/data"
   },
   {
+    "key": "FundTransaction",
+    "path": "../app/Repositories/FundTransaction/data"
+  },
+  {
     "key": "GradeLevel",
     "path": "../app/Repositories/GradeLevel/data"
   },
@@ -121,6 +133,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Ledger/data"
   },
   {
+    "key": "LedgerAccountBalance",
+    "path": "../app/Repositories/LedgerAccountBalance/data"
+  },
+  {
     "key": "Location",
     "path": "../app/Repositories/Location/data"
   },
@@ -145,6 +161,14 @@ export const resourceFiles = [
     "path": "../app/Repositories/PaymentBatch/data"
   },
   {
+    "key": "PostingBatch",
+    "path": "../app/Repositories/PostingBatch/data"
+  },
+  {
+    "key": "ProcessCard",
+    "path": "../app/Repositories/ProcessCard/data"
+  },
+  {
     "key": "ProgressTracker",
     "path": "../app/Repositories/ProgressTracker/data"
   },
@@ -155,6 +179,10 @@ export const resourceFiles = [
   {
     "key": "ProjectCategory",
     "path": "../app/Repositories/ProjectCategory/data"
+  },
+  {
+    "key": "Reconciliation",
+    "path": "../app/Repositories/Reconciliation/data"
   },
   {
     "key": "Remuneration",
@@ -207,6 +235,10 @@ export const resourceFiles = [
   {
     "key": "Transaction",
     "path": "../app/Repositories/Transaction/data"
+  },
+  {
+    "key": "TrialBalance",
+    "path": "../app/Repositories/TrialBalance/data"
   },
   {
     "key": "Trip",

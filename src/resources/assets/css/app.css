@@ -18,6 +18,7 @@
 @import "document-messaging.css"; /* Added for LinkedIn-style messaging */
 @import "form-elements.css"; /* Added for form elements styling */
 @import "folders-modern.css"; /* Modern sleek folders desk design */
+@import "process-cards.css"; /* ProcessCard components styling */
 /* @import "../../../styles/global.css"; */
 
 :root {

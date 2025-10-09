@@ -11,5 +11,5 @@ export const paymentRules: { [key: string]: string } = {
   payable_id: "required|integer",
   payable_type: "required|string",
   period: "required|string",
-  fiscal_year: "required|integer",
+  budget_year: "required|integer",
 };

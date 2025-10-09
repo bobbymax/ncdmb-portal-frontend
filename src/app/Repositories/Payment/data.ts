@@ -14,12 +14,16 @@ type BatchProps = {
 export interface PaymentResponseData extends BaseResponse {
   user_id: number;
   department_id: number;
+  ledger_id: number;
   chart_of_account_id: number;
   workflow_id: number;
+  document_draft_id: number;
   document_category_id: number;
   document_type_id: number;
+  process_card_id: number;
   resource_id: number;
   resource_type: string;
+  process_metadata?: unknown;
   code?: string;
   beneficiary?: string;
   transaction_type?: "debit" | "credit";
@@ -37,7 +41,12 @@ export interface PaymentResponseData extends BaseResponse {
   type: "staff" | "third-party";
   currency: "USD" | "EUR" | "NGN" | "GBP" | "YEN";
   period: string;
-  fiscal_year: number;
+  budget_year: number;
+  auto_generated: boolean;
+  requires_settlement: boolean;
+  is_settled: boolean;
+  settled_at?: string;
+  settled_by?: number;
   transactions?: TransactionResponseData[];
   paid_at?: string;
   status?: "draft" | "posted" | "reversed";

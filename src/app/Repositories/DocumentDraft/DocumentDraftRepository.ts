@@ -31,6 +31,7 @@ export default class DocumentDraftRepository extends BaseRepository {
       progress_tracker_id: data.progress_tracker_id ?? 0,
       current_workflow_stage_id: data.current_workflow_stage_id ?? 0,
       department_id: data.department_id ?? 0,
+      operator_id: data.operator_id ?? 0,
       operator: data.operator ?? null,
       amount: data.amount ?? "",
       taxable_amount: data.taxable_amount ?? "",

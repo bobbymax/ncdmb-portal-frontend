@@ -30,6 +30,7 @@ export interface DocumentDraftResponseData extends BaseResponse {
   taxable_amount: string;
   status: string;
   ref: string;
+  operator_id: number;
   order?: number;
   operator?: AuthorisingOfficerProps | null;
   action?: Partial<DocumentActionResponseData> | null;

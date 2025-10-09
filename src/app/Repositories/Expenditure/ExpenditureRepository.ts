@@ -28,6 +28,7 @@ export default class ExpenditureRepository extends BaseRepository {
       user_id: data.user_id ?? 0,
       department_id: data.department_id ?? 0,
       fund_id: data.fund_id ?? 0,
+      document_id: data.document_id ?? 0,
       document_draft_id: data.document_draft_id ?? 0,
       linked_document: data.linked_document ?? null,
       code: data.code ?? "",

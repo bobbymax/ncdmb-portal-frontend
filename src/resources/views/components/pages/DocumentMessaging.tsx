@@ -9,6 +9,7 @@ import {
 } from "@/app/Repositories/DocumentCategory/data";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
 import usePusherSocket from "../../../../features/chat/usePusherSocket";
+import { ProgressTrackerResponseData } from "@/app/Repositories/ProgressTracker/data";
 
 interface DocumentMessagingProps {
   category: DocumentCategoryResponseData | null;
@@ -16,7 +17,7 @@ interface DocumentMessagingProps {
 
 const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
   const { state, actions } = usePaperBoard();
-  const { getResourceById } = useResourceContext();
+  const { getResourceById, getResource } = useResourceContext();
   const { staff } = useAuth();
 
   // Main messaging state
@@ -94,162 +95,170 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
 
   // Get all threads from state.threads (existing from document + generated for display)
   const allThreads = useMemo(() => {
-    if (!state.existingDocument || !state.trackers || !state.loggedInUser) {
+    if (!state.existingDocument || !state.loggedInUser) {
       return [];
     }
 
-    const { user_id, created_by, pointer } = state.existingDocument;
+    const { user_id, created_by, pointer, processes } = state.existingDocument;
     const loggedInUserId = state.loggedInUser.id;
 
-    // Find the current tracker based on pointer
-    const currentTracker = state.trackers.find(
-      (tracker) => tracker.identifier === pointer
-    );
-
-    if (!currentTracker) return [];
-
-    // Check permissions for non-owner/non-creator users
-    if (loggedInUserId !== user_id && loggedInUserId !== created_by) {
-      // Check if user has permission through tracker
-      const hasDirectPermission = currentTracker.user_id === loggedInUserId;
-      const hasGroupPermission =
-        currentTracker.user_id === 0 &&
-        state.loggedInUser.groups?.some(
-          (group) => group.id === currentTracker.group_id
-        );
-
-      if (!hasDirectPermission && !hasGroupPermission) {
-        // User has no permission - return empty array (access level set in useEffect)
-        return [];
-      }
-    }
-
-    // Start with existing threads from state.threads that match this pointer
-    const existingThreads = (state.threads || []).filter(
-      (thread) => thread.pointer_identifier === currentTracker.identifier
-    );
+    // Start with existing threads from backend
+    const existingThreads = state.threads || [];
     const threads: ThreadResponseData[] = [...existingThreads];
 
+    // Use single timestamp for consistent ID generation
+    const timestamp = Date.now();
+
     // Helper function to check if a thread already exists between two users
+    // We only allow ONE thread per user pair, regardless of pointer identifier
     const threadExists = (ownerId: number, recipientId: number): boolean => {
       return threads.some(
         (thread) =>
-          thread.thread_owner_id === ownerId &&
-          thread.recipient_id === recipientId &&
-          thread.pointer_identifier === currentTracker.identifier
+          (thread.thread_owner_id === ownerId &&
+            thread.recipient_id === recipientId) ||
+          (thread.thread_owner_id === recipientId &&
+            thread.recipient_id === ownerId)
       );
     };
 
-    // Generate threads for display (these will be saved to global state when needed)
-    // If logged-in user is the owner but NOT the creator, they can create threads
-    if (loggedInUserId === user_id && loggedInUserId !== created_by) {
-      // Check if thread already exists between owner and creator
-      if (!threadExists(user_id, created_by || 0)) {
-        const thread: ThreadResponseData = {
-          id: Date.now(), // Temporary ID for display threads
-          pointer_identifier: currentTracker.identifier,
-          recipient_id: created_by || 0,
-          identifier: `thread_${user_id}_${created_by || 0}_${
-            currentTracker.identifier
-          }_${Date.now()}`,
-          thread_owner_id: user_id, // Document owner as thread owner
-          category: "question" as PointerActivityTypesProps,
-          conversations: [],
-          priority: "medium",
-          status: "pending",
-          state: "open",
-          created_at: new Date().toISOString(),
-        };
+    // Helper to create thread object
+    const createThread = (
+      ownerId: number,
+      recipientId: number,
+      pointerIdentifier: string,
+      threadId: number = timestamp
+    ): ThreadResponseData => ({
+      id: threadId,
+      pointer_identifier: pointerIdentifier,
+      recipient_id: recipientId,
+      identifier: `thread_${ownerId}_${recipientId}_${pointerIdentifier}_${threadId}`,
+      thread_owner_id: ownerId,
+      category: "question" as PointerActivityTypesProps,
+      conversations: [],
+      priority: "medium",
+      status: "pending",
+      state: "open",
+      created_at: new Date().toISOString(),
+    });
 
-        threads.push(thread);
+    // ========== SCENARIO 1: Owner-Creator Thread ==========
+    // If user_id !== created_by, create thread with owner as thread_owner_id
+    if (user_id && created_by && user_id !== created_by) {
+      const pointerIdentifier = pointer || "owner-creator";
+
+      // If logged-in user is the owner, create thread to creator
+      if (loggedInUserId === user_id && !threadExists(user_id, created_by)) {
+        threads.push(createThread(user_id, created_by, pointerIdentifier));
       }
+      // If logged-in user is the creator, they can see the thread (will be shown in received threads)
+      // No need to create duplicate here
     }
-    // If logged-in user is neither owner nor creator, they can create threads
-    else if (loggedInUserId !== user_id && loggedInUserId !== created_by) {
-      // Check if user has permission through tracker
-      const hasDirectPermission = currentTracker.user_id === loggedInUserId;
-      const hasGroupPermission =
-        currentTracker.user_id === 0 &&
-        state.loggedInUser.groups?.some(
-          (group) => group.id === currentTracker.group_id
+
+    // ========== SCENARIO 2: ConfigState User Threads ==========
+    // Users from state.configState.from/to/through get threads with document owner/creator as recipients
+    if (state.configState) {
+      const configUsers = [
+        state.configState.from?.user_id,
+        state.configState.to?.user_id,
+        state.configState.through?.user_id,
+      ].filter((id): id is number => typeof id === "number" && id > 0);
+
+      if (loggedInUserId && configUsers.includes(loggedInUserId)) {
+        // Create threads with document owner and creator as recipients
+        const recipients = [user_id, created_by].filter(
+          (id): id is number =>
+            typeof id === "number" && id > 0 && id !== loggedInUserId
         );
 
-      if (hasDirectPermission || hasGroupPermission) {
-        // If owner and creator are different, create separate threads for each
-        if (user_id !== created_by) {
-          // Thread with document owner
-          if (!threadExists(loggedInUserId, user_id || 0)) {
-            const thread: ThreadResponseData = {
-              id: Date.now(), // Temporary ID for display threads
-              pointer_identifier: currentTracker.identifier,
-              recipient_id: user_id || 0,
-              identifier: `thread_${loggedInUserId}_${user_id}_${
-                currentTracker.identifier
-              }_${Date.now()}`,
-              thread_owner_id: loggedInUserId,
-              category: "question" as PointerActivityTypesProps,
-              conversations: [],
-              priority: "medium",
-              status: "pending",
-              state: "open",
-              created_at: new Date().toISOString(),
-            };
-
-            threads.push(thread);
+        recipients.forEach((recipientId) => {
+          const pointerIdentifier = pointer || "config-state";
+          if (!threadExists(loggedInUserId, recipientId)) {
+            threads.push(
+              createThread(loggedInUserId, recipientId, pointerIdentifier)
+            );
           }
-
-          // Thread with document creator
-          if (created_by && !threadExists(loggedInUserId, created_by)) {
-            const thread: ThreadResponseData = {
-              id: Date.now(), // Temporary ID for display threads
-              pointer_identifier: currentTracker.identifier,
-              recipient_id: created_by,
-              identifier: `thread_${loggedInUserId}_${created_by}_${
-                currentTracker.identifier
-              }_${Date.now()}`,
-              thread_owner_id: loggedInUserId,
-              category: "question" as PointerActivityTypesProps,
-              conversations: [],
-              priority: "medium",
-              status: "pending",
-              state: "open",
-              created_at: new Date().toISOString(),
-            };
-
-            threads.push(thread);
-          }
-        } else {
-          // Owner and creator are the same, create only one thread
-          if (!threadExists(loggedInUserId, user_id || 0)) {
-            const thread: ThreadResponseData = {
-              id: Date.now(), // Temporary ID for display threads
-              pointer_identifier: currentTracker.identifier,
-              recipient_id: user_id || 0,
-              identifier: `thread_${loggedInUserId}_${user_id}_${
-                currentTracker.identifier
-              }_${Date.now()}`,
-              thread_owner_id: loggedInUserId,
-              category: "question" as PointerActivityTypesProps,
-              conversations: [],
-              priority: "medium",
-              status: "pending",
-              state: "open",
-              created_at: new Date().toISOString(),
-            };
-
-            threads.push(thread);
-          }
-        }
+        });
       }
     }
 
-    return threads;
+    // ========== SCENARIO 3: Process-Based Threads ==========
+    // Users in processes (group-based) create threads after handling
+    if (processes && processes.length > 0) {
+      // Find all users who have handled this document (processes with user assignments)
+      const handledByUsers = processes
+        .filter((process) => {
+          // Check if logged-in user has permission for this process
+          const hasDirectPermission = process.recipients?.some(
+            (r) => r.value === loggedInUserId
+          );
+          const hasGroupPermission = state.loggedInUser?.groups?.some(
+            (group) => group.id === process.group_id
+          );
+          return hasDirectPermission || hasGroupPermission;
+        })
+        .flatMap((process) => process.recipients?.map((r) => r.value) || [])
+        .filter(
+          (id): id is number =>
+            typeof id === "number" && id > 0 && id !== loggedInUserId
+        );
+
+      // Get unique user IDs
+      const uniqueHandlers = Array.from(new Set(handledByUsers));
+
+      // If logged-in user has handled the document, create threads with all other handlers
+      if (uniqueHandlers.length > 0) {
+        uniqueHandlers.forEach((recipientId) => {
+          const pointerIdentifier = "process-handler";
+          if (!threadExists(loggedInUserId, recipientId)) {
+            threads.push(
+              createThread(loggedInUserId, recipientId, pointerIdentifier)
+            );
+          }
+        });
+      }
+
+      // Also create threads with document owner and creator
+      const processRecipients = [user_id, created_by].filter(
+        (id): id is number =>
+          typeof id === "number" && id > 0 && id !== loggedInUserId
+      );
+
+      const hasProcessPermission = processes.some((process) => {
+        const hasDirectPermission = process.recipients?.some(
+          (r) => r.value === loggedInUserId
+        );
+        const hasGroupPermission = state.loggedInUser?.groups?.some(
+          (group) => group.id === process.group_id
+        );
+        return hasDirectPermission || hasGroupPermission;
+      });
+
+      if (hasProcessPermission) {
+        processRecipients.forEach((recipientId) => {
+          const pointerIdentifier = "process-owner";
+          if (!threadExists(loggedInUserId, recipientId)) {
+            threads.push(
+              createThread(loggedInUserId, recipientId, pointerIdentifier)
+            );
+          }
+        });
+      }
+    }
+
+    // ========== Filter: Show both owned AND received threads ==========
+    const relevantThreads = threads.filter(
+      (thread) =>
+        thread.thread_owner_id === loggedInUserId || // Threads I own
+        thread.recipient_id === loggedInUserId // Threads sent to me
+    );
+
+    return relevantThreads;
   }, [
     state.existingDocument,
     state.trackers,
     state.loggedInUser,
     state.threads,
-    actions,
+    state.configState,
   ]);
 
   // Get current thread data for WebSocket - prioritize existing threads from backend
@@ -265,7 +274,9 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
     }
 
     // Fallback to generated threads if not found in backend threads
-    return allThreads.find((thread) => thread.identifier === selectedThread);
+    return (allThreads ?? []).find(
+      (thread) => thread.identifier === selectedThread
+    );
   }, [currentThreadId, selectedThread, state.threads, allThreads]);
 
   // Initialize WebSocket connection when a chat is selected
@@ -302,11 +313,8 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
       }
     },
     onThreadUpdated: (updatedThread: ThreadResponseData) => {
-      // Update the global threads state with the updated thread
-      const updatedThreads = (state.threads || []).map((thread) =>
-        thread.identifier === updatedThread.identifier ? updatedThread : thread
-      );
-      actions.setThreads(updatedThreads);
+      // Use UPDATE_THREADS action which now correctly uses identifier
+      actions.updateThreads(updatedThread);
     },
   });
 
@@ -328,7 +336,7 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
 
   // Convert threads to chat format
   const chatThreads = useMemo(() => {
-    return allThreads.map((thread) => {
+    return (allThreads ?? []).map((thread) => {
       // Determine the other person in the conversation (not the logged-in user)
       const loggedInUserId = state.loggedInUser?.id;
       const otherUserId =
@@ -338,7 +346,6 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
 
       // Get user info for the other person in the conversation
       const otherUser = getResourceById("users", otherUserId);
-
       // Get the last conversation from the thread owner to determine category
       const lastConversationFromOwner = thread.conversations
         .filter((conv) => conv.user.id === thread.thread_owner_id)
@@ -408,15 +415,30 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
   });
 
   // Handle thread selection
-  const handleThreadSelect = (threadId: string) => {
-    setSelectedThread(threadId);
+  const handleThreadSelect = (threadIdentifier: string) => {
+    setSelectedThread(threadIdentifier);
     setShowIndividualChat(true);
 
-    // Initialize WebSocket connection with thread ID
-    const threadIdMatch = threadId.match(/thread_(\d+)_\d+_.*_(\d+)/);
-    if (threadIdMatch) {
-      const threadId = parseInt(threadIdMatch[2]); // Use the timestamp as thread ID
-      setCurrentThreadId(threadId);
+    // Find the actual thread to get its database ID or use identifier-based ID
+    const thread = allThreads.find((t) => t.identifier === threadIdentifier);
+    if (thread) {
+      // For existing threads from database, use the database ID
+      // For generated threads, extract the timestamp from identifier
+      if (
+        thread.id &&
+        typeof thread.id === "number" &&
+        thread.id > 1000000000000
+      ) {
+        setCurrentThreadId(thread.id);
+      } else {
+        // Extract timestamp from identifier: thread_[owner]_[recipient]_[pointer]_[timestamp]
+        const match = threadIdentifier.match(/_(\d+)$/);
+        if (match) {
+          setCurrentThreadId(parseInt(match[1]));
+        } else {
+          setCurrentThreadId(thread.id as number);
+        }
+      }
     }
   };
 
@@ -471,9 +493,9 @@ const DocumentMessaging: React.FC<DocumentMessagingProps> = ({ category }) => {
   };
 
   // Show access denied message if user is locked
-  if (state.accessLevel === "lock") {
-    return null; // Don't show messaging if access is locked
-  }
+  // if (state.accessLevel === "lock") {
+  //   return null; // Don't show messaging if access is locked
+  // }
 
   return (
     <>
@@ -715,31 +737,49 @@ const IndividualChatWindow: React.FC<IndividualChatWindowProps> = ({
         <div className="individual-chat__header-left">
           <div className="individual-chat__avatar">
             <img
-              src={`https://ui-avatars.com/api/?name=${
-                selectedThreadData?.thread_owner_id === state.loggedInUser?.id
-                  ? getResourceById(
-                      "users",
-                      selectedThreadData?.recipient_id || 0
-                    )?.name?.charAt(0) || "U"
-                  : getResourceById(
-                      "users",
-                      selectedThreadData?.thread_owner_id || 0
-                    )?.name?.charAt(0) || "U"
-              }&background=3b82f6&color=fff&size=96`}
+              src={`https://ui-avatars.com/api/?name=${(() => {
+                // Determine the other person in the conversation (not the logged-in user)
+                const loggedInUserId = state.loggedInUser?.id;
+                let otherUserId: number;
+
+                if (selectedThreadData?.thread_owner_id === loggedInUserId) {
+                  // If logged-in user is the thread owner, show the recipient
+                  otherUserId = selectedThreadData?.recipient_id || 0;
+                } else {
+                  // If logged-in user is the recipient, show the thread owner
+                  otherUserId = selectedThreadData?.thread_owner_id || 0;
+                }
+
+                const otherUser = otherUserId
+                  ? getResourceById("users", otherUserId)
+                  : null;
+
+                return otherUser?.name?.charAt(0) || "U";
+              })()}&background=3b82f6&color=fff&size=96`}
               alt="User"
             />
           </div>
           <div className="individual-chat__info">
             <h3>
-              {selectedThreadData?.thread_owner_id === state.loggedInUser?.id
-                ? getResourceById(
-                    "users",
-                    selectedThreadData?.recipient_id || 0
-                  )?.name || "User"
-                : getResourceById(
-                    "users",
-                    selectedThreadData?.thread_owner_id || 0
-                  )?.name || "User"}
+              {(() => {
+                // Determine the other person in the conversation (not the logged-in user)
+                const loggedInUserId = state.loggedInUser?.id;
+                let otherUserId: number;
+
+                if (selectedThreadData?.thread_owner_id === loggedInUserId) {
+                  // If logged-in user is the thread owner, show the recipient
+                  otherUserId = selectedThreadData?.recipient_id || 0;
+                } else {
+                  // If logged-in user is the recipient, show the thread owner
+                  otherUserId = selectedThreadData?.thread_owner_id || 0;
+                }
+
+                const otherUser = otherUserId
+                  ? getResourceById("users", otherUserId)
+                  : null;
+
+                return otherUser?.name || `User ${otherUserId || "Unknown"}`;
+              })()}
             </h3>
             <p>Online</p>
           </div>

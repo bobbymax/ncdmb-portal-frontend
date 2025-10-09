@@ -13,6 +13,7 @@ export type FundProps = {
 type LinkedDocumentProps = {
   title: string;
   ref: string;
+  document_category_id: number;
   published_at: string;
   published_by: {
     name: string;
@@ -21,11 +22,14 @@ type LinkedDocumentProps = {
   };
   approved_amount: number;
   type: string;
+  resource_id: number;
+  resource_type: string;
 };
 export interface ExpenditureResponseData extends BaseResponse {
   user_id: number;
   department_id: number;
   fund_id: number;
+  document_id: number;
   document_draft_id: number;
   linked_document?: LinkedDocumentProps | null;
   code: string;

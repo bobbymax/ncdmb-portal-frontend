@@ -5,6 +5,7 @@ export const expenditureConfig: ConfigProp<ExpenditureResponseData> = {
   fillables: [
     "department_id",
     "fund_id",
+    "document_id",
     "document_draft_id",
     "code",
     "purpose",
@@ -26,6 +27,7 @@ export const expenditureConfig: ConfigProp<ExpenditureResponseData> = {
     user_id: 0,
     department_id: 0,
     fund_id: 0,
+    document_id: 0,
     document_draft_id: 0,
     code: "",
     purpose: "",

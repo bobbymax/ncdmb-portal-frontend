@@ -12,6 +12,7 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     "amount",
     "taxable_amount",
     "document_action_id",
+    "operator_id",
   ],
   associatedResources: [],
   state: {
@@ -26,6 +27,7 @@ export const documentDraftConfig: ConfigProp<DocumentDraftResponseData> = {
     taxable_amount: "",
     status: "",
     ref: "",
+    operator_id: 0,
     operator: null,
     version_number: 0,
   },

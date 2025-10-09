@@ -89,6 +89,7 @@ export default class DocumentRepository extends BaseRepository {
       type: data.type ?? "staff",
       fund_id: data.fund_id ?? 0,
       processes: data.processes ?? [],
+      payments: data.payments ?? [],
     };
   }
   public associatedResources: DependencyProps[] =

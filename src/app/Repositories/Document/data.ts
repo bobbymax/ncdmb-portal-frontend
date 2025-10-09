@@ -14,6 +14,7 @@ import {
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { ProgressTrackerResponseData } from "../ProgressTracker/data";
+import { PaymentResponseData } from "../Payment/data";
 
 export interface UploadResponseData extends BaseResponse {
   user_id: number;
@@ -94,6 +95,7 @@ export interface DocumentResponseData extends BaseResponse {
   linked_drafts?: DocumentDraftResponseData[]; // ignore
   complete_or_linked_drafts?: DocumentDraftResponseData[]; // ignore
   documentable?: unknown;
+  payments?: PaymentResponseData[];
   dept?: string;
   updates?: DocumentUpdateResponseData[]; // ignore
   action?: Partial<DocumentActionResponseData> | null; // ignore
