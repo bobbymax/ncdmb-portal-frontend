@@ -81,14 +81,20 @@ const useDocumentGenerator = (params: unknown) => {
 
   // Resources fetching removed - now handled by ResourceContext
 
-  // Optimized category and document fetching
-  useEffect(() => {
-    if (!params || !_.has(params, "id")) return;
+  // Extract stable values from params to prevent unnecessary re-renders
+  const categoryId = useMemo(() => {
+    return params && _.has(params, "id") ? Number(params.id) : null;
+  }, [params]);
 
-    const id = Number(params.id);
-    const documentId = _.has(params, "documentId")
+  const documentId = useMemo(() => {
+    return params && _.has(params, "documentId")
       ? Number(params.documentId)
       : null;
+  }, [params]);
+
+  // Optimized category and document fetching
+  useEffect(() => {
+    if (!categoryId) return;
 
     const fetchData = async () => {
       try {
@@ -106,7 +112,7 @@ const useDocumentGenerator = (params: unknown) => {
 
         // Fetch category
         const categoryResponse = await addRequest(() =>
-          categoryRepo.show("documentCategories", id)
+          categoryRepo.show("documentCategories", categoryId)
         );
 
         if (categoryResponse?.data) {
@@ -178,7 +184,9 @@ const useDocumentGenerator = (params: unknown) => {
     };
 
     fetchData();
-  }, [params, addRequest, categoryRepo]);
+    // Only watch the memoized param values, not the params object reference
+    // This prevents unnecessary re-fetches when params object changes but values stay same
+  }, [categoryId, documentId, addRequest, categoryRepo]);
 
   return {
     category,

@@ -109,8 +109,6 @@ const ReactPdfDocument: React.FC<ReactPdfDocumentProps> = ({
     }
 
     return documentState.body.map((block: any, index: number) => {
-      console.log(`Rendering block ${index}:`, block);
-
       // Map ContentBlock to React PDF component
       const mappedBlock = mapContentBlockToReactPdf(block, theme);
 

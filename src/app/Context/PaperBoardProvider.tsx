@@ -331,6 +331,10 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
   const actions = {
     setCategory: (category: DocumentCategoryResponseData | null) => {
       dispatch({ type: "SET_CATEGORY", payload: category });
+      // Automatically set template from category
+      if (category?.template) {
+        dispatch({ type: "SET_TEMPLATE", payload: category.template });
+      }
     },
     setTemplate: (template: TemplateResponseData | null) => {
       dispatch({ type: "SET_TEMPLATE", payload: template });

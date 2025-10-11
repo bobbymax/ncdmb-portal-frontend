@@ -185,8 +185,6 @@ const ProcessCard: React.FC<
   ];
   const auditTrailLevelOptions = ["basic", "detailed", "comprehensive"];
 
-  console.log(state);
-
   return (
     <>
       {/* Basic Information */}

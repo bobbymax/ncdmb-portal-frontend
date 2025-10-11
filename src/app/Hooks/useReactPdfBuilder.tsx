@@ -236,8 +236,6 @@ export const useReactPdfBuilder = () => {
       setError(null);
 
       try {
-        console.log("Generating PDF with @react-pdf/renderer:", documentState);
-
         // Import the PDF Document component dynamically to avoid SSR issues
         const ReactPdfDocument = (
           await import("../components/ReactPdfDocument")
@@ -251,7 +249,6 @@ export const useReactPdfBuilder = () => {
         // Create URL for the blob
         const url = URL.createObjectURL(pdfBlob);
 
-        console.log("PDF generated successfully with @react-pdf/renderer");
         return url;
       } catch (err) {
         const errorMessage =

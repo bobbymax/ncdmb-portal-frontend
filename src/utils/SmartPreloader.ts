@@ -42,7 +42,6 @@ class SmartPreloader {
     import(`../resources/views/crud/${route}`)
       .then(() => {
         this.preloadedComponents.add(route);
-        console.log(`✅ Preloaded: ${route}`);
       })
       .catch((error) => {
         console.warn(`❌ Failed to preload ${route}:`, error);
@@ -100,7 +99,6 @@ class SmartPreloader {
           try {
             const repository = repo(req);
             await repository.collection(req);
-            console.log(`✅ Preloaded data: ${req}`);
           } catch (error) {
             console.warn(`❌ Failed to preload data ${req}:`, error);
           }

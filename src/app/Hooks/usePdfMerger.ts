@@ -65,10 +65,7 @@ export const usePdfMerger = (
   };
 
   const generateMergedPdf = useCallback(async () => {
-    console.log("generateMergedPdf called with uploads:", uploads);
-
     if (!uploads || uploads.length === 0) {
-      console.log("No uploads available");
       setError("No uploads available to merge");
       setIsLoading(false);
       return;
@@ -81,7 +78,6 @@ export const usePdfMerger = (
 
     // Check if we've already processed these uploads
     if (processedUploadsRef.current === uploadsId && mergedPdfUrl) {
-      console.log("Already processed these uploads, skipping");
       return;
     }
 
@@ -95,10 +91,8 @@ export const usePdfMerger = (
 
       // Process each upload
       for (const upload of uploads) {
-        console.log("Processing upload:", upload);
         try {
           if (upload.file_path && upload.file_path.startsWith("data:")) {
-            console.log("Converting data URL to PDF for:", upload.name);
             const pdfDoc = await convertDataUrlToPdf(
               upload.file_path,
               upload.name
@@ -120,8 +114,6 @@ export const usePdfMerger = (
         }
       }
 
-      console.log(`Processed ${processedCount} files`);
-
       // Generate the merged PDF as bytes
       const pdfBytes = await mergedPdf.save();
 
@@ -129,7 +121,6 @@ export const usePdfMerger = (
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
 
-      console.log("PDF generated successfully:", url);
       setMergedPdfUrl(url);
       processedUploadsRef.current = uploadsId; // Mark as processed
     } catch (err) {

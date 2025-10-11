@@ -47,6 +47,8 @@ export default class UserRepository extends BaseRepository {
       remunerations: data.remunerations ?? [],
       blocked: data.blocked ?? 0,
       type: data.type ?? "permanent",
+      rank: data.rank ?? 0,
+      grade_level_object: data.grade_level_object ?? null,
     };
   }
 }

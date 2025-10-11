@@ -177,8 +177,6 @@ const EmployeeBudgetClear: React.FC<ProcessGeneratorCardProps> = ({
     );
   };
 
-  console.log(selectedPayments);
-
   // Toggle select all
   const toggleSelectAll = () => {
     if (selectedExpenditures.length === expenditures.length) {
@@ -200,11 +198,6 @@ const EmployeeBudgetClear: React.FC<ProcessGeneratorCardProps> = ({
       );
 
       const results = await Promise.all(promises);
-
-      // Show success notification
-      console.log(
-        `Successfully created ${results.length} payment(s) for budget clearance`
-      );
 
       // Clear selections
       setSelectedExpenditures([]);

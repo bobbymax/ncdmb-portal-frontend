@@ -20,16 +20,11 @@ const GenerateDocument = ({
   const [stableMode, setStableMode] = useState<"store" | "update">("store");
 
   useEffect(() => {
-    console.log("Mode switch check:", {
-      isBuilding,
-      existingDocument: !!existingDocument,
-      stableMode,
-    });
     if (existingDocument) {
-      // Switch to update mode as soon as document exists, regardless of isBuilding
+      // Switch to update mode as soon as document exists
       setStableMode("update");
     }
-  }, [isBuilding, existingDocument]);
+  }, [existingDocument]); // Only watch existingDocument, not isBuilding
 
   // Removed loading state check to prevent infinite loading on new document creation
   // The component will render normally while building

@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 import { BaseResponse } from "@/app/Repositories/BaseRepository";
 import { ProcessCardResponseData } from "@/app/Repositories/ProcessCard/data";
+import { useResourceContext } from "app/Context/ResourceContext";
 
 export interface ProcessGeneratorCardProps {
   processCard: ProcessCardResponseData;
@@ -110,6 +111,7 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
   const { state, actions } = usePaperBoard();
   const paymentRepo = new PaymentRepository();
   const { config } = useStateContext();
+  const { getResource } = useResourceContext();
   const navigate = useNavigate();
 
   const [currentProcess, setCurrentProcess] =
@@ -145,12 +147,8 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
         progress_tracker_id: currentProcess.id,
       };
 
-      console.log("Body: ", body);
-
       try {
         const response = await paymentRepo.store("document/processor", body);
-
-        console.log("Response: ", response);
 
         if (response.code === 200 || response.code === 201) {
           toast.success(response.message);
@@ -235,8 +233,6 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
   const userCanHandle = canHandle(currentDraft);
   const allowedActions = currentProcess?.actions;
 
-  console.log("Allowed Actions: ", allowedActions);
-
   const handleProcess = () => {
     const recipients = getTrackerUserIds();
     const body = {
@@ -280,7 +276,6 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
         } else {
           toast.error(response.message);
         }
-        console.log("Response: ", response);
       }
     });
   };

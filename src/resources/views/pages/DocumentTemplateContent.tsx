@@ -21,6 +21,7 @@ import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
 import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
+import logo from "../../assets/images/logo.png";
 
 // Lazy load heavy components
 const BudgetGeneratorTab = lazy(
@@ -92,7 +93,7 @@ const DocumentTemplateContent = ({
   existingDocument: propExistingDocument,
 }: DocumentTemplateContentProps) => {
   const { state, actions } = usePaperBoard();
-  const { getResourceById } = useResourceContext();
+  const { getResourceById, loading: resourceLoading } = useResourceContext();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("budget");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -102,6 +103,11 @@ const DocumentTemplateContent = ({
   );
   const [isSyncing, setIsSyncing] = useState(false);
   const documentElementRef = useRef<HTMLDivElement>(null);
+
+  // Mounting guard states
+  const [isMounted, setIsMounted] = useState(false);
+  const [isDataReady, setIsDataReady] = useState(false);
+  const [isComponentReady, setIsComponentReady] = useState(false);
 
   const { config } = useStateContext();
 
@@ -190,6 +196,55 @@ const DocumentTemplateContent = ({
 
   // Ref to prevent infinite loops during sync
   const hasSyncedRef = useRef<number | false>(false);
+
+  // Stage 1: Track component mount
+  useEffect(() => {
+    setIsMounted(true);
+
+    return () => {
+      setIsMounted(false);
+      setIsComponentReady(false);
+    };
+  }, []);
+
+  // Set template from category when category loads
+  useEffect(() => {
+    if (category?.template && state.template?.id !== category.template.id) {
+      actions.setTemplate(category.template);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category?.template?.id]); // Only watch template ID changes
+
+  // Stage 2: Track critical data readiness
+  useEffect(() => {
+    const criticalDataReady =
+      // Component must be mounted first
+      isMounted &&
+      // For update mode: existingDocument must be loaded
+      (mode === "update"
+        ? state.existingDocument !== null && state.template !== null
+        : true) &&
+      // Category must be present
+      category !== null;
+    // Note: Template is required for proper header display
+    // Sync can happen async in background
+
+    setIsDataReady(criticalDataReady);
+  }, [isMounted, mode, state.existingDocument, state.template, category]);
+
+  // Stage 3: Combine into final ready state
+  useEffect(() => {
+    if (isMounted && isDataReady) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        setIsComponentReady(true);
+      }, 150);
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsComponentReady(false);
+    }
+  }, [isMounted, isDataReady]);
 
   // Sync prop existingDocument to global state
   useEffect(() => {
@@ -589,63 +644,63 @@ const DocumentTemplateContent = ({
       state.existingDocument?.threads &&
       Array.isArray(state.existingDocument.threads)
     ) {
-      // Check if threads actually need updating
       const existingThreads = state.threads || [];
       const documentThreads = state.existingDocument.threads;
 
-      // Only sync if the document threads are more recent or if we have no threads at all
-      // This prevents overriding user changes that are newer than the document data
-      const shouldSync =
-        existingThreads.length === 0 || // No threads in state, sync from document
-        documentThreads.length > existingThreads.length || // Document has more threads
-        documentThreads.some((docThread) => {
-          // Check if document has threads that don't exist in state
-          return !existingThreads.some(
-            (existingThread) =>
-              existingThread.identifier === docThread.identifier
-          );
-        });
+      // Check if any thread belongs to a different document
+      const hasDifferentDocumentThreads = existingThreads.some((thread) => {
+        return thread.document_id !== state.existingDocument?.id;
+      });
 
-      if (shouldSync) {
-        // Merge document threads with existing state threads, giving priority to state threads
-        const mergedThreads = [...existingThreads];
+      // If threads belong to a different document, replace them completely
+      if (hasDifferentDocumentThreads || existingThreads.length === 0) {
+        actions.setThreads(documentThreads);
+      } else {
+        // Same document: merge threads intelligently
+        const shouldSync =
+          documentThreads.length > existingThreads.length ||
+          documentThreads.some((docThread) => {
+            return !existingThreads.some(
+              (existingThread) =>
+                existingThread.identifier === docThread.identifier
+            );
+          });
 
-        documentThreads.forEach((docThread) => {
-          const existingIndex = mergedThreads.findIndex(
-            (existingThread) =>
-              existingThread.identifier === docThread.identifier
-          );
+        if (shouldSync) {
+          // Merge document threads with existing state threads
+          const mergedThreads = [...existingThreads];
 
-          if (existingIndex === -1) {
-            // Thread doesn't exist in state, add it
-            mergedThreads.push(docThread);
-          } else {
-            // Thread exists, but check if document has more conversations
-            const existingThread = mergedThreads[existingIndex];
-            if (
-              docThread.conversations.length >
-              existingThread.conversations.length
-            ) {
-              // Document has more conversations, update the thread
-              mergedThreads[existingIndex] = docThread;
+          documentThreads.forEach((docThread) => {
+            const existingIndex = mergedThreads.findIndex(
+              (existingThread) =>
+                existingThread.identifier === docThread.identifier
+            );
+
+            if (existingIndex === -1) {
+              mergedThreads.push(docThread);
+            } else {
+              const existingThread = mergedThreads[existingIndex];
+              if (
+                docThread.conversations.length >
+                existingThread.conversations.length
+              ) {
+                mergedThreads[existingIndex] = docThread;
+              }
             }
-            // Otherwise, keep the existing thread (user changes take priority)
-          }
-        });
+          });
 
-        actions.setThreads(mergedThreads);
+          actions.setThreads(mergedThreads);
+        }
       }
     } else if (
       state.existingDocument &&
       (!state.existingDocument.threads ||
         state.existingDocument.threads.length === 0)
     ) {
-      // Document exists but has no threads - only clear if we have no threads at all
-      if (state.threads && state.threads.length === 0) {
-        actions.setThreads([]);
-      }
+      // Document exists but has no threads - clear threads
+      actions.setThreads([]);
     }
-  }, [state.existingDocument?.threads]); // Removed actions from dependencies to prevent re-render loops
+  }, [state.existingDocument?.threads, state.existingDocument?.id]); // Watch both threads and document ID
 
   // Sample blocks for demonstration when state.blocks is empty
   const sampleBlocks = [
@@ -1269,8 +1324,8 @@ const DocumentTemplateContent = ({
 
   return (
     <div className="document__template__content">
-      {/* Sync Loading Overlay */}
-      {isSyncing && (
+      {/* Component Ready Guard - Shows until fully mounted and data loaded */}
+      {!isComponentReady ? (
         <div
           style={{
             position: "fixed",
@@ -1278,331 +1333,456 @@ const DocumentTemplateContent = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(255, 255, 255, 0.98)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 9999,
+            zIndex: 9998,
+            animation: "fadeIn 0.3s ease",
           }}
         >
-          <div
-            style={{
-              backgroundColor: "white",
-              padding: "20px",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-            }}
-          >
+          <div style={{ textAlign: "center" }}>
+            {/* Animated Logo */}
             <div
-              className="skeleton-line"
               style={{
-                width: "20px",
-                height: "20px",
-                borderRadius: "50%",
-                animation: "skeleton-loading 1s infinite",
-              }}
-            ></div>
-            <span>Syncing document data...</span>
-          </div>
-        </div>
-      )}
-      <div className="row">
-        <div className="col-md-7 mb-3">
-          <div className="document__template__paper">
-            {/* Paper Header */}
-            <div className="document__template__paper__header flex align center between">
-              {/* Switch isEditor */}
-              {(mode === "update" &&
-                !state.existingDocument?.is_completed &&
-                (state.loggedInUser?.id === state.existingDocument?.user_id ||
-                  state.loggedInUser?.id ===
-                    state.existingDocument?.created_by)) ||
-              mode === "store" ? (
-                <div className="switch__editor">
-                  <input
-                    type="checkbox"
-                    id="editor-switch"
-                    checked={isEditor}
-                    onChange={() => {
-                      setIsEditor(!isEditor);
-                      logDocumentToggle(!isEditor);
-                    }}
-                  />
-                  <label htmlFor="editor-switch">
-                    {isEditor ? "Editor" : "Preview"}
-                  </label>
-                </div>
-              ) : null}
-
-              <div className="document__template__paper__header__actions flex align gap-md">
-                {/* Workflow Loading Indicator */}
-                {isWorkflowLoading && (
-                  <div className="workflow__loading flex align center gap-sm">
-                    <i className="ri-loader-4-line animate-spin"></i>
-                    <span>Processing...</span>
-                  </div>
-                )}
-
-                {state.existingDocument?.is_completed == true && (
-                  <div
-                    style={{
-                      padding: "0.2rem .8rem",
-                    }}
-                    className="workflow__loading flex align center gap-sm"
-                  >
-                    <i className="ri-bubble-chart-line"></i>
-                    <span>{state.existingDocument?.status}</span>
-                  </div>
-                )}
-
-                {/* Workflow Error Display */}
-                {workflowError && (
-                  <div className="workflow__error flex align center gap-sm">
-                    <i className="ri-error-warning-line text-danger"></i>
-                    <span className="text-danger">{workflowError}</span>
-                  </div>
-                )}
-
-                {/* Workflow Actions - only show in update mode */}
-                {mode === "update" &&
-                  currentPage.map((page, idx) => {
-                    // Determine if this action is disabled based on workflow state
-                    const isActionDisabled =
-                      isEditor ||
-                      state.existingDocument?.is_completed ||
-                      isWorkflowLoading ||
-                      !isUserAuthorized ||
-                      // Disable passed and complete actions if signature is required
-                      (currentTracker?.should_be_signed === "yes" &&
-                        !hasUserSigned &&
-                        (page.action.action_status === "passed" ||
-                          page.action.action_status === "complete")) ||
-                      (page.action.action_status === "passed" && !canPass) ||
-                      (page.action.action_status === "complete" &&
-                        !canComplete) ||
-                      (page.action.action_status === "stalled" && !canStall) ||
-                      (page.action.action_status === "processing" &&
-                        !canProcess) ||
-                      (page.action.action_status === "reversed" &&
-                        !canReverse) ||
-                      (page.action.action_status === "cancelled" &&
-                        !canCancel) ||
-                      (page.action.action_status === "appeal" && !canAppeal) ||
-                      (page.action.action_status === "escalate" &&
-                        !canEscalate);
-
-                    return (
-                      <Button
-                        key={idx}
-                        label={page.action.button_text}
-                        icon={page.action.icon}
-                        handleClick={() => handleWorkflowAction(page.action)}
-                        variant={page.action.variant}
-                        size="sm"
-                        isDisabled={isActionDisabled}
-                      />
-                    );
-                  })}
-              </div>
-            </div>
-
-            {mode === "update" && (
-              <div
-                style={{
-                  padding: "0 1.8rem",
-                }}
-                className="page__flipped"
-              >
-                {/* Page Flipped Content */}
-                <div className={`page__flipped__toggler state-${viewMode}`}>
-                  <span
-                    className="toggle-label left"
-                    onClick={() => setViewMode("document")}
-                  >
-                    <i className="ri-file-text-line"></i>
-                    <span>Document</span>
-                  </span>
-                  <span
-                    className="toggle-label center"
-                    onClick={() => setViewMode("uploads")}
-                  >
-                    <i className="ri-upload-cloud-line"></i>
-                    <span>Uploads</span>
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Paper Panel */}
-            {isEditor && (
-              <div className="document__template__paper__panel">
-                {/* Toolbar with blocks */}
-                <div className="paper__toolbar">
-                  <div className="toolbar__blocks">
-                    {displayBlocks && displayBlocks.length > 0 ? (
-                      displayBlocks.map((block) => (
-                        <div
-                          key={block.id}
-                          className="toolbar__block"
-                          draggable
-                          onDragStart={(e) => handleBlockDragStart(e, block)}
-                        >
-                          <div className="block__icon">
-                            <i className={block.icon}></i>
-                          </div>
-                          <div className="block__name">{block.title}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="toolbar__empty">
-                        <i className="ri-layout-grid-line"></i>
-                        <span>No blocks available</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="toolbar__actions">
-                    <button
-                      className="generate__document__btn"
-                      onClick={handleGenerateDocument}
-                    >
-                      <i
-                        className={
-                          state.existingDocument
-                            ? "ri-database-2-line"
-                            : "ri-store-line"
-                        }
-                      ></i>
-                      <span>
-                        {state.existingDocument ? "Update" : "Generate"}{" "}
-                        Document
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Always render document element for snapshot, but hide when not in document mode */}
-            <div
-              className="document__template__paper__sheet"
-              ref={documentElementRef}
-              style={{
-                display: viewMode === "document" ? "flex" : "none",
-                position: viewMode !== "document" ? "absolute" : "relative",
-                left: viewMode !== "document" ? "-9999px" : "auto",
+                width: "100px",
+                height: "100px",
+                margin: "0 auto 24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                animation: "pulse 2s infinite",
               }}
             >
-              {/* A4 Paper Sheet Area */}
-              <A4Sheet
-                state={state}
-                actions={actions}
-                currentPageActions={currentPage}
-                handleDragStart={handleDragStart}
-                handleDragOver={handleDragOver}
-                handleDrop={handleDrop}
-                handleDragEnter={handleDragEnter}
-                handleAddResourceLink={handleAddResourceLink}
-                handleManageItem={handleManageItem}
-                handleRemoveItem={handleRemoveItem}
-                editingItems={editingItems}
-                TemplateHeader={TemplateHeader}
-                currentTracker={currentTracker}
-                isEditor={isEditor}
+              <img
+                src={logo}
+                alt="Logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                }}
               />
             </div>
 
-            {/* Render current view */}
-            {viewMode === "uploads" && (
-              <div className="uploaded__files" style={{ width: 838 }}>
-                <PdfViewer
-                  pdfUrl={mergedPdfUrl}
-                  isLoading={isPdfLoading}
-                  error={pdfError}
-                  onGeneratePdf={generateMergedPdf}
-                  className="uploaded-files-pdf-viewer"
-                />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="col-md-5 mb-3">
-          <div className="document__template__configuration">
-            {/* Configuration Tabs */}
-            <div className="configuration__tabs">
-              <div className="tabs__header">
-                {tabOrder.map((tab, index) => (
-                  <div
-                    key={tab.id}
-                    className={`tab__item ${
-                      activeTab === tab.id ? "active" : ""
-                    }`}
-                    data-tab={tab.id}
-                    onClick={() => handleTabChange(tab.id)}
-                    draggable
-                    onDragStart={(e) => handleTabDragStart(e, index)}
-                    onDragOver={(e) => handleTabDragOver(e)}
-                    onDragEnter={(e) => handleTabDragEnter(e, index)}
-                    onDragLeave={handleTabDragLeave}
-                    onDrop={(e) => handleTabDrop(e, index)}
-                    style={{
-                      display: tab.isEditor === isEditor ? "flex" : "none",
-                    }}
-                  >
-                    <i className={tab.icon}></i>
-                    <span>{tab.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="tabs__content">
-                {tabOrder.map((tab) => (
-                  <div
-                    key={tab.id}
-                    className={`tab__panel ${
-                      activeTab === tab.id ? "active" : ""
-                    }`}
-                    data-tab={tab.id}
-                  >
-                    <div className="panel__content">
-                      <Suspense
-                        fallback={
-                          <div className="tab__loading">
-                            <i className="ri-loader-4-line animate-spin"></i>
-                            <span>Loading tab...</span>
-                          </div>
-                        }
-                      >
-                        {tab.id === "budget" && (
-                          <BudgetGeneratorTab category={category} />
-                        )}
-                        {tab.id === "uploads" && (
-                          <UploadsGeneratorTab category={category} />
-                        )}
-                        {tab.id === "resource" && (
-                          <ResourceGeneratorTab category={category} />
-                        )}
-                        {tab.id === "settings" && (
-                          <SettingsGeneratorTab category={category} />
-                        )}
-                        {tab.id === "activities" && (
-                          <ActivitiesGeneratorTab category={category} />
-                        )}
-                        {tab.id === "process" && (
-                          <ProcessGeneratorTab category={category} />
-                        )}
-                      </Suspense>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Loading Spinner */}
+            <div
+              className="spinner-border text-success mb-3"
+              role="status"
+              style={{ width: "48px", height: "48px" }}
+            >
+              <span className="visually-hidden">Loading...</span>
+            </div>
+
+            {/* Loading Message */}
+            <h5
+              style={{
+                fontSize: "1.2rem",
+                fontWeight: "600",
+                color: "#1f2937",
+                marginBottom: "8px",
+              }}
+            >
+              {mode === "update"
+                ? "Loading Document..."
+                : "Preparing Workspace..."}
+            </h5>
+            <p
+              style={{
+                fontSize: "0.9rem",
+                color: "#6b7280",
+                marginBottom: 0,
+              }}
+            >
+              {!isMounted && "Initializing component..."}
+              {isMounted &&
+                !isDataReady &&
+                (mode === "update"
+                  ? "Loading document data..."
+                  : "Setting up workspace...")}
+              {isMounted &&
+                isDataReady &&
+                isSyncing &&
+                "Syncing document state..."}
+              {isMounted && isDataReady && !isSyncing && "Almost ready..."}
+            </p>
+
+            {/* Progress Indicators */}
+            <div
+              className="d-flex align-items-center justify-content-center gap-2 mt-4"
+              style={{ fontSize: "0.8rem", color: "#9ca3af" }}
+            >
+              <span
+                className={isMounted ? "text-success fw-bold" : "text-muted"}
+              >
+                {isMounted ? "✓" : "○"} Mounted
+              </span>
+              <span style={{ opacity: 0.3 }}>•</span>
+              <span
+                className={isDataReady ? "text-success fw-bold" : "text-muted"}
+              >
+                {isDataReady ? "✓" : "○"} Data Loaded
+              </span>
+              <span style={{ opacity: 0.3 }}>•</span>
+              <span
+                className={!isSyncing ? "text-success fw-bold" : "text-muted"}
+              >
+                {!isSyncing ? "✓" : "○"} Synced
+              </span>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div
+          className="content-fade-in"
+          style={{
+            animation: "fadeIn 0.4s ease",
+          }}
+        >
+          {/* Sync Loading Overlay - Shows during re-syncing after initial load */}
+          {isSyncing && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 9999,
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "white",
+                  padding: "20px",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+              >
+                <div
+                  className="skeleton-line"
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    animation: "skeleton-loading 1s infinite",
+                  }}
+                ></div>
+                <span>Syncing document data...</span>
+              </div>
+            </div>
+          )}
+          <div className="row">
+            <div className="col-md-7 mb-3">
+              <div className="document__template__paper">
+                {/* Paper Header */}
+                <div className="document__template__paper__header flex align center between">
+                  {/* Switch isEditor */}
+                  {(mode === "update" &&
+                    !state.existingDocument?.is_completed &&
+                    (state.loggedInUser?.id ===
+                      state.existingDocument?.user_id ||
+                      state.loggedInUser?.id ===
+                        state.existingDocument?.created_by)) ||
+                  mode === "store" ? (
+                    <div className="switch__editor">
+                      <input
+                        type="checkbox"
+                        id="editor-switch"
+                        checked={isEditor}
+                        onChange={() => {
+                          setIsEditor(!isEditor);
+                          logDocumentToggle(!isEditor);
+                        }}
+                      />
+                      <label htmlFor="editor-switch">
+                        {isEditor ? "Editor" : "Preview"}
+                      </label>
+                    </div>
+                  ) : null}
 
-      {/* LinkedIn-style Messaging Component */}
-      <DocumentMessaging category={category} />
+                  <div className="document__template__paper__header__actions flex align gap-md">
+                    {/* Workflow Loading Indicator */}
+                    {isWorkflowLoading && (
+                      <div className="workflow__loading flex align center gap-sm">
+                        <i className="ri-loader-4-line animate-spin"></i>
+                        <span>Processing...</span>
+                      </div>
+                    )}
+
+                    {state.existingDocument?.is_completed == true && (
+                      <div
+                        style={{
+                          padding: "0.2rem .8rem",
+                        }}
+                        className="workflow__loading flex align center gap-sm"
+                      >
+                        <i className="ri-bubble-chart-line"></i>
+                        <span>{state.existingDocument?.status}</span>
+                      </div>
+                    )}
+
+                    {/* Workflow Error Display */}
+                    {workflowError && (
+                      <div className="workflow__error flex align center gap-sm">
+                        <i className="ri-error-warning-line text-danger"></i>
+                        <span className="text-danger">{workflowError}</span>
+                      </div>
+                    )}
+
+                    {/* Workflow Actions - only show in update mode */}
+                    {mode === "update" &&
+                      currentPage.map((page, idx) => {
+                        // Determine if this action is disabled based on workflow state
+                        const isActionDisabled =
+                          isEditor ||
+                          state.existingDocument?.is_completed ||
+                          isWorkflowLoading ||
+                          !isUserAuthorized ||
+                          // Disable passed and complete actions if signature is required
+                          (currentTracker?.should_be_signed === "yes" &&
+                            !hasUserSigned &&
+                            (page.action.action_status === "passed" ||
+                              page.action.action_status === "complete")) ||
+                          (page.action.action_status === "passed" &&
+                            !canPass) ||
+                          (page.action.action_status === "complete" &&
+                            !canComplete) ||
+                          (page.action.action_status === "stalled" &&
+                            !canStall) ||
+                          (page.action.action_status === "processing" &&
+                            !canProcess) ||
+                          (page.action.action_status === "reversed" &&
+                            !canReverse) ||
+                          (page.action.action_status === "cancelled" &&
+                            !canCancel) ||
+                          (page.action.action_status === "appeal" &&
+                            !canAppeal) ||
+                          (page.action.action_status === "escalate" &&
+                            !canEscalate);
+
+                        return (
+                          <Button
+                            key={idx}
+                            label={page.action.button_text}
+                            icon={page.action.icon}
+                            handleClick={() =>
+                              handleWorkflowAction(page.action)
+                            }
+                            variant={page.action.variant}
+                            size="sm"
+                            isDisabled={isActionDisabled}
+                          />
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {mode === "update" && (
+                  <div
+                    style={{
+                      padding: "0 1.8rem",
+                    }}
+                    className="page__flipped"
+                  >
+                    {/* Page Flipped Content */}
+                    <div className={`page__flipped__toggler state-${viewMode}`}>
+                      <span
+                        className="toggle-label left"
+                        onClick={() => setViewMode("document")}
+                      >
+                        <i className="ri-file-text-line"></i>
+                        <span>Document</span>
+                      </span>
+                      <span
+                        className="toggle-label center"
+                        onClick={() => setViewMode("uploads")}
+                      >
+                        <i className="ri-upload-cloud-line"></i>
+                        <span>Uploads</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Paper Panel */}
+                {isEditor && (
+                  <div className="document__template__paper__panel">
+                    {/* Toolbar with blocks */}
+                    <div className="paper__toolbar">
+                      <div className="toolbar__blocks">
+                        {displayBlocks && displayBlocks.length > 0 ? (
+                          displayBlocks.map((block) => (
+                            <div
+                              key={block.id}
+                              className="toolbar__block"
+                              draggable
+                              onDragStart={(e) =>
+                                handleBlockDragStart(e, block)
+                              }
+                            >
+                              <div className="block__icon">
+                                <i className={block.icon}></i>
+                              </div>
+                              <div className="block__name">{block.title}</div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="toolbar__empty">
+                            <i className="ri-layout-grid-line"></i>
+                            <span>No blocks available</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="toolbar__actions">
+                        <button
+                          className="generate__document__btn"
+                          onClick={handleGenerateDocument}
+                        >
+                          <i
+                            className={
+                              state.existingDocument
+                                ? "ri-database-2-line"
+                                : "ri-store-line"
+                            }
+                          ></i>
+                          <span>
+                            {state.existingDocument ? "Update" : "Generate"}{" "}
+                            Document
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Always render document element for snapshot, but hide when not in document mode */}
+                <div
+                  className="document__template__paper__sheet"
+                  ref={documentElementRef}
+                  style={{
+                    display: viewMode === "document" ? "flex" : "none",
+                    position: viewMode !== "document" ? "absolute" : "relative",
+                    left: viewMode !== "document" ? "-9999px" : "auto",
+                  }}
+                >
+                  {/* A4 Paper Sheet Area */}
+                  <A4Sheet
+                    state={state}
+                    actions={actions}
+                    currentPageActions={currentPage}
+                    handleDragStart={handleDragStart}
+                    handleDragOver={handleDragOver}
+                    handleDrop={handleDrop}
+                    handleDragEnter={handleDragEnter}
+                    handleAddResourceLink={handleAddResourceLink}
+                    handleManageItem={handleManageItem}
+                    handleRemoveItem={handleRemoveItem}
+                    editingItems={editingItems}
+                    TemplateHeader={TemplateHeader}
+                    currentTracker={currentTracker}
+                    isEditor={isEditor}
+                  />
+                </div>
+
+                {/* Render current view */}
+                {viewMode === "uploads" && (
+                  <div className="uploaded__files" style={{ width: 838 }}>
+                    <PdfViewer
+                      pdfUrl={mergedPdfUrl}
+                      isLoading={isPdfLoading}
+                      error={pdfError}
+                      onGeneratePdf={generateMergedPdf}
+                      className="uploaded-files-pdf-viewer"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="col-md-5 mb-3">
+              <div className="document__template__configuration">
+                {/* Configuration Tabs */}
+                <div className="configuration__tabs">
+                  <div className="tabs__header">
+                    {tabOrder.map((tab, index) => (
+                      <div
+                        key={tab.id}
+                        className={`tab__item ${
+                          activeTab === tab.id ? "active" : ""
+                        }`}
+                        data-tab={tab.id}
+                        onClick={() => handleTabChange(tab.id)}
+                        draggable
+                        onDragStart={(e) => handleTabDragStart(e, index)}
+                        onDragOver={(e) => handleTabDragOver(e)}
+                        onDragEnter={(e) => handleTabDragEnter(e, index)}
+                        onDragLeave={handleTabDragLeave}
+                        onDrop={(e) => handleTabDrop(e, index)}
+                        style={{
+                          display: tab.isEditor === isEditor ? "flex" : "none",
+                        }}
+                      >
+                        <i className={tab.icon}></i>
+                        <span>{tab.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="tabs__content">
+                    {tabOrder.map((tab) => (
+                      <div
+                        key={tab.id}
+                        className={`tab__panel ${
+                          activeTab === tab.id ? "active" : ""
+                        }`}
+                        data-tab={tab.id}
+                      >
+                        <div className="panel__content">
+                          <Suspense
+                            fallback={
+                              <div className="tab__loading">
+                                <i className="ri-loader-4-line animate-spin"></i>
+                                <span>Loading tab...</span>
+                              </div>
+                            }
+                          >
+                            {tab.id === "budget" && (
+                              <BudgetGeneratorTab category={category} />
+                            )}
+                            {tab.id === "uploads" && (
+                              <UploadsGeneratorTab category={category} />
+                            )}
+                            {tab.id === "resource" && (
+                              <ResourceGeneratorTab category={category} />
+                            )}
+                            {tab.id === "settings" && (
+                              <SettingsGeneratorTab category={category} />
+                            )}
+                            {tab.id === "activities" && (
+                              <ActivitiesGeneratorTab category={category} />
+                            )}
+                            {tab.id === "process" && (
+                              <ProcessGeneratorTab category={category} />
+                            )}
+                          </Suspense>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* LinkedIn-style Messaging Component */}
+          <DocumentMessaging category={category} />
+        </div>
+      )}
     </div>
   );
 };

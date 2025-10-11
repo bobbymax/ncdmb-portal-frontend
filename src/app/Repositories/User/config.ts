@@ -21,6 +21,7 @@ export const userConfig: ConfigProp<UserResponseData> = {
     "type",
     "blocked",
     "default_page_id",
+    "rank",
   ],
   associatedResources: [
     { name: "roles", url: "roles" },
@@ -52,6 +53,7 @@ export const userConfig: ConfigProp<UserResponseData> = {
     groups: [],
     blocked: 0,
     type: "permanent",
+    rank: 0,
   },
   actions: [
     {

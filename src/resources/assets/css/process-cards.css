@@ -33,16 +33,34 @@
   }
 }
 
-/* Slide Up Animation for Modal Content */
+/* Slide Up Animation for Modal Content and Dropdowns */
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Pulse Animation for Loading Icons */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Content Fade In */
+.content-fade-in {
+  animation: fadeIn 0.4s ease;
 }
 
 .payment-card-expanded-content {
@@ -429,4 +447,234 @@
 [data-theme="dark"] .journal-types-section {
   background-color: rgba(30, 41, 59, 0.5);
   border-color: rgba(52, 211, 153, 0.2);
+}
+
+/* ========================================
+   PROCESS GENERATOR TAB
+   ======================================== */
+
+.process-generator-tab {
+  position: relative;
+  height: 600px;
+}
+
+.process-generator-tab.with-consultants {
+  padding-bottom: 60px;
+}
+
+/* ========================================
+   CONSULTANTS SECTION
+   ======================================== */
+
+.consultants-section {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.consultants-section-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.consultants-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.consultants-label i {
+  font-size: 1.1rem;
+  color: #22c55e;
+}
+
+.consultants-label span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.consultants-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.consultant-item {
+  position: relative;
+}
+
+.consultant-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.consultant-card:hover {
+  border-color: #cbd5e1;
+  background-color: #f9fafb;
+}
+
+.consultant-card.active {
+  border-color: #22c55e;
+}
+
+.consultant-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consultant-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.consultant-avatar-initials {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.consultant-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #1e293b;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consultant-rank-badge {
+  font-size: 0.6rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.consultant-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 140px;
+  z-index: 10000;
+  animation: slideUp 0.2s ease;
+}
+
+.consultant-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 6px;
+}
+
+.consultant-dropdown-item:hover {
+  background-color: #f0fdf4;
+}
+
+.consultant-dropdown-item i {
+  font-size: 1rem;
+  color: #22c55e;
+}
+
+.consultant-dropdown-item span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+/* Consultants scrollbar styling */
+.consultants-section ::-webkit-scrollbar {
+  height: 4px;
+}
+
+.consultants-section ::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 2px;
+}
+
+.consultants-section ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.consultants-section ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark theme support for consultants section */
+[data-theme="dark"] .consultants-section {
+  background-color: rgba(30, 41, 59, 0.98) !important;
+  border-top-color: rgba(52, 211, 153, 0.2) !important;
+}
+
+[data-theme="dark"] .consultant-card {
+  background-color: rgba(51, 65, 85, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .consultant-card:hover {
+  background-color: rgba(71, 85, 105, 0.8);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+[data-theme="dark"] .consultant-dropdown {
+  background-color: rgba(30, 41, 59, 0.98);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .consultant-dropdown-item:hover {
+  background-color: rgba(20, 83, 45, 0.3);
+}
+
+[data-theme="dark"] .consultants-section ::-webkit-scrollbar-track {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+[data-theme="dark"] .consultants-section ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+[data-theme="dark"] .consultants-section ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.8);
 }

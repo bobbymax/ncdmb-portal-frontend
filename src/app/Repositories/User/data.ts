@@ -2,6 +2,7 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
 import { RoleResponseData } from "../Role/data";
 import { RemunerationResponseData } from "../Remuneration/data";
+import { GradeLevelResponseData } from "../GradeLevel/data";
 
 export interface UserResponseData extends BaseResponse {
   staff_no: string;
@@ -20,6 +21,7 @@ export interface UserResponseData extends BaseResponse {
   job_title: string;
   is_admin: number;
   blocked: number;
+  rank: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
   type: "permanent" | "contract" | "adhoc" | "secondment" | "support" | "admin";
   status:
     | "available"
@@ -36,4 +38,5 @@ export interface UserResponseData extends BaseResponse {
   role: RoleResponseData | null;
   remunerations?: RemunerationResponseData[];
   groups: DataOptionsProps[];
+  grade_level_object?: GradeLevelResponseData | null;
 }

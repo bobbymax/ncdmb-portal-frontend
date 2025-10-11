@@ -424,22 +424,16 @@ export const usePdfTemplateBuilder = () => {
 
         // Process document components
         if (documentState?.body) {
-          console.log("Processing document body:", documentState.body);
-
           for (const block of documentState.body) {
-            console.log("Processing block:", block);
-
             // Map the ContentBlock type to our PDF mapper types
             const mapperType = mapContentBlockTypeToPdfMapper(block.type);
             const MapperClass = ComponentPDFMappers[mapperType];
 
             if (MapperClass) {
-              console.log(`Found mapper for ${block.type} -> ${mapperType}`);
               const mapper = new MapperClass(styling);
 
               // Extract data from the ContentBlock structure
               const blockData = extractBlockData(block);
-              console.log("Extracted block data:", blockData);
 
               const dimensions = mapper.calculateDimensions(blockData);
 

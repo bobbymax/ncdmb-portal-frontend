@@ -5,6 +5,7 @@ import { JournalTypeResponseData } from "@/app/Repositories/JournalType/data";
 import { PaymentResponseData } from "@/app/Repositories/Payment/data";
 import { useNavigate } from "react-router-dom";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
+import usePolicy from "app/Hooks/usePolicy";
 
 const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   processCard,
@@ -20,9 +21,13 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   const { getResource, loading } = useResourceContext();
   const { actions } = usePaperBoard();
   const navigate = useNavigate();
+  const { uplines } = usePolicy();
 
   // Track expanded payment IDs and their selected journal types
   const [expandedPayments, setExpandedPayments] = useState<Set<number>>(
+    new Set()
+  );
+  const [selectedPayments, setSelectedPayments] = useState<Set<number>>(
     new Set()
   );
   const [paymentJournalTypes, setPaymentJournalTypes] = useState<
@@ -52,6 +57,19 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
     });
   };
 
+  // Toggle payment selection
+  const togglePaymentSelection = (paymentId: number) => {
+    setSelectedPayments((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(paymentId)) {
+        newSet.delete(paymentId);
+      } else {
+        newSet.add(paymentId);
+      }
+      return newSet;
+    });
+  };
+
   // Toggle journal type for specific payment
   const toggleJournalTypeForPayment = (
     paymentId: number,
@@ -71,10 +89,17 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
     // Show loading modal
     setIsNavigating(true);
 
-    // Clear existing document state to prevent flash of old data
+    // Clear ALL document-related state to prevent flash of old data
     actions.setExistingDocument(null);
     actions.setCurrentPointer(null);
     actions.setAccessLevel("looker");
+    actions.setCategory(null); // Reset category
+    actions.setTemplate(null); // Reset template (for header)
+    actions.setResource(null); // Reset documentable resource
+    actions.setBody([]); // Reset document body content
+    actions.setMetaData(null); // Reset document metadata
+    actions.setThreads([]); // Reset document threads
+    actions.setWatchers([]); // Reset document watchers
 
     // Navigate after brief delay for smooth transition
     setTimeout(() => {
@@ -85,6 +110,8 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
       setIsNavigating(false);
     }, 800); // Enough time for user to see the "Creating Inquiry Session..." message
   };
+
+  console.log(uplines());
 
   // Format currency
   const formatCurrency = (
@@ -129,8 +156,6 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
       }
     );
   };
-
-  console.log(existingDocument);
 
   return (
     <>
@@ -238,8 +263,50 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
               <small className="text-muted" style={{ fontSize: "0.85rem" }}>
                 Stage {currentProcess.order}: {currentProcess.stage?.name} •{" "}
                 {payments.length} payment(s)
+                {selectedPayments.size > 0 && (
+                  <span
+                    className="ms-2"
+                    style={{
+                      color: "#22c55e",
+                      fontWeight: "600",
+                    }}
+                  >
+                    • {selectedPayments.size} selected
+                  </span>
+                )}
               </small>
             </div>
+            {payments.length > 0 && (
+              <div className="d-flex align-items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (selectedPayments.size === payments.length) {
+                      setSelectedPayments(new Set());
+                    } else {
+                      setSelectedPayments(new Set(payments.map((p) => p.id)));
+                    }
+                  }}
+                  className="btn btn-sm btn-outline-success"
+                  style={{
+                    borderRadius: "8px",
+                    fontSize: "0.8rem",
+                    fontWeight: "500",
+                    padding: "4px 12px",
+                  }}
+                >
+                  <i
+                    className={
+                      selectedPayments.size === payments.length
+                        ? "ri-checkbox-line me-1"
+                        : "ri-checkbox-blank-line me-1"
+                    }
+                  ></i>
+                  {selectedPayments.size === payments.length
+                    ? "Deselect All"
+                    : "Select All"}
+                </button>
+              </div>
+            )}
           </div>
 
           {payments.length === 0 ? (
@@ -258,6 +325,7 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
             >
               {payments.map((payment) => {
                 const isExpanded = expandedPayments.has(payment.id);
+                const isSelected = selectedPayments.has(payment.id);
                 const selectedJTs = paymentJournalTypes[payment.id] || [];
                 const hasHolding = selectedJTs.some((jtId) => {
                   const jt = filteredJournalTypes.find((j) => j.id === jtId);
@@ -270,13 +338,15 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                     className={isExpanded ? "payment-card-expanded" : ""}
                     style={{
                       borderRadius: "12px",
-                      border: "2px solid #e2e8f0",
+                      border: isSelected
+                        ? "2px solid #22c55e"
+                        : "2px solid #e2e8f0",
                       backgroundColor: "white",
                       overflow: "hidden",
                       boxShadow: isExpanded
                         ? "0 8px 24px rgba(0, 0, 0, 0.12)"
                         : "0 2px 8px rgba(0, 0, 0, 0.06)",
-                      transition: "box-shadow 0.3s ease",
+                      transition: "all 0.3s ease",
                     }}
                   >
                     {/* Payment Header - Clickable */}
@@ -285,12 +355,55 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                       style={{
                         padding: "16px 20px",
                         cursor: "pointer",
-                        backgroundColor: isExpanded ? "#f0fdf4" : "white",
+                        backgroundColor: isExpanded
+                          ? "#f0fdf4"
+                          : isSelected
+                          ? "#f0fdf4"
+                          : "white",
                         borderBottom: isExpanded ? "1px solid #bbf7d0" : "none",
                         transition: "all 0.3s ease",
                       }}
                     >
                       <div className="d-flex align-items-center justify-content-between gap-3">
+                        {/* Checkbox */}
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div className="position-relative">
+                            <input
+                              type="checkbox"
+                              id={`payment-select-${payment.id}`}
+                              className="journal-type-checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                togglePaymentSelection(payment.id)
+                              }
+                              style={{
+                                cursor: "pointer",
+                              }}
+                            />
+                            {isSelected && (
+                              <i
+                                className="ri-check-line"
+                                style={{
+                                  position: "absolute",
+                                  top: "50%",
+                                  left: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                  color: "white",
+                                  fontSize: "14px",
+                                  pointerEvents: "none",
+                                  fontWeight: "bold",
+                                }}
+                              ></i>
+                            )}
+                          </div>
+                        </div>
+
                         {/* Left: Payment Info */}
                         <div className="flex-grow-1">
                           <div className="d-flex align-items-center gap-3 mb-2">

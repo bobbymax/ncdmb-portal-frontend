@@ -36,8 +36,6 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
     }
 
     try {
-      console.log("Starting animated snapshot process...");
-
       // Find the A4 sheet element and its child elements
       const a4SheetElement = documentElement.querySelector(
         ".a4__sheet"
@@ -119,13 +117,6 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
         foreignObjectRendering: true,
       });
 
-      console.log(
-        "Document canvas:",
-        documentCanvas.width,
-        "x",
-        documentCanvas.height
-      );
-
       // Debug: Check if document canvas has any content
       const documentCtx = documentCanvas.getContext("2d");
       if (documentCtx) {
@@ -138,17 +129,7 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
         const documentHasContent = documentImageData.data.some(
           (pixel) => pixel !== 0
         );
-        console.log("Document canvas has content:", documentHasContent);
       }
-
-      console.log("Document element dimensions:", {
-        scrollWidth: documentElement.scrollWidth,
-        scrollHeight: documentElement.scrollHeight,
-        clientWidth: documentElement.clientWidth,
-        clientHeight: documentElement.clientHeight,
-        offsetWidth: documentElement.offsetWidth,
-        offsetHeight: documentElement.offsetHeight,
-      });
 
       // Since we're capturing A4Sheet directly, we can use the canvas as-is
       const canvas = documentCanvas;
@@ -159,29 +140,9 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
         return;
       }
 
-      console.log("A4Sheet element dimensions:", {
-        scrollWidth: a4SheetElement.scrollWidth,
-        scrollHeight: a4SheetElement.scrollHeight,
-        clientWidth: a4SheetElement.clientWidth,
-        clientHeight: a4SheetElement.clientHeight,
-        offsetWidth: a4SheetElement.offsetWidth,
-        offsetHeight: a4SheetElement.offsetHeight,
-      });
-
-      console.log("A4Sheet canvas:", canvas.width, "x", canvas.height);
-
       // Debug: Check if canvas has any content
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const hasContent = imageData.data.some((pixel) => pixel !== 0);
-      console.log("Canvas has content:", hasContent);
-
-      // Debug: Check canvas data URL
-      const dataUrl = canvas.toDataURL("image/png", 1.0);
-      console.log("Canvas data URL length:", dataUrl.length);
-      console.log(
-        "Canvas data URL preview:",
-        dataUrl.substring(0, 100) + "..."
-      );
 
       setCaptureProgress({
         currentPage: 1,
@@ -213,14 +174,6 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
       // Center the image on the page
       const x = (a4Width - scaledWidth) / 2;
       const y = (a4Height - scaledHeight) / 2;
-
-      console.log("Scaling info:", {
-        originalSize: { width: imageWidth, height: imageHeight },
-        scaledSize: { width: scaledWidth, height: scaledHeight },
-        scale: scale,
-        position: { x: x, y: y },
-        a4Size: { width: a4Width, height: a4Height },
-      });
 
       // Draw the entire A4Sheet image on the single page
       page.drawImage(pngImage, {
@@ -272,8 +225,6 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
         isCapturing: false,
         currentAction: "Complete!",
       });
-
-      console.log("Animated PDF generation complete!");
     } catch (err) {
       console.error("Error in animated snapshot:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -289,8 +240,6 @@ const PrintDocument: React.FC<PrintDocumentProps> = ({
   }, [documentElement]);
 
   const generatePrintPdf = useCallback(async () => {
-    console.log("Starting animated PDF generation...");
-
     if (!documentElement) {
       console.error("No document element available");
       alert("No document element available for PDF generation.");

@@ -27,8 +27,6 @@ const PrintDocumentNew: React.FC<PrintDocumentProps> = ({
     }
 
     try {
-      console.log("Generating PDF from document state:", documentState);
-
       // Determine theme based on current theme
       const isDarkTheme =
         document.documentElement.getAttribute("data-theme") === "dark";
@@ -36,8 +34,6 @@ const PrintDocumentNew: React.FC<PrintDocumentProps> = ({
 
       const pdfUrl = await generatePDF(documentState, theme);
       setPrintPdfUrl(pdfUrl);
-
-      console.log("PDF generated successfully:", pdfUrl);
     } catch (err) {
       console.error("Error generating PDF:", err);
     }
