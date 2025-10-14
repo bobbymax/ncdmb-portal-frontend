@@ -259,35 +259,37 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   return (
     <div className={getContainerClass()}>
       <h3 className="approvals__heading">Approvals</h3>
-      {signatures.map((signature: SignatureResponseData) => {
-        // Get the group for this specific signature's flow_type
-        const groupId =
-          state.configState?.[signature?.flow_type ?? "from"]?.group_id;
-        const group = groupId ? getResourceById("groups", groupId) : null;
+      <div className="signature__placements flex flex-wrap gap-4">
+        {signatures.map((signature: SignatureResponseData) => {
+          // Get the group for this specific signature's flow_type
+          const groupId =
+            state.configState?.[signature?.flow_type ?? "from"]?.group_id;
+          const group = groupId ? getResourceById("groups", groupId) : null;
 
-        return (
-          <div key={signature.id} className="signature__item">
-            <SignatureCanvas
-              signatureUrl={signature.signature}
-              signature={signature}
-              category={state.category}
-              tracker={
-                state.configState?.[signature?.flow_type ?? "from"] ?? null
-              }
-              canSign={
-                state.loggedInUser?.id === signature.user_id &&
-                signature.flow_type === currentTracker?.flow_type
-              }
-              selectedAction={signatureButton}
-              onSignatureSave={(signatureData: string) =>
-                handleSignatureSave(signatureData, signature.id)
-              }
-              groupName={group?.name}
-              templateSignatureDisplay={signatureDisplay}
-            />
-          </div>
-        );
-      })}
+          return (
+            <div key={signature.id} className="signature__item">
+              <SignatureCanvas
+                signatureUrl={signature.signature}
+                signature={signature}
+                category={state.category}
+                tracker={
+                  state.configState?.[signature?.flow_type ?? "from"] ?? null
+                }
+                canSign={
+                  state.loggedInUser?.id === signature.user_id &&
+                  signature.flow_type === currentTracker?.flow_type
+                }
+                selectedAction={signatureButton}
+                onSignatureSave={(signatureData: string) =>
+                  handleSignatureSave(signatureData, signature.id)
+                }
+                groupName={group?.name}
+                templateSignatureDisplay={signatureDisplay}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

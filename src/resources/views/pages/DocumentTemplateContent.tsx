@@ -52,6 +52,7 @@ import { usePdfMerger } from "app/Hooks/usePdfMerger";
 import { useStateContext } from "app/Context/ContentContext";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
 import ProcessGeneratorTab from "../components/DocumentGeneratorTab/ProcessGeneratorTab";
+import usePolicy from "app/Hooks/usePolicy";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -112,6 +113,68 @@ const DocumentTemplateContent = ({
   const { config } = useStateContext();
 
   const period = useMemo(() => config("jolt_budget_year"), [config]);
+
+  // Get current process and draft for consultation card logic
+  const currentProcess = useMemo(() => {
+    if (
+      state.existingDocument &&
+      state.existingDocument.processes &&
+      state.existingDocument.processes.length > 0 &&
+      state.existingDocument.progress_tracker_id
+    ) {
+      return state.existingDocument.processes.find(
+        (process) => process.id === state.existingDocument?.progress_tracker_id
+      );
+    }
+    return null;
+  }, [state.existingDocument]);
+
+  const currentDraft = useMemo(() => {
+    if (!state.existingDocument?.drafts || !currentProcess) return null;
+
+    return state.existingDocument.drafts.find(
+      (draft) =>
+        draft.progress_tracker_id ===
+          state.existingDocument?.progress_tracker_id &&
+        draft.current_workflow_stage_id === currentProcess.workflow_stage_id &&
+        state.loggedInUser?.groups?.some((group) => group.id === draft.group_id)
+    );
+  }, [state.existingDocument, currentProcess, state.loggedInUser]);
+
+  // Check if user should see consultation card
+  const shouldShowConsultationCard = useMemo(() => {
+    if (!currentProcess || !currentDraft || !state.loggedInUser) return false;
+
+    // Check if user's groups include the draft's group_id
+    const hasGroupAccess = state.loggedInUser.groups?.some(
+      (group) => group.id === currentDraft.group_id
+    );
+
+    // Check if draft matches current progress tracker
+    const matchesProgressTracker =
+      currentDraft.progress_tracker_id ===
+      state.existingDocument?.progress_tracker_id;
+
+    // Check if draft matches current workflow stage
+    const matchesWorkflowStage =
+      currentDraft.current_workflow_stage_id ===
+      currentProcess.workflow_stage_id;
+
+    return hasGroupAccess && matchesProgressTracker && matchesWorkflowStage;
+  }, [
+    currentProcess,
+    currentDraft,
+    state.loggedInUser,
+    state.existingDocument,
+  ]);
+
+  const { uplines } = usePolicy({
+    currentProcess,
+    loggedInUser: state.loggedInUser,
+    trackers: state.trackers,
+    existingDocument: state.existingDocument,
+    currentDraft,
+  });
 
   // PDF Merger hook
   const {
@@ -1706,7 +1769,7 @@ const DocumentTemplateContent = ({
               </div>
             </div>
             <div className="col-md-5 mb-3">
-              <div className="document__template__configuration">
+              <div className="document__template__configuration mb-4">
                 {/* Configuration Tabs */}
                 <div className="configuration__tabs">
                   <div className="tabs__header">
@@ -1776,6 +1839,107 @@ const DocumentTemplateContent = ({
                   </div>
                 </div>
               </div>
+
+              {/* Consultation Card - Conditionally displayed */}
+              {shouldShowConsultationCard && (
+                <div className="document__template__configuration consultation__card">
+                  <div className="consultation__header">
+                    <h3 className="consultation__title">
+                      <i className="ri-user-star-line"></i>
+                      Consult Superiors
+                    </h3>
+                    <span className="consultation__count">
+                      {uplines().length} Available
+                    </span>
+                  </div>
+
+                  {/* Consultants list */}
+                  <div className="consultants__list">
+                    {uplines().length === 0 ? (
+                      <div className="consultants__empty">
+                        <i className="ri-user-search-line"></i>
+                        <p className="empty-title">No superiors available</p>
+                        <p className="empty-subtitle">
+                          Your uplines will appear here
+                        </p>
+                      </div>
+                    ) : (
+                      uplines().map((consultant) => {
+                        // Generate initials from name
+                        const getInitials = (user: any) => {
+                          const name =
+                            user.name ||
+                            `${user.firstname || ""} ${
+                              user.surname || ""
+                            }`.trim();
+                          const parts = name.split(" ").filter(Boolean);
+                          if (parts.length === 0) return "?";
+                          if (parts.length === 1)
+                            return parts[0].charAt(0).toUpperCase();
+                          return (
+                            parts[0].charAt(0).toUpperCase() +
+                            parts[parts.length - 1].charAt(0).toUpperCase()
+                          );
+                        };
+
+                        const initials = getInitials(consultant);
+
+                        return (
+                          <div key={consultant.id} className="consultant__item">
+                            {/* Avatar with initials */}
+                            <div className="consultant__avatar-wrapper">
+                              <div className="consultant__avatar">
+                                {initials}
+                              </div>
+                              {/* Rank Badge */}
+                              {consultant.grade_level_object?.rank !==
+                                undefined && (
+                                <div className="consultant__rank-badge">
+                                  {consultant.grade_level_object.rank}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* User Info */}
+                            <div className="consultant__info">
+                              <div className="consultant__name">
+                                {consultant.name ||
+                                  `${consultant.firstname || ""} ${
+                                    consultant.surname || ""
+                                  }`.trim()}
+                              </div>
+                              <div className="consultant__meta">
+                                {consultant.staff_no && (
+                                  <span className="consultant__staff-no">
+                                    <i className="ri-user-line"></i>
+                                    {consultant.staff_no}
+                                  </span>
+                                )}
+                                {consultant.grade_level_object?.name && (
+                                  <>
+                                    <span className="consultant__separator">
+                                      •
+                                    </span>
+                                    <span className="consultant__grade">
+                                      <i className="ri-medal-line"></i>
+                                      {consultant.grade_level_object.name}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Action Icon */}
+                            <div className="consultant__action">
+                              <i className="ri-chat-1-line"></i>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -5,7 +5,8 @@ import { JournalTypeResponseData } from "@/app/Repositories/JournalType/data";
 import { PaymentResponseData } from "@/app/Repositories/Payment/data";
 import { useNavigate } from "react-router-dom";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
-import usePolicy from "app/Hooks/usePolicy";
+import Alert from "app/Support/Alert";
+import { toast } from "react-toastify";
 
 const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   processCard,
@@ -21,7 +22,6 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   const { getResource, loading } = useResourceContext();
   const { actions } = usePaperBoard();
   const navigate = useNavigate();
-  const { uplines } = usePolicy();
 
   // Track expanded payment IDs and their selected journal types
   const [expandedPayments, setExpandedPayments] = useState<Set<number>>(
@@ -111,7 +111,98 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
     }, 800); // Enough time for user to see the "Creating Inquiry Session..." message
   };
 
-  console.log(uplines());
+  // Prepare submission data
+  const prepareSubmissionData = () => {
+    // Convert selected payments into structured format
+    const selectedPaymentsData = Array.from(selectedPayments)
+      .map((paymentId) => {
+        const payment = payments.find((p) => p.id === paymentId);
+        const journalTypeIds = paymentJournalTypes[paymentId] || [];
+
+        return {
+          payment_id: paymentId,
+          journal_type_ids: journalTypeIds,
+          // Include payment details for context
+          amount: payment?.total_approved_amount,
+          currency: payment?.currency,
+          beneficiary: payment?.beneficiary,
+          expenditure_id: payment?.expenditure_id,
+          payment_method: payment?.payment_method,
+          transaction_type: payment?.transaction_type,
+        };
+      })
+      .filter((item) => item.journal_type_ids.length > 0); // Only include payments with JTs
+
+    return {
+      process_card_id: processCard.id,
+      progress_tracker_id: currentProcess.id,
+      document_draft_id: currentDraft?.id,
+      payments: selectedPaymentsData,
+      total_payments: selectedPaymentsData.length,
+      metadata: {
+        selected_count: selectedPayments.size,
+        timestamp: new Date().toISOString(),
+      },
+      // Summary totals
+      summary: {
+        total_amount: payments
+          .filter((p) => selectedPayments.has(p.id))
+          .reduce((sum, p) => sum + Number(p.total_approved_amount), 0),
+        total_payments: selectedPayments.size,
+        total_journal_entries: Object.values(paymentJournalTypes).reduce(
+          (sum, jts) => sum + jts.length,
+          0
+        ),
+      },
+    };
+  };
+
+  // Handle clearance submission
+  const handleSubmitClearance = async (actionId: number) => {
+    // Validate before submission
+    if (selectedPayments.size === 0) {
+      toast.error("Please select at least one payment");
+      return;
+    }
+
+    // Check if all selected payments have journal types
+    const paymentsWithoutJTs = Array.from(selectedPayments).filter(
+      (paymentId) =>
+        !paymentJournalTypes[paymentId] ||
+        paymentJournalTypes[paymentId].length === 0
+    );
+
+    if (paymentsWithoutJTs.length > 0) {
+      toast.error("All selected payments must have at least one journal type");
+      return;
+    }
+
+    // Prepare the data
+    const submissionData = prepareSubmissionData();
+    console.log(submissionData);
+
+    // Show confirmation
+    const confirmation = await Alert.flash(
+      "Submit Treasury Clearance",
+      "info",
+      `You are about to submit ${selectedPayments.size} payment(s) for clearance. Continue?`
+    );
+
+    if (!confirmation.isConfirmed) return;
+
+    // Call resolve with the data
+    try {
+      await resolve(
+        actionId,
+        existingDocument?.id || 0,
+        submissionData,
+        "update" // or 'update' if editing existing clearance
+      );
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error("Failed to submit clearance");
+    }
+  };
 
   // Format currency
   const formatCurrency = (
@@ -156,6 +247,8 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
       }
     );
   };
+
+  // console.log(selectedPayments, expandedPayments);
 
   return (
     <>
@@ -608,8 +701,7 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                                         payment.expenditure!.linked_document!
                                           .document_category_id;
                                       const documentId =
-                                        payment.expenditure!.linked_document!
-                                          .resource_id;
+                                        payment.expenditure!.document_id;
                                       goToLinkedDocument(
                                         categoryId,
                                         documentId
@@ -809,6 +901,55 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Action Buttons Section */}
+          {selectedPayments.size > 0 && (
+            <div className="clearance-actions">
+              <div className="clearance-summary">
+                <div className="summary-item">
+                  <i className="ri-checkbox-multiple-line"></i>
+                  <span>{selectedPayments.size} Payment(s) Selected</span>
+                </div>
+                <div className="summary-item">
+                  <i className="ri-list-check-2"></i>
+                  <span>
+                    {Object.values(paymentJournalTypes).reduce(
+                      (total, jts) => total + jts.length,
+                      0
+                    )}{" "}
+                    Journal Type(s)
+                  </span>
+                </div>
+                <div className="summary-item">
+                  <i className="ri-money-dollar-circle-line"></i>
+                  <span>
+                    {formatCurrency(
+                      payments
+                        .filter((p) => selectedPayments.has(p.id))
+                        .reduce(
+                          (sum, p) => sum + Number(p.total_approved_amount),
+                          0
+                        )
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="action-buttons">
+                {allowedActions?.map((action) => (
+                  <button
+                    key={action.id}
+                    onClick={() => handleSubmitClearance(action.id)}
+                    className="btn btn-success clearance-submit-btn"
+                    disabled={!userCanHandle}
+                  >
+                    <i className={action.icon || "ri-check-line"}></i>
+                    {action.button_text || "Submit Clearance"}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -17425,80 +17425,45 @@ body,
 /* Document Content Table Styles */
 .document__content__table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  background: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
-  margin: 8px 0;
-  border-radius: 12px;
+  border-collapse: collapse;
+  background: transparent;
+  font-size: 0.8rem;
+  margin: 4px 0;
   overflow: visible;
-  box-shadow: 0 4px 12px rgba(19, 117, 71, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(19, 117, 71, 0.1);
 }
 
 .document__content__table thead {
-  background: linear-gradient(
-    135deg,
-    rgba(19, 117, 71, 0.12) 0%,
-    rgba(16, 185, 129, 0.08) 100%
-  );
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
+  background: transparent;
+  border-bottom: 1.5px solid rgba(34, 197, 94, 0.2);
 }
 
 .document__content__table th {
-  padding: 16px 20px;
+  padding: 8px 12px;
   text-align: left;
   font-weight: 600;
-  color: #1f2937;
-  font-size: 12px;
+  color: #374151;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   border: none;
-  border-bottom: 2px solid rgba(19, 117, 71, 0.2);
-  position: relative;
-}
-
-.document__content__table th:first-child {
-  border-radius: 12px 0 0 0;
-}
-
-.document__content__table th:last-child {
-  border-radius: 0 12px 0 0;
 }
 
 .document__content__table tbody tr {
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.document__content__table tbody tr:nth-child(even) {
-  background: rgba(248, 250, 252, 0.4);
-}
-
-.document__content__table tbody tr:nth-child(odd) {
-  background: rgba(255, 255, 255, 0.6);
+  transition: background 0.15s ease;
 }
 
 .document__content__table tbody tr:hover {
-  background: rgba(19, 117, 71, 0.06);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(19, 117, 71, 0.1);
-}
-
-.document__content__table tbody tr:last-child {
-  border-radius: 0 0 12px 12px;
+  background: rgba(34, 197, 94, 0.03);
 }
 
 .document__content__table td {
-  padding: 16px 20px;
-  color: #374151;
+  padding: 10px 12px;
+  color: #4b5563;
   border: none;
-  border-bottom: 1px solid rgba(19, 117, 71, 0.08);
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 500;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  font-weight: 400;
 }
 
 .document__content__table tbody tr:last-child td {
@@ -17509,49 +17474,48 @@ body,
 .document__content__table td:first-child {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: #6b7280;
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 .document__content__table td:first-child i {
-  color: #10b981;
-  font-size: 14px;
-  opacity: 0.8;
+  color: #22c55e;
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
 /* Description cell */
 .document__content__table td:nth-child(2) {
-  font-weight: 600;
+  font-weight: 500;
   color: #1f2937;
 }
 
 /* Amount cell */
 .document__content__table td:last-child {
-  font-weight: 700;
+  font-weight: 600;
   color: #059669;
-  font-size: 15px;
+  font-size: 0.85rem;
 }
 
 /* Total row styling */
 .document__content__table tbody tr:last-child {
-  background: linear-gradient(
-    135deg,
-    rgba(19, 117, 71, 0.08) 0%,
-    rgba(16, 185, 129, 0.05) 100%
-  ) !important;
-  border-top: 2px solid rgba(19, 117, 71, 0.15);
+  background: rgba(34, 197, 94, 0.04);
+  border-top: 1.5px solid rgba(34, 197, 94, 0.15);
 }
 
 .document__content__table tbody tr:last-child td {
-  font-weight: 700;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-weight: 600;
   color: #1f2937;
-  font-size: 16px;
+  font-size: 0.85rem;
 }
 
 .document__content__table tbody tr:last-child td:last-child {
   color: #047857;
-  font-size: 18px;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 /* Document Content View Styles */
@@ -18018,42 +17982,25 @@ body,
 } */
 
 [data-theme="dark"] .document__content__table {
-  background: rgba(31, 41, 55, 0.8);
-  box-shadow: 0 4px 12px rgba(83, 165, 72, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(83, 165, 72, 0.15);
+  background: transparent;
 }
 
 [data-theme="dark"] .document__content__table thead {
-  background: linear-gradient(
-    135deg,
-    rgba(83, 165, 72, 0.15) 0%,
-    rgba(16, 185, 129, 0.1) 100%
-  );
+  background: transparent;
+  border-bottom-color: rgba(34, 197, 94, 0.25);
 }
 
 [data-theme="dark"] .document__content__table th {
-  color: #f3f4f6;
-  border: none;
-  border-bottom-color: rgba(83, 165, 72, 0.3);
-}
-
-[data-theme="dark"] .document__content__table tbody tr:nth-child(even) {
-  background: rgba(30, 41, 59, 0.4);
-}
-
-[data-theme="dark"] .document__content__table tbody tr:nth-child(odd) {
-  background: rgba(15, 23, 42, 0.6);
+  color: #cbd5e1;
 }
 
 [data-theme="dark"] .document__content__table tbody tr:hover {
-  background: rgba(83, 165, 72, 0.08);
-  box-shadow: 0 2px 8px rgba(83, 165, 72, 0.15);
+  background: rgba(34, 197, 94, 0.05);
 }
 
 [data-theme="dark"] .document__content__table td {
-  color: #e2e8f0;
-  border: none;
-  border-bottom-color: rgba(83, 165, 72, 0.1);
+  color: #94a3b8;
+  border-bottom-color: rgba(71, 85, 105, 0.4);
 }
 
 [data-theme="dark"] .document__content__table td:first-child {
@@ -18062,10 +18009,11 @@ body,
 
 [data-theme="dark"] .document__content__table td:first-child i {
   color: #34d399;
+  opacity: 0.8;
 }
 
 [data-theme="dark"] .document__content__table td:nth-child(2) {
-  color: #f1f5f9;
+  color: #e2e8f0;
 }
 
 [data-theme="dark"] .document__content__table td:last-child {
@@ -18073,17 +18021,12 @@ body,
 }
 
 [data-theme="dark"] .document__content__table tbody tr:last-child {
-  background: linear-gradient(
-    135deg,
-    rgba(83, 165, 72, 0.1) 0%,
-    rgba(16, 185, 129, 0.06) 100%
-  ) !important;
-  border-top: 2px solid rgba(83, 165, 72, 0.2);
+  background: rgba(34, 197, 94, 0.06);
+  border-top-color: rgba(34, 197, 94, 0.2);
 }
 
 [data-theme="dark"] .document__content__table tbody tr:last-child td {
-  color: #f3f4f6;
-  font-size: 16px;
+  color: #e2e8f0;
 }
 
 [data-theme="dark"]
@@ -18092,7 +18035,6 @@ body,
   tr:last-child
   td:last-child {
   color: #34d399;
-  font-size: 18px;
 }
 
 [data-theme="dark"] .document__content__empty {

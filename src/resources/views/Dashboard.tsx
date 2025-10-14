@@ -91,7 +91,9 @@ const Dashboard = () => {
   const [noRecordFound, setNoRecordFound] = useState(false);
   const [selectedTimeframe, setSelectedTimeframe] = useState("month");
 
-  const documentRepo = repo("Document");
+  const documentRepo = repo("document");
+
+  console.log(documents);
 
   const groupedByStatus = useMemo(() => {
     return documents.reduce((acc, doc) => {

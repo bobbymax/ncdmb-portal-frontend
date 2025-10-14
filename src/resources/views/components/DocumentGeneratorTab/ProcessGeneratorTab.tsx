@@ -15,6 +15,7 @@ import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/da
 import { BaseResponse } from "@/app/Repositories/BaseRepository";
 import { ProcessCardResponseData } from "@/app/Repositories/ProcessCard/data";
 import { useResourceContext } from "app/Context/ResourceContext";
+import usePolicy from "app/Hooks/usePolicy";
 
 export interface ProcessGeneratorCardProps {
   processCard: ProcessCardResponseData;
@@ -120,6 +121,35 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
   const [ProcessCardComponent, setProcessCardComponent] =
     useState<React.LazyExoticComponent<React.ComponentType<any>> | null>(null);
 
+  // Find the draft for the current process
+  const processDraft = (
+    drafts?: DocumentDraftResponseData[]
+  ): DocumentDraftResponseData | null => {
+    if (!drafts || !currentProcess) return null;
+
+    const draft = drafts.find(
+      (draft) =>
+        draft.progress_tracker_id === currentProcess.id &&
+        draft.current_workflow_stage_id === currentProcess.workflow_stage_id &&
+        draft.group_id === currentProcess.group_id
+    );
+
+    return draft || null;
+  };
+
+  const currentDraft = processDraft(state.existingDocument?.drafts);
+
+  // Use policy hook with necessary parameters
+  const { getTrackerUserIds, userHasPermission, userCanHandle } = usePolicy({
+    currentProcess,
+    loggedInUser: state.loggedInUser,
+    trackers: state.trackers,
+    existingDocument: state.existingDocument,
+    currentDraft,
+  });
+
+  const allowedActions = currentProcess?.actions;
+
   const resolve = useCallback(
     async (
       actionId: number,
@@ -162,76 +192,6 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
     },
     [currentProcess]
   );
-
-  // Check if user has permission based on their groups
-  const can = (groups?: GroupResponseData[]): boolean => {
-    if (!groups || !currentProcess?.group_id) return false;
-
-    return groups.some((group) => group.id === currentProcess.group_id);
-  };
-
-  // Find the draft for the current process
-  const processDraft = (
-    drafts?: DocumentDraftResponseData[]
-  ): DocumentDraftResponseData | null => {
-    if (!drafts || !currentProcess) return null;
-
-    const draft = drafts.find(
-      (draft) =>
-        draft.progress_tracker_id === currentProcess.id &&
-        draft.current_workflow_stage_id === currentProcess.workflow_stage_id &&
-        draft.group_id === currentProcess.group_id
-    );
-
-    return draft || null;
-  };
-
-  const canHandle = (
-    currentDraft: DocumentDraftResponseData | null
-  ): boolean => {
-    // First check if user has group permission
-    if (!can(state.loggedInUser?.groups)) {
-      return false;
-    }
-
-    // If no draft exists, cannot handle
-    if (!currentDraft) {
-      return false;
-    }
-
-    // If operator is not assigned (null), user can handle
-    if (!currentDraft.operator_id) {
-      return true;
-    }
-
-    // If operator is assigned to someone else, user cannot handle
-    if (currentDraft.operator_id !== state.loggedInUser?.id) {
-      return false;
-    }
-
-    // If operator is assigned to this user, they can handle
-    return true;
-  };
-
-  // Get unique user IDs from trackers
-  const getTrackerUserIds = (): number[] => {
-    if (!state.trackers || state.trackers.length === 0) return [];
-
-    return Array.from(
-      new Set([
-        ...state.trackers
-          .map((tracker) => tracker.user_id)
-          .filter((id) => id && id > 0),
-        state.existingDocument?.user_id ?? 0,
-        state.existingDocument?.created_by ?? 0,
-      ])
-    );
-  };
-
-  const userHasPermission = can(state.loggedInUser?.groups);
-  const currentDraft = processDraft(state.existingDocument?.drafts);
-  const userCanHandle = canHandle(currentDraft);
-  const allowedActions = currentProcess?.actions;
 
   const handleProcess = () => {
     const recipients = getTrackerUserIds();

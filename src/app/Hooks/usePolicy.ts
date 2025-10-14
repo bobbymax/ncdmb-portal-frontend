@@ -1,13 +1,33 @@
 import { useCallback } from "react";
-import { useAuth } from "../Context/AuthContext";
+import { useAuth, AuthUserResponseData } from "../Context/AuthContext";
 import { useResourceContext } from "../Context/ResourceContext";
 import { UserResponseData } from "../Repositories/User/data";
 import { GradeLevelResponseData } from "../Repositories/GradeLevel/data";
 import { GroupResponseData } from "../Repositories/Group/data";
+import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/data";
+import { DocumentDraftResponseData } from "../Repositories/DocumentDraft/data";
+import { DocumentResponseData } from "../Repositories/Document/data";
+import { CategoryProgressTrackerProps } from "../Repositories/DocumentCategory/data";
 
-const usePolicy = () => {
+interface UsePolicyParams {
+  currentProcess?: ProgressTrackerResponseData | null;
+  loggedInUser?: AuthUserResponseData | UserResponseData | null;
+  trackers?: CategoryProgressTrackerProps[] | ProgressTrackerResponseData[];
+  existingDocument?: DocumentResponseData | null;
+  currentDraft?: DocumentDraftResponseData | null;
+}
+
+const usePolicy = (params?: UsePolicyParams) => {
   const { staff } = useAuth();
   const { getResource } = useResourceContext();
+
+  const {
+    currentProcess = null,
+    loggedInUser = null,
+    trackers = [],
+    existingDocument = null,
+    currentDraft = null,
+  } = params || {};
 
   const scopes = {
     board: [0, 1],
@@ -229,11 +249,82 @@ const usePolicy = () => {
     [staff, users]
   );
 
+  /**
+   * Check if user has permission based on their groups
+   * @param groups - User's groups to check against current process
+   */
+  const can = useCallback(
+    (groups?: GroupResponseData[]): boolean => {
+      if (!groups || !currentProcess?.group_id) return false;
+
+      return groups.some((group) => group.id === currentProcess.group_id);
+    },
+    [currentProcess]
+  );
+
+  /**
+   * Get unique user IDs from trackers
+   */
+  const getTrackerUserIds = useCallback((): number[] => {
+    if (!trackers || trackers.length === 0) return [];
+
+    return Array.from(
+      new Set([
+        ...trackers
+          .map((tracker) => (tracker as CategoryProgressTrackerProps).user_id)
+          .filter((id) => id && id > 0),
+        existingDocument?.user_id ?? 0,
+        existingDocument?.created_by ?? 0,
+      ])
+    );
+  }, [trackers, existingDocument]);
+
+  /**
+   * Check if user can handle the current draft
+   * @param draft - Current draft to check
+   */
+  const canHandle = useCallback(
+    (draft: DocumentDraftResponseData | null): boolean => {
+      // First check if user has group permission
+      if (!can(loggedInUser?.groups as GroupResponseData[])) {
+        return false;
+      }
+
+      // If no draft exists, cannot handle
+      if (!draft) {
+        return false;
+      }
+
+      // If operator is not assigned (null), user can handle
+      if (!draft.operator_id) {
+        return true;
+      }
+
+      // If operator is assigned to someone else, user cannot handle
+      if (draft.operator_id !== loggedInUser?.id) {
+        return false;
+      }
+
+      // If operator is assigned to this user, they can handle
+      return true;
+    },
+    [can, loggedInUser]
+  );
+
+  // Computed values
+  const userHasPermission = can(loggedInUser?.groups as GroupResponseData[]);
+  const userCanHandle = canHandle(currentDraft);
+
   return {
     uplines,
     downlines,
     peers,
     scopes,
+    can,
+    canHandle,
+    getTrackerUserIds,
+    userHasPermission,
+    userCanHandle,
   };
 };
 
