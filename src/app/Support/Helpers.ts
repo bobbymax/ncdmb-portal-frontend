@@ -391,7 +391,8 @@ export const formatOptions = (
   value: string,
   label: string,
   addBase: boolean = false,
-  isInteger: boolean = false
+  isInteger: boolean = false,
+  labelText: string = "None"
 ): DataOptionsProps[] => {
   if (!Array.isArray(data) || data.length < 1) {
     return [];
@@ -402,7 +403,10 @@ export const formatOptions = (
     label: row[label],
   }));
 
-  const base: DataOptionsProps[] = [{ value: 0, label: "None" }, ...response];
+  const base: DataOptionsProps[] = [
+    { value: 0, label: labelText },
+    ...response,
+  ];
 
   return addBase ? base : response;
 };

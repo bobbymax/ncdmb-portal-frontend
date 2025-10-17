@@ -1,0 +1,246 @@
+/* Modern Range Slider - Glassy Compact Design */
+/* Using !important to override any conflicting global styles */
+
+/* Override any old .slider__container styles */
+.range-slider-modern,
+.range-slider-modern.slider__container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+}
+
+/* Remove any old .slider class styles */
+.range-slider-input.slider {
+  all: unset !important;
+}
+
+.range-slider-label {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.range-slider-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 0 !important;
+}
+
+/* Track Background - Simple & Classy */
+.range-track-background {
+  position: absolute !important;
+  width: 100% !important;
+  height: 6px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Track Fill - Elegant Purple */
+.range-track-fill {
+  height: 100% !important;
+  background: #667eea !important;
+  border-radius: 2px !important;
+  transition: width 0.25s ease !important;
+  position: relative !important;
+}
+
+/* Range Input - Override all default styles */
+.range-slider-input,
+.range-slider-modern input[type="range"],
+input[type="range"].range-slider-input {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  height: 6px !important;
+  background: transparent !important;
+  outline: none !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+/* Webkit - Thumb (Chrome, Safari, Edge) - Simple & Classy */
+.range-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  background: white !important;
+  border: 2px solid #667eea !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+.range-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.range-slider-input::-webkit-slider-thumb:active {
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Firefox - Thumb - Simple & Classy */
+.range-slider-input::-moz-range-thumb {
+  width: 16px !important;
+  height: 16px !important;
+  background: white !important;
+  border: 2px solid #667eea !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+.range-slider-input::-moz-range-thumb:hover {
+  transform: scale(1.15) !important;
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3) !important;
+}
+
+.range-slider-input::-moz-range-thumb:active {
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4) !important;
+}
+
+/* Firefox - Track */
+.range-slider-input::-moz-range-track {
+  background: transparent !important;
+  border: none !important;
+  height: 6px !important;
+}
+
+/* Range Markers - Minimal */
+.range-slider-markers {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 0.625rem !important;
+  color: var(--text-secondary) !important;
+  opacity: 0.6 !important;
+  margin-top: 0.4rem !important;
+  padding: 0 2px !important;
+}
+
+.range-marker-min,
+.range-marker-max {
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* Dark Mode - Simple */
+[data-theme="dark"] .range-track-background {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .range-track-fill {
+  background: #667eea !important;
+}
+
+[data-theme="dark"] .range-slider-input::-webkit-slider-thumb {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: #667eea !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .range-slider-input::-webkit-slider-thumb:hover {
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.5) !important;
+}
+
+[data-theme="dark"] .range-slider-input::-moz-range-thumb {
+  background: rgba(30, 30, 30, 0.95) !important;
+  border-color: #667eea !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .range-slider-input::-moz-range-thumb:hover {
+  box-shadow: 0 3px 8px rgba(102, 126, 234, 0.5) !important;
+}
+
+[data-theme="dark"] .range-slider-label,
+[data-theme="dark"] .range-slider-markers {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Focus State - Subtle */
+.range-slider-input:focus {
+  outline: none !important;
+}
+
+.range-slider-input:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  border-color: #667eea !important;
+}
+
+.range-slider-input:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  border-color: #667eea !important;
+}
+
+/* Disabled State */
+.range-slider-input:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.range-slider-input:disabled::-webkit-slider-thumb,
+.range-slider-input:disabled::-moz-range-thumb {
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Override any global slider styles - Multiple selectors for specificity */
+.range-slider-modern input[type="range"],
+input.range-slider-input[type="range"],
+.filter-compact input[type="range"] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
+.range-slider-modern input[type="range"]::-webkit-slider-runnable-track,
+input.range-slider-input[type="range"]::-webkit-slider-runnable-track {
+  background: transparent !important;
+  border: none !important;
+  height: 6px !important;
+}
+
+.range-slider-modern input[type="range"]::-moz-range-progress,
+input.range-slider-input[type="range"]::-moz-range-progress {
+  background: transparent !important;
+}
+
+/* Ensure track background is visible */
+.range-track-background,
+.range-slider-modern .range-track-background {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.range-track-fill,
+.range-slider-modern .range-track-fill {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

@@ -1,0 +1,1319 @@
+/* Flat Dashboard Design Override */
+/* Flushed glassy look with subtle borders */
+
+/* CSS Variables for theme support */
+:root {
+  --tooltip-bg: white;
+  --tooltip-border: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  --tooltip-bg: rgba(30, 30, 30, 0.95);
+  --tooltip-border: rgba(255, 255, 255, 0.2);
+}
+
+/* Modern Dashboard Container */
+.modern-dashboard {
+  padding: 1rem !important;
+}
+
+/* Analytics Header - Glassy Flushed Design - Compact */
+.analytics__header {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  margin: 0 !important;
+  margin-bottom: 1rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+.analytics__header h1 {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+  margin-bottom: 0.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+.analytics__header h1 i {
+  font-size: 1.5rem !important;
+  color: var(--color-primary) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  padding: 0.4rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.analytics__header p {
+  font-size: 0.8rem !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  opacity: 0.9 !important;
+}
+
+/* Dark mode for header */
+[data-theme="dark"] .analytics__header {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .analytics__header h1 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .analytics__header h1 i {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: var(--color-primary) !important;
+}
+
+[data-theme="dark"] .analytics__header p {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Analytics Cards Grid - Adjusted for 7 cards - Compact */
+.analytics-cards {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 1rem !important;
+}
+
+/* Analytics Cards - Glassy Flushed Design - Compact */
+.analytics-card {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  overflow: visible !important;
+  transition: all 0.3s ease !important;
+}
+
+.analytics-card::before {
+  display: none !important;
+}
+
+.analytics-card:hover {
+  transform: none !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.analytics-card:hover::before {
+  display: none !important;
+}
+
+.analytics-card::after {
+  display: none !important;
+}
+
+/* Card Icons - Glassy Design - Compact */
+.card-icon {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+  width: 40px !important;
+  height: 40px !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.card-icon:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
+  transform: scale(1.05) !important;
+}
+
+.card-icon i {
+  color: var(--color-primary) !important;
+  font-size: 1.25rem !important;
+}
+
+.card-icon::before {
+  display: none !important;
+}
+
+/* Different icon colors for variety */
+.analytics-card:nth-child(1) .card-icon {
+  border-color: #667eea !important;
+}
+
+.analytics-card:nth-child(1) .card-icon i {
+  color: #667eea !important;
+}
+
+.analytics-card:nth-child(2) .card-icon {
+  border-color: #28c76f !important;
+}
+
+.analytics-card:nth-child(2) .card-icon i {
+  color: #28c76f !important;
+}
+
+.analytics-card:nth-child(3) .card-icon {
+  border-color: #ff9f43 !important;
+}
+
+.analytics-card:nth-child(3) .card-icon i {
+  color: #ff9f43 !important;
+}
+
+.analytics-card:nth-child(4) .card-icon {
+  border-color: #00cfe8 !important;
+}
+
+.analytics-card:nth-child(4) .card-icon i {
+  color: #00cfe8 !important;
+}
+
+.analytics-card:nth-child(5) .card-icon {
+  border-color: #ea5455 !important;
+}
+
+.analytics-card:nth-child(5) .card-icon i {
+  color: #ea5455 !important;
+}
+
+.analytics-card:nth-child(6) .card-icon {
+  border-color: #7367f0 !important;
+}
+
+.analytics-card:nth-child(6) .card-icon i {
+  color: #7367f0 !important;
+}
+
+.analytics-card:nth-child(7) .card-icon {
+  border-color: #ff6b9d !important;
+}
+
+.analytics-card:nth-child(7) .card-icon i {
+  color: #ff6b9d !important;
+}
+
+.analytics-card:nth-child(8) .card-icon {
+  border-color: #ea5455 !important;
+}
+
+.analytics-card:nth-child(8) .card-icon i {
+  color: #ea5455 !important;
+}
+
+/* Main Analytics Widget - Glassy Flushed Design - Compact */
+.main-analytics-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* User Activity Widget - Glassy Flushed Design - Compact */
+.user-activity-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Views Widget - Glassy Flushed Design - Compact */
+.views-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Progress Widget - Glassy Flushed Design - Compact */
+.progress-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Status Summary Widget - Glassy Flushed Design - Compact */
+.status-summary-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Status Items - Glassy Design - Compact */
+.status-item {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 6px !important;
+  padding: 0.75rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.status-item:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.status-item::before {
+  display: none !important;
+}
+
+.status-icon {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.status-icon i {
+  color: var(--text-primary) !important;
+  font-size: 1.125rem !important;
+}
+
+.status-value {
+  font-size: 1.125rem !important;
+}
+
+.status-label {
+  font-size: 0.7rem !important;
+}
+
+.status-percentage {
+  font-size: 0.8rem !important;
+}
+
+/* Stat Items - Glassy Design */
+.stat-item {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 6px !important;
+  padding: 1rem !important;
+}
+
+/* Date Picker - Glassy Design */
+.date-picker {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.date-picker:hover {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  box-shadow: none !important;
+}
+
+/* Progress Bar - Glassy Design */
+.progress-bar {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.progress-fill {
+  border-radius: 3px !important;
+}
+
+/* Widget Content - Glassy Design */
+.widget-content {
+  background: transparent !important;
+}
+
+/* Dashboard Grid - Adjust spacing for glassy design - Compact */
+.dashboard-grid {
+  gap: 1rem !important;
+  padding: 0 !important;
+}
+
+/* Analytics Cards Grid - Compact */
+.analytics-cards {
+  gap: 1rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* Status Grid - Glassy Design - Compact */
+.status-grid {
+  gap: 0.75rem !important;
+}
+
+/* Remove hover elevation effects */
+.analytics-card:hover .card-icon,
+.status-item:hover .status-icon,
+.progress-item:hover .progress-fill {
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Card change badges - glassy design - Compact */
+.card-change {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 4px !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.7rem !important;
+}
+
+.card-change.positive {
+  background: rgba(40, 199, 111, 0.15) !important;
+  border-color: rgba(40, 199, 111, 0.3) !important;
+  color: #28c76f !important;
+}
+
+.card-change.urgent {
+  background: rgba(234, 84, 85, 0.15) !important;
+  border-color: rgba(234, 84, 85, 0.3) !important;
+  color: #ea5455 !important;
+}
+
+/* Widget Headers - Compact */
+.widget-header {
+  margin-bottom: 1rem !important;
+}
+
+.widget-title h3 {
+  font-size: 1.125rem !important;
+  margin: 0 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.widget-title p {
+  font-size: 0.75rem !important;
+  margin: 0 !important;
+}
+
+/* Card Content - Compact */
+.card-value {
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.card-label {
+  font-size: 0.8rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.card-content {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
+
+/* Card Action Button - Glassy Design */
+.analytics-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.card-action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.6rem 1rem !important;
+  margin-top: 1rem !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.card-action-btn:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(-1px) !important;
+  color: var(--color-primary) !important;
+}
+
+.card-action-btn:active {
+  transform: translateY(0) !important;
+}
+
+.card-action-btn i {
+  font-size: 0.875rem !important;
+  transition: transform 0.3s ease !important;
+}
+
+.card-action-btn:hover i {
+  transform: translateX(2px) !important;
+}
+
+/* Dark mode adjustments for glassy design */
+[data-theme="dark"] .modern-dashboard {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .analytics-card,
+[data-theme="dark"] .main-analytics-widget,
+[data-theme="dark"] .user-activity-widget,
+[data-theme="dark"] .views-widget,
+[data-theme="dark"] .progress-widget,
+[data-theme="dark"] .status-summary-widget {
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .analytics-card:hover {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+/* Dark mode card icons - maintain colorful borders */
+[data-theme="dark"] .card-icon {
+  background: rgba(255, 255, 255, 0.08) !important;
+  /* Border colors remain from individual card styles */
+}
+
+[data-theme="dark"] .card-icon:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Maintain icon colors in dark mode */
+[data-theme="dark"] .analytics-card:nth-child(1) .card-icon i {
+  color: #667eea !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(2) .card-icon i {
+  color: #28c76f !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(3) .card-icon i {
+  color: #ff9f43 !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(4) .card-icon i {
+  color: #00cfe8 !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(5) .card-icon i {
+  color: #ea5455 !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(6) .card-icon i {
+  color: #7367f0 !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(7) .card-icon i {
+  color: #ff6b9d !important;
+}
+
+[data-theme="dark"] .analytics-card:nth-child(8) .card-icon i {
+  color: #ea5455 !important;
+}
+
+/* Dark mode text colors */
+[data-theme="dark"] .card-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .card-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .card-change {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .card-change.positive {
+  background: rgba(40, 199, 111, 0.2) !important;
+  border-color: rgba(40, 199, 111, 0.35) !important;
+  color: #28c76f !important;
+}
+
+[data-theme="dark"] .card-change.urgent {
+  background: rgba(234, 84, 85, 0.2) !important;
+  border-color: rgba(234, 84, 85, 0.35) !important;
+  color: #ea5455 !important;
+}
+
+/* Dark mode for card action buttons */
+[data-theme="dark"] .card-action-btn {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="dark"] .card-action-btn:hover {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Dark mode widget headers */
+[data-theme="dark"] .widget-title h3 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .widget-title p {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Dark mode status items */
+[data-theme="dark"] .status-item {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .status-item:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .status-icon {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .status-icon i {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="dark"] .status-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .status-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .status-percentage {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Dark mode date picker and stat items */
+[data-theme="dark"] .date-picker,
+[data-theme="dark"] .stat-item {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .date-picker:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .stat-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .stat-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Dark mode progress bars */
+[data-theme="dark"] .progress-label {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .progress-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .progress-bar {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Dark mode skeleton loading */
+[data-theme="dark"] .skeleton-card {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .skeleton-icon,
+[data-theme="dark"] .skeleton-line {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dark mode chart elements */
+[data-theme="dark"] .recharts-surface {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .recharts-cartesian-grid-horizontal line,
+[data-theme="dark"] .recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .recharts-text {
+  fill: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .recharts-label {
+  fill: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .recharts-legend-item-text {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Dark mode for empty state */
+[data-theme="dark"] .widget-content > div[style*="textAlign: center"] {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-theme="dark"] .widget-content > div[style*="textAlign: center"] i {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Skeleton loading - Glassy Design */
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+.skeleton-icon,
+.skeleton-line {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-radius: 4px !important;
+  animation: skeleton-pulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .modern-dashboard {
+    padding: 1rem !important;
+  }
+
+  .analytics__header {
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .analytics__header h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .analytics__header h1 i {
+    font-size: 1.5rem !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .analytics__header p {
+    font-size: 0.875rem !important;
+  }
+
+  .dashboard-grid {
+    padding: 0 !important;
+    gap: 1rem !important;
+  }
+
+  .analytics-cards {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 1rem !important;
+  }
+
+  .analytics-card,
+  .main-analytics-widget,
+  .user-activity-widget,
+  .views-widget,
+  .progress-widget,
+  .status-summary-widget {
+    padding: 1rem !important;
+  }
+
+  .status-grid {
+    gap: 0.75rem !important;
+  }
+}
+
+/* Medium screens - adjust to 3 columns */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .analytics-cards {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* Large screens - adjust to 4 columns */
+@media (min-width: 1201px) {
+  .analytics-cards {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* ============================================
+   NEW WIDGET STYLES
+   ============================================ */
+
+/* 1. Time-Based Trends Widget - Compact */
+.trends-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 1 / -1 !important;
+}
+
+.trend-stats {
+  display: flex !important;
+  gap: 1rem !important;
+  align-items: center !important;
+}
+
+.trend-stat {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.5rem 1rem !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+}
+
+.trend-stat i {
+  font-size: 1rem !important;
+  color: var(--color-primary) !important;
+}
+
+.trend-stat strong {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* 2. Department Analytics Widget - Compact */
+.department-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 1 / 5 !important;
+}
+
+/* 3. Payment Analytics Widget - Compact */
+.payment-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 5 / -1 !important;
+}
+
+.payment-overview {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1rem !important;
+}
+
+.payment-stats {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 0.75rem !important;
+}
+
+.payment-stat-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.75rem !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+}
+
+.payment-stat-card .stat-icon {
+  width: 36px !important;
+  height: 36px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+}
+
+.payment-stat-card .stat-icon i {
+  font-size: 1.125rem !important;
+  color: var(--color-primary) !important;
+}
+
+.payment-stat-card .stat-info {
+  flex: 1 !important;
+}
+
+.payment-stat-card .stat-value {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.payment-stat-card .stat-label {
+  font-size: 0.7rem !important;
+  color: var(--text-secondary) !important;
+  margin-top: 0.15rem !important;
+}
+
+/* 4. Workflow Bottlenecks Widget - Compact */
+.workflow-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 1 / 7 !important;
+}
+
+.workflow-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 0.75rem !important;
+}
+
+.workflow-metric {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.75rem !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+}
+
+.workflow-metric:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.workflow-metric .metric-icon {
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: 6px !important;
+}
+
+.workflow-metric .metric-icon i {
+  font-size: 1.25rem !important;
+  color: #667eea !important;
+}
+
+.workflow-metric.warning .metric-icon i {
+  color: #ff9f43 !important;
+}
+
+.workflow-metric.success .metric-icon i {
+  color: #28c76f !important;
+}
+
+.workflow-metric .metric-content {
+  flex: 1 !important;
+}
+
+.workflow-metric .metric-value {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.workflow-metric .metric-label {
+  font-size: 0.7rem !important;
+  color: var(--text-secondary) !important;
+  margin-top: 0.15rem !important;
+}
+
+/* 5. Completion Rates Widget - Compact */
+.completion-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 7 / -1 !important;
+}
+
+.completion-overview {
+  display: flex !important;
+  gap: 1.5rem !important;
+}
+
+.completion-gauge {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
+
+.gauge-container {
+  position: relative !important;
+  width: 150px !important;
+  height: 150px !important;
+}
+
+.gauge-svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.gauge-text {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  text-align: center !important;
+}
+
+.gauge-value {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+  line-height: 1 !important;
+}
+
+.gauge-label {
+  font-size: 0.75rem !important;
+  color: var(--text-secondary) !important;
+  margin-top: 0.25rem !important;
+}
+
+.completion-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.detail-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  font-size: 0.875rem !important;
+  color: var(--text-secondary) !important;
+}
+
+.detail-item i {
+  font-size: 1rem !important;
+  color: var(--color-primary) !important;
+}
+
+.completion-by-type {
+  flex: 1 !important;
+}
+
+.completion-by-type h4 {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 0 0.75rem 0 !important;
+}
+
+.type-completion {
+  margin-bottom: 0.75rem !important;
+}
+
+.type-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.type-name {
+  font-size: 0.75rem !important;
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.type-rate {
+  font-size: 0.875rem !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.type-bar {
+  width: 100% !important;
+  height: 6px !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.type-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.3s ease !important;
+}
+
+.type-info {
+  font-size: 0.7rem !important;
+  color: var(--text-secondary) !important;
+  margin-top: 0.25rem !important;
+}
+
+/* 6. Budget Utilization Widget - Compact */
+.budget-widget {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-radius: 8px !important;
+  padding: 1.25rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  grid-column: 1 / -1 !important;
+}
+
+.budget-overview {
+  display: grid !important;
+  grid-template-columns: 1fr 2fr !important;
+  gap: 1.5rem !important;
+}
+
+.current-year-budget h4 {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 0 0.75rem 0 !important;
+}
+
+.budget-stats {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.budget-stat .stat-label {
+  font-size: 0.75rem !important;
+  color: var(--text-secondary) !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.budget-stat .stat-value {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.budget-progress {
+  width: 100% !important;
+  height: 12px !important;
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+}
+
+.budget-progress-fill {
+  height: 100% !important;
+  border-radius: 6px !important;
+  transition: width 0.3s ease !important;
+}
+
+.budget-by-year h4 {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 0 0.75rem 0 !important;
+}
+
+/* Dark mode for new widgets */
+[data-theme="dark"] .trends-widget,
+[data-theme="dark"] .department-widget,
+[data-theme="dark"] .payment-widget,
+[data-theme="dark"] .workflow-widget,
+[data-theme="dark"] .completion-widget,
+[data-theme="dark"] .budget-widget {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .trend-stat,
+[data-theme="dark"] .payment-stat-card,
+[data-theme="dark"] .workflow-metric {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .trend-stat:hover,
+[data-theme="dark"] .payment-stat-card:hover,
+[data-theme="dark"] .workflow-metric:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .payment-stat-card .stat-icon,
+[data-theme="dark"] .workflow-metric .metric-icon {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .gauge-value,
+[data-theme="dark"] .metric-value,
+[data-theme="dark"] .type-rate,
+[data-theme="dark"] .budget-stat .stat-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-theme="dark"] .gauge-label,
+[data-theme="dark"] .metric-label,
+[data-theme="dark"] .type-name,
+[data-theme="dark"] .type-info,
+[data-theme="dark"] .budget-stat .stat-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="dark"] .detail-item,
+[data-theme="dark"] .trend-stat {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="dark"] .type-bar {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .budget-progress {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .completion-by-type h4,
+[data-theme="dark"] .current-year-budget h4,
+[data-theme="dark"] .budget-by-year h4 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Responsive adjustments for new widgets */
+@media (max-width: 1200px) {
+  .department-widget {
+    grid-column: 1 / -1 !important;
+  }
+
+  .payment-widget {
+    grid-column: 1 / -1 !important;
+  }
+
+  .workflow-widget {
+    grid-column: 1 / -1 !important;
+  }
+
+  .completion-widget {
+    grid-column: 1 / -1 !important;
+  }
+
+  .workflow-metrics {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .completion-overview {
+    flex-direction: column !important;
+  }
+
+  .budget-overview {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .trends-widget,
+  .department-widget,
+  .payment-widget,
+  .workflow-widget,
+  .completion-widget,
+  .budget-widget {
+    padding: 1rem !important;
+  }
+
+  .trend-stats {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .payment-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .workflow-metrics {
+    grid-template-columns: 1fr !important;
+  }
+
+  .gauge-container {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  .gauge-value {
+    font-size: 2rem !important;
+  }
+}

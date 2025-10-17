@@ -4,7 +4,7 @@ import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
 import { BlockResponseData } from "../Block/data";
 import { TemplateResponseData } from "../Template/data";
 import { PermissionTypes } from "../ProgressTracker/data";
-import { SignatoryType } from "../Signatory/data";
+import { SignatoryResponseData, SignatoryType } from "../Signatory/data";
 import {
   ProcessFlowConfigProps,
   ProcessFlowType,
@@ -101,6 +101,7 @@ export interface DocumentCategoryResponseData extends BaseResponse {
   document_type_id: number;
   workflow_id: number;
   type: "staff" | "third-party";
+  scope: "personal" | "official";
   name: string;
   icon: string;
   label: string;
@@ -113,6 +114,7 @@ export interface DocumentCategoryResponseData extends BaseResponse {
   with_date: 0 | 1;
   requirements: DocumentRequirementResponseData[];
   selectedRequirements: DataOptionsProps[];
+  signatories?: SignatoryResponseData[];
   config?: ProcessFlowConfigProps | null;
   template?: TemplateResponseData | null;
   content?: ContentBlock[];

@@ -27,7 +27,7 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
   useEffect(() => {
     if (document && document.drafts && document.drafts.length > 0) {
       const approvalsMap = new Map<string | number, AuthorisingOfficerProps>();
-      const drafts = document.drafts;
+      // const drafts = document.drafts;
       const workflow = document.workflow;
 
       if (!workflow) return;
@@ -37,34 +37,6 @@ const FolderComponent = ({ loader, document, openFolder }: FileCardProps) => {
       );
 
       setCurrentTracker(currentTracker as ProgressTrackerResponseData);
-
-      // drafts.forEach((draft) => {
-      //   const { history = [] } = draft;
-
-      //   const latestAmount =
-      //     history.length > 0
-      //       ? history.reduce((max, item) =>
-      //           (item?.version_number ?? 0) > (max?.version_number ?? 0)
-      //             ? item
-      //             : max
-      //         ).amount
-      //       : document.approved_amount;
-
-      //   setAmount(formatCurrency(Number(latestAmount)));
-
-      //   history.forEach((action) => {
-      //     const staffId = action.authorising_officer?.id;
-      //     const staff = action.authorising_officer;
-
-      //     if (staffId && staff && !approvalsMap.has(staffId)) {
-      //       approvalsMap.set(
-      //         staffId,
-      //         action?.authorising_officer as AuthorisingOfficerProps
-      //       );
-      //     }
-      //   });
-      // });
-
       setOfficers(Array.from(approvalsMap.values()));
     }
   }, [document]);

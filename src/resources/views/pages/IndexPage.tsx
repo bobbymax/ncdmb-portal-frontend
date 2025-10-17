@@ -81,6 +81,10 @@ const IndexPage = ({
         navigate(`${view.frontend_path}/${raw.id}/configuration`);
         break;
 
+      case "signatories":
+        navigate(`${view.frontend_path}/${raw.id}/signatories`);
+        break;
+
       default:
         navigate(`${view.frontend_path}/${raw.id}/manage`);
         break;

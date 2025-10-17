@@ -105,6 +105,8 @@ const DocumentTemplateContent = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const documentElementRef = useRef<HTMLDivElement>(null);
 
+  // console.log(state.configState);
+
   // Mounting guard states
   const [isMounted, setIsMounted] = useState(false);
   const [isDataReady, setIsDataReady] = useState(false);

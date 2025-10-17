@@ -13,6 +13,8 @@ import MultiSelect from "../components/forms/MultiSelect";
 import Button from "../components/forms/Button";
 import { useStateContext } from "app/Context/ContentContext";
 import ResourceLoader from "../components/loaders/ResourceLoader";
+import { useAuth } from "app/Context/AuthContext";
+import "../../assets/css/folders-list-view.css";
 
 const Folders: React.FC<
   CardPageComponentProps<DocumentResponseData, DocumentRepository>
@@ -44,41 +46,171 @@ const Folders: React.FC<
     resetFilters,
   } = useFilters(collection);
 
-  const [activeView, setActiveView] = useState<"grid" | "list">("grid");
+  console.log(
+    "Documents:",
+    documents.length,
+    "ComponentLoading:",
+    componentLoading,
+    "isLoading:",
+    isLoading
+  );
+
+  const { staff } = useAuth();
+
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
     new Set()
   );
-  const [groupByType, setGroupByType] = useState(true);
+  const [groupByActivity, setGroupByActivity] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Group documents by document type
+  // Track when documents are initially loaded
+  React.useEffect(() => {
+    if (documents.length > 0 || !componentLoading) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        setInitialLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [documents.length, componentLoading]);
+
+  // Group documents by workflow activity (awaiting action from current user)
   const groupedDocuments = useMemo(() => {
-    if (!groupByType) return { "All Documents": documents };
+    if (!groupByActivity) return { "All Documents": documents };
 
-    const grouped: Record<string, DocumentResponseData[]> = {};
+    const grouped: Record<string, DocumentResponseData[]> = {
+      "Awaiting My Action": [],
+      "Awaiting Others": [],
+      "In My Flow (From)": [],
+      "In My Flow (Through)": [],
+      "In My Flow (To)": [],
+      Completed: [],
+      "Other Documents": [],
+    };
 
     documents.forEach((doc) => {
-      const typeName = doc.document_type?.name || "Uncategorized";
-      if (!grouped[typeName]) {
-        grouped[typeName] = [];
+      let categorized = false;
+
+      // Check if document is awaiting current user's action
+      if (doc.config && doc.pointer && staff?.id) {
+        const flowTypes: ("from" | "through" | "to")[] = [
+          "from",
+          "through",
+          "to",
+        ];
+
+        for (const flowType of flowTypes) {
+          const flowConfig = doc.config[flowType];
+
+          if (flowConfig) {
+            // Document is at this stage and awaiting current user
+            if (
+              flowConfig.identifier === doc.pointer &&
+              flowConfig.user_id === staff.id
+            ) {
+              grouped["Awaiting My Action"].push(doc);
+              categorized = true;
+              break;
+            }
+            // Document is at this stage but awaiting someone else
+            else if (flowConfig.identifier === doc.pointer) {
+              grouped["Awaiting Others"].push(doc);
+              categorized = true;
+              break;
+            }
+            // Document is in my workflow flow but not at this stage yet
+            else if (flowConfig.user_id === staff.id) {
+              grouped[
+                `In My Flow (${
+                  flowType.charAt(0).toUpperCase() + flowType.slice(1)
+                })`
+              ].push(doc);
+              categorized = true;
+              break;
+            }
+          }
+        }
       }
-      grouped[typeName].push(doc);
+
+      // Check if completed
+      if (!categorized && doc.is_completed) {
+        grouped["Completed"].push(doc);
+        categorized = true;
+      }
+
+      // Otherwise, it's other documents
+      if (!categorized) {
+        grouped["Other Documents"].push(doc);
+      }
     });
 
-    return grouped;
-  }, [documents, groupByType]);
+    // Remove empty groups
+    return Object.fromEntries(
+      Object.entries(grouped).filter(([_, docs]) => docs.length > 0)
+    );
+  }, [documents, groupByActivity, staff]);
 
-  // Calculate statistics
+  // Calculate statistics based on activity grouping
   const stats = useMemo(() => {
     const total = documents.length;
-    const archived = documents.filter((doc) => doc.is_archived === 1).length;
-    const active = total - archived;
+
+    let awaitingMyAction = 0;
+    let awaitingOthers = 0;
+    let completed = 0;
+    let inMyWorkflow = 0;
+
+    documents.forEach((doc) => {
+      if (doc.is_completed) {
+        completed++;
+        return;
+      }
+
+      if (doc.config && doc.pointer && staff?.id) {
+        const flowTypes: ("from" | "through" | "to")[] = [
+          "from",
+          "through",
+          "to",
+        ];
+        let found = false;
+
+        for (const flowType of flowTypes) {
+          const flowConfig = doc.config[flowType];
+          if (flowConfig) {
+            if (
+              flowConfig.identifier === doc.pointer &&
+              flowConfig.user_id === staff.id
+            ) {
+              awaitingMyAction++;
+              found = true;
+              break;
+            } else if (flowConfig.identifier === doc.pointer) {
+              awaitingOthers++;
+              found = true;
+              break;
+            } else if (flowConfig.user_id === staff.id) {
+              inMyWorkflow++;
+              found = true;
+              break;
+            }
+          }
+        }
+      }
+    });
+
     const totalAmount = documents.reduce(
       (sum, doc) => sum + (Number(doc.approved_amount) || 0),
       0
     );
 
-    return { total, archived, active, totalAmount };
-  }, [documents]);
+    return {
+      total,
+      awaitingMyAction,
+      awaitingOthers,
+      completed,
+      inMyWorkflow,
+      totalAmount,
+    };
+  }, [documents, staff]);
 
   const handleOpenFolder = (document: DocumentResponseData) => {
     setIsLoading(true);
@@ -118,11 +250,83 @@ const Folders: React.FC<
     }
   };
 
+  const getActivityIcon = (groupName: string): string => {
+    const iconMap: Record<string, string> = {
+      "Awaiting My Action": "ri-alarm-warning-line",
+      "Awaiting Others": "ri-group-line",
+      "In My Flow (From)": "ri-send-plane-line",
+      "In My Flow (Through)": "ri-route-line",
+      "In My Flow (To)": "ri-inbox-line",
+      Completed: "ri-checkbox-circle-line",
+      "Other Documents": "ri-file-list-line",
+      "All Documents": "ri-file-text-line",
+    };
+    return iconMap[groupName] || "ri-folder-line";
+  };
+
+  const slugToTitleCase = (slug: string): string => {
+    return slug
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div className="folder-desk">
-      {/* Statistics Cards - Sleek Design */}
+      {/* Statistics Cards - Activity-Based Design */}
       <div className="stats-section-modern">
         <div className="stats-grid-modern">
+          <div className="stat-card-modern urgent">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-alarm-warning-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Awaiting My Action</p>
+                <h3 className="stat-value">{stats.awaitingMyAction}</h3>
+              </div>
+            </div>
+            <div className="stat-trend urgent">
+              <i className="ri-time-line"></i>
+              <span>Needs attention</span>
+            </div>
+          </div>
+
+          <div className="stat-card-modern info">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-group-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Awaiting Others</p>
+                <h3 className="stat-value">{stats.awaitingOthers}</h3>
+              </div>
+            </div>
+            <div className="stat-trend">
+              <i className="ri-user-follow-line"></i>
+              <span>In progress</span>
+            </div>
+          </div>
+
+          <div className="stat-card-modern success">
+            <div className="stat-card-bg"></div>
+            <div className="stat-card-content">
+              <div className="stat-icon-modern">
+                <i className="ri-checkbox-circle-line"></i>
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">Completed</p>
+                <h3 className="stat-value">{stats.completed}</h3>
+              </div>
+            </div>
+            <div className="stat-trend positive">
+              <i className="ri-check-double-line"></i>
+              <span>Done</span>
+            </div>
+          </div>
+
           <div className="stat-card-modern primary">
             <div className="stat-card-bg"></div>
             <div className="stat-card-content">
@@ -135,61 +339,8 @@ const Folders: React.FC<
               </div>
             </div>
             <div className="stat-trend">
-              <i className="ri-arrow-up-line"></i>
-              <span>12%</span>
-            </div>
-          </div>
-
-          <div className="stat-card-modern success">
-            <div className="stat-card-bg"></div>
-            <div className="stat-card-content">
-              <div className="stat-icon-modern">
-                <i className="ri-checkbox-circle-line"></i>
-              </div>
-              <div className="stat-info">
-                <p className="stat-label">Active</p>
-                <h3 className="stat-value">{stats.active}</h3>
-              </div>
-            </div>
-            <div className="stat-trend positive">
-              <i className="ri-arrow-up-line"></i>
-              <span>8%</span>
-            </div>
-          </div>
-
-          <div className="stat-card-modern warning">
-            <div className="stat-card-bg"></div>
-            <div className="stat-card-content">
-              <div className="stat-icon-modern">
-                <i className="ri-archive-line"></i>
-              </div>
-              <div className="stat-info">
-                <p className="stat-label">Archived</p>
-                <h3 className="stat-value">{stats.archived}</h3>
-              </div>
-            </div>
-            <div className="stat-trend">
-              <i className="ri-arrow-down-line"></i>
-              <span>3%</span>
-            </div>
-          </div>
-
-          <div className="stat-card-modern info">
-            <div className="stat-card-bg"></div>
-            <div className="stat-card-content">
-              <div className="stat-icon-modern">
-                <i className="ri-money-dollar-circle-line"></i>
-              </div>
-              <div className="stat-info">
-                <p className="stat-label">Total Value</p>
-                <h3 className="stat-value">
-                  {formatCurrencyCompact(stats.totalAmount)}
-                </h3>
-              </div>
-            </div>
-            <div className="stat-trend positive">
-              <i className="ri-arrow-up-line"></i>
-              <span>15%</span>
+              <i className="ri-wallet-3-line"></i>
+              <span>{formatCurrencyCompact(stats.totalAmount)}</span>
             </div>
           </div>
         </div>
@@ -197,190 +348,176 @@ const Folders: React.FC<
 
       {/* Main Content */}
       <div className="desk-main-modern">
-        {/* Left Panel - Filters & Actions */}
-        <div className="desk-sidebar-modern">
-          <div className="sidebar-card">
-            <div className="sidebar-header">
-              <i className="ri-filter-3-line"></i>
-              <h3>Filters</h3>
+        {/* Left Panel - Compact Filters */}
+        <div className="desk-sidebar-compact">
+          {/* Search */}
+          <div className="sidebar-section">
+            <div className="section-header-compact">
+              <i className="ri-search-line"></i>
+              <span>Search</span>
             </div>
-
-            <div className="search-box-modern">
-              <i className="ri-search-line search-icon"></i>
+            <div className="search-input-compact">
               <TextInput
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search documents..."
+                placeholder="Search..."
                 size="sm"
                 width={100}
               />
             </div>
+          </div>
 
-            <div className="filter-group">
+          {/* Filters */}
+          <div className="sidebar-section">
+            <div className="section-header-compact">
+              <i className="ri-filter-3-line"></i>
+              <span>Filters</span>
+              {(category ||
+                documentOwner ||
+                department ||
+                action ||
+                currentAmount !== amountFilter[0]) && (
+                <button
+                  className="reset-btn-compact"
+                  onClick={() => resetFilters()}
+                >
+                  <i className="ri-refresh-line"></i>
+                </button>
+              )}
+            </div>
+
+            <div className="filter-compact">
               <Select
-                label="Document Type"
+                label="Type"
                 defaultValue=""
                 options={categories}
                 valueKey="value"
                 labelKey="label"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                size="xs"
+                size="xl"
                 defaultCheckDisabled
-                defaultText="All Types"
+                defaultText="All"
               />
             </div>
 
-            <div className="filter-group">
+            <div className="filter-compact">
+              <label className="filter-label-compact">Amount</label>
               <RangeSlider
-                label="Amount Range"
+                label=""
                 value={currentAmount}
                 onChange={(e) => setCurrentAmount(Number(e.target.value))}
                 min={Number(amountFilter[0])}
                 max={Number(amountFilter[1])}
                 name="amount"
               />
-              <div className="amount-display">
-                <span className="amount-label">Current:</span>
-                <span className="amount-value">
-                  {formatCurrencyCompact(currentAmount)}
-                </span>
+              <div className="range-value-compact">
+                {formatCurrencyCompact(currentAmount)}
               </div>
             </div>
 
-            <div className="filter-group">
+            <div className="filter-compact">
+              <label className="filter-label-compact">Date</label>
               <RangeSlider
-                label="Date Range"
+                label=""
                 value={currentDate}
                 onChange={(e) => setCurrentDate(Number(e.target.value))}
                 min={Number(dateFilter[0]?.getTime())}
                 max={Number(dateFilter[1]?.getTime())}
                 name="date"
               />
-              <div className="date-display">
-                <span className="date-label">Before:</span>
-                <span className="date-value">
-                  {moment(currentDate).format("LL")}
-                </span>
+              <div className="range-value-compact">
+                {moment(currentDate).format("MMM DD, YYYY")}
               </div>
             </div>
 
-            <div className="filter-group">
+            <div className="filter-compact">
               <MultiSelect
                 label="Initiators"
                 options={owners}
                 value={documentOwner}
                 onChange={handleDocumentOwnersChange}
-                placeholder="Select initiators"
+                placeholder="All"
                 isSearchable
                 isDisabled={isLoading}
               />
             </div>
 
-            <div className="filter-group">
+            <div className="filter-compact">
               <MultiSelect
                 label="Departments"
                 options={departments}
                 value={department}
                 onChange={handleDeptsChange}
-                placeholder="Select departments"
+                placeholder="All"
                 isSearchable
                 isDisabled={isLoading}
-              />
-            </div>
-
-            <div className="filter-group">
-              <MultiSelect
-                label="Actions"
-                options={actions}
-                value={action}
-                onChange={handleActionsChange}
-                placeholder="Select actions"
-                isSearchable
-                isDisabled={isLoading}
-              />
-            </div>
-
-            <div className="filter-actions-modern">
-              <Button
-                label="Reset All"
-                variant="outline"
-                handleClick={() => resetFilters()}
-                size="xs"
-                icon="ri-refresh-line"
               />
             </div>
           </div>
 
-          {/* Bulk Actions Panel */}
+          {/* Bulk Actions - Compact */}
           {selectedDocuments.size > 0 && (
-            <div className="sidebar-card bulk-card">
-              <div className="sidebar-header">
+            <div className="sidebar-section bulk-section">
+              <div className="section-header-compact urgent">
                 <i className="ri-checkbox-multiple-line"></i>
-                <h3>Bulk Actions</h3>
-                <span className="badge-count">{selectedDocuments.size}</span>
+                <span>{selectedDocuments.size} Selected</span>
               </div>
-
-              <div className="bulk-actions-modern">
+              <div className="bulk-actions-compact">
                 <button
-                  className="bulk-btn archive"
+                  className="bulk-action-compact archive"
                   onClick={() => handleBulkAction("archive")}
+                  title="Archive"
                 >
                   <i className="ri-archive-line"></i>
-                  <span>Archive</span>
                 </button>
                 <button
-                  className="bulk-btn export"
+                  className="bulk-action-compact export"
                   onClick={() => handleBulkAction("export")}
+                  title="Export"
                 >
                   <i className="ri-download-line"></i>
-                  <span>Export</span>
                 </button>
                 <button
-                  className="bulk-btn share"
+                  className="bulk-action-compact share"
                   onClick={() => handleBulkAction("share")}
+                  title="Share"
                 >
                   <i className="ri-share-line"></i>
-                  <span>Share</span>
                 </button>
                 <button
-                  className="bulk-btn delete"
+                  className="bulk-action-compact delete"
                   onClick={() => handleBulkAction("delete")}
+                  title="Delete"
                 >
                   <i className="ri-delete-bin-line"></i>
-                  <span>Delete</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="sidebar-card quick-card">
-            <div className="sidebar-header">
+          {/* Quick Access - Compact */}
+          <div className="sidebar-section">
+            <div className="section-header-compact">
               <i className="ri-flashlight-line"></i>
-              <h3>Quick Access</h3>
+              <span>Quick</span>
             </div>
-
-            <div className="quick-links">
-              <button className="quick-link">
+            <div className="quick-links-compact">
+              <button className="quick-link-compact">
                 <i className="ri-time-line"></i>
                 <span>Recent</span>
-                <div className="quick-link-badge">12</div>
               </button>
-              <button className="quick-link">
+              <button className="quick-link-compact">
                 <i className="ri-heart-line"></i>
                 <span>Favorites</span>
-                <div className="quick-link-badge">8</div>
               </button>
-              <button className="quick-link">
+              <button className="quick-link-compact">
                 <i className="ri-share-line"></i>
                 <span>Shared</span>
-                <div className="quick-link-badge">5</div>
               </button>
-              <button className="quick-link">
+              <button className="quick-link-compact">
                 <i className="ri-star-line"></i>
                 <span>Important</span>
-                <div className="quick-link-badge">3</div>
               </button>
             </div>
           </div>
@@ -391,39 +528,27 @@ const Folders: React.FC<
           {/* Content Header */}
           <div className="content-header-modern">
             <div className="header-left">
-              <div className="view-toggle-modern">
-                <button
-                  className={`view-btn ${
-                    activeView === "grid" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveView("grid")}
-                  title="Grid View"
-                >
-                  <i className="ri-layout-grid-line"></i>
-                </button>
-                <button
-                  className={`view-btn ${
-                    activeView === "list" ? "active" : ""
-                  }`}
-                  onClick={() => setActiveView("list")}
-                  title="List View"
-                >
-                  <i className="ri-list-check"></i>
-                </button>
-              </div>
-
               <div className="group-toggle-modern">
                 <button
-                  className={`group-btn ${groupByType ? "active" : ""}`}
-                  onClick={() => setGroupByType(!groupByType)}
+                  className={`group-btn ${groupByActivity ? "active" : ""}`}
+                  onClick={() => setGroupByActivity(!groupByActivity)}
                 >
                   <i
                     className={
-                      groupByType ? "ri-folder-line" : "ri-file-list-line"
+                      groupByActivity
+                        ? "ri-folders-line"
+                        : "ri-file-list-3-line"
                     }
                   ></i>
-                  <span>{groupByType ? "Grouped" : "All Files"}</span>
+                  <span>
+                    {groupByActivity ? "Activity Groups" : "All Files"}
+                  </span>
                 </button>
+              </div>
+
+              <div className="showing-info">
+                <i className="ri-information-line"></i>
+                <span>Showing {documents.length} documents</span>
               </div>
             </div>
 
@@ -445,16 +570,55 @@ const Folders: React.FC<
           </div>
 
           {/* Documents Display */}
-          {isLoading ? (
-            <div className="loading-state-modern">
-              <ResourceLoader
-                isLoading={true}
-                message="Loading documents..."
-                variant="character"
-                size="large"
-              >
-                <div></div>
-              </ResourceLoader>
+          {componentLoading || isLoading || initialLoading ? (
+            <div className="documents-container-list">
+              {/* Skeleton Loading for Activity Groups */}
+              {[1, 2].map((groupIndex) => (
+                <div key={groupIndex} className="activity-group skeleton">
+                  <div className="activity-group-header skeleton">
+                    <div className="group-header-left">
+                      <div className="skeleton-icon"></div>
+                      <div className="skeleton-text skeleton-title"></div>
+                      <div className="skeleton-badge"></div>
+                    </div>
+                    <div className="group-header-right">
+                      <div className="skeleton-text skeleton-value"></div>
+                    </div>
+                  </div>
+
+                  <div className="document-list">
+                    {[1, 2, 3, 4].map((itemIndex) => (
+                      <div
+                        key={itemIndex}
+                        className="document-list-item skeleton"
+                      >
+                        <div className="doc-checkbox skeleton">
+                          <div className="skeleton-checkbox"></div>
+                        </div>
+                        <div className="doc-info-main">
+                          <div className="doc-title-row">
+                            <div className="skeleton-text skeleton-doc-title"></div>
+                            <div className="skeleton-text skeleton-doc-ref"></div>
+                          </div>
+                          <div className="doc-meta-row">
+                            <div className="skeleton-text skeleton-meta"></div>
+                            <div className="skeleton-text skeleton-meta"></div>
+                            <div className="skeleton-text skeleton-meta"></div>
+                            <div className="skeleton-text skeleton-meta"></div>
+                          </div>
+                        </div>
+                        <div className="doc-status-section">
+                          <div className="skeleton-text skeleton-amount"></div>
+                          <div className="skeleton-badge"></div>
+                        </div>
+                        <div className="doc-action">
+                          <div className="skeleton-button"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : documents.length === 0 ? (
             <div className="empty-state-modern">
@@ -500,54 +664,110 @@ const Folders: React.FC<
               </div>
             </div>
           ) : (
-            <div className="documents-container-modern">
+            <div className="documents-container-list">
               {Object.entries(groupedDocuments).map(
                 ([groupName, groupDocs]) => (
-                  <div key={groupName} className="document-group-modern">
-                    {groupByType && (
-                      <div className="group-header-modern">
-                        <div className="group-title-area">
-                          <i className="ri-folder-3-line"></i>
-                          <h3>{groupName}</h3>
-                          <span className="group-badge">
-                            {groupDocs.length}
-                          </span>
-                        </div>
-                        <div className="group-line"></div>
+                  <div key={groupName} className="activity-group">
+                    {/* Activity Group Header */}
+                    <div className="activity-group-header">
+                      <div className="group-header-left">
+                        <i className={getActivityIcon(groupName)}></i>
+                        <h3>{groupName}</h3>
+                        <span className="group-count-badge">
+                          {groupDocs.length}
+                        </span>
                       </div>
-                    )}
+                      <div className="group-header-right">
+                        <span className="group-value">
+                          {formatCurrencyCompact(
+                            groupDocs.reduce(
+                              (sum, doc) =>
+                                sum + (Number(doc.approved_amount) || 0),
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
+                    </div>
 
-                    <div
-                      className={`documents-grid-modern ${
-                        activeView === "list" ? "list-view" : ""
-                      }`}
-                    >
+                    {/* Document List Items */}
+                    <div className="document-list">
                       {groupDocs.map((document) => (
                         <div
                           key={document.id}
-                          className="document-wrapper-modern"
+                          className="document-list-item"
+                          onClick={() => handleOpenFolder(document)}
                         >
-                          <div className="document-selector-modern">
+                          {/* Checkbox */}
+                          <div
+                            className="doc-checkbox"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDocumentSelection(document.id);
+                            }}
+                          >
                             <input
                               type="checkbox"
                               checked={selectedDocuments.has(document.id)}
-                              onChange={() =>
-                                handleDocumentSelection(document.id)
-                              }
-                              className="modern-checkbox"
-                              id={`doc-${document.id}`}
+                              onChange={() => {}}
+                              className="list-checkbox"
+                              id={`doc-list-${document.id}`}
                             />
-                            <label
-                              htmlFor={`doc-${document.id}`}
-                              className="checkbox-label"
-                            ></label>
                           </div>
 
-                          <FolderComponent
-                            loader={componentLoading}
-                            document={document}
-                            openFolder={handleOpenFolder}
-                          />
+                          {/* Document Info */}
+                          <div className="doc-info-main">
+                            <div className="doc-title-row">
+                              <h4 className="doc-title">{document.title}</h4>
+                              <span className="doc-ref">#{document.ref}</span>
+                            </div>
+                            <div className="doc-meta-row">
+                              <span className="doc-type">
+                                <i className="ri-file-text-line"></i>
+                                {document.document_type?.name || "Unknown Type"}
+                              </span>
+                              <span className="doc-owner">
+                                <i className="ri-user-line"></i>
+                                {document.owner?.name || "Unknown"}
+                              </span>
+                              <span className="doc-dept">
+                                <i className="ri-building-line"></i>
+                                {document.owner?.department ||
+                                  document.dept ||
+                                  "N/A"}
+                              </span>
+                              <span className="doc-date">
+                                <i className="ri-calendar-line"></i>
+                                {moment(document.created_at).format(
+                                  "MMM DD, YYYY"
+                                )}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Document Status & Amount */}
+                          <div className="doc-status-section">
+                            <div className="doc-amount">
+                              {document.approved_amount
+                                ? formatCurrencyCompact(
+                                    document.approved_amount
+                                  )
+                                : "₦0.00"}
+                            </div>
+                            <div
+                              className={`doc-status-badge ${document.status}`}
+                            >
+                              {slugToTitleCase(document.status || "unknown")}
+                            </div>
+                          </div>
+
+                          {/* Action Button */}
+                          <div className="doc-action">
+                            <button className="list-action-btn">
+                              <span>Open</span>
+                              <i className="ri-arrow-right-line"></i>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

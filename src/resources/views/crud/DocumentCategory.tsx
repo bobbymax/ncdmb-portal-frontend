@@ -50,6 +50,8 @@ const DocumentCategory: React.FC<
     service: null,
   });
 
+  console.log(state);
+
   const handleSelectionChange = useCallback(
     (key: keyof typeof selectedOptions) =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {

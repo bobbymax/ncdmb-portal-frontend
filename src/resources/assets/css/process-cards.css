@@ -1434,3 +1434,237 @@
 [data-theme="dark"] .clearance-submit-btn:hover {
   box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
 }
+
+/* ========================================
+   SIGNATORY CARDS STYLES
+   ======================================== */
+
+.signatories-list {
+  width: 100%;
+}
+
+.signatory-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.signatory-card:hover {
+  box-shadow: 0 4px 16px rgba(40, 199, 111, 0.12);
+  border-color: rgba(40, 199, 111, 0.3);
+}
+
+.signatory-card-header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.05) 0%,
+    rgba(34, 197, 94, 0.08) 100%
+  );
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  transition: all 0.2s ease;
+}
+
+.signatory-card-header:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.08) 0%,
+    rgba(34, 197, 94, 0.12) 100%
+  );
+}
+
+.signatory-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  background: linear-gradient(135deg, #28c76f 0%, #22c55e 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(40, 199, 111, 0.25);
+}
+
+.signatory-card-header h6 {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.signatory-card-header small {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.signatory-card-body {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.5);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Alert Styles */
+.alert-info {
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.08) 0%,
+    rgba(34, 197, 94, 0.12) 100%
+  );
+  border: 1px solid rgba(40, 199, 111, 0.2);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  display: flex;
+  align-items: center;
+}
+
+.alert-info i {
+  color: #28c76f;
+  font-size: 1.25rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .signatory-card-header {
+    padding: 1rem;
+  }
+
+  .signatory-card-body {
+    padding: 1rem;
+  }
+
+  .signatory-order {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.8125rem;
+  }
+
+  .signatory-card-header h6 {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .signatory-card {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(51, 65, 85, 0.8);
+}
+
+[data-theme="dark"] .signatory-card:hover {
+  box-shadow: 0 4px 16px rgba(40, 199, 111, 0.2);
+  border-color: rgba(40, 199, 111, 0.4);
+}
+
+[data-theme="dark"] .signatory-card-header {
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.08) 0%,
+    rgba(34, 197, 94, 0.12) 100%
+  );
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
+[data-theme="dark"] .signatory-card-header:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.12) 0%,
+    rgba(34, 197, 94, 0.16) 100%
+  );
+}
+
+[data-theme="dark"] .signatory-card-header h6 {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .signatory-card-header small {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .signatory-card-body {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+[data-theme="dark"] .alert-info {
+  background: linear-gradient(
+    135deg,
+    rgba(40, 199, 111, 0.12) 0%,
+    rgba(34, 197, 94, 0.16) 100%
+  );
+  border-color: rgba(40, 199, 111, 0.3);
+  color: #e2e8f0;
+}
+
+/* View Mode Styles */
+.signatory-card-body-view {
+  padding: 1.5rem;
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.signatory-info-item {
+  margin-bottom: 1rem;
+}
+
+.signatory-info-item label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.signatory-info-item p {
+  font-size: 0.9375rem;
+  color: #1e293b;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.badge.bg-success {
+  background: linear-gradient(135deg, #28c76f 0%, #22c55e 100%);
+  color: white;
+}
+
+/* Dark Mode View Styles */
+[data-theme="dark"] .signatory-card-body-view {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+[data-theme="dark"] .signatory-info-item label {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .signatory-info-item p {
+  color: #e2e8f0;
+}

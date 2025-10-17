@@ -11,8 +11,13 @@ export const departmentConfig: ConfigProp<DepartmentResponseData> = {
     "is_blocked",
     "parentId",
     "type",
+    "signatory_staff_id",
+    "alternate_signatory_staff_id",
   ],
-  associatedResources: [{ name: "departments", url: "departments" }],
+  associatedResources: [
+    { name: "departments", url: "departments" },
+    { name: "users", url: "users" },
+  ],
   state: {
     id: 0,
     name: "",
@@ -23,6 +28,8 @@ export const departmentConfig: ConfigProp<DepartmentResponseData> = {
     type: "department",
     parentId: 0,
     is_blocked: 0,
+    signatory_staff_id: 0,
+    alternate_signatory_staff_id: 0,
   },
   actions: [
     {

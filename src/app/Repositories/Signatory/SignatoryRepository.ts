@@ -20,13 +20,18 @@ export default class SignatoryRepository extends BaseRepository {
   public fromJson(data: SignatoryResponseData): SignatoryResponseData {
     return {
       id: data.id ?? 0,
+      identifier: data.identifier ?? "",
       page_id: data.page_id ?? 0,
-      group_id: data.page_id ?? 0,
+      group_id: data.group_id ?? 0,
       department_id: data.department_id ?? 0,
+      workflow_stage_id: data.workflow_stage_id ?? 0,
+      user_id: data.user_id ?? 0,
+      flow_type: data.flow_type ?? "from",
       type: data.type ?? "owner",
       document_category_id: data.document_category_id ?? 0,
       order: data.order ?? 0,
       compound: data.compound ?? "",
+      should_sign: Boolean(data.should_sign),
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };

@@ -7,18 +7,24 @@ import {
   DocumentMetaDataProps,
 } from "../Repositories/DocumentCategory/data";
 import { repo } from "bootstrap/repositories";
-import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
+import {
+  ProcessFlowConfigProps,
+  ProcessFlowType,
+} from "@/resources/views/crud/DocumentWorkflow";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { BlockResponseData } from "../Repositories/Block/data";
 import { DocumentRequirementProps } from "../Context/PaperBoardContext";
 import { useAuth } from "../Context/AuthContext";
 import { DocumentResponseData } from "../Repositories/Document/data";
 import { useRequestManager } from "app/Context/RequestManagerContext";
+import { useResourceContext } from "../Context/ResourceContext";
+import { DepartmentResponseData } from "../Repositories/Department/data";
 
 const useDocumentGenerator = (params: unknown) => {
   const { staff } = useAuth();
   const categoryRepo = useMemo(() => repo("documentcategory"), []);
   const { addRequest } = useRequestManager();
+  const { getResource, loadResources } = useResourceContext();
   const [existingDocument, setExistingDocument] =
     useState<DocumentResponseData | null>(null);
   const [category, setCategory] = useState<DocumentCategoryResponseData | null>(
@@ -129,8 +135,86 @@ const useDocumentGenerator = (params: unknown) => {
           // Prioritize existing document's config over category config
           if (existingDocData?.config) {
             setConfigState(existingDocData.config as ProcessFlowConfigProps);
-          } else if (categoryData.config) {
-            setConfigState(categoryData.config as ProcessFlowConfigProps);
+          } else if (
+            categoryData?.signatories &&
+            categoryData?.signatories?.length > 0
+          ) {
+            // Store signatories temporarily to transform after resources load
+            const signatories = categoryData.signatories;
+
+            // Fetch departments, users, and groups directly to avoid React state timing issues
+            const departmentRepo = repo("department");
+            const [departmentsResponse, usersResponse, groupsResponse] =
+              await Promise.all([
+                addRequest(() => departmentRepo.collection("departments")),
+                addRequest(() => repo("user").collection("users")),
+                addRequest(() => repo("group").collection("groups")),
+              ]);
+
+            const departments = (departmentsResponse?.data ||
+              []) as DepartmentResponseData[];
+
+            // Transform signatories to ProcessFlowConfigProps
+            const transformedConfig: ProcessFlowConfigProps = {
+              from: null,
+              through: null,
+              to: null,
+            };
+
+            // Group signatories by flow_type and take the first one for each type
+            const flowTypes: ProcessFlowType[] = ["from", "through", "to"];
+
+            flowTypes.forEach((flowType) => {
+              const signatory = signatories.find(
+                (sig) => sig.flow_type === flowType
+              );
+
+              if (signatory) {
+                // Determine department_id (same for all flow types)
+                const departmentId =
+                  signatory.department_id < 1
+                    ? staff?.department_id ?? 0
+                    : signatory.department_id;
+
+                // Determine user_id based on flow_type
+                let userId: number;
+
+                if (flowType === "from") {
+                  // For "from": use logged-in user's ID
+                  userId =
+                    !signatory.user_id || signatory.user_id < 1
+                      ? staff?.id ?? 0
+                      : signatory.user_id;
+                } else {
+                  // For "through" and "to": use department's signatory_staff_id
+                  const department = departments.find(
+                    (dept) => dept.id === departmentId
+                  );
+                  userId = department?.signatory_staff_id ?? 0;
+                }
+
+                // Transform to CategoryProgressTrackerProps
+                const tracker: CategoryProgressTrackerProps = {
+                  flow_type: signatory.flow_type,
+                  identifier: signatory.identifier,
+                  workflow_stage_id: signatory.workflow_stage_id,
+                  group_id: signatory.group_id,
+                  department_id: departmentId,
+                  carder_id: 0,
+                  user_id: userId,
+                  order: signatory.order,
+                  permission: "rw" as const,
+                  signatory_type: signatory.type,
+                  should_be_signed: signatory.should_sign ? "yes" : "no",
+                  actions: [],
+                };
+
+                transformedConfig[flowType as keyof ProcessFlowConfigProps] =
+                  tracker;
+              }
+            });
+
+            setConfigState(transformedConfig);
           }
 
           if (categoryData.blocks && Array.isArray(categoryData.blocks)) {

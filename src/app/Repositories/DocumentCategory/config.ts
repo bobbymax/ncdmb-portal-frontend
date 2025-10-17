@@ -19,6 +19,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       "meta_data",
       "signature_type",
       "with_date",
+      "scope",
     ],
     associatedResources: [
       { url: "apiServices", name: "services" },
@@ -33,6 +34,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       { name: "carders", url: "carders" },
       { name: "documentActions", url: "documentActions" },
       { name: "funds", url: "funds" },
+      { name: "signatories", url: "signatories" },
     ],
     state: {
       id: 0,
@@ -44,6 +46,7 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
       service: "",
       description: "",
       type: "staff",
+      scope: "personal",
       requirements: [],
       selectedRequirements: [],
       selectedBlocks: [],
@@ -85,6 +88,14 @@ export const documentCategoryConfig: ConfigProp<DocumentCategoryResponseData> =
         conditions: [],
         operator: "and",
         display: "Configuration",
+      },
+      {
+        label: "signatories",
+        icon: "ri-pen-nib-line",
+        variant: "dark",
+        conditions: [],
+        operator: "and",
+        display: "Signatories",
       },
     ],
   };

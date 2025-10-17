@@ -33,6 +33,17 @@ export const documentCategoryViews: ViewsProps[] = [
     index_path: "/specifications/document-categories",
   },
   {
+    title: "Document Category Signatories",
+    server_url: "documentCategories",
+    component: "DocumentCategorySignatories",
+    frontend_path: "/specifications/document-categories/:id/signatories",
+    type: "form",
+    tag: "",
+    mode: "update",
+    action: "Update Signatories",
+    index_path: "/specifications/document-categories",
+  },
+  {
     title: "Document Category Workflow",
     server_url: "documentCategories",
     component: "DocumentWorkflow",

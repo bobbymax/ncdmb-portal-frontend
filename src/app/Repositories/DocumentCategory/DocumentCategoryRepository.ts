@@ -9,6 +9,7 @@ import { documentCategoryViews } from "./views";
 import { documentCategoryColumns } from "./columns";
 import { documentCategoryConfig } from "./config";
 import { formatOptions } from "app/Support/Helpers";
+import SignatoryRepository from "../Signatory/SignatoryRepository";
 
 export default class DocumentCategoryRepository extends BaseRepository {
   public fillables: Array<keyof DocumentCategoryResponseData> =
@@ -18,6 +19,8 @@ export default class DocumentCategoryRepository extends BaseRepository {
   protected state: DocumentCategoryResponseData = documentCategoryConfig.state;
   public columns: ColumnData[] = documentCategoryColumns;
   public actions: ButtonsProp[] = documentCategoryConfig.actions;
+  private signatoryRepository = new SignatoryRepository();
+
   public fromJson(
     data: DocumentCategoryResponseData
   ): DocumentCategoryResponseData {
@@ -43,10 +46,46 @@ export default class DocumentCategoryRepository extends BaseRepository {
       meta_data: data.meta_data ?? null,
       signature_type: data.signature_type ?? "none",
       with_date: data.with_date ?? 0,
+      scope: data.scope ?? "personal",
+      signatories: (data.signatories ?? []).map((sig) =>
+        this.signatoryRepository.fromJson(sig)
+      ),
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",
     };
   }
+
+  // Override dependencies to transform signatories
+  public dependencies = async (): Promise<any> => {
+    if (this.associatedResources.length < 1) {
+      return Promise.resolve({});
+    }
+
+    const requests = this.associatedResources.map((item) =>
+      this.api.get(item.url)
+    );
+
+    const responses = await Promise.all(requests);
+    const collection = responses.map((res: any) => res.data.data);
+
+    const result = collection.reduce((acc: any, resSet: any, i: number) => {
+      const resourceName = this.associatedResources[i].name;
+
+      // Transform signatories through SignatoryRepository
+      if (resourceName === "signatories" && Array.isArray(resSet)) {
+        acc[resourceName] = resSet.map((sig: any) =>
+          this.signatoryRepository.fromJson(sig)
+        );
+      } else {
+        acc[resourceName] = resSet;
+      }
+
+      return acc;
+    }, {} as any);
+
+    return result;
+  };
+
   public associatedResources: DependencyProps[] =
     documentCategoryConfig.associatedResources;
 }
