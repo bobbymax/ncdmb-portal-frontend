@@ -53,6 +53,7 @@ import { useStateContext } from "app/Context/ContentContext";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
 import ProcessGeneratorTab from "../components/DocumentGeneratorTab/ProcessGeneratorTab";
 import usePolicy from "app/Hooks/usePolicy";
+import { toTitleCase } from "bootstrap/repositories";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -231,7 +232,9 @@ const DocumentTemplateContent = ({
     },
     {
       id: "resource",
-      label: "Resource",
+      label: state.category?.service
+        ? toTitleCase(state.category?.service)
+        : "Resource",
       icon: "ri-database-2-line",
       isEditor: true,
     },
@@ -246,12 +249,6 @@ const DocumentTemplateContent = ({
       label: "Activities",
       icon: "ri-line-chart-line",
       isEditor: false,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: "ri-settings-3-line",
-      isEditor: true,
     },
   ]);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
@@ -1304,7 +1301,7 @@ const DocumentTemplateContent = ({
       lastTrackerUpdateRef.current = transformedStr;
       actions.setTrackers(transformedTrackers);
     }
-  }, [transformedTrackers, state.trackers]); // Removed actions from dependencies to prevent re-render loops
+  }, [transformedTrackers, state.trackers]);
 
   const currentTracker: CategoryProgressTrackerProps | null = useMemo(() => {
     if (state.currentPointer) {
@@ -1322,6 +1319,7 @@ const DocumentTemplateContent = ({
     if (!currentTracker || !documentActions) {
       return [];
     }
+
     return documentActions.filter(
       (action) => action.identifier === currentTracker.identifier
     );
@@ -1753,6 +1751,7 @@ const DocumentTemplateContent = ({
                     TemplateHeader={TemplateHeader}
                     currentTracker={currentTracker}
                     isEditor={isEditor}
+                    uplines={uplines}
                   />
                 </div>
 
@@ -1825,9 +1824,9 @@ const DocumentTemplateContent = ({
                             {tab.id === "resource" && (
                               <ResourceGeneratorTab category={category} />
                             )}
-                            {tab.id === "settings" && (
+                            {/* {tab.id === "settings" && (
                               <SettingsGeneratorTab category={category} />
-                            )}
+                            )} */}
                             {tab.id === "activities" && (
                               <ActivitiesGeneratorTab category={category} />
                             )}

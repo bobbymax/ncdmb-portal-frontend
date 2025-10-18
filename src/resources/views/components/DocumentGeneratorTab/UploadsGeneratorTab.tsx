@@ -18,6 +18,7 @@ const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({
   const [validationType, setValidationType] = useState<"warning" | "error">(
     "warning"
   );
+  const [isRequirementsExpanded, setIsRequirementsExpanded] = useState(false);
 
   // File size validation constants
   const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB per file
@@ -249,14 +250,102 @@ const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({
     }
   };
 
+  // Get priority badge styling
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return {
+          className: "priority-high",
+          icon: "ri-error-warning-line",
+          label: "Required",
+        };
+      case "medium":
+        return {
+          className: "priority-medium",
+          icon: "ri-information-line",
+          label: "Recommended",
+        };
+      case "low":
+        return {
+          className: "priority-low",
+          icon: "ri-checkbox-circle-line",
+          label: "Optional",
+        };
+      default:
+        return {
+          className: "priority-medium",
+          icon: "ri-information-line",
+          label: "Optional",
+        };
+    }
+  };
+
   return (
     <div className="uploads__generator__tab">
+      {/* Document Requirements Section */}
+      {state.requirements && state.requirements.length > 0 && (
+        <div className="requirements__section mb-5">
+          <div
+            className="requirements__header"
+            onClick={() => setIsRequirementsExpanded(!isRequirementsExpanded)}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="header__content">
+              <h3>Required Supporting Documents</h3>
+              <span className="requirements__count">
+                ({state.requirements.length}{" "}
+                {state.requirements.length === 1 ? "document" : "documents"})
+              </span>
+            </div>
+            <i
+              className={`ri-arrow-${
+                isRequirementsExpanded ? "up" : "down"
+              }-s-line toggle__icon`}
+            ></i>
+          </div>
+          <ul
+            className={`requirements__list ${
+              isRequirementsExpanded ? "expanded" : "collapsed"
+            }`}
+          >
+            {state.requirements.map((requirement, index) => {
+              const badge = getPriorityBadge(requirement.priority);
+              return (
+                <li
+                  key={requirement.id || index}
+                  className={`requirement__item ${
+                    requirement.is_present ? "completed" : ""
+                  }`}
+                >
+                  <div className="requirement__content">
+                    <div className="requirement__header">
+                      <h4 className="requirement__name">{requirement.name}</h4>
+                      <span
+                        className={`requirement__priority ${badge.className}`}
+                        title={badge.label}
+                      >
+                        <i className={badge.icon}></i>
+                      </span>
+                    </div>
+                    {requirement.description && (
+                      <p className="requirement__description">
+                        {requirement.description}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div
         className="uploads__header"
         onDragOver={handleDragOver}
         onDrop={(e) => e.preventDefault()}
       >
-        <h3>Document Uploads</h3>
+        <h3>Upload Documents</h3>
         <div className="upload__input__wrapper">
           <div className="upload__info">
             <Dropzone

@@ -50,8 +50,6 @@ const DocumentCategory: React.FC<
     service: null,
   });
 
-  console.log(state);
-
   const handleSelectionChange = useCallback(
     (key: keyof typeof selectedOptions) =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
@@ -156,7 +154,7 @@ const DocumentCategory: React.FC<
           defaultCheckDisabled
         />
       </div>
-      <div className="col-md-6 mb-3">
+      <div className="col-md-4 mb-3">
         <Select
           label="Signature Type"
           name="signature_type"
@@ -177,7 +175,7 @@ const DocumentCategory: React.FC<
           size="lg"
         />
       </div>
-      <div className="col-md-6 mb-3">
+      <div className="col-md-3 mb-3">
         <Select
           label="With Date"
           name="with_date"
@@ -192,6 +190,25 @@ const DocumentCategory: React.FC<
           ]}
           defaultValue={999}
           defaultCheckDisabled
+        />
+      </div>
+
+      <div className="col-md-5 mb-3">
+        <Select
+          label="Scope"
+          name="scope"
+          value={state.scope}
+          onChange={handleChange}
+          isDisabled={loading}
+          valueKey="value"
+          labelKey="label"
+          options={[
+            { value: "personal", label: "Personal" },
+            { value: "official", label: "Official" },
+          ]}
+          defaultValue=""
+          defaultCheckDisabled
+          size="lg"
         />
       </div>
 

@@ -17,6 +17,13 @@ interface UsePolicyParams {
   currentDraft?: DocumentDraftResponseData | null;
 }
 
+export const scopes = {
+  board: [0, 1],
+  directorate: [2, 3],
+  department: [4, 5, 6, 7, 8, 9],
+  personal: [10, 11, 12, 13],
+};
+
 const usePolicy = (params?: UsePolicyParams) => {
   const { staff } = useAuth();
   const { getResource } = useResourceContext();
@@ -29,14 +36,9 @@ const usePolicy = (params?: UsePolicyParams) => {
     currentDraft = null,
   } = params || {};
 
-  const scopes = {
-    board: [0, 1],
-    directorate: [2, 3],
-    department: [4, 5, 6, 7, 8, 9],
-    personal: [10, 11, 12, 13],
-  };
-
   const users = (getResource("users") as UserResponseData[]) || [];
+
+  // console.log(users);
 
   /**
    * Get users with higher or equal rank (supervisors/seniors)
@@ -59,6 +61,7 @@ const usePolicy = (params?: UsePolicyParams) => {
         if (!gradeLevel) return [];
 
         const scopeRanks = scopes[scope];
+        // console.log(scopeRanks, gradeLevel);
 
         return users.filter((user) => {
           const userGradeLevel =
@@ -74,10 +77,16 @@ const usePolicy = (params?: UsePolicyParams) => {
           // Same department check
           const sameDepartment = user.department_id === staff.department_id;
 
+          // const considerScope = scope === "board" ? sameDepartment :
+
           // Exclude self
           const notSelf = user.id !== staff.id;
 
-          return isInScope && isUpline && sameDepartment && notSelf;
+          if (scope === "department") {
+            return isUpline && sameDepartment && notSelf;
+          }
+
+          return isUpline && notSelf;
         });
       }
 

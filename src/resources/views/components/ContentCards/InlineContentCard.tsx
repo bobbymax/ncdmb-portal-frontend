@@ -18,6 +18,8 @@ import {
 import { ContextType } from "app/Context/PaperBoardContext";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
+import { UserResponseData } from "@/app/Repositories/User/data";
+import { scopes } from "app/Hooks/usePolicy";
 
 interface InlineContentCardProps {
   item: ContentBlock;
@@ -26,6 +28,11 @@ interface InlineContentCardProps {
   currentTracker: CategoryProgressTrackerProps | null;
   dependencies?: unknown;
   currentPageActions: SelectedActionsProps[];
+  uplines: (
+    scope?: keyof typeof scopes,
+    flag?: "group" | "grade",
+    group_id?: number
+  ) => UserResponseData[];
 }
 
 const InlineContentCard: React.FC<InlineContentCardProps> = ({
@@ -35,6 +42,7 @@ const InlineContentCard: React.FC<InlineContentCardProps> = ({
   currentTracker,
   dependencies = null,
   currentPageActions,
+  uplines,
 }) => {
   // Determine the type from the item's type property
   const getItemType = (): DeskComponentPropTypes => {
@@ -118,6 +126,7 @@ const InlineContentCard: React.FC<InlineContentCardProps> = ({
           isEditing={isEditing}
           currentTracker={currentTracker}
           currentPageActions={currentPageActions}
+          uplines={uplines}
         />
       );
     case "payment_batch":

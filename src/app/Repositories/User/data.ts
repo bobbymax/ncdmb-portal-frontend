@@ -32,6 +32,7 @@ export interface UserResponseData extends BaseResponse {
     | "secondment"
     | "other";
   email: string;
+  carder_id?: number;
   grade_level?: string;
   password?: string;
   is_logged_in?: boolean;

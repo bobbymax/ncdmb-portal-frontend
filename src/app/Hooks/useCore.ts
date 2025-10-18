@@ -116,6 +116,8 @@ export const useCore = (
     );
   }, [state.currentPointer, state.trackers]);
 
+  // console.log("trackers", state.trackers);
+
   // Get next tracker based on flow_type
   const nextTracker: CategoryProgressTrackerProps | null = useMemo(() => {
     if (!currentTracker || !state.trackers) {

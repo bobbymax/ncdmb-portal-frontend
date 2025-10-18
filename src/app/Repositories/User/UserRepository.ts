@@ -49,6 +49,7 @@ export default class UserRepository extends BaseRepository {
       type: data.type ?? "permanent",
       rank: data.rank ?? 0,
       grade_level_object: data.grade_level_object ?? null,
+      carder_id: data.carder_id ?? 0,
     };
   }
 }

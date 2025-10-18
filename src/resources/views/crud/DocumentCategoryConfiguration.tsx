@@ -113,8 +113,29 @@ const DocumentCategoryConfiguration: React.FC<
   const [showPostProcessingForm, setShowPostProcessingForm] = useState(false);
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
-  const trackers: CategoryProgressTrackerProps[] =
-    state.workflow?.trackers || [];
+  // Transform signatories to trackers if available, otherwise fallback to workflow trackers
+  const trackers: CategoryProgressTrackerProps[] = useMemo(() => {
+    if (state?.signatories && state.signatories.length > 0) {
+      // Transform SignatoryResponseData[] to CategoryProgressTrackerProps[]
+      return state.signatories.map((signatory) => ({
+        flow_type: signatory.flow_type,
+        identifier: signatory.identifier,
+        workflow_stage_id: signatory.workflow_stage_id,
+        group_id: signatory.group_id,
+        department_id: signatory.department_id,
+        carder_id: signatory.carder_id,
+        user_id: signatory.user_id,
+        order: signatory.order,
+        permission: "rw" as PermissionTypes, // Default permission
+        signatory_type: signatory.type, // type → signatory_type
+        should_be_signed: signatory.should_sign ? "yes" : "no", // boolean → "yes" | "no"
+        actions: signatory.actions || [], // Default to empty array if undefined
+      }));
+    }
+
+    // Fallback to workflow trackers
+    return state.workflow?.trackers || [];
+  }, [state?.signatories, state.workflow?.trackers]);
 
   const [selectedActions, setSelectedActions] = useState<
     SelectedActionsProps[]
@@ -343,6 +364,29 @@ const DocumentCategoryConfiguration: React.FC<
     state.meta_data?.policy,
   ]);
 
+  // Initialize selectedActions from tracker.actions when trackers are loaded
+  useEffect(() => {
+    if (trackers.length > 0 && selectedActions.length === 0) {
+      const actionsFromTrackers: SelectedActionsProps[] = [];
+
+      trackers.forEach((tracker) => {
+        if (tracker.actions && tracker.actions.length > 0) {
+          tracker.actions.forEach((action) => {
+            actionsFromTrackers.push({
+              identifier: tracker.identifier,
+              tracker,
+              action,
+            });
+          });
+        }
+      });
+
+      if (actionsFromTrackers.length > 0) {
+        setSelectedActions(actionsFromTrackers);
+      }
+    }
+  }, [trackers, selectedActions.length]);
+
   return (
     <>
       <div className="configuration__settings__panel">
@@ -409,11 +453,16 @@ const DocumentCategoryConfiguration: React.FC<
                               e.target.checked
                             );
                           }}
-                          checked={selectedActions.some(
-                            (a) =>
-                              a.identifier === tracker.identifier &&
-                              a.action.id === action.id
-                          )}
+                          checked={
+                            selectedActions.some(
+                              (a) =>
+                                a.identifier === tracker.identifier &&
+                                a.action.id === action.id
+                            ) ||
+                            tracker.actions?.some((a) => a.id === action.id) ||
+                            false
+                          }
+                          disabled={true}
                         />
                         <label
                           htmlFor={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}

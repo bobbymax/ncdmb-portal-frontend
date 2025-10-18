@@ -14,6 +14,11 @@ import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { SheetProps } from "../../pages/DocumentTemplateContent";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
+import { UserResponseData } from "@/app/Repositories/User/data";
+import { scopes } from "app/Hooks/usePolicy";
+import MultiSelect, { DataOptionsProps } from "../forms/MultiSelect";
+import { ActionMeta } from "react-select";
+import { formatOptions } from "app/Support/Helpers";
 
 interface SignatureContentCardProps {
   item: ContentBlock;
@@ -21,6 +26,11 @@ interface SignatureContentCardProps {
   isEditing: boolean;
   currentTracker: CategoryProgressTrackerProps | null;
   currentPageActions: SelectedActionsProps[];
+  uplines: (
+    scope?: keyof typeof scopes,
+    flag?: "group" | "grade",
+    group_id?: number
+  ) => UserResponseData[];
 }
 
 const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
@@ -29,6 +39,7 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   isEditing,
   currentTracker,
   currentPageActions,
+  uplines,
 }) => {
   const { state, actions } = usePaperBoard();
   const { getResourceById } = useResourceContext();
@@ -226,14 +237,177 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     return null; // No stages to sign
   }
 
+  // Check if logged-in user is assigned to "from" AND also to "through" or "to"
+  const canChangeSignatories = useMemo(() => {
+    const loggedInUserId = state.loggedInUser?.id;
+
+    if (!loggedInUserId || !state.configState) return false;
+
+    const fromUserId = state.configState.from?.user_id;
+    const throughUserId = state.configState.through?.user_id;
+    const toUserId = state.configState.to?.user_id;
+
+    // Show MultiSelect only if logged-in user is in "from" AND ("through" or "to")
+    const isInFrom = fromUserId === loggedInUserId;
+    const isInThroughOrTo =
+      throughUserId === loggedInUserId || toUserId === loggedInUserId;
+
+    return isInFrom && isInThroughOrTo;
+  }, [state.configState, state.loggedInUser?.id]);
+
+  // Check for duplicate user_ids between flow types
+  const duplicateUserIds = useMemo(() => {
+    const duplicates: { flowType: string; userId: number }[] = [];
+
+    if (state.configState) {
+      const fromUserId = state.configState.from?.user_id;
+
+      if (fromUserId) {
+        // Check if "from" user_id matches "through" user_id
+        if (
+          state.configState.through?.user_id &&
+          state.configState.through.user_id === fromUserId
+        ) {
+          duplicates.push({ flowType: "through", userId: fromUserId });
+        }
+
+        // Check if "from" user_id matches "to" user_id
+        if (
+          state.configState.to?.user_id &&
+          state.configState.to.user_id === fromUserId
+        ) {
+          duplicates.push({ flowType: "to", userId: fromUserId });
+        }
+      }
+    }
+
+    return duplicates;
+  }, [state.configState]);
+
+  const [selectedUplines, setSelectedUplines] = useState<{
+    through: DataOptionsProps | null;
+    to: DataOptionsProps | null;
+  }>({
+    through: null,
+    to: null,
+  });
+
+  // Get uplines for the current scope
+  const availableUplines = useMemo(() => {
+    // if (!state.category?.scope) return [];
+    return uplines();
+  }, [state.category?.scope, uplines]);
+
+  const handleUplineChange = useCallback(
+    (flowType: "through" | "to") =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        const selectedUser = newValue as DataOptionsProps | null;
+
+        setSelectedUplines((prev) => ({ ...prev, [flowType]: selectedUser }));
+
+        // Update configState with the new user_id
+        if (selectedUser && state.configState?.[flowType]) {
+          const updatedTracker = {
+            ...state.configState[flowType],
+            user_id: selectedUser.value,
+          };
+
+          actions.setConfigState({
+            ...state.configState,
+            [flowType]: updatedTracker,
+          });
+        }
+      },
+    [state.configState, actions]
+  );
+
   if (isEditing) {
+    // Disable editing if document already exists
+    if (state.existingDocument) {
+      return (
+        <div className="inline__content__card signature__card">
+          <div className="inline__card__header">
+            <h5>Signature Configuration</h5>
+          </div>
+          <div className="inline__card__body">
+            <p className="text-muted">
+              <i className="ri-lock-line me-2"></i>
+              Signatures cannot be edited for existing documents.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Only show configuration if logged-in user is in "through" or "to" flow types
+    if (!canChangeSignatories) {
+      return (
+        <div className="inline__content__card signature__card">
+          <div className="inline__card__header">
+            <h5>Signature Configuration</h5>
+          </div>
+          <div className="inline__card__body">
+            <p className="text-muted">
+              <i className="ri-information-line me-2"></i>
+              You are not assigned as a signatory for this document stage.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="inline__content__card signature__card">
         <div className="inline__card__header">
           <h5>Signature Configuration</h5>
         </div>
         <div className="inline__card__body">
-          <p>Configure signature settings for this document.</p>
+          {duplicateUserIds.length > 0 && (
+            <div className="alert alert-warning mb-3">
+              <i className="ri-alert-line me-2"></i>
+              <strong>Warning:</strong> Some signatories have the same user
+              assigned. Please select different users from the options below.
+            </div>
+          )}
+
+          <p className="mb-3 text-muted">
+            You are assigned as both the initiator and an approver. Please
+            reassign the approval stage to a different user:
+          </p>
+
+          <div className="row">
+            {state.configState?.through &&
+              state.configState.through.user_id === state.loggedInUser?.id && (
+                <div className="col-md-6 mb-3">
+                  <MultiSelect
+                    label="Through Signatory (Reassign)"
+                    options={formatOptions(availableUplines, "id", "name")}
+                    value={selectedUplines.through}
+                    onChange={handleUplineChange("through")}
+                    placeholder="Select User"
+                    isSearchable
+                    size="md"
+                    description="Select a different user from your uplines to handle this approval stage"
+                  />
+                </div>
+              )}
+
+            {state.configState?.to &&
+              state.configState.to.user_id === state.loggedInUser?.id && (
+                <div className="col-md-6 mb-3">
+                  <MultiSelect
+                    label="To Signatory (Reassign)"
+                    options={formatOptions(availableUplines, "id", "name")}
+                    value={selectedUplines.to}
+                    onChange={handleUplineChange("to")}
+                    placeholder="Select User"
+                    isSearchable
+                    size="md"
+                    description="Select a different user from your uplines to handle this approval stage"
+                  />
+                </div>
+              )}
+          </div>
         </div>
       </div>
     );

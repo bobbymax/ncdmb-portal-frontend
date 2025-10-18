@@ -15,6 +15,8 @@ export const signatoryConfig: ConfigProp<SignatoryResponseData> = {
     "should_sign",
     "identifier",
     "workflow_stage_id",
+    "carder_id",
+    "actions",
   ],
   associatedResources: [
     { name: "groups", url: "groups" },
@@ -36,6 +38,8 @@ export const signatoryConfig: ConfigProp<SignatoryResponseData> = {
     document_category_id: 0,
     order: 0,
     should_sign: false,
+    carder_id: 0,
+    actions: [],
   },
   actions: [
     {

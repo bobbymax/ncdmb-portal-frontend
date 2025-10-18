@@ -21,9 +21,11 @@ export default class SignatoryRepository extends BaseRepository {
     return {
       id: data.id ?? 0,
       identifier: data.identifier ?? "",
+      actions: data.actions ?? [],
       page_id: data.page_id ?? 0,
       group_id: data.group_id ?? 0,
       department_id: data.department_id ?? 0,
+      carder_id: data.carder_id ?? 0,
       workflow_stage_id: data.workflow_stage_id ?? 0,
       user_id: data.user_id ?? 0,
       flow_type: data.flow_type ?? "from",

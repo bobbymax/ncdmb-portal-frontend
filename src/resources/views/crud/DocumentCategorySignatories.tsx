@@ -21,13 +21,17 @@ import Button from "../components/forms/Button";
 import { ActionMeta } from "react-select";
 import TextInput from "../components/forms/TextInput";
 import { ProcessFlowType } from "./DocumentWorkflow";
+import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
+import { CarderResponseData } from "@/app/Repositories/Carder/data";
 
 interface DependencyProps {
   users: UserResponseData[];
   groups: GroupResponseData[];
   departments: DepartmentResponseData[];
-  signatories: SignatoryResponseData[];
+  // signatories: SignatoryResponseData[];
   workflowStages: WorkflowStageResponseData[];
+  actions: DocumentActionResponseData[];
+  carders: CarderResponseData[];
 }
 
 interface SignatoryFormState {
@@ -36,7 +40,9 @@ interface SignatoryFormState {
     user: DataOptionsProps | null;
     group: DataOptionsProps | null;
     department: DataOptionsProps | null;
+    carder: DataOptionsProps | null;
     workflowStage: DataOptionsProps | null;
+    actions: DataOptionsProps[];
   };
   isExpanded: boolean;
   isEditing: boolean;
@@ -54,6 +60,7 @@ const DocumentCategorySignatories: React.FC<
   const [users, setUsers] = useState<UserResponseData[]>([]);
   const [groups, setGroups] = useState<GroupResponseData[]>([]);
   const [departments, setDepartments] = useState<DepartmentResponseData[]>([]);
+  const [carders, setCarders] = useState<CarderResponseData[]>([]);
   const [workflowStages, setWorkflowStages] = useState<
     WorkflowStageResponseData[]
   >([]);
@@ -61,8 +68,18 @@ const DocumentCategorySignatories: React.FC<
     []
   );
   const [submitting, setSubmitting] = useState(false);
-  const [signatories, setSignatories] = useState<SignatoryResponseData[]>([]);
   const [isManaging, setIsManaging] = useState(false);
+
+  // Check if data is still loading
+  const isDataLoading =
+    loading ||
+    (mode === "update" &&
+      (users.length === 0 ||
+        groups.length === 0 ||
+        departments.length === 0 ||
+        carders.length === 0 ||
+        workflowStages.length === 0) &&
+      dependencies !== undefined);
 
   const flowTypes: { value: ProcessFlowType; label: string }[] = [
     { value: "from", label: "From" },
@@ -144,6 +161,8 @@ const DocumentCategorySignatories: React.FC<
       should_sign: false,
       identifier: generateUniqueId(),
       workflow_stage_id: 0,
+      actions: [],
+      carder_id: 0,
     };
 
     const newForm: SignatoryFormState = {
@@ -152,7 +171,9 @@ const DocumentCategorySignatories: React.FC<
         user: null,
         group: null,
         department: null,
+        carder: null,
         workflowStage: null,
+        actions: [],
       },
       isExpanded: true,
       isEditing: false,
@@ -196,7 +217,10 @@ const DocumentCategorySignatories: React.FC<
   };
 
   const handleMultiSelectChange = useCallback(
-    (index: number, key: "user" | "group" | "department" | "workflowStage") =>
+    (
+        index: number,
+        key: "user" | "group" | "department" | "carder" | "workflowStage"
+      ) =>
       (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
         const updatedValue = newValue as DataOptionsProps | null;
 
@@ -207,23 +231,100 @@ const DocumentCategorySignatories: React.FC<
               const fieldName =
                 key === "workflowStage" ? "workflow_stage_id" : `${key}_id`;
 
-              return {
-                ...form,
-                selectedOptions: {
-                  ...form.selectedOptions,
-                  [key]: updatedValue,
-                },
-                signatory: {
-                  ...form.signatory,
-                  [fieldName]: updatedValue?.value ?? 0,
-                },
-              };
+              // If workflow stage is being changed, reset actions and populate available actions
+              let updatedForm;
+              if (key === "workflowStage") {
+                // Find the selected workflow stage
+                const selectedWorkflowStage = workflowStages.find(
+                  (ws) => ws.id === (updatedValue?.value ?? 0)
+                );
+
+                const availableActionsOptions =
+                  selectedWorkflowStage?.actions ?? [];
+
+                // Get available actions for this workflow stage
+                const availableActions = availableActionsOptions
+                  ? formatOptions(availableActionsOptions, "id", "name")
+                  : [];
+
+                // console.log(availableActionsOptions);
+
+                updatedForm = {
+                  ...form,
+                  selectedOptions: {
+                    ...form.selectedOptions,
+                    [key]: updatedValue,
+                    actions: [], // Reset selected actions
+                  },
+                  signatory: {
+                    ...form.signatory,
+                    [fieldName]: updatedValue?.value ?? 0,
+                    actions: [], // Reset signatory actions
+                  },
+                };
+              } else {
+                updatedForm = {
+                  ...form,
+                  selectedOptions: {
+                    ...form.selectedOptions,
+                    [key]: updatedValue,
+                  },
+                  signatory: {
+                    ...form.signatory,
+                    [fieldName]: updatedValue?.value ?? 0,
+                  },
+                };
+              }
+
+              return updatedForm;
             }
             return form;
           })
         );
       },
-    []
+    [workflowStages]
+  );
+
+  const handleActionsChange = useCallback(
+    (index: number) => (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+      const selectedActions = newValue as DataOptionsProps[];
+
+      setSignatoryForms((prev) =>
+        prev.map((form, i) => {
+          if (i === index) {
+            // Map selected actions to DocumentActionResponseData format
+            const actionsData = selectedActions
+              .map((action) => {
+                // Find the full action data from workflow stage
+                const workflowStageId = form.signatory.workflow_stage_id;
+                const workflowStage = workflowStages.find(
+                  (ws) => ws.id === workflowStageId
+                );
+                const fullAction = (
+                  workflowStage?.actions as unknown as DocumentActionResponseData[]
+                )?.find((a) => a.id === action.value);
+
+                return fullAction;
+              })
+              .filter(Boolean) as DocumentActionResponseData[];
+
+            return {
+              ...form,
+              selectedOptions: {
+                ...form.selectedOptions,
+                actions: selectedActions,
+              },
+              signatory: {
+                ...form.signatory,
+                actions: actionsData,
+              },
+            };
+          }
+          return form;
+        })
+      );
+    },
+    [workflowStages]
   );
 
   useEffect(() => {
@@ -232,13 +333,13 @@ const DocumentCategorySignatories: React.FC<
         users = [],
         groups = [],
         departments = [],
-        signatories = [],
+        carders = [],
         workflowStages = [],
       } = dependencies as DependencyProps;
       setUsers(users);
       setGroups(groups);
       setDepartments(departments);
-      setSignatories(signatories);
+      setCarders(carders);
       setWorkflowStages(workflowStages);
     }
   }, [dependencies]);
@@ -247,15 +348,17 @@ const DocumentCategorySignatories: React.FC<
   useEffect(() => {
     if (
       mode === "update" &&
-      signatories.length > 0 &&
+      state?.signatories &&
+      state.signatories.length > 0 &&
       users.length > 0 &&
       groups.length > 0 &&
       departments.length > 0 &&
+      carders.length > 0 &&
       workflowStages.length > 0 &&
       signatoryForms.length === 0
     ) {
       // Filter signatories for this document category only
-      const filteredSignatories = signatories.filter(
+      const filteredSignatories = state.signatories.filter(
         (sig) => sig.document_category_id === state.id
       );
 
@@ -280,11 +383,19 @@ const DocumentCategorySignatories: React.FC<
           false,
           "Originating Department"
         ).find((d) => d.value === sig.department_id);
+        const carderOption = formatOptions(carders, "id", "name").find(
+          (c) => c.value === sig.carder_id
+        );
         const workflowStageOption = formatOptions(
           workflowStages,
           "id",
           "name"
         ).find((ws) => ws.value === sig.workflow_stage_id);
+
+        // Get actions options if signatory has actions
+        const actionsOptions = sig.actions
+          ? formatOptions(sig.actions, "id", "name")
+          : [];
 
         return {
           signatory: sig,
@@ -292,7 +403,9 @@ const DocumentCategorySignatories: React.FC<
             user: userOption ?? null,
             group: groupOption ?? null,
             department: deptOption ?? null,
+            carder: carderOption ?? null,
             workflowStage: workflowStageOption ?? null,
+            actions: actionsOptions,
           },
           isExpanded: false,
           isEditing: false,
@@ -303,16 +416,15 @@ const DocumentCategorySignatories: React.FC<
     }
   }, [
     mode,
-    signatories,
+    state?.signatories,
     users,
     groups,
     departments,
+    carders,
     workflowStages,
     signatoryForms.length,
     state.id,
   ]);
-
-  // console.log(signatoryForms);
 
   const getSignatorySummary = (form: SignatoryFormState): string => {
     const parts: string[] = [];
@@ -325,14 +437,17 @@ const DocumentCategorySignatories: React.FC<
     if (form.selectedOptions.department) {
       parts.push(`Dept: ${form.selectedOptions.department.label}`);
     }
+    if (form.selectedOptions.carder) {
+      parts.push(`Carder: ${form.selectedOptions.carder.label}`);
+    }
     return parts.length > 0
       ? parts.join(" | ")
-      : "No user/group/department selected";
+      : "No user/group/department/carder selected";
   };
 
   // Filter signatories for this document category
-  const categorySignatories = signatories.filter(
-    (sig) => sig.document_category_id === state.id
+  const categorySignatories = (state?.signatories || []).filter(
+    (sig: SignatoryResponseData) => sig.document_category_id === state.id
   );
 
   const isViewMode =
@@ -370,7 +485,7 @@ const DocumentCategorySignatories: React.FC<
           )}
 
           {/* Edit Mode: Add New Signatory Button */}
-          {!isViewMode && (
+          {!isViewMode && !isDataLoading && (
             <div className="mb-4">
               <Button
                 label="Add Signatory"
@@ -383,7 +498,60 @@ const DocumentCategorySignatories: React.FC<
           )}
 
           {/* Signatory List - View or Edit Mode */}
-          {signatoryForms.length === 0 ? (
+          {isDataLoading ? (
+            // Skeleton Loading
+            <div className="signatories-list">
+              {[1, 2, 3].map((skeletonIndex) => (
+                <div
+                  key={skeletonIndex}
+                  className="signatory-card mb-3 skeleton"
+                >
+                  <div className="signatory-card-header">
+                    <div className="d-flex align-items-center justify-content-between w-100">
+                      <div className="d-flex align-items-center flex-grow-1">
+                        <div className="skeleton-order me-3"></div>
+                        <div className="flex-grow-1">
+                          <div className="skeleton-text skeleton-title mb-2"></div>
+                          <div className="skeleton-text skeleton-subtitle"></div>
+                        </div>
+                      </div>
+                      {!isViewMode && (
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="skeleton-button"></div>
+                          <div className="skeleton-button"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isViewMode && (
+                    <div className="signatory-card-body-view">
+                      <div className="row">
+                        {[1, 2, 3, 4].map((col) => (
+                          <div key={col} className="col-md-3">
+                            <div className="skeleton-text skeleton-label mb-2"></div>
+                            <div className="skeleton-text skeleton-value"></div>
+                          </div>
+                        ))}
+                        <div className="col-md-4 mt-3">
+                          <div className="skeleton-text skeleton-label mb-2"></div>
+                          <div className="skeleton-text skeleton-value"></div>
+                        </div>
+                        <div className="col-md-4 mt-3">
+                          <div className="skeleton-text skeleton-label mb-2"></div>
+                          <div className="skeleton-text skeleton-value"></div>
+                        </div>
+                        <div className="col-md-4 mt-3">
+                          <div className="skeleton-text skeleton-label mb-2"></div>
+                          <div className="skeleton-text skeleton-value"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : signatoryForms.length === 0 ? (
             <div className="alert alert-info">
               <i className="ri-information-line me-2"></i>
               No signatories added yet. Click &quot;Add Signatory&quot; to
@@ -497,12 +665,40 @@ const DocumentCategorySignatories: React.FC<
                             </p>
                           </div>
                         </div>
-                        <div className="col-md-12 mt-3">
+                        <div className="col-md-4 mt-3">
+                          <div className="signatory-info-item">
+                            <label>Carder</label>
+                            <p>
+                              {form.selectedOptions.carder?.label || (
+                                <span className="text-muted">Not assigned</span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="col-md-4 mt-3">
                           <div className="signatory-info-item">
                             <label>Workflow Stage</label>
                             <p>
                               {form.selectedOptions.workflowStage?.label || (
                                 <span className="text-muted">Not assigned</span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="col-md-4 mt-3">
+                          <div className="signatory-info-item">
+                            <label>Actions</label>
+                            <p>
+                              {form.selectedOptions.actions.length > 0 ? (
+                                <span>
+                                  {form.selectedOptions.actions
+                                    .map((action) => action.label)
+                                    .join(", ")}
+                                </span>
+                              ) : (
+                                <span className="text-muted">
+                                  No actions selected
+                                </span>
                               )}
                             </p>
                           </div>
@@ -571,6 +767,19 @@ const DocumentCategorySignatories: React.FC<
                           />
                         </div>
 
+                        {/* Carder Selection */}
+                        <div className="col-md-4 mb-3">
+                          <MultiSelect
+                            label="Carder"
+                            options={formatOptions(carders, "id", "name")}
+                            value={form.selectedOptions.carder}
+                            onChange={handleMultiSelectChange(index, "carder")}
+                            placeholder="Select Carder"
+                            isSearchable
+                            isDisabled={loading || submitting}
+                          />
+                        </div>
+
                         {/* Flow Type */}
                         <div className="col-md-4 mb-3">
                           <Select
@@ -633,7 +842,7 @@ const DocumentCategorySignatories: React.FC<
                         </div>
 
                         {/* Workflow Stage Selection */}
-                        <div className="col-md-12 mb-3">
+                        <div className="col-md-6 mb-3">
                           <MultiSelect
                             label="Workflow Stage"
                             options={formatOptions(
@@ -651,6 +860,33 @@ const DocumentCategorySignatories: React.FC<
                             isDisabled={loading || submitting}
                           />
                         </div>
+
+                        {/* Actions Selection - Only show if workflow stage is selected */}
+                        {form.selectedOptions.workflowStage && (
+                          <div className="col-md-6 mb-3">
+                            <MultiSelect
+                              label="Actions"
+                              options={(() => {
+                                const stage = workflowStages.find(
+                                  (ws) =>
+                                    ws.id === form.signatory.workflow_stage_id
+                                );
+                                return formatOptions(
+                                  stage?.actions as unknown as DocumentActionResponseData[],
+                                  "id",
+                                  "name"
+                                );
+                              })()}
+                              value={form.selectedOptions.actions}
+                              onChange={handleActionsChange(index)}
+                              placeholder="Select Actions"
+                              isSearchable
+                              isMulti
+                              isDisabled={loading || submitting}
+                              description="Select actions that can be performed at this stage"
+                            />
+                          </div>
+                        )}
 
                         {/* Should Sign Checkbox */}
                         <div className="col-md-12 mb-3">

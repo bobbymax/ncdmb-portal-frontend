@@ -134,6 +134,7 @@ const useDocumentGenerator = (params: unknown) => {
 
           // Prioritize existing document's config over category config
           if (existingDocData?.config) {
+            // console.log(existingDocData.config);
             setConfigState(existingDocData.config as ProcessFlowConfigProps);
           } else if (
             categoryData?.signatories &&
@@ -141,6 +142,9 @@ const useDocumentGenerator = (params: unknown) => {
           ) {
             // Store signatories temporarily to transform after resources load
             const signatories = categoryData.signatories;
+            // const selected = categoryData?.meta_data?.actions;
+
+            // console.log(signatories);
 
             // Fetch departments, users, and groups directly to avoid React state timing issues
             const departmentRepo = repo("department");
@@ -176,17 +180,29 @@ const useDocumentGenerator = (params: unknown) => {
                     ? staff?.department_id ?? 0
                     : signatory.department_id;
 
-                // Determine user_id based on flow_type
+                // Determine user_id based on flow_type and category scope
                 let userId: number;
 
                 if (flowType === "from") {
-                  // For "from": use logged-in user's ID
-                  userId =
-                    !signatory.user_id || signatory.user_id < 1
-                      ? staff?.id ?? 0
-                      : signatory.user_id;
+                  // For "from": check category scope
+                  if (categoryData.scope === "personal") {
+                    // Personal scope: use logged-in user's ID
+                    userId =
+                      !signatory.user_id || signatory.user_id < 1
+                        ? staff?.id ?? 0
+                        : signatory.user_id;
+                  } else if (categoryData.scope === "official") {
+                    // Official scope: use department's signatory_staff_id
+                    const department = departments.find(
+                      (dept) => dept.id === departmentId
+                    );
+                    userId = department?.signatory_staff_id ?? 0;
+                  } else {
+                    // Fallback: default to logged-in user
+                    userId = staff?.id ?? 0;
+                  }
                 } else {
-                  // For "through" and "to": use department's signatory_staff_id
+                  // For "through" and "to": always use department's signatory_staff_id
                   const department = departments.find(
                     (dept) => dept.id === departmentId
                   );
@@ -200,13 +216,13 @@ const useDocumentGenerator = (params: unknown) => {
                   workflow_stage_id: signatory.workflow_stage_id,
                   group_id: signatory.group_id,
                   department_id: departmentId,
-                  carder_id: 0,
+                  carder_id: staff?.carder?.id ?? 0,
                   user_id: userId,
                   order: signatory.order,
                   permission: "rw" as const,
                   signatory_type: signatory.type,
                   should_be_signed: signatory.should_sign ? "yes" : "no",
-                  actions: [],
+                  actions: signatory?.actions ?? [],
                 };
 
                 transformedConfig[flowType as keyof ProcessFlowConfigProps] =
@@ -224,23 +240,39 @@ const useDocumentGenerator = (params: unknown) => {
           // Prioritize existing document's workflow over category workflow
           if (existingDocData?.workflow) {
             setWorkflow(existingDocData.workflow);
-            // Note: existing document workflow might not have trackers in the same format
-            // Keep using category trackers as fallback for now
-            if (
-              categoryData.workflow?.trackers &&
-              Array.isArray(categoryData.workflow.trackers)
-            ) {
-              setTrackers(categoryData.workflow.trackers);
-            }
           } else if (categoryData.workflow) {
             setWorkflow(categoryData.workflow);
+          }
 
-            if (
-              categoryData.workflow.trackers &&
-              Array.isArray(categoryData.workflow.trackers)
-            ) {
-              setTrackers(categoryData.workflow.trackers);
-            }
+          // Transform signatories to trackers if available, otherwise fallback to workflow trackers
+          if (
+            categoryData?.signatories &&
+            categoryData.signatories.length > 0
+          ) {
+            // Transform SignatoryResponseData[] to CategoryProgressTrackerProps[]
+            const transformedTrackers: CategoryProgressTrackerProps[] =
+              categoryData.signatories.map((signatory) => ({
+                flow_type: signatory.flow_type,
+                identifier: signatory.identifier,
+                workflow_stage_id: signatory.workflow_stage_id,
+                group_id: signatory.group_id,
+                department_id: signatory.department_id,
+                carder_id: signatory.carder_id,
+                user_id: signatory.user_id,
+                order: signatory.order,
+                permission: "rw" as const,
+                signatory_type: signatory.type,
+                should_be_signed: signatory.should_sign ? "yes" : "no",
+                actions: signatory.actions || [],
+              }));
+
+            setTrackers(transformedTrackers);
+          } else if (
+            categoryData.workflow?.trackers &&
+            Array.isArray(categoryData.workflow.trackers)
+          ) {
+            // Fallback to workflow trackers if no signatories
+            setTrackers(categoryData.workflow.trackers);
           }
 
           if (categoryData.content && Array.isArray(categoryData.content)) {

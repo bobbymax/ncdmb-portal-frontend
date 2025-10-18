@@ -7,6 +7,8 @@ import { ProcessFlowConfigProps } from "../../crud/DocumentWorkflow";
 import { ContextType } from "app/Context/PaperBoardContext";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
+import { UserResponseData } from "@/app/Repositories/User/data";
+import { scopes } from "app/Hooks/usePolicy";
 
 interface A4SheetProps {
   // State props
@@ -45,6 +47,11 @@ interface A4SheetProps {
     ref: any;
   }>;
   isEditor: boolean;
+  uplines: (
+    scope?: keyof typeof scopes,
+    flag?: "group" | "grade",
+    group_id?: number
+  ) => UserResponseData[];
 }
 
 const A4Sheet: React.FC<A4SheetProps> = ({
@@ -62,6 +69,7 @@ const A4Sheet: React.FC<A4SheetProps> = ({
   editingItems,
   TemplateHeader,
   isEditor,
+  uplines,
 }) => {
   // Debug logging removed for production
 
@@ -157,6 +165,7 @@ const A4Sheet: React.FC<A4SheetProps> = ({
                     isEditing={editingItems.has(bodyItem.id)}
                     currentTracker={currentTracker}
                     currentPageActions={currentPageActions}
+                    uplines={uplines}
                   />
                 </div>
               </div>
@@ -181,6 +190,7 @@ const A4Sheet: React.FC<A4SheetProps> = ({
                 isEditing={editingItems.has(bodyItem.id)}
                 currentTracker={currentTracker}
                 currentPageActions={currentPageActions}
+                uplines={uplines}
               />
             </div>
           ))}
