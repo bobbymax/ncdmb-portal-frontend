@@ -16,14 +16,14 @@ import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import {
   DeskComponentPropTypes,
   SheetProps,
-} from "@/resources/views/pages/DocumentTemplateContent";
+} from "resources/views/pages/DocumentTemplateContent";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
 import { AuthUserResponseData } from "./AuthContext";
 import {
   SettingsProps,
   WatcherProps,
-} from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
+} from "resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 import { DocumentRequirementResponseData } from "../Repositories/DocumentRequirement/data";
 
 export type ContextType = "builder" | "generator" | "desk";

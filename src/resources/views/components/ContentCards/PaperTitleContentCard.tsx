@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
-import { SheetProps } from "../../pages/DocumentTemplateContent";
+import { SheetProps } from "resources/views/pages/DocumentTemplateContent";
 import TextInput from "../forms/TextInput";
 import Button from "../forms/Button";
 

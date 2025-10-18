@@ -1,6 +1,6 @@
 import { ContentAreaProps } from "app/Hooks/useBuilder";
 import { BaseResponse } from "../BaseRepository";
-import { DeskComponentPropTypes } from "@/resources/views/pages/DocumentTemplateContent";
+import { DeskComponentPropTypes } from "resources/views/pages/DocumentTemplateContent";
 
 export type BlockDataType =
   | "paragraph"

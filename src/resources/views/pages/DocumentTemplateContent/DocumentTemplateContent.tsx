@@ -21,39 +21,51 @@ import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
 import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
-import logo from "../../assets/images/logo.png";
 
 // Lazy load heavy components
 const BudgetGeneratorTab = lazy(
-  () => import("../components/DocumentGeneratorTab/BudgetGeneratorTab")
+  () => import("../../components/DocumentGeneratorTab/BudgetGeneratorTab")
 );
 const UploadsGeneratorTab = lazy(
-  () => import("../components/DocumentGeneratorTab/UploadsGeneratorTab")
+  () => import("../../components/DocumentGeneratorTab/UploadsGeneratorTab")
 );
 const ResourceGeneratorTab = lazy(
-  () => import("../components/DocumentGeneratorTab/ResourceGeneratorTab")
+  () => import("../../components/DocumentGeneratorTab/ResourceGeneratorTab")
 );
 const SettingsGeneratorTab = lazy(
-  () => import("../components/DocumentGeneratorTab/SettingsGeneratorTab")
+  () => import("../../components/DocumentGeneratorTab/SettingsGeneratorTab")
 );
-import A4Sheet from "../components/pages/A4Sheet";
+import A4Sheet from "../../components/pages/A4Sheet";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
-import { PaperTitleContent } from "../components/ContentCards/PaperTitleContentCard";
+import { PaperTitleContent } from "../../components/ContentCards/PaperTitleContentCard";
 import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/data";
 import { SignatureResponseData } from "@/app/Repositories/Signature/data";
-import { SelectedActionsProps } from "../crud/DocumentCategoryConfiguration";
-import Button from "../components/forms/Button";
-import ActivitiesGeneratorTab from "../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
-import PdfViewer from "../components/pages/PdfViewer";
-import PrintDocumentNew from "../components/pages/PrintDocumentNew";
-import DocumentMessaging from "../components/pages/DocumentMessaging";
+import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
+import Button from "../../components/forms/Button";
+import ActivitiesGeneratorTab from "../../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
+import PdfViewer from "../../components/pages/PdfViewer";
+import PrintDocumentNew from "../../components/pages/PrintDocumentNew";
+import DocumentMessaging from "../../components/pages/DocumentMessaging";
 import { usePdfMerger } from "app/Hooks/usePdfMerger";
 import { useStateContext } from "app/Context/ContentContext";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
-import ProcessGeneratorTab from "../components/DocumentGeneratorTab/ProcessGeneratorTab";
+import ProcessGeneratorTab from "../../components/DocumentGeneratorTab/ProcessGeneratorTab";
 import usePolicy from "app/Hooks/usePolicy";
 import { toTitleCase } from "bootstrap/repositories";
+import {
+  DocumentLoadingScreen,
+  ConsultationCard,
+  ViewModeToggler,
+  DocumentToolbar,
+  SyncLoadingOverlay,
+} from "./components";
+import {
+  DEFAULT_META_DATA,
+  DEFAULT_PREFERENCES,
+  SAMPLE_BLOCKS,
+  DEFAULT_TAB_ORDER,
+} from "./utils";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -222,35 +234,15 @@ const DocumentTemplateContent = ({
   } = useActivityLogger();
 
   // Tab reordering state
-  const [tabOrder, setTabOrder] = useState([
-    { id: "budget", label: "Budget", icon: "ri-bank-line", isEditor: true },
-    {
-      id: "uploads",
-      label: "Uploads",
-      icon: "ri-git-repository-commits-line",
-      isEditor: true,
-    },
-    {
-      id: "resource",
-      label: state.category?.service
-        ? toTitleCase(state.category?.service)
-        : "Resource",
-      icon: "ri-database-2-line",
-      isEditor: true,
-    },
-    {
-      id: "process",
-      label: "Process",
-      icon: "ri-swap-2-line",
-      isEditor: false,
-    },
-    {
-      id: "activities",
-      label: "Activities",
-      icon: "ri-line-chart-line",
-      isEditor: false,
-    },
-  ]);
+  const [tabOrder, setTabOrder] = useState(() =>
+    DEFAULT_TAB_ORDER.map((tab) => ({
+      ...tab,
+      label:
+        tab.id === "resource" && state.category?.service
+          ? toTitleCase(state.category?.service)
+          : tab.label,
+    }))
+  );
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
 
@@ -419,32 +411,7 @@ const DocumentTemplateContent = ({
         actions.setMetaData(state.existingDocument.meta_data);
       } else {
         // Initialize default meta data if none exist (create mode)
-        const defaultMetaData = {
-          policy: {
-            strict: false,
-            scope: "private" as const,
-            access_token: "",
-            can_override: false,
-            clearance_level: null,
-            fallback_approver: null,
-            for_signed: false,
-            days: 30,
-            frequency: "days" as const,
-          },
-          recipients: [],
-          actions: [],
-          activities: [],
-          comments: [],
-          settings: {
-            priority: "medium" as const,
-            accessLevel: "private" as const,
-            access_token: "",
-            lock: false,
-            confidentiality: "general" as const,
-          },
-        };
-
-        actions.setMetaData(defaultMetaData);
+        actions.setMetaData(DEFAULT_META_DATA);
       }
 
       // Sync preferences
@@ -452,15 +419,7 @@ const DocumentTemplateContent = ({
         actions.setPreferences(state.existingDocument.preferences);
       } else {
         // Initialize default preferences if none exist (create mode)
-        const defaultPreferences = {
-          priority: "medium" as const,
-          accessLevel: "private" as const,
-          access_token: "",
-          lock: false,
-          confidentiality: "general" as const,
-        };
-
-        actions.setPreferences(defaultPreferences);
+        actions.setPreferences(DEFAULT_PREFERENCES);
       }
 
       // Sync watchers
@@ -764,18 +723,9 @@ const DocumentTemplateContent = ({
     }
   }, [state.existingDocument?.threads, state.existingDocument?.id]); // Watch both threads and document ID
 
-  // Sample blocks for demonstration when state.blocks is empty
-  const sampleBlocks = [
-    { id: "1", title: "Header", icon: "ri-heading" },
-    { id: "2", title: "Text", icon: "ri-text" },
-    { id: "3", title: "Table", icon: "ri-table-line" },
-    { id: "4", title: "List", icon: "ri-list-check" },
-    { id: "5", title: "Image", icon: "ri-image-line" },
-    { id: "6", title: "Chart", icon: "ri-bar-chart-line" },
-  ];
-
+  // Display blocks - use state blocks or fallback to sample blocks
   const displayBlocks =
-    state.blocks && state.blocks.length > 0 ? state.blocks : sampleBlocks;
+    state.blocks && state.blocks.length > 0 ? state.blocks : SAMPLE_BLOCKS;
 
   const handleTabChange = useCallback(
     (tabName: string) => {
@@ -1195,14 +1145,7 @@ const DocumentTemplateContent = ({
 
       // Ensure preferences are populated before submission
       if (!document.preferences) {
-        const defaultPreferences = {
-          priority: "medium" as const,
-          accessLevel: "private" as const,
-          access_token: "",
-          lock: false,
-          confidentiality: "general" as const,
-        };
-        document.preferences = defaultPreferences;
+        document.preferences = DEFAULT_PREFERENCES;
       }
 
       // Submit to backend
@@ -1389,112 +1332,12 @@ const DocumentTemplateContent = ({
     <div className="document__template__content">
       {/* Component Ready Guard - Shows until fully mounted and data loaded */}
       {!isComponentReady ? (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(255, 255, 255, 0.98)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9998,
-            animation: "fadeIn 0.3s ease",
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            {/* Animated Logo */}
-            <div
-              style={{
-                width: "100px",
-                height: "100px",
-                margin: "0 auto 24px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                animation: "pulse 2s infinite",
-              }}
-            >
-              <img
-                src={logo}
-                alt="Logo"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }}
-              />
-            </div>
-
-            {/* Loading Spinner */}
-            <div
-              className="spinner-border text-success mb-3"
-              role="status"
-              style={{ width: "48px", height: "48px" }}
-            >
-              <span className="visually-hidden">Loading...</span>
-            </div>
-
-            {/* Loading Message */}
-            <h5
-              style={{
-                fontSize: "1.2rem",
-                fontWeight: "600",
-                color: "#1f2937",
-                marginBottom: "8px",
-              }}
-            >
-              {mode === "update"
-                ? "Loading Document..."
-                : "Preparing Workspace..."}
-            </h5>
-            <p
-              style={{
-                fontSize: "0.9rem",
-                color: "#6b7280",
-                marginBottom: 0,
-              }}
-            >
-              {!isMounted && "Initializing component..."}
-              {isMounted &&
-                !isDataReady &&
-                (mode === "update"
-                  ? "Loading document data..."
-                  : "Setting up workspace...")}
-              {isMounted &&
-                isDataReady &&
-                isSyncing &&
-                "Syncing document state..."}
-              {isMounted && isDataReady && !isSyncing && "Almost ready..."}
-            </p>
-
-            {/* Progress Indicators */}
-            <div
-              className="d-flex align-items-center justify-content-center gap-2 mt-4"
-              style={{ fontSize: "0.8rem", color: "#9ca3af" }}
-            >
-              <span
-                className={isMounted ? "text-success fw-bold" : "text-muted"}
-              >
-                {isMounted ? "✓" : "○"} Mounted
-              </span>
-              <span style={{ opacity: 0.3 }}>•</span>
-              <span
-                className={isDataReady ? "text-success fw-bold" : "text-muted"}
-              >
-                {isDataReady ? "✓" : "○"} Data Loaded
-              </span>
-              <span style={{ opacity: 0.3 }}>•</span>
-              <span
-                className={!isSyncing ? "text-success fw-bold" : "text-muted"}
-              >
-                {!isSyncing ? "✓" : "○"} Synced
-              </span>
-            </div>
-          </div>
-        </div>
+        <DocumentLoadingScreen
+          isMounted={isMounted}
+          isDataReady={isDataReady}
+          isSyncing={isSyncing}
+          mode={mode}
+        />
       ) : (
         <div
           className="content-fade-in"
@@ -1503,44 +1346,7 @@ const DocumentTemplateContent = ({
           }}
         >
           {/* Sync Loading Overlay - Shows during re-syncing after initial load */}
-          {isSyncing && (
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 9999,
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: "white",
-                  padding: "20px",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                }}
-              >
-                <div
-                  className="skeleton-line"
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "50%",
-                    animation: "skeleton-loading 1s infinite",
-                  }}
-                ></div>
-                <span>Syncing document data...</span>
-              </div>
-            </div>
-          )}
+          <SyncLoadingOverlay isSyncing={isSyncing} />
           <div className="row">
             <div className="col-md-7 mb-3">
               <div className="document__template__paper">
@@ -1648,81 +1454,20 @@ const DocumentTemplateContent = ({
                 </div>
 
                 {mode === "update" && (
-                  <div
-                    style={{
-                      padding: "0 1.8rem",
-                    }}
-                    className="page__flipped"
-                  >
-                    {/* Page Flipped Content */}
-                    <div className={`page__flipped__toggler state-${viewMode}`}>
-                      <span
-                        className="toggle-label left"
-                        onClick={() => setViewMode("document")}
-                      >
-                        <i className="ri-file-text-line"></i>
-                        <span>Document</span>
-                      </span>
-                      <span
-                        className="toggle-label center"
-                        onClick={() => setViewMode("uploads")}
-                      >
-                        <i className="ri-upload-cloud-line"></i>
-                        <span>Uploads</span>
-                      </span>
-                    </div>
-                  </div>
+                  <ViewModeToggler
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                  />
                 )}
 
                 {/* Paper Panel */}
                 {isEditor && (
-                  <div className="document__template__paper__panel">
-                    {/* Toolbar with blocks */}
-                    <div className="paper__toolbar">
-                      <div className="toolbar__blocks">
-                        {displayBlocks && displayBlocks.length > 0 ? (
-                          displayBlocks.map((block) => (
-                            <div
-                              key={block.id}
-                              className="toolbar__block"
-                              draggable
-                              onDragStart={(e) =>
-                                handleBlockDragStart(e, block)
-                              }
-                            >
-                              <div className="block__icon">
-                                <i className={block.icon}></i>
-                              </div>
-                              <div className="block__name">{block.title}</div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="toolbar__empty">
-                            <i className="ri-layout-grid-line"></i>
-                            <span>No blocks available</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="toolbar__actions">
-                        <button
-                          className="generate__document__btn"
-                          onClick={handleGenerateDocument}
-                        >
-                          <i
-                            className={
-                              state.existingDocument
-                                ? "ri-database-2-line"
-                                : "ri-store-line"
-                            }
-                          ></i>
-                          <span>
-                            {state.existingDocument ? "Update" : "Generate"}{" "}
-                            Document
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <DocumentToolbar
+                    blocks={displayBlocks}
+                    existingDocument={state.existingDocument}
+                    onBlockDragStart={handleBlockDragStart}
+                    onGenerateDocument={handleGenerateDocument}
+                  />
                 )}
 
                 {/* Always render document element for snapshot, but hide when not in document mode */}
@@ -1842,105 +1587,10 @@ const DocumentTemplateContent = ({
               </div>
 
               {/* Consultation Card - Conditionally displayed */}
-              {shouldShowConsultationCard && (
-                <div className="document__template__configuration consultation__card">
-                  <div className="consultation__header">
-                    <h3 className="consultation__title">
-                      <i className="ri-user-star-line"></i>
-                      Consult Superiors
-                    </h3>
-                    <span className="consultation__count">
-                      {uplines().length} Available
-                    </span>
-                  </div>
-
-                  {/* Consultants list */}
-                  <div className="consultants__list">
-                    {uplines().length === 0 ? (
-                      <div className="consultants__empty">
-                        <i className="ri-user-search-line"></i>
-                        <p className="empty-title">No superiors available</p>
-                        <p className="empty-subtitle">
-                          Your uplines will appear here
-                        </p>
-                      </div>
-                    ) : (
-                      uplines().map((consultant) => {
-                        // Generate initials from name
-                        const getInitials = (user: any) => {
-                          const name =
-                            user.name ||
-                            `${user.firstname || ""} ${
-                              user.surname || ""
-                            }`.trim();
-                          const parts = name.split(" ").filter(Boolean);
-                          if (parts.length === 0) return "?";
-                          if (parts.length === 1)
-                            return parts[0].charAt(0).toUpperCase();
-                          return (
-                            parts[0].charAt(0).toUpperCase() +
-                            parts[parts.length - 1].charAt(0).toUpperCase()
-                          );
-                        };
-
-                        const initials = getInitials(consultant);
-
-                        return (
-                          <div key={consultant.id} className="consultant__item">
-                            {/* Avatar with initials */}
-                            <div className="consultant__avatar-wrapper">
-                              <div className="consultant__avatar">
-                                {initials}
-                              </div>
-                              {/* Rank Badge */}
-                              {consultant.grade_level_object?.rank !==
-                                undefined && (
-                                <div className="consultant__rank-badge">
-                                  {consultant.grade_level_object.rank}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* User Info */}
-                            <div className="consultant__info">
-                              <div className="consultant__name">
-                                {consultant.name ||
-                                  `${consultant.firstname || ""} ${
-                                    consultant.surname || ""
-                                  }`.trim()}
-                              </div>
-                              <div className="consultant__meta">
-                                {consultant.staff_no && (
-                                  <span className="consultant__staff-no">
-                                    <i className="ri-user-line"></i>
-                                    {consultant.staff_no}
-                                  </span>
-                                )}
-                                {consultant.grade_level_object?.name && (
-                                  <>
-                                    <span className="consultant__separator">
-                                      •
-                                    </span>
-                                    <span className="consultant__grade">
-                                      <i className="ri-medal-line"></i>
-                                      {consultant.grade_level_object.name}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Action Icon */}
-                            <div className="consultant__action">
-                              <i className="ri-chat-1-line"></i>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
+              <ConsultationCard
+                uplines={uplines()}
+                shouldShow={shouldShowConsultationCard}
+              />
             </div>
           </div>
 

@@ -1,5 +1,5 @@
-import { SheetProps } from "@/resources/views/pages/DocumentTemplateContent";
-import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { SheetProps } from "resources/views/pages/DocumentTemplateContent";
+import { ContentBlock } from "resources/views/crud/DocumentTemplateBuilder";
 import { PaperBoardAction, PaperBoardState } from "./PaperBoardContext";
 
 // Helper function to sync body with contents

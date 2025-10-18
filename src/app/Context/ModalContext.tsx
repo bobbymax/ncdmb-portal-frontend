@@ -29,11 +29,11 @@ import {
   ProcessFlowConfigProps,
   ProcessFlowType,
   WorkflowDependencyProps,
-} from "@/resources/views/crud/DocumentWorkflow";
+} from "resources/views/crud/DocumentWorkflow";
 import {
   DeskComponentPropTypes,
   SheetProps,
-} from "@/resources/views/pages/DocumentTemplateContent";
+} from "resources/views/pages/DocumentTemplateContent";
 
 type ModalState = {
   [key: string]: any; // Keyed by modal content identifiers

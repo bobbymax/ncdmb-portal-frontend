@@ -7,7 +7,7 @@ import defaultIcon from "../assets/images/apps/template.png";
 import { ProcessType } from "app/Hooks/useTemplateHeader";
 import { ProcessFlowConfigProps } from "../views/crud/DocumentWorkflow";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
-import { DeskComponentPropTypes } from "../views/pages/DocumentTemplateContent";
+import { DeskComponentPropTypes } from "resources/views/pages/DocumentTemplateContent";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { useResourceContext } from "app/Context/ResourceContext";
 import { useEffect, useMemo, useState } from "react";

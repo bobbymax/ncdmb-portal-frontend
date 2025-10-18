@@ -5,7 +5,7 @@ import { PageProps } from "@/bootstrap";
 import { useParams } from "react-router-dom";
 import PaperBoardErrorBoundary from "app/Boundaries/PaperBoardErrorBoundary";
 import { PaperBoardProvider } from "app/Context/PaperBoardProvider";
-import DocumentTemplateContent from "./DocumentTemplateContent";
+import DocumentTemplateContent from "resources/views/pages/DocumentTemplateContent";
 
 const GenerateDocument = ({
   Repository,

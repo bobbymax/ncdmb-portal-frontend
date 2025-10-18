@@ -2,7 +2,9 @@ import PaperBoardErrorBoundary from "app/Boundaries/PaperBoardErrorBoundary";
 import { PaperBoardProvider } from "app/Context/PaperBoardProvider";
 import { BaseRepository } from "@/app/Repositories/BaseRepository";
 import { PageProps } from "@/bootstrap";
-import DocumentTemplateContent, { SheetProps } from "./DocumentTemplateContent";
+import DocumentTemplateContent, {
+  SheetProps,
+} from "resources/views/pages/DocumentTemplateContent";
 import { useResourceActions } from "app/Hooks/useResourceActions";
 import { useEffect, useState } from "react";
 import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";

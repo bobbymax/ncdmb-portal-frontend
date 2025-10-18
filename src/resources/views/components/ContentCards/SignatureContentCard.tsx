@@ -12,7 +12,7 @@ import SignatureCanvas from "../capsules/SignatureCanvas";
 import { SignatureResponseData } from "app/Repositories/Signature/data";
 import { CategoryProgressTrackerProps } from "app/Repositories/DocumentCategory/data";
 import { ProcessFlowConfigProps } from "@/resources/views/crud/DocumentWorkflow";
-import { SheetProps } from "../../pages/DocumentTemplateContent";
+import { SheetProps } from "resources/views/pages/DocumentTemplateContent";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 import { UserResponseData } from "@/app/Repositories/User/data";
 import { scopes } from "app/Hooks/usePolicy";

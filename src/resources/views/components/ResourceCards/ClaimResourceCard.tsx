@@ -15,7 +15,7 @@ import useClaimCalculator from "app/Hooks/useClaimCalculator";
 import {
   DeskComponentPropTypes,
   SheetProps,
-} from "../../pages/DocumentTemplateContent";
+} from "resources/views/pages/DocumentTemplateContent";
 import { DataOptionsProps } from "../forms/MultiSelect";
 import { ExpenseResponseData } from "@/app/Repositories/Expense/data";
 import TextInput from "../forms/TextInput";

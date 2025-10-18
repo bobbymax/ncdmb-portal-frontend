@@ -1,5 +1,5 @@
 import { ContentBlock } from "resources/views/crud/DocumentTemplateBuilder";
-import { DeskComponentPropTypes } from "@/resources/views/pages/DocumentTemplateContent";
+import { DeskComponentPropTypes } from "resources/views/pages/DocumentTemplateContent";
 
 export const getContentBlockByType = (
   body: ContentBlock[],

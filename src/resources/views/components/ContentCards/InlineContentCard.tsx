@@ -1,6 +1,6 @@
 import React from "react";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
-import { DeskComponentPropTypes } from "@/resources/views/pages/DocumentTemplateContent";
+import { DeskComponentPropTypes } from "resources/views/pages/DocumentTemplateContent";
 import {
   PaperTitleContentCard,
   ParagraphContentCard,

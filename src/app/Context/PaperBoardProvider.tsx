@@ -23,7 +23,7 @@ import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import {
   DeskComponentPropTypes,
   SheetProps,
-} from "@/resources/views/pages/DocumentTemplateContent";
+} from "resources/views/pages/DocumentTemplateContent";
 import { TemplateResponseData } from "../Repositories/Template/data";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { BlockResponseData } from "../Repositories/Block/data";
@@ -44,7 +44,7 @@ import {
 import {
   SettingsProps,
   WatcherProps,
-} from "@/resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
+} from "resources/views/components/DocumentGeneratorTab/SettingsGeneratorTab";
 import { repo } from "bootstrap/repositories";
 import { useRequestManager } from "./RequestManagerContext";
 

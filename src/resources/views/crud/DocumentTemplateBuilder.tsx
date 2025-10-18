@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import {
   DeskComponentPropTypes,
   SheetProps,
-} from "../pages/DocumentTemplateContent";
+} from "resources/views/pages/DocumentTemplateContent";
 
 export interface ContentBlock {
   id: string;

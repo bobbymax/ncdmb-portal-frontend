@@ -7,7 +7,7 @@ import { formatCurrency } from "app/Support/Helpers";
 import ExpenseContentCardModal from "../ContentCardModals/ExpenseContentCardModal";
 import { useModal } from "app/Context/ModalContext";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
-import { SheetProps } from "../../pages/DocumentTemplateContent";
+import { SheetProps } from "resources/views/pages/DocumentTemplateContent";
 import { BlockResponseData } from "@/app/Repositories/Block/data";
 
 interface ExpenseContentCardProps {
