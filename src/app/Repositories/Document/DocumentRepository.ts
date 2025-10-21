@@ -40,6 +40,10 @@ export default class DocumentRepository extends BaseRepository {
         6: "draft",
         7: "stalled",
         8: "escalated",
+        9: "reversed",
+        10: "appealed",
+        11: "payment-committed",
+        12: "payment-confirmed",
       };
 
       return statusMap[Number(status)] ?? "pending";
@@ -88,6 +92,10 @@ export default class DocumentRepository extends BaseRepository {
       budget_year: data.budget_year ?? 0,
       type: data.type ?? "staff",
       fund_id: data.fund_id ?? 0,
+      sub_total_amount: data.sub_total_amount ?? 0,
+      vat_amount: data.vat_amount ?? 0,
+      variation_amount: data.variation_amount ?? 0,
+      admin_fee_amount: data.admin_fee_amount ?? 0,
       processes: data.processes ?? [],
       payments: data.payments ?? [],
     };

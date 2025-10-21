@@ -17,6 +17,11 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     "budget_year",
     "type",
     "fund_id",
+    "approved_amount",
+    "sub_total_amount",
+    "vat_amount",
+    "variation_amount",
+    "admin_fee_amount",
   ],
   associatedResources: [
     { name: "documentCategories", url: "documentCategories" },
@@ -49,6 +54,11 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     budget_year: 0,
     type: "staff",
     fund_id: 0,
+    approved_amount: 0,
+    sub_total_amount: 0,
+    vat_amount: 0,
+    variation_amount: 0,
+    admin_fee_amount: 0,
   },
   actions: [
     {

@@ -30,7 +30,8 @@ export interface ProcessGeneratorCardProps {
     actionId: number,
     documentId: number,
     data: unknown,
-    mode: "store" | "update" | "destroy"
+    mode: "store" | "update" | "destroy",
+    method?: string
   ) => void;
 }
 
@@ -155,7 +156,8 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
       actionId: number,
       documentId: number,
       data: unknown,
-      mode: "store" | "update" | "destroy"
+      mode: "store" | "update" | "destroy",
+      method: string = "documentProcessor"
     ) => {
       if (!currentProcess) return;
 
@@ -165,14 +167,16 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
 
       const body = {
         service: processCard.service,
-        method: "documentProcessor",
+        method,
         mode,
         data,
         document_id: documentId,
         document_draft_id:
           state.existingDocument?.drafts?.find(
             (draft) => draft.progress_tracker_id === currentProcess.id
-          )?.id || 0,
+          )?.id ||
+          (data as any)?.document_draft_id ||
+          0,
         document_action_id: actionId,
         progress_tracker_id: currentProcess.id,
       };

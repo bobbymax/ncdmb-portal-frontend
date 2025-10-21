@@ -108,7 +108,11 @@ export interface DocumentResponseData extends BaseResponse {
   watchers?: WatcherProps[];
   contents?: ContentBlock[];
   config?: ProcessFlowConfigProps;
-  approved_amount?: number;
+  approved_amount: number;
+  sub_total_amount: number;
+  vat_amount: number;
+  variation_amount: number;
+  admin_fee_amount: number;
   is_archived: number;
   created_at?: string;
   updated_at?: string;

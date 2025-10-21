@@ -46,14 +46,14 @@ const Folders: React.FC<
     resetFilters,
   } = useFilters(collection);
 
-  console.log(
-    "Documents:",
-    documents.length,
-    "ComponentLoading:",
-    componentLoading,
-    "isLoading:",
-    isLoading
-  );
+  // console.log(
+  //   "Documents:",
+  //   documents.length,
+  //   "ComponentLoading:",
+  //   componentLoading,
+  //   "isLoading:",
+  //   isLoading
+  // );
 
   const { staff } = useAuth();
 

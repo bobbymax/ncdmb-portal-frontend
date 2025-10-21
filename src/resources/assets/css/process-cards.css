@@ -2073,3 +2073,166 @@
     height: 32px;
   }
 }
+
+/* ========================================
+   TRIAL BALANCE STYLES
+   ======================================== */
+
+.trial-balance-container {
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.trial-balance-header {
+  padding: 10px 16px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trial-balance-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.trial-balance-status {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trial-balance-status.balanced {
+  color: #10b981;
+}
+
+.trial-balance-status.imbalanced {
+  color: #ef4444;
+}
+
+.trial-balance-table {
+  width: 100%;
+  font-size: 0.8rem;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.trial-balance-table thead tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.trial-balance-table th {
+  padding: 8px 16px;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.75rem;
+  background-color: #f9fafb;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.trial-balance-table th.text-left {
+  text-align: left;
+}
+
+.trial-balance-table th.text-right {
+  text-align: right;
+}
+
+.trial-balance-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.trial-balance-table tbody td {
+  padding: 8px 16px;
+  color: #374151;
+}
+
+.trial-balance-table tbody td.text-right {
+  text-align: right;
+  font-weight: 600;
+}
+
+.trial-balance-account-name {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.trial-balance-account-desc {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.trial-balance-table tbody tr.totals-row {
+  border-top: 2px solid #d1d5db;
+  background-color: #f9fafb;
+}
+
+.trial-balance-table tbody tr.totals-row td {
+  font-weight: 700;
+  color: #1f2937;
+  padding: 10px 16px;
+}
+
+.trial-balance-table tbody tr.imbalance-row td {
+  padding: 8px 16px;
+  text-align: center;
+  background-color: #fef2f2;
+  color: #991b1b;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.trial-balance-empty-cell {
+  color: #d1d5db;
+}
+
+/* Dark Theme Trial Balance */
+[data-theme="dark"] .trial-balance-container {
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .trial-balance-header {
+  background-color: rgba(30, 41, 59, 0.5);
+  border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .trial-balance-title {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .trial-balance-table {
+  background-color: rgba(15, 23, 42, 0.5);
+}
+
+[data-theme="dark"] .trial-balance-table th {
+  background-color: rgba(30, 41, 59, 0.5);
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .trial-balance-table tbody td {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .trial-balance-account-desc {
+  color: #64748b;
+}
+
+[data-theme="dark"] .trial-balance-table tbody tr.totals-row {
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+[data-theme="dark"] .trial-balance-table tbody tr.totals-row td {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .trial-balance-table tbody tr.imbalance-row td {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+}

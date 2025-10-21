@@ -411,7 +411,7 @@ export const formatOptions = (
   return addBase ? base : response;
 };
 
-export const pluck = (arr: any[], key: string) => {
+export const pluck = (arr: Record<string, unknown>[], key: string) => {
   return arr.map((item) => item[key]);
 };
 

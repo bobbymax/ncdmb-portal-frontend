@@ -33,6 +33,8 @@ export default class TransactionRepository extends BaseRepository {
       journal_type_id: data.journal_type_id ?? 0,
       reference: data.reference ?? "",
       type: data.type ?? "credit",
+      credit_amount: data.credit_amount ?? 0,
+      debit_amount: data.debit_amount ?? 0,
       amount: data.amount ?? 0,
       narration: data.narration ?? "",
       beneficiary_id: data.beneficiary_id ?? 0,

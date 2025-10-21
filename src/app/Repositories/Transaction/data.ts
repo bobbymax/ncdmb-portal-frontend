@@ -10,6 +10,8 @@ export interface TransactionResponseData extends BaseResponse {
   journal_type_id: number;
   reference?: string;
   type: "debit" | "credit";
+  credit_amount: number;
+  debit_amount: number;
   amount: number;
   narration: string;
   beneficiary_id: number;

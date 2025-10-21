@@ -1500,6 +1500,8 @@ const DocumentTemplateContent = ({
                   />
                 </div>
 
+                {/* Document Pages Here!!! */}
+
                 {/* Render current view */}
                 {viewMode === "uploads" && (
                   <div className="uploaded__files" style={{ width: 838 }}>

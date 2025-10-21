@@ -1,12 +1,15 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ProcessGeneratorCardProps } from "../DocumentGeneratorTab/ProcessGeneratorTab";
 import { useResourceContext } from "app/Context/ResourceContext";
 import { JournalTypeResponseData } from "@/app/Repositories/JournalType/data";
 import { PaymentResponseData } from "@/app/Repositories/Payment/data";
+import { TransactionResponseData } from "@/app/Repositories/Transaction/data";
 import { useNavigate } from "react-router-dom";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import Alert from "app/Support/Alert";
 import { toast } from "react-toastify";
+import { usePaymentTransactions } from "app/Hooks/usePaymentTransactions";
+import { TrialBalanceDisplay } from "./TrialBalanceDisplay";
 
 const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   processCard,
@@ -38,11 +41,68 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
   const journalTypes = getResource("journalTypes") as JournalTypeResponseData[];
   const payments = (existingDocument?.payments || []) as PaymentResponseData[];
 
-  // Filter journal types by document type
+  // Filter journal types by document type (include payment type + default)
   const filteredJournalTypes = useMemo(() => {
     if (!existingDocument?.type || !journalTypes) return [];
-    return journalTypes.filter((jt) => jt.category === existingDocument.type);
+    return journalTypes
+      .filter(
+        (jt) =>
+          jt.category === existingDocument.type || jt.category === "default"
+      )
+      .sort((a, b) => {
+        // Sort default category first, then by precedence
+        if (a.category === "default" && b.category !== "default") return -1;
+        if (a.category !== "default" && b.category === "default") return 1;
+        return a.precedence - b.precedence;
+      });
   }, [journalTypes, existingDocument?.type]);
+
+  // Auto-select default category journal types for each payment
+  useEffect(() => {
+    if (filteredJournalTypes.length > 0 && payments.length > 0) {
+      const defaultJournalTypes = filteredJournalTypes
+        .filter((jt) => jt.category === "default")
+        .map((jt) => jt.id);
+
+      if (defaultJournalTypes.length > 0) {
+        setPaymentJournalTypes((prev) => {
+          const updated = { ...prev };
+
+          payments.forEach((payment) => {
+            // Only auto-select if this payment doesn't have any selections yet
+            if (!updated[payment.id] || updated[payment.id].length === 0) {
+              updated[payment.id] = defaultJournalTypes;
+            }
+          });
+
+          return updated;
+        });
+      }
+    }
+  }, [filteredJournalTypes, payments]);
+
+  // Use the payment transactions hook to get the generation function
+  const { generateTransactions } = usePaymentTransactions(
+    null,
+    journalTypes,
+    []
+  );
+
+  // Generate transactions for all payments using the hook
+  const paymentTransactions = useMemo(() => {
+    const transactionMap: Record<number, Partial<TransactionResponseData>[]> =
+      {};
+
+    payments.forEach((payment) => {
+      const selectedJournalTypeIds = paymentJournalTypes[payment.id] || [];
+      transactionMap[payment.id] = generateTransactions(
+        payment,
+        selectedJournalTypeIds
+      );
+    });
+
+    return transactionMap;
+  }, [payments, paymentJournalTypes, generateTransactions]);
 
   // Toggle payment expansion with animation
   const togglePaymentExpansion = (paymentId: number) => {
@@ -113,22 +173,39 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
 
   // Prepare submission data
   const prepareSubmissionData = () => {
-    // Convert selected payments into structured format
+    // Convert selected payments into structured format with generated transactions
     const selectedPaymentsData = Array.from(selectedPayments)
       .map((paymentId) => {
         const payment = payments.find((p) => p.id === paymentId);
         const journalTypeIds = paymentJournalTypes[paymentId] || [];
+        const generatedTransactions = paymentTransactions[paymentId] || [];
+
+        // Format transactions for backend (remove UI-only fields)
+        const formattedTransactions = generatedTransactions.map((trans) => ({
+          journal_type_id: trans.journal_type_id,
+          payment_id: trans.payment_id,
+          type: trans.type,
+          amount: trans.amount,
+          debit_amount: trans.debit_amount,
+          credit_amount: trans.credit_amount,
+          narration: trans.narration,
+          beneficiary_id: trans.beneficiary_id,
+          beneficiary_type: trans.beneficiary_type,
+          trail_balance: trans.trail_balance,
+          flag: trans.flag,
+          payment_method: trans.payment_method,
+          currency: trans.currency,
+          chart_of_account_id: trans.chart_of_account_id,
+          ledger_id: trans.ledger_id,
+        }));
 
         return {
           payment_id: paymentId,
           journal_type_ids: journalTypeIds,
+          transactions: formattedTransactions, // ← Include generated transactions
           // Include payment details for context
           amount: payment?.total_approved_amount,
-          currency: payment?.currency,
-          beneficiary: payment?.beneficiary,
           expenditure_id: payment?.expenditure_id,
-          payment_method: payment?.payment_method,
-          transaction_type: payment?.transaction_type,
         };
       })
       .filter((item) => item.journal_type_ids.length > 0); // Only include payments with JTs
@@ -151,6 +228,10 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
         total_payments: selectedPayments.size,
         total_journal_entries: Object.values(paymentJournalTypes).reduce(
           (sum, jts) => sum + jts.length,
+          0
+        ),
+        total_transactions: selectedPaymentsData.reduce(
+          (sum, p) => sum + p.transactions.length,
           0
         ),
       },
@@ -179,7 +260,7 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
 
     // Prepare the data
     const submissionData = prepareSubmissionData();
-    console.log(submissionData);
+    console.log("submissionData", submissionData);
 
     // Show confirmation
     const confirmation = await Alert.flash(
@@ -196,7 +277,8 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
         actionId,
         existingDocument?.id || 0,
         submissionData,
-        "update" // or 'update' if editing existing clearance
+        "update", // or 'update' if editing existing clearance
+        "processPaymentClearance"
       );
     } catch (error) {
       console.error("Submission error:", error);
@@ -526,9 +608,7 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                                 }}
                               >
                                 {payment.expenditure?.linked_document
-                                  ?.published_by?.name ||
-                                  payment.beneficiary ||
-                                  "Unknown Beneficiary"}
+                                  ?.published_by?.name || "Unknown Beneficiary"}
                               </h6>
                               <div
                                 className="d-flex align-items-center gap-2 text-muted"
@@ -575,7 +655,7 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                           >
                             {formatCurrency(
                               payment.total_approved_amount,
-                              payment.currency
+                              "NGN"
                             )}
                           </div>
                           <div className="d-flex align-items-center justify-content-end gap-1 mt-1">
@@ -636,58 +716,8 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                       >
                         {/* Payment Details Grid */}
                         <div className="row g-3 mb-4">
-                          <div className="col-md-4">
-                            <label className="payment-detail-label">
-                              Payment Method
-                            </label>
-                            <div className="payment-detail-value">
-                              <i className="ri-bank-line"></i>
-                              {payment.payment_method
-                                ?.replace(/-/g, " ")
-                                .replace(/\b\w/g, (l) => l.toUpperCase()) ||
-                                "N/A"}
-                            </div>
-                          </div>
-                          <div className="col-md-4">
-                            <label className="payment-detail-label">
-                              Transaction Type
-                            </label>
-                            <div className="payment-detail-value">
-                              <i className="ri-exchange-line"></i>
-                              {payment.transaction_type?.toUpperCase() || "N/A"}
-                            </div>
-                          </div>
-                          <div className="col-md-4">
-                            <label className="payment-detail-label">
-                              Status
-                            </label>
-                            <span
-                              className={
-                                payment.status === "posted"
-                                  ? "badge-status-posted"
-                                  : "badge-status-draft"
-                              }
-                            >
-                              {payment.status || "Draft"}
-                            </span>
-                          </div>
-
                           {payment.expenditure && (
                             <>
-                              <div className="col-md-6">
-                                <label className="payment-detail-label">
-                                  Expenditure Purpose
-                                </label>
-                                <div
-                                  style={{
-                                    fontSize: "0.85rem",
-                                    color: "#475569",
-                                    lineHeight: "1.4",
-                                  }}
-                                >
-                                  {payment.expenditure.purpose || "N/A"}
-                                </div>
-                              </div>
                               <div className="col-md-6">
                                 <label className="payment-detail-label">
                                   Linked Document
@@ -729,18 +759,13 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                               </div>
                             </>
                           )}
-
-                          {payment.narration && (
-                            <div className="col-12">
-                              <label className="payment-detail-label">
-                                Narration
-                              </label>
-                              <div className="payment-narration">
-                                {payment.narration}
-                              </div>
-                            </div>
-                          )}
                         </div>
+
+                        {/* Trial Balance Display */}
+                        <TrialBalanceDisplay
+                          transactions={paymentTransactions[payment.id] || []}
+                          payment={payment}
+                        />
 
                         {/* Journal Types Section */}
                         <div className="journal-types-section">
@@ -887,6 +912,26 @@ const EmployeeTreasuryClear: React.FC<ProcessGeneratorCardProps> = ({
                                           <span className="badge-context">
                                             {journalType.context}
                                           </span>
+                                          {journalType.category ===
+                                            "default" && (
+                                            <span
+                                              style={{
+                                                fontSize: "0.7rem",
+                                                padding: "2px 6px",
+                                                borderRadius: "4px",
+                                                backgroundColor: "#dbeafe",
+                                                color: "#1e40af",
+                                                fontWeight: "600",
+                                                border: "1px solid #3b82f6",
+                                              }}
+                                            >
+                                              <i
+                                                className="ri-star-line"
+                                                style={{ fontSize: "0.65rem" }}
+                                              ></i>{" "}
+                                              Default
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
                                     </div>
