@@ -102,6 +102,8 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     accessLevel: "looker",
     sync: false,
     documentActivities: [],
+    pages: [],
+    isLoadingPages: false,
   };
 
   const [state, dispatch] = useReducer(paperBoardReducer, initialState);
@@ -506,6 +508,12 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => {
       dispatch({ type: "SET_TRACKERS", payload: trackers });
+    },
+    setPages: (pages: DocumentResponseData[]) => {
+      dispatch({ type: "SET_PAGES", payload: pages });
+    },
+    setIsLoadingPages: (loading: boolean) => {
+      dispatch({ type: "SET_IS_LOADING_PAGES", payload: loading });
     },
 
     // Resource management methods removed - use ResourceContext directly

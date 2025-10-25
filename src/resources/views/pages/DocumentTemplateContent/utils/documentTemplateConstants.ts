@@ -45,29 +45,44 @@ export const SAMPLE_BLOCKS = [
 ];
 
 export const DEFAULT_TAB_ORDER = [
-  { id: "budget", label: "Budget", icon: "ri-bank-line", isEditor: true },
+  {
+    id: "budget",
+    label: "Budget",
+    icon: "ri-bank-line",
+    isEditor: true,
+    isViewOnly: false,
+    componentPath: "BudgetGeneratorTab",
+  },
   {
     id: "uploads",
     label: "Uploads",
     icon: "ri-git-repository-commits-line",
     isEditor: true,
+    isViewOnly: false,
+    componentPath: "UploadsGeneratorTab",
   },
   {
     id: "resource",
     label: "Resource",
     icon: "ri-database-2-line",
     isEditor: true,
+    isViewOnly: false,
+    componentPath: "ResourceGeneratorTab",
   },
   {
     id: "process",
     label: "Process",
     icon: "ri-swap-2-line",
     isEditor: false,
+    isViewOnly: true,
+    componentPath: "ProcessGeneratorTab",
   },
   {
     id: "activities",
     label: "Activities",
     icon: "ri-line-chart-line",
     isEditor: false,
+    isViewOnly: true,
+    componentPath: "ActivitiesGeneratorTab",
   },
 ];

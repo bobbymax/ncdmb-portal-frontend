@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import Dropzone from "../forms/Dropzone";
+import { DocumentCategoryResponseData } from "@/app/Repositories/DocumentCategory/data";
 
 interface UploadsGeneratorTabProps {
-  category: any;
+  category: DocumentCategoryResponseData;
 }
 
 const UploadsGeneratorTab: React.FC<UploadsGeneratorTabProps> = ({

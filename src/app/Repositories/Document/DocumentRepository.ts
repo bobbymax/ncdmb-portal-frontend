@@ -68,6 +68,7 @@ export default class DocumentRepository extends BaseRepository {
       owner: data.owner ?? null,
       workflow: data.workflow ?? null,
       document_type: data.document_type ?? null,
+      document_category: data.document_category ?? null,
       uploads: data.uploads ?? [],
       drafts: data.drafts ?? [],
       updates: data.updates ?? [],

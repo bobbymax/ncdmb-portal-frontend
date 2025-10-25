@@ -54,6 +54,7 @@ export const documentConfig: ConfigProp<DocumentResponseData> = {
     budget_year: 0,
     type: "staff",
     fund_id: 0,
+    document_category: null,
     approved_amount: 0,
     sub_total_amount: 0,
     vat_amount: 0,

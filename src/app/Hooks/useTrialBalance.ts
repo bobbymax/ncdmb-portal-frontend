@@ -38,14 +38,16 @@ export const useTrialBalance = (
     );
 
     // Calculate left side total (debits)
+    // Use debit_amount if available (from DB), otherwise fall back to amount (generated)
     const leftTotal = leftTransactions.reduce(
-      (sum, t) => sum + (t.amount || 0),
+      (sum, t) => sum + (t.debit_amount || t.amount || 0),
       0
     );
 
     // Calculate right side total (credits)
+    // Use credit_amount if available (from DB), otherwise fall back to amount (generated)
     const rightTotal = rightTransactions.reduce(
-      (sum, t) => sum + (t.amount || 0),
+      (sum, t) => sum + (t.credit_amount || t.amount || 0),
       0
     );
 

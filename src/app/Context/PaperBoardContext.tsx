@@ -100,6 +100,8 @@ export interface PaperBoardState {
   loggedInUser: AuthUserResponseData | undefined;
   requirements: DocumentRequirementProps[];
   existingDocument: DocumentResponseData | null;
+  pages: DocumentResponseData[];
+  isLoadingPages: boolean;
 
   // Primary Data
   category: DocumentCategoryResponseData | null;
@@ -352,6 +354,14 @@ export type PaperBoardAction =
   | {
       type: "SET_TRACKERS";
       payload: CategoryProgressTrackerProps[];
+    }
+  | {
+      type: "SET_PAGES";
+      payload: DocumentResponseData[];
+    }
+  | {
+      type: "SET_IS_LOADING_PAGES";
+      payload: boolean;
     };
 
 export interface PaperBoardContextType {
@@ -412,6 +422,8 @@ export interface PaperBoardContextType {
     addDocumentActivity: (activity: DocumentActivity) => void;
     clearDocumentActivities: () => void;
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
+    setPages: (pages: DocumentResponseData[]) => void;
+    setIsLoadingPages: (loading: boolean) => void;
     // Resource management methods removed - use ResourceContext directly
   };
 }

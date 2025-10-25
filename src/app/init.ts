@@ -1,6 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import TokenProvider from "lib/TokenProvider";
+import { AuthProvider } from "./Providers/AuthProvider";
 
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
@@ -14,6 +15,25 @@ const apiInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Add response interceptor to handle session expiry globally
+apiInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Session expired - clear all auth data
+      TokenProvider.getInstance().clearToken();
+      const authProvider = new AuthProvider();
+      authProvider.logout();
+
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes("/auth/login")) {
+        window.location.href = "/auth/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const getCsrfToken = async (): Promise<void> => {
   try {

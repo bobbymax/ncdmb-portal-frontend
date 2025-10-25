@@ -30,6 +30,7 @@ export const usePaperBoardResources = () => {
     documentTypes: resources.documentTypes || [],
     workflows: resources.workflows || [],
     projects: resources.projects || [],
+    documentPanels: resources.documentPanels || [],
 
     // Loading and error states from PaperBoard
     isLoading: state.isLoading,
@@ -57,6 +58,7 @@ export const usePaperBoardResources = () => {
     getCarderById: (id: number) => getResourceById("carders", id),
     getDocumentTypeById: (id: number) => getResourceById("documentTypes", id),
     getWorkflowById: (id: number) => getResourceById("workflows", id),
+    getDocumentPanelById: (id: number) => getResourceById("documentPanels", id),
   };
 };
 

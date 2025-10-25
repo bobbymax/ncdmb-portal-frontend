@@ -1,40 +1,44 @@
 import React from "react";
 import { TransactionResponseData } from "@/app/Repositories/Transaction/data";
 import { PaymentResponseData } from "@/app/Repositories/Payment/data";
-import { useTrialBalance } from "app/Hooks/useTrialBalance";
 
-interface TrialBalanceDisplayProps {
-  transactions: Partial<TransactionResponseData>[];
+interface AuditTrialBalanceDisplayProps {
+  transactions: TransactionResponseData[];
   payment: PaymentResponseData;
 }
 
 /**
- * Trial Balance Display Component
- * Displays a side-by-side trial balance preview with debits and credits
+ * Audit Trial Balance Display Component
+ * Displays trial balance for saved transactions from database
  */
-export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
-  transactions,
-  payment,
-}) => {
-  // Debug: Log transactions
-  console.log("TrialBalanceDisplay - transactions:", transactions);
-  console.log("TrialBalanceDisplay - payment:", payment);
+export const AuditTrialBalanceDisplay: React.FC<
+  AuditTrialBalanceDisplayProps
+> = ({ transactions, payment }) => {
+  console.log("AuditTrialBalance - Raw transactions:", transactions);
+  console.log("AuditTrialBalance - Payment:", payment);
 
-  // Use trial balance hook for calculations
-  const {
-    leftTransactions,
-    rightTransactions,
-    leftTotal,
-    rightTotal,
-    isBalanced,
-    variance,
-  } = useTrialBalance(transactions);
+  // Separate transactions by type
+  const debitTransactions = transactions.filter((t) => t.type === "debit");
+  const creditTransactions = transactions.filter((t) => t.type === "credit");
 
-  // Debug: Log calculated values
-  console.log("TrialBalanceDisplay - leftTransactions:", leftTransactions);
-  console.log("TrialBalanceDisplay - rightTransactions:", rightTransactions);
-  console.log("TrialBalanceDisplay - leftTotal:", leftTotal);
-  console.log("TrialBalanceDisplay - rightTotal:", rightTotal);
+  console.log("AuditTrialBalance - Debit transactions:", debitTransactions);
+  console.log("AuditTrialBalance - Credit transactions:", creditTransactions);
+
+  // Calculate totals
+  const totalDebits = debitTransactions.reduce(
+    (sum, t) => sum + Number(t.debit_amount || 0),
+    0
+  );
+  const totalCredits = creditTransactions.reduce(
+    (sum, t) => sum + Number(t.credit_amount || 0),
+    0
+  );
+
+  console.log("AuditTrialBalance - Total Debits:", totalDebits);
+  console.log("AuditTrialBalance - Total Credits:", totalCredits);
+
+  const variance = Math.abs(totalDebits - totalCredits);
+  const isBalanced = variance < 0.01;
 
   // Format currency
   const formatCurrency = (
@@ -48,6 +52,9 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
       minimumFractionDigits: 2,
     }).format(numAmount);
   };
+
+  // Find max length for table rows
+  const maxRows = Math.max(debitTransactions.length, creditTransactions.length);
 
   return (
     <div className="trial-balance-container mb-4">
@@ -80,23 +87,21 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
         </thead>
         <tbody>
           {/* Render rows side by side */}
-          {Array.from({
-            length: Math.max(leftTransactions.length, rightTransactions.length),
-          }).map((_, idx) => {
-            const leftTrans = leftTransactions[idx];
-            const rightTrans = rightTransactions[idx];
+          {Array.from({ length: maxRows }).map((_, idx) => {
+            const debitTrans = debitTransactions[idx];
+            const creditTrans = creditTransactions[idx];
 
             return (
               <tr key={idx}>
                 {/* Debit Account */}
                 <td>
-                  {leftTrans ? (
+                  {debitTrans ? (
                     <div>
                       <div className="trial-balance-account-name">
-                        {leftTrans.journal_type?.code}
+                        {debitTrans.journal_type?.code || "N/A"}
                       </div>
                       <div className="trial-balance-account-desc">
-                        {leftTrans.journal_type?.name}
+                        {debitTrans.journal_type?.name || debitTrans.narration}
                       </div>
                     </div>
                   ) : (
@@ -105,22 +110,23 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
                 </td>
                 {/* Debit Amount */}
                 <td className="text-right">
-                  {leftTrans
+                  {debitTrans
                     ? formatCurrency(
-                        leftTrans.debit_amount || leftTrans.amount || 0,
+                        debitTrans.debit_amount || 0,
                         payment.currency
                       )
                     : "-"}
                 </td>
                 {/* Credit Account */}
                 <td>
-                  {rightTrans ? (
+                  {creditTrans ? (
                     <div>
                       <div className="trial-balance-account-name">
-                        {rightTrans.journal_type?.code}
+                        {creditTrans.journal_type?.code || "N/A"}
                       </div>
                       <div className="trial-balance-account-desc">
-                        {rightTrans.journal_type?.name}
+                        {creditTrans.journal_type?.name ||
+                          creditTrans.narration}
                       </div>
                     </div>
                   ) : (
@@ -129,9 +135,9 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
                 </td>
                 {/* Credit Amount */}
                 <td className="text-right">
-                  {rightTrans
+                  {creditTrans
                     ? formatCurrency(
-                        rightTrans.credit_amount || rightTrans.amount || 0,
+                        creditTrans.credit_amount || 0,
                         payment.currency
                       )
                     : "-"}
@@ -144,11 +150,11 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
           <tr className="totals-row">
             <td>Total</td>
             <td className="text-right">
-              {formatCurrency(leftTotal, payment.currency)}
+              {formatCurrency(totalDebits, payment.currency)}
             </td>
             <td>Total</td>
             <td className="text-right">
-              {formatCurrency(rightTotal, payment.currency)}
+              {formatCurrency(totalCredits, payment.currency)}
             </td>
           </tr>
 
@@ -166,3 +172,5 @@ export const TrialBalanceDisplay: React.FC<TrialBalanceDisplayProps> = ({
     </div>
   );
 };
+
+export default AuditTrialBalanceDisplay;

@@ -319,6 +319,16 @@ export const paperBoardReducer = (
         ...state,
         trackers: action.payload,
       };
+    case "SET_PAGES":
+      return {
+        ...state,
+        pages: action.payload,
+      };
+    case "SET_IS_LOADING_PAGES":
+      return {
+        ...state,
+        isLoadingPages: action.payload,
+      };
     default:
       return state;
   }

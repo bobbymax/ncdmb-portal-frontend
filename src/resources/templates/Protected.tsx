@@ -74,6 +74,34 @@ const Protected = ({ children }: ProtectedProps) => {
     }
   };
 
+  // Clean up sidebar classes on mount and unmount
+  React.useEffect(() => {
+    const sidebar = document.getElementById("sidebar-wrapper");
+    const wrapper = document.getElementById("wrapper");
+
+    // Clean up on mount (in case classes persist from previous session)
+    if (sidebar) {
+      sidebar.classList.remove("sidebar-collapsed", "sidebar-open");
+    }
+    if (wrapper) {
+      wrapper.classList.remove("sidebar-collapsed");
+    }
+
+    // Reset state
+    setIsSidebarCollapsed(false);
+    setIsMobileMenuOpen(false);
+
+    // Cleanup on unmount (for logout)
+    return () => {
+      if (sidebar) {
+        sidebar.classList.remove("sidebar-collapsed", "sidebar-open");
+      }
+      if (wrapper) {
+        wrapper.classList.remove("sidebar-collapsed");
+      }
+    };
+  }, []); // Empty dependency array = runs once on mount and cleanup on unmount
+
   // Function to show the progress modal globally
   const showDocumentProgressModal = (onComplete: () => void) => {
     setProgressModalProps({

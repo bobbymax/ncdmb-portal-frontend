@@ -109,8 +109,9 @@ export const WhiteFormHeader = ({
         </p>
         <p>
           Batch No:{" "}
-          {state.existingDocument?.ref ??
-            `${state.category?.type === "staff" ? "SP" : "TPP"}{#####}`}
+          {state.existingDocument?.ref
+            ? state.existingDocument.ref.split("/").pop()
+            : `${state.category?.type === "staff" ? "SP" : "TPP"}{#####}`}
         </p>
       </div>
 

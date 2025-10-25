@@ -25,6 +25,7 @@ import { CarderResponseData } from "../Repositories/Carder/data";
 import { DocumentTypeResponseData } from "../Repositories/DocumentType/data";
 import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { JournalTypeResponseData } from "../Repositories/JournalType/data";
+import { DocumentPanelResponseData } from "../Repositories/DocumentPanel/data";
 
 // Resource types mapping
 export type ResourceType =
@@ -39,7 +40,8 @@ export type ResourceType =
   | "documentTypes"
   | "workflows"
   | "projects"
-  | "journalTypes";
+  | "journalTypes"
+  | "documentPanels";
 
 export type ResourceData =
   | UserResponseData[]
@@ -53,6 +55,7 @@ export type ResourceData =
   | DocumentTypeResponseData[]
   | WorkflowResponseData[]
   | JournalTypeResponseData[]
+  | DocumentPanelResponseData[]
   | any[];
 
 // Resource map interface
@@ -69,6 +72,7 @@ export interface ResourceMap {
   workflows: WorkflowResponseData[];
   projects: any[];
   journalTypes: JournalTypeResponseData[];
+  documentPanels: DocumentPanelResponseData[];
 }
 
 // Loading states interface
@@ -85,6 +89,7 @@ export interface LoadingMap {
   workflows: boolean;
   projects: boolean;
   journalTypes: boolean;
+  documentPanels: boolean;
 }
 
 // Cache information interface
@@ -144,6 +149,7 @@ const ROUTE_RESOURCE_MAP: RouteResourceMap = {
     "documentTypes",
     "workflows",
     "journalTypes",
+    "documentPanels",
   ],
 
   // Default fallback - no resources loaded for other routes
@@ -206,6 +212,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     workflows: [],
     projects: [],
     journalTypes: [],
+    documentPanels: [],
   });
 
   const [loading, setLoading] = useState<LoadingMap>({
@@ -221,6 +228,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     workflows: false,
     projects: false,
     journalTypes: false,
+    documentPanels: false,
   });
 
   // Cache management
@@ -254,6 +262,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         workflows: [],
         projects: [],
         journalTypes: [],
+        documentPanels: [],
       });
       setCache((prev) => ({
         ...prev,
@@ -277,6 +286,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       workflows: () => repo("workflow"),
       projects: () => repo("project"),
       journalTypes: () => repo("journalType"),
+      documentPanels: () => repo("documentPanel"),
     }),
     []
   );
@@ -491,6 +501,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       workflows: [],
       projects: [],
       journalTypes: [],
+      documentPanels: [],
     });
 
     setCache((prev) => ({

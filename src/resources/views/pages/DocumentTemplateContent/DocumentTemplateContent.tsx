@@ -16,25 +16,55 @@ import React, {
 } from "react";
 import { ContextType, usePaperBoard } from "app/Context/PaperBoardContext";
 import { useResourceContext } from "app/Context/ResourceContext";
+import { usePaperBoardResources } from "app/Hooks/usePaperBoardResources";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
 import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
 
-// Lazy load heavy components
-const BudgetGeneratorTab = lazy(
-  () => import("../../components/DocumentGeneratorTab/BudgetGeneratorTab")
-);
-const UploadsGeneratorTab = lazy(
-  () => import("../../components/DocumentGeneratorTab/UploadsGeneratorTab")
-);
-const ResourceGeneratorTab = lazy(
-  () => import("../../components/DocumentGeneratorTab/ResourceGeneratorTab")
-);
-const SettingsGeneratorTab = lazy(
-  () => import("../../components/DocumentGeneratorTab/SettingsGeneratorTab")
-);
+// Create a component map for dynamic imports
+const COMPONENT_MAP: Record<
+  string,
+  React.LazyExoticComponent<React.ComponentType<any>>
+> = {
+  BudgetGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/BudgetGeneratorTab")
+  ),
+  UploadsGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/UploadsGeneratorTab")
+  ),
+  ResourceGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/ResourceGeneratorTab")
+  ),
+  SettingsGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/SettingsGeneratorTab")
+  ),
+  ActivitiesGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/ActivitiesGeneratorTab")
+  ),
+  ProcessGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/ProcessGeneratorTab")
+  ),
+  TrackerGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/TrackerGeneratorTab")
+  ),
+  EditorGeneratorTab: lazy(
+    () => import("../../components/DocumentGeneratorTab/EditorGeneratorTab")
+  ),
+};
+
+// Helper function to get component from path
+const getComponentFromPath = (componentPath: string) => {
+  // Extract component name from path (e.g., "BudgetGeneratorTab" from any path format)
+  const componentName = componentPath.includes("/")
+    ? componentPath.split("/").pop()?.replace(".tsx", "").replace(".jsx", "")
+    : componentPath;
+
+  return componentName && COMPONENT_MAP[componentName]
+    ? COMPONENT_MAP[componentName]
+    : null;
+};
 import A4Sheet from "../../components/pages/A4Sheet";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
@@ -43,16 +73,16 @@ import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/da
 import { SignatureResponseData } from "@/app/Repositories/Signature/data";
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 import Button from "../../components/forms/Button";
-import ActivitiesGeneratorTab from "../../components/DocumentGeneratorTab/ActivitiesGeneratorTab";
 import PdfViewer from "../../components/pages/PdfViewer";
 import PrintDocumentNew from "../../components/pages/PrintDocumentNew";
 import DocumentMessaging from "../../components/pages/DocumentMessaging";
 import { usePdfMerger } from "app/Hooks/usePdfMerger";
 import { useStateContext } from "app/Context/ContentContext";
 import { ThreadResponseData } from "@/app/Repositories/Thread/data";
-import ProcessGeneratorTab from "../../components/DocumentGeneratorTab/ProcessGeneratorTab";
 import usePolicy from "app/Hooks/usePolicy";
 import { toTitleCase } from "bootstrap/repositories";
+import { repo } from "bootstrap/repositories";
+import LinkedPagesSection from "../../components/pages/LinkedPagesSection";
 import {
   DocumentLoadingScreen,
   ConsultationCard,
@@ -108,8 +138,9 @@ const DocumentTemplateContent = ({
 }: DocumentTemplateContentProps) => {
   const { state, actions } = usePaperBoard();
   const { getResourceById, loading: resourceLoading } = useResourceContext();
+  const { documentPanels } = usePaperBoardResources();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("budget");
+  const [activeTab, setActiveTab] = useState<string>("");
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isEditor, setIsEditor] = useState(false);
   const [viewMode, setViewMode] = useState<"document" | "uploads" | "print">(
@@ -233,18 +264,111 @@ const DocumentTemplateContent = ({
     logDocumentGenerate,
   } = useActivityLogger();
 
-  // Tab reordering state
-  const [tabOrder, setTabOrder] = useState(() =>
-    DEFAULT_TAB_ORDER.map((tab) => ({
-      ...tab,
-      label:
-        tab.id === "resource" && state.category?.service
-          ? toTitleCase(state.category?.service)
-          : tab.label,
-    }))
-  );
+  // Generate tabs from documentPanels filtered by user groups
+  const computedTabOrder = useMemo(() => {
+    if (!documentPanels || documentPanels.length === 0 || !state.loggedInUser) {
+      return DEFAULT_TAB_ORDER.map((tab) => ({
+        ...tab,
+        label:
+          tab.id === "resource" && state.category?.name
+            ? state.category.name
+            : tab.id === "resource" && state.category?.service
+            ? toTitleCase(state.category?.service)
+            : tab.label,
+      }));
+    }
+
+    // Get user's group IDs
+    const userGroupIds = state.loggedInUser.groups?.map((g) => g.id) || [];
+
+    // Filter and map documentPanels to tab structure
+    const filteredPanels = documentPanels
+      .filter((panel) => {
+        // Check if panel is active
+        if (!panel.is_active) return false;
+
+        // Check if user belongs to any of the panel's groups
+        if (panel.groups && panel.groups.length > 0) {
+          const panelGroupIds = panel.groups.map((g) => g.id);
+          const hasAccess = userGroupIds.some((ugId) =>
+            panelGroupIds.includes(ugId)
+          );
+          if (!hasAccess) return false;
+        }
+
+        // Check view state compatibility
+        // If in preview mode (isEditor = false), exclude editor-only panels
+        if (!isEditor && panel.is_editor_only) return false;
+
+        // If in editor mode (isEditor = true), exclude view-only panels
+        if (isEditor && panel.is_view_only) return false;
+
+        // Check document status compatibility (only if panel has a document_status set)
+        if (panel.document_status && panel.document_status !== "") {
+          if (state.existingDocument?.status !== panel.document_status) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => a.order - b.order) // Sort by order
+      .map((panel) => ({
+        id: panel.name, // Use name as unique ID
+        label:
+          panel.label.toLowerCase() === "resource" && state.category?.name
+            ? state.category.name
+            : panel.name, // Display category name for resource, otherwise panel name
+        icon: panel.icon,
+        isEditor: panel.is_editor_only, // Use is_editor_only for editor mode
+        isViewOnly: panel.is_view_only, // Use is_view_only for preview mode
+        componentPath: panel.component_path,
+        panelData: panel, // Store full panel data for reference
+      }));
+
+    return filteredPanels.length > 0 ? filteredPanels : DEFAULT_TAB_ORDER;
+  }, [
+    documentPanels,
+    state.loggedInUser,
+    state.category?.service,
+    state.category?.name,
+    isEditor,
+    state.existingDocument?.status, // Add document status as dependency
+  ]);
+
+  // Local state for tab order (allows dragging to reorder)
+  const [tabOrder, setTabOrder] = useState(computedTabOrder);
   const [draggedTabIndex, setDraggedTabIndex] = useState<number | null>(null);
   const [editingItems, setEditingItems] = useState<Set<string>>(new Set());
+
+  // Update tabOrder when computedTabOrder changes
+  useEffect(() => {
+    setTabOrder(computedTabOrder);
+  }, [computedTabOrder]);
+
+  // Set default active tab to the first tab (lowest order) when tabs change
+  useEffect(() => {
+    if (tabOrder.length > 0) {
+      // Find the first visible tab based on current editor mode
+      const firstVisibleTab = tabOrder.find((tab) => {
+        return (
+          (tab.isEditor && isEditor) ||
+          (tab.isViewOnly && !isEditor) ||
+          (!tab.isEditor && !tab.isViewOnly)
+        );
+      });
+
+      // Set active tab to first visible tab, or just first tab if no match
+      const defaultTab = firstVisibleTab?.id || tabOrder[0]?.id;
+
+      // Only set if activeTab is empty or not in current tabOrder
+      if (!activeTab || !tabOrder.some((tab) => tab.id === activeTab)) {
+        if (defaultTab) {
+          setActiveTab(defaultTab);
+        }
+      }
+    }
+  }, [tabOrder, isEditor, activeTab]);
 
   const TemplateHeader = useTemplateHeader(state.template);
 
@@ -331,6 +455,93 @@ const DocumentTemplateContent = ({
       hasSyncedRef.current = false;
     };
   }, [propExistingDocument]);
+
+  // Fetch linked pages when existingDocument loads
+  useEffect(() => {
+    if (state.existingDocument?.id) {
+      // Fetch linked pages
+      const fetchPages = async () => {
+        actions.setIsLoadingPages(true);
+        try {
+          const response = await Repository.collection(
+            `linked/documents/${state.existingDocument?.id}`
+          );
+          if (response.code === 200 && response.data) {
+            actions.setPages(
+              Array.isArray(response.data)
+                ? (response.data as DocumentResponseData[])
+                : []
+            );
+          } else {
+            actions.setPages([]);
+          }
+        } catch (error) {
+          actions.setPages([]);
+        } finally {
+          actions.setIsLoadingPages(false);
+        }
+      };
+
+      fetchPages();
+    } else {
+      actions.setPages([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.existingDocument?.id]);
+
+  // Watch department_owner changes and update configState.to accordingly
+  useEffect(() => {
+    // Only proceed if we have a department_owner and configState.to exists
+    if (!state.department_owner?.value || !state.configState?.to) {
+      return;
+    }
+
+    const updateToSignatory = async () => {
+      try {
+        const departmentId = state.department_owner!.value;
+
+        // Fetch the department to get its signatory_staff_id
+        const departmentRepo = repo("department");
+        const departmentResponse = await Repository.collection("departments");
+
+        if (
+          departmentResponse?.data &&
+          Array.isArray(departmentResponse.data)
+        ) {
+          const departments = departmentResponse.data;
+          const department = departments.find(
+            (dept: any) => dept.id === departmentId
+          );
+
+          if (department) {
+            const newSignatoryUserId = department.signatory_staff_id || 0;
+
+            // Only update if the user_id has actually changed
+            if (
+              state.configState &&
+              state.configState.to &&
+              state.configState.to.user_id !== newSignatoryUserId
+            ) {
+              actions.setConfigState({
+                from: state.configState.from || null,
+                through: state.configState.through || null,
+                to: {
+                  ...state.configState.to,
+                  user_id: newSignatoryUserId,
+                  department_id: departmentId,
+                },
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error updating to signatory:", error);
+      }
+    };
+
+    updateToSignatory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.department_owner?.value, state.configState?.to?.identifier]);
 
   // Sync existing document data with global state when in edit mode
   useEffect(() => {
@@ -1500,7 +1711,16 @@ const DocumentTemplateContent = ({
                   />
                 </div>
 
-                {/* Document Pages Here!!! */}
+                {/* Linked Document Pages */}
+                {viewMode === "document" &&
+                  state.pages &&
+                  state.pages.length > 0 && (
+                    <LinkedPagesSection
+                      pages={state.pages}
+                      isLoading={state.isLoadingPages}
+                      uplines={uplines}
+                    />
+                  )}
 
                 {/* Render current view */}
                 {viewMode === "uploads" && (
@@ -1521,69 +1741,75 @@ const DocumentTemplateContent = ({
                 {/* Configuration Tabs */}
                 <div className="configuration__tabs">
                   <div className="tabs__header">
-                    {tabOrder.map((tab, index) => (
-                      <div
-                        key={tab.id}
-                        className={`tab__item ${
-                          activeTab === tab.id ? "active" : ""
-                        }`}
-                        data-tab={tab.id}
-                        onClick={() => handleTabChange(tab.id)}
-                        draggable
-                        onDragStart={(e) => handleTabDragStart(e, index)}
-                        onDragOver={(e) => handleTabDragOver(e)}
-                        onDragEnter={(e) => handleTabDragEnter(e, index)}
-                        onDragLeave={handleTabDragLeave}
-                        onDrop={(e) => handleTabDrop(e, index)}
-                        style={{
-                          display: tab.isEditor === isEditor ? "flex" : "none",
-                        }}
-                      >
-                        <i className={tab.icon}></i>
-                        <span>{tab.label}</span>
-                      </div>
-                    ))}
+                    {tabOrder.map((tab, index) => {
+                      // Determine if tab should be visible based on mode
+                      const shouldShow =
+                        (tab.isEditor && isEditor) || // Show if editor-only and in editor mode
+                        (tab.isViewOnly && !isEditor) || // Show if view-only and in preview mode
+                        (!tab.isEditor && !tab.isViewOnly); // Show if available in both modes
+
+                      return (
+                        <div
+                          key={tab.id}
+                          className={`tab__item ${
+                            activeTab === tab.id ? "active" : ""
+                          }`}
+                          data-tab={tab.id}
+                          onClick={() => handleTabChange(tab.id)}
+                          draggable
+                          onDragStart={(e) => handleTabDragStart(e, index)}
+                          onDragOver={(e) => handleTabDragOver(e)}
+                          onDragEnter={(e) => handleTabDragEnter(e, index)}
+                          onDragLeave={handleTabDragLeave}
+                          onDrop={(e) => handleTabDrop(e, index)}
+                          style={{
+                            display: shouldShow ? "flex" : "none",
+                          }}
+                        >
+                          <i className={tab.icon}></i>
+                          <span>{tab.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="tabs__content">
-                    {tabOrder.map((tab) => (
-                      <div
-                        key={tab.id}
-                        className={`tab__panel ${
-                          activeTab === tab.id ? "active" : ""
-                        }`}
-                        data-tab={tab.id}
-                      >
-                        <div className="panel__content">
-                          <Suspense
-                            fallback={
-                              <div className="tab__loading">
-                                <i className="ri-loader-4-line animate-spin"></i>
-                                <span>Loading tab...</span>
-                              </div>
-                            }
-                          >
-                            {tab.id === "budget" && (
-                              <BudgetGeneratorTab category={category} />
-                            )}
-                            {tab.id === "uploads" && (
-                              <UploadsGeneratorTab category={category} />
-                            )}
-                            {tab.id === "resource" && (
-                              <ResourceGeneratorTab category={category} />
-                            )}
-                            {/* {tab.id === "settings" && (
-                              <SettingsGeneratorTab category={category} />
-                            )} */}
-                            {tab.id === "activities" && (
-                              <ActivitiesGeneratorTab category={category} />
-                            )}
-                            {tab.id === "process" && (
-                              <ProcessGeneratorTab category={category} />
-                            )}
-                          </Suspense>
+                    {tabOrder.map((tab) => {
+                      const Component = getComponentFromPath(
+                        tab.componentPath || ""
+                      );
+
+                      return (
+                        <div
+                          key={tab.id}
+                          className={`tab__panel ${
+                            activeTab === tab.id ? "active" : ""
+                          }`}
+                          data-tab={tab.id}
+                        >
+                          <div className="panel__content">
+                            <Suspense
+                              fallback={
+                                <div className="tab__loading">
+                                  <i className="ri-loader-4-line animate-spin"></i>
+                                  <span>Loading tab...</span>
+                                </div>
+                              }
+                            >
+                              {Component ? (
+                                <Component category={category} />
+                              ) : (
+                                <div className="tab__error">
+                                  <i className="ri-error-warning-line"></i>
+                                  <span>
+                                    Component not found: {tab.componentPath}
+                                  </span>
+                                </div>
+                              )}
+                            </Suspense>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

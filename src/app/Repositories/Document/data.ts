@@ -4,7 +4,10 @@ import { DocumentTypeResponseData } from "../DocumentType/data";
 import { WorkflowResponseData } from "../Workflow/data";
 import { DocumentUpdateResponseData } from "../DocumentUpdate/data";
 import { DocumentActionResponseData } from "../DocumentAction/data";
-import { DocumentMetaDataProps } from "../DocumentCategory/data";
+import {
+  DocumentCategoryResponseData,
+  DocumentMetaDataProps,
+} from "../DocumentCategory/data";
 import { ThreadResponseData } from "../Thread/data";
 import { DocumentRequirementResponseData } from "../DocumentRequirement/data";
 import {
@@ -92,6 +95,7 @@ export interface DocumentResponseData extends BaseResponse {
   uploads?: UploadResponseData[];
   owner: DocumentOwnerData | null;
   document_type: DocumentTypeResponseData | null;
+  document_category: DocumentCategoryResponseData | null;
   linked_drafts?: DocumentDraftResponseData[]; // ignore
   complete_or_linked_drafts?: DocumentDraftResponseData[]; // ignore
   documentable?: unknown;

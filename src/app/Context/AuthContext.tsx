@@ -17,6 +17,7 @@ import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { GradeLevelResponseData } from "../Repositories/GradeLevel/data";
 import TokenProvider from "lib/TokenProvider";
 import { useResourceContext } from "./ResourceContext";
+import { AuthProvider as AuthProviderClass } from "../Providers/AuthProvider";
 
 export type AuthUserResponseData = {
   id: number;
@@ -80,12 +81,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         await getLoggedInUser();
       if (response && response.data.data) {
         setStaff(response.data.data);
+        setIsAuthenticated(true);
       } else {
+        // Session invalid or no user data
         setIsAuthenticated(false);
         setStaff(undefined);
+        setAuthState({ staff: null, token: null, refresh_token: null });
       }
     } catch (error) {
+      // Session expired or network error
       setIsAuthenticated(false);
+      setStaff(undefined);
+      setAuthState({ staff: null, token: null, refresh_token: null });
+      // Clear token
+      TokenProvider.getInstance().clearToken();
     }
   };
 
@@ -93,14 +102,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     try {
       await apiService.post("logout", {});
+    } catch (error) {
+      // Logout API call failed, but still clear local state
+      console.error("Logout API call failed:", error);
+    } finally {
+      // Always clear state regardless of API call success
       setAuthState({ staff: null, token: null, refresh_token: null });
       setStaff(undefined);
       setIsAuthenticated(false);
       // Clear token from TokenProvider
       TokenProvider.getInstance().clearToken();
-    } catch (error) {
-      // Logout failed
-      throw new Error(`Something went wrong ${error}`);
+
+      // Also clear localStorage auth token
+      const authProviderInstance = new AuthProviderClass();
+      authProviderInstance.logout();
     }
   };
 
