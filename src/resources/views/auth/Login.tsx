@@ -92,16 +92,11 @@ const Login = () => {
         setIsAuthenticated(true);
         setStaff(staff.data.data);
 
-        const defaultPage = pages.find(
-          (page) => page.id === staff.data.data.default_page_id
-        );
+        // const defaultPage = pages.find(
+        //   (page) => page.id === staff.data.data.default_page_id
+        // );
 
-        if (defaultPage) {
-          // defaultPage.path;
-          navigate(defaultPage.path);
-        } else {
-          navigate("/desk/folders");
-        }
+        navigate("/insights");
       }
     } catch (error: any) {
       // Error during login

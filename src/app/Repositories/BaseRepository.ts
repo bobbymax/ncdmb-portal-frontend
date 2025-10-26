@@ -19,6 +19,38 @@ interface ApiResponse {
   };
 }
 
+// Laravel Pagination Response Interface
+export interface PaginatedResponse<T = JsonResponse> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+  next_page_url: string | null;
+  prev_page_url: string | null;
+  first_page_url: string;
+  last_page_url: string;
+  path: string;
+  links: Array<{
+    url: string | null;
+    label: string;
+    active: boolean;
+  }>;
+}
+
+// Simplified Pagination Metadata
+export interface PaginationMeta {
+  currentPage: number;
+  lastPage: number;
+  total: number;
+  perPage: number;
+  hasMore: boolean;
+  from: number | null;
+  to: number | null;
+}
+
 export type ModalResponseData<D = JsonResponse> = {
   data: D;
   action: "store" | "update" | "delete";

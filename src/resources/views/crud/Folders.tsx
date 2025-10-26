@@ -1,7 +1,7 @@
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import { CardPageComponentProps } from "bootstrap";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import TextInput from "../components/forms/TextInput";
 import FolderComponent from "../components/pages/FolderComponent";
 import useFilters from "app/Hooks/useFilters";
@@ -18,7 +18,14 @@ import "../../assets/css/folders-list-view.css";
 
 const Folders: React.FC<
   CardPageComponentProps<DocumentResponseData, DocumentRepository>
-> = ({ collection, onManageRawData }) => {
+> = ({
+  collection,
+  onManageRawData,
+  pagination,
+  loadMore,
+  loadingMore,
+  refresh,
+}) => {
   const { setIsLoading, componentLoading } = useStateContext();
   const {
     collection: documents,
@@ -46,15 +53,6 @@ const Folders: React.FC<
     resetFilters,
   } = useFilters(collection);
 
-  // console.log(
-  //   "Documents:",
-  //   documents.length,
-  //   "ComponentLoading:",
-  //   componentLoading,
-  //   "isLoading:",
-  //   isLoading
-  // );
-
   const { staff } = useAuth();
 
   const [selectedDocuments, setSelectedDocuments] = useState<Set<number>>(
@@ -66,7 +64,7 @@ const Folders: React.FC<
   const [itemsPerGroup, setItemsPerGroup] = useState(20); // Show 20 items per group initially
 
   // Track when documents are initially loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (documents.length > 0 || !componentLoading) {
       // Small delay to ensure smooth transition
       const timer = setTimeout(() => {
@@ -849,6 +847,123 @@ const Folders: React.FC<
                     </div>
                   </div>
                 )
+              )}
+
+              {/* Global Load More Button - Server Pagination */}
+              {pagination && pagination.hasMore && (
+                <div className="text-center py-4 mt-3">
+                  {/* Compact Pagination Info */}
+                  <div className="mb-3">
+                    <div
+                      className="d-inline-flex align-items-center gap-2 px-3 py-2"
+                      style={{
+                        background: "rgba(19, 117, 71, 0.05)",
+                        borderRadius: "8px",
+                        border: "1px solid rgba(19, 117, 71, 0.15)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#64748b",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {pagination.from || 0}-{pagination.to || 0} of{" "}
+                        {pagination.total}
+                      </span>
+                      <div
+                        style={{
+                          width: "1px",
+                          height: "16px",
+                          background: "rgba(19, 117, 71, 0.2)",
+                        }}
+                      ></div>
+                      <span
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#64748b",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Page {pagination.currentPage}/{pagination.lastPage}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Elegant Soft Button */}
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="btn position-relative"
+                    style={{
+                      background: loadingMore
+                        ? "rgba(229, 231, 235, 0.5)"
+                        : "rgba(19, 117, 71, 0.08)",
+                      color: loadingMore ? "#9ca3af" : "#137547",
+                      border: loadingMore
+                        ? "1.5px solid rgba(229, 231, 235, 0.8)"
+                        : "1.5px solid rgba(19, 117, 71, 0.25)",
+                      borderRadius: "12px",
+                      padding: "12px 32px",
+                      fontWeight: "600",
+                      fontSize: "0.9rem",
+                      minWidth: "200px",
+                      backdropFilter: "blur(10px)",
+                      boxShadow: loadingMore
+                        ? "none"
+                        : "0 4px 12px rgba(19, 117, 71, 0.08)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      cursor: loadingMore ? "not-allowed" : "pointer",
+                      letterSpacing: "0.2px",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loadingMore) {
+                        e.currentTarget.style.background =
+                          "rgba(19, 117, 71, 0.12)";
+                        e.currentTarget.style.borderColor =
+                          "rgba(19, 117, 71, 0.35)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 6px 16px rgba(19, 117, 71, 0.12)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!loadingMore) {
+                        e.currentTarget.style.background =
+                          "rgba(19, 117, 71, 0.08)";
+                        e.currentTarget.style.borderColor =
+                          "rgba(19, 117, 71, 0.25)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(19, 117, 71, 0.08)";
+                      }
+                    }}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          style={{
+                            width: "14px",
+                            height: "14px",
+                            borderWidth: "2px",
+                          }}
+                        ></span>
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <i
+                          className="ri-arrow-down-s-line me-2"
+                          style={{ fontSize: "1rem" }}
+                        ></i>
+                        Load More ({pagination.total - (pagination.to || 0)}{" "}
+                        remaining)
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
             </div>
           )}

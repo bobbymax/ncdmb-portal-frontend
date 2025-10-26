@@ -257,6 +257,17 @@ const Aside = ({
                     <p>Insights</p>
                   </div>
                 </Link>
+                <Link
+                  to="/performance"
+                  className={`child__nav__link ${
+                    activePath === "/performance" ? "active" : ""
+                  }`}
+                >
+                  <div className="smaller__detais flex align gap-md">
+                    <i className="ri-bar-chart-line" />
+                    <p>Performance</p>
+                  </div>
+                </Link>
               </div>
             </div>
 

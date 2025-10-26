@@ -11,7 +11,8 @@ const CardPage = ({
   CardPageComponent,
 }: PageProps<BaseRepository>) => {
   const navigate = useNavigate();
-  const { collection } = useResourceActions(Repository, view, {});
+  const { collection, pagination, loadMore, loadingMore, refresh } =
+    useResourceActions(Repository, view, {});
 
   const url = view.pointer
     ? `${view.frontend_path}/${view.pointer}`
@@ -50,6 +51,10 @@ const CardPage = ({
         Repository={Repository}
         onManageRawData={onManage}
         View={view}
+        pagination={pagination}
+        loadMore={loadMore}
+        loadingMore={loadingMore}
+        refresh={refresh}
       />
     </div>
   );

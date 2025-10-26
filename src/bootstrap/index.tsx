@@ -11,6 +11,7 @@ import {
   BaseResponse,
   JsonResponse,
   ViewsProps,
+  PaginationMeta,
 } from "app/Repositories/BaseRepository";
 import ResourceRawPage from "resources/views/pages/ResourceRawPage";
 import ManageResourcePage from "resources/views/pages/ManageResourcePage";
@@ -26,6 +27,7 @@ import { DocumentResponseData } from "@/app/Repositories/Document/data";
 import { BlockDataType } from "@/app/Repositories/Block/data";
 import GenerateDocument from "resources/views/pages/GenerateDocument";
 import BuildTemplate from "resources/views/pages/BuildTemplate";
+import PerformanceDashboard from "resources/views/PerformanceDashboard";
 
 export interface ActionBttnProps {
   variant: string;
@@ -40,6 +42,10 @@ export interface CardPageComponentProps<T = JsonResponse, D = BaseRepository> {
   Repository: D;
   onManageRawData: (raw: T, label: string, url?: string) => void;
   View: ViewsProps;
+  pagination?: PaginationMeta | null;
+  loadMore?: () => void;
+  loadingMore?: boolean;
+  refresh?: () => void;
   // columns:
 }
 
@@ -202,7 +208,15 @@ const Main = () => {
               <Dashboard />
             </AuthGuard>
           }
-          path="/:id"
+          path="/insights"
+        />
+        <Route
+          element={
+            <AuthGuard>
+              <PerformanceDashboard />
+            </AuthGuard>
+          }
+          path="/performance"
         />
         <Route
           element={

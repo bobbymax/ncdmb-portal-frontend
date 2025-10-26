@@ -1,13 +1,33 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { ApiService } from "./ApiService";
-import { JsonResponse } from "../Repositories/BaseRepository";
+import {
+  JsonResponse,
+  PaginatedResponse,
+} from "../Repositories/BaseRepository";
 import Cookies from "js-cookie";
 
 export interface ServerResponse {
   code?: number;
-  data: JsonResponse | JsonResponse[];
+  data: JsonResponse | JsonResponse[] | PaginatedResponse;
   message: string;
   status: "success" | "error";
+  // Pagination metadata (when response is paginated)
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  from?: number | null;
+  to?: number | null;
+  next_page_url?: string | null;
+  prev_page_url?: string | null;
+  first_page_url?: string;
+  last_page_url?: string;
+  path?: string;
+  links?: Array<{
+    url: string | null;
+    label: string;
+    active: boolean;
+  }>;
 }
 
 interface IRepository {
