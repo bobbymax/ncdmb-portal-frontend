@@ -568,6 +568,9 @@ body {
 #content {
   position: relative;
   overflow-y: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 
   #circular-menu-container {
     position: fixed;
@@ -886,8 +889,9 @@ b {
   width: 100%;
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition with sidebar */
-  height: 100%;
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .mid__banner p {
@@ -2186,6 +2190,7 @@ p.claim-description {
   width: 100%;
   box-sizing: border-box;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition with sidebar */
+  flex-shrink: 0;
 }
 
 /* .main__top__header::before {

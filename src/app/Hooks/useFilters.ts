@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import {
   extractModelName,
@@ -7,10 +7,14 @@ import {
 } from "bootstrap/repositories";
 import { DataOptionsProps } from "resources/views/components/forms/MultiSelect";
 import { useStateContext } from "app/Context/ContentContext";
+import { useDebounce } from "./useDebounce";
 
 const useFilters = (iterables: DocumentResponseData[]) => {
   const [collection, setCollection] = useState<DocumentResponseData[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
+
+  // Debounce search value to prevent filtering on every keystroke
+  const debouncedSearchValue = useDebounce(searchValue, 300);
 
   const [amountFilter, setAmountFilter] = useState<[number, number]>([0, 0]);
   const [currentAmount, setCurrentAmount] = useState<number>(0);
@@ -151,60 +155,67 @@ const useFilters = (iterables: DocumentResponseData[]) => {
     setAction({ value: 0, label: "All Actions" });
   }, [iterables]);
 
-  // Filtering logic based on all selected filters
-  useEffect(() => {
-    let filtered = [...iterables];
+  // Optimized filtering with useMemo - runs only when dependencies change
+  // Combines all filters in a single pass instead of 7 separate filter operations
+  const filteredCollection = useMemo(() => {
+    const searchLower = debouncedSearchValue.trim().toLowerCase();
 
-    // CATEGORY filter
-    if (category && category !== "default") {
-      filtered = filtered.filter(
-        (doc) =>
-          toServiceName(extractModelName(doc.documentable_type)) === category
-      );
-    }
+    return iterables.filter((doc) => {
+      // CATEGORY filter
+      if (category && category !== "default") {
+        if (
+          toServiceName(extractModelName(doc.documentable_type)) !== category
+        ) {
+          return false;
+        }
+      }
 
-    // OWNER filter
-    if (documentOwner && documentOwner.value !== 0) {
-      filtered = filtered.filter(
-        (doc) => doc.owner?.id === documentOwner.value
-      );
-    }
+      // OWNER filter
+      if (documentOwner && documentOwner.value !== 0) {
+        if (doc.owner?.id !== documentOwner.value) {
+          return false;
+        }
+      }
 
-    // DEPARTMENT filter
-    if (department && department.value !== 0) {
-      filtered = filtered.filter(
-        (doc) => doc.department_id === department.value
-      );
-    }
+      // DEPARTMENT filter
+      if (department && department.value !== 0) {
+        if (doc.department_id !== department.value) {
+          return false;
+        }
+      }
 
-    // ACTION filter
-    if (action && action.value !== 0) {
-      filtered = filtered.filter((doc) => doc.action?.id === action.value);
-    }
+      // ACTION filter
+      if (action && action.value !== 0) {
+        if (doc.action?.id !== action.value) {
+          return false;
+        }
+      }
 
-    // AMOUNT RANGE filter
-    filtered = filtered.filter((doc) => {
+      // AMOUNT RANGE filter
       const amount = doc.approved_amount ?? 0;
-      return amount <= currentAmount;
-    });
+      if (amount > currentAmount) {
+        return false;
+      }
 
-    // DATE filter
-    filtered = filtered.filter((doc) => {
+      // DATE filter
       const created = new Date(doc.created_at ?? "");
-      return !isNaN(created.getTime()) && created.getTime() >= currentDate;
+      if (!isNaN(created.getTime()) && created.getTime() < currentDate) {
+        return false;
+      }
+
+      // SEARCH filter
+      if (searchLower !== "") {
+        const matchesTitle = doc.title?.toLowerCase().includes(searchLower);
+        const matchesOwner = doc.owner?.name
+          ?.toLowerCase()
+          .includes(searchLower);
+        if (!matchesTitle && !matchesOwner) {
+          return false;
+        }
+      }
+
+      return true;
     });
-
-    // SEARCH filter (basic keyword match on name or title if present)
-    if (searchValue.trim() !== "") {
-      const searchLower = searchValue.toLowerCase();
-      filtered = filtered.filter(
-        (doc) =>
-          doc.title?.toLowerCase().includes(searchLower) ||
-          doc.owner?.name?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    setCollection(filtered);
   }, [
     iterables,
     category,
@@ -213,8 +224,13 @@ const useFilters = (iterables: DocumentResponseData[]) => {
     action,
     currentAmount,
     currentDate,
-    searchValue,
+    debouncedSearchValue,
   ]);
+
+  // Update collection when filtered results change
+  useEffect(() => {
+    setCollection(filteredCollection);
+  }, [filteredCollection]);
 
   return {
     category,

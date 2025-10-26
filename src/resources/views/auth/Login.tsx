@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import LoginTextInputWithIcon from "../components/forms/LoginTextInputWithIcon";
 import CustomButton from "../components/forms/CustomButton";
 import CompanyLogo from "../components/pages/CompanyLogo";
+import TwoFactorChallenge from "../components/Auth/TwoFactorChallenge";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const Login = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [userId, setUserId] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -34,7 +37,17 @@ const Login = () => {
     }, 1400); // 0.8s shake + 0.6s launch = 1.4s total
 
     try {
-      await loginStaff({ username, password });
+      const loginResponse = await loginStaff({ username, password });
+
+      // Check if 2FA is required
+      if (loginResponse.data?.requires_2fa) {
+        setRequires2FA(true);
+        setUserId(loginResponse.data.user_id);
+        setIsLoading(false);
+        setIsAnimating(false);
+        return;
+      }
+
       const staff: AxiosResponse<{ data: AuthUserResponseData }> =
         await getLoggedInUser();
 
@@ -98,6 +111,74 @@ const Login = () => {
       setIsAnimating(false);
     }
   };
+
+  // Complete login after 2FA verification
+  const handleTwoFactorSuccess = async () => {
+    try {
+      const staff: AxiosResponse<{ data: AuthUserResponseData }> =
+        await getLoggedInUser();
+
+      if (staff && staff.data && staff.data.data) {
+        // Save user ID in cookies
+        const cookieOptions = {
+          expires: 7,
+          secure: window.location.protocol === "https:",
+          sameSite: "lax" as const,
+        };
+
+        try {
+          Cookies.set("user_id", staff.data.data.id.toString(), cookieOptions);
+        } catch (cookieError) {
+          localStorage.setItem("user_id", staff.data.data.id.toString());
+        }
+
+        const {
+          pages = [],
+          role = null,
+          groups = [],
+          remunerations = [],
+        } = staff.data.data;
+
+        setApps(pages.filter((page) => page.type === "app"));
+        setPages(pages);
+        setRole(role);
+        setGroups(groups);
+        setRemunerations(remunerations);
+        setIsAuthenticated(true);
+        setStaff(staff.data.data);
+
+        // Navigate to default page or dashboard
+        const defaultPage = pages.find(
+          (page) => page.id === staff.data.data.default_page_id
+        );
+
+        if (defaultPage && defaultPage.path) {
+          navigate(defaultPage.path);
+        } else {
+          navigate("/desk/folders");
+        }
+      }
+    } catch (error) {
+      console.error("Error completing login after 2FA:", error);
+      // Force navigation on error as fallback
+      navigate("/desk/folders");
+    }
+  };
+
+  // If 2FA is required, show the challenge
+  if (requires2FA) {
+    return (
+      <TwoFactorChallenge
+        userId={userId}
+        onSuccess={handleTwoFactorSuccess}
+        onCancel={() => {
+          setRequires2FA(false);
+          setUserId(0);
+          setPassword("");
+        }}
+      />
+    );
+  }
 
   return (
     <div className="sign_in_container">

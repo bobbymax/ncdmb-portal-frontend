@@ -1,0 +1,436 @@
+/* Security Settings Styles */
+
+/* Main Container */
+.security-settings-page {
+  background: var(--bg-primary, #f8f9fa);
+  min-height: 100%;
+  padding-bottom: 2rem;
+}
+
+/* Security Card */
+.security-main-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+/* Header Variants */
+.security-header-enabled {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  padding: 2rem;
+  border-radius: 16px 16px 0 0;
+  border: none;
+}
+
+.security-header-disabled {
+  background: linear-gradient(135deg, #137547 0%, #0f5c38 100%);
+  padding: 2rem;
+  border-radius: 16px 16px 0 0;
+  border: none;
+}
+
+.security-header-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.security-header-subtitle {
+  margin-bottom: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.security-badge-active {
+  background-color: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+/* Loading State */
+.security-spinner-container {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #137547 0%, #0f5c38 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(19, 117, 71, 0.2);
+}
+
+.security-spinner {
+  color: white;
+  width: 32px;
+  height: 32px;
+}
+
+.security-loading-text {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+
+/* Status Cards */
+.security-status-active {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-radius: 14px;
+  border: 2px solid #6ee7b7;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.security-status-inactive {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 14px;
+  border: 2px solid #93c5fd;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.security-icon-badge-green {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+.security-icon-badge-blue {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.security-icon-badge-green i,
+.security-icon-badge-blue i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.security-status-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.security-status-title-green {
+  color: #065f46;
+}
+
+.security-status-title-blue {
+  color: #1e40af;
+}
+
+.security-status-text {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.security-status-text-green {
+  color: #047857;
+}
+
+.security-status-text-blue {
+  color: #1e3a8a;
+}
+
+.security-user-chip {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+/* Disable Section */
+.security-disable-border {
+  padding-top: 0.75rem;
+  border-top: 2px solid #f1f5f9;
+}
+
+.security-disable-button {
+  background: transparent;
+  color: #dc2626;
+  border: 2px solid #dc2626;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.security-disable-button:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.security-warning-box {
+  background: #fef2f2;
+  border-radius: 14px;
+  border: 2px solid #fecaca;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.security-warning-alert {
+  background: #fee2e2;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.security-warning-icon {
+  font-size: 1.5rem;
+  color: #dc2626;
+  margin-top: 2px;
+}
+
+.security-warning-title {
+  color: #991b1b;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.security-warning-text {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+  margin-top: 0.25rem;
+}
+
+.security-password-input {
+  border-radius: 10px;
+  border: 2px solid #fca5a5;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+}
+
+.security-button-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.security-button-danger:disabled {
+  opacity: 0.6;
+}
+
+.security-button-secondary {
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-weight: 500;
+}
+
+/* Security Tips Section */
+.security-tips-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.security-tips-header {
+  border: none;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  padding: 1.5rem;
+}
+
+.security-tips-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.security-tips-icon-badge i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.security-tips-title {
+  margin-bottom: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.security-tips-subtitle {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.security-tips-body {
+  padding: 1.5rem;
+}
+
+/* Tip Cards */
+.security-tips-card-yellow {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border: 2px solid #fde68a;
+  padding: 0.75rem;
+  height: 100%;
+}
+
+.security-tips-card-blue {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 12px;
+  border: 2px solid #93c5fd;
+  padding: 0.75rem;
+  height: 100%;
+}
+
+.security-tips-card-purple {
+  background: linear-gradient(135deg, #fae8ff 0%, #f3e8ff 100%);
+  border-radius: 12px;
+  border: 2px solid #e9d5ff;
+  padding: 0.75rem;
+  height: 100%;
+}
+
+.security-tips-card-green {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-radius: 12px;
+  border: 2px solid #6ee7b7;
+  padding: 0.75rem;
+  height: 100%;
+}
+
+.security-tip-icon-yellow {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.security-tip-icon-blue {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.security-tip-icon-purple {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+}
+
+.security-tip-icon-green {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
+.security-tip-icon-yellow i,
+.security-tip-icon-blue i,
+.security-tip-icon-purple i,
+.security-tip-icon-green i {
+  color: white;
+  font-size: 1.25rem;
+}
+
+.security-tip-title {
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.security-tip-title-yellow {
+  color: #92400e;
+}
+
+.security-tip-title-blue {
+  color: #1e40af;
+}
+
+.security-tip-title-purple {
+  color: #6b21a8;
+}
+
+.security-tip-title-green {
+  color: #065f46;
+}
+
+.security-tip-text {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+
+.security-tip-text-yellow {
+  color: #78350f;
+}
+
+.security-tip-text-blue {
+  color: #1e3a8a;
+}
+
+.security-tip-text-purple {
+  color: #581c87;
+}
+
+.security-tip-text-green {
+  color: #047857;
+}
+
+/* Body Padding */
+.security-body-content {
+  padding: 2rem;
+}
+
+/* Animation */
+.security-fade-in {
+  animation: fadeIn 0.3s ease;
+}

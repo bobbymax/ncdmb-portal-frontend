@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import "../assets/css/app.css";
 import "../assets/css/threads.min.css";
 import "../assets/css/styles.css";
@@ -30,6 +31,8 @@ const Protected = ({ children }: ProtectedProps) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileButtonRef = useRef<HTMLDivElement>(null);
 
   // Global modal state for document generation progress
   const [progressModalProps, setProgressModalProps] = useState({
@@ -73,6 +76,28 @@ const Protected = ({ children }: ProtectedProps) => {
       wrapper.classList.toggle("sidebar-collapsed");
     }
   };
+
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest(".profile-section")) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isProfileDropdownOpen]);
 
   // Clean up sidebar classes on mount and unmount
   React.useEffect(() => {
@@ -209,7 +234,10 @@ const Protected = ({ children }: ProtectedProps) => {
             <ThemeToggle />
             {/* <i className="topheadericon ri-grid-line" /> */}
             <i className="topheadericon ri-notification-2-line" />
-            <div className="profile-section flex align gap-md">
+            <div
+              className="profile-section flex align gap-md"
+              style={{ position: "relative" }}
+            >
               <div className="profile-avatar">
                 <img src={avatar} alt="Profile" />
                 <div className="profile-status-indicator"></div>
@@ -225,10 +253,144 @@ const Protected = ({ children }: ProtectedProps) => {
                   <span>Administrator</span>
                 </div>
               </div>
-              <div className="profile-actions">
-                <i className="ri-arrow-down-s-line profile-dropdown-icon" />
+              <div
+                ref={profileButtonRef}
+                className="profile-actions"
+                onClick={toggleProfileDropdown}
+                style={{ cursor: "pointer" }}
+              >
+                <i
+                  className={`ri-arrow-${
+                    isProfileDropdownOpen ? "up" : "down"
+                  }-s-line profile-dropdown-icon`}
+                />
               </div>
             </div>
+
+            {/* Profile Dropdown Menu - Rendered using Portal */}
+            {isProfileDropdownOpen &&
+              profileButtonRef.current &&
+              createPortal(
+                <div
+                  className="profile-dropdown-menu"
+                  style={{
+                    position: "fixed",
+                    top: "60px",
+                    right: "20px",
+                    backgroundColor: "white",
+                    borderRadius: "8px",
+                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
+                    minWidth: "220px",
+                    zIndex: 9999,
+                    overflow: "hidden",
+                  }}
+                >
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsProfileDropdownOpen(false);
+                      navigate("/profile-settings");
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 16px",
+                      color: "#1f2937",
+                      textDecoration: "none",
+                      transition: "all 0.2s ease",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.paddingLeft = "20px";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.paddingLeft = "16px";
+                    }}
+                  >
+                    <i
+                      className="ri-user-settings-line"
+                      style={{ color: "#137547", fontSize: "1.1rem" }}
+                    ></i>
+                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
+                      Profile Settings
+                    </span>
+                  </a>
+
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsProfileDropdownOpen(false);
+                      navigate("/security-settings");
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 16px",
+                      color: "#1f2937",
+                      textDecoration: "none",
+                      transition: "all 0.2s ease",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.paddingLeft = "20px";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.paddingLeft = "16px";
+                    }}
+                  >
+                    <i
+                      className="ri-shield-check-line"
+                      style={{ color: "#137547", fontSize: "1.1rem" }}
+                    ></i>
+                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
+                      Security
+                    </span>
+                  </a>
+
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsProfileDropdownOpen(false);
+                      // Navigate to preferences when ready
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "12px 16px",
+                      color: "#1f2937",
+                      textDecoration: "none",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f9fafb";
+                      e.currentTarget.style.paddingLeft = "20px";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "white";
+                      e.currentTarget.style.paddingLeft = "16px";
+                    }}
+                  >
+                    <i
+                      className="ri-settings-3-line"
+                      style={{ color: "#137547", fontSize: "1.1rem" }}
+                    ></i>
+                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
+                      Preferences
+                    </span>
+                  </a>
+                </div>,
+                document.body
+              )}
             <Button
               icon="ri-switch-line"
               handleClick={() => logoutUser()}

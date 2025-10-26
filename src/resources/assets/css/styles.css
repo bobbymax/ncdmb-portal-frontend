@@ -682,7 +682,7 @@
 /* Responsive Header Styling */
 .main__top__header {
   min-height: 80px;
-  overflow: hidden;
+  overflow: visible;
   flex-wrap: wrap;
   gap: 1rem;
   grid-column: 2; /* Ensure header stays in main content area */
@@ -31574,4 +31574,135 @@ html.modal-open {
   .workflow-actions {
     flex-direction: column;
   }
+}
+
+/* Profile Dropdown Menu */
+.profile-dropdown-menu {
+  position: fixed !important;
+  z-index: 10000 !important;
+  animation: dropdownFadeIn 0.2s ease;
+  border: 1px solid #e5e7eb;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-dropdown-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #1f2937;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.profile-dropdown-menu a:last-child {
+  border-bottom: none;
+}
+
+.profile-dropdown-menu a:hover {
+  background-color: #f9fafb;
+  padding-left: 20px;
+}
+
+.profile-dropdown-menu a i {
+  color: #137547;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.profile-dropdown-menu a span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Dark mode support for profile dropdown */
+[data-theme="dark"] .profile-dropdown-menu {
+  background-color: #1e293b;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: #334155;
+}
+
+[data-theme="dark"] .profile-dropdown-menu a {
+  color: #e2e8f0;
+  border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .profile-dropdown-menu a:hover {
+  background-color: #334155;
+}
+
+[data-theme="dark"] .profile-dropdown-menu a i {
+  color: #22c55e;
+}
+
+/* Profile section overflow fix */
+.header-right {
+  overflow: visible !important;
+}
+
+.profile-section {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* Critical overflow fixes for dropdown */
+#content {
+  overflow: visible !important;
+}
+
+main#content {
+  overflow: visible !important;
+}
+
+header.main__top__header {
+  overflow: visible !important;
+}
+
+/* Profile Settings Page Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode support for profile settings */
+[data-theme="dark"] .profile-settings-page {
+  background: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .profile-settings-page .card {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .profile-settings-page .card-header {
+  background: #1e293b !important;
+}
+
+[data-theme="dark"] .profile-settings-page .form-control[readonly] {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] .profile-settings-page .form-select {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+  border-color: #475569 !important;
 }

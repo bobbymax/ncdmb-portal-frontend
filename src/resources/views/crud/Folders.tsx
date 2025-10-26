@@ -1,7 +1,7 @@
 import { DocumentResponseData } from "app/Repositories/Document/data";
 import DocumentRepository from "app/Repositories/Document/DocumentRepository";
 import { CardPageComponentProps } from "bootstrap";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import TextInput from "../components/forms/TextInput";
 import FolderComponent from "../components/pages/FolderComponent";
 import useFilters from "app/Hooks/useFilters";
@@ -62,6 +62,8 @@ const Folders: React.FC<
   );
   const [groupByActivity, setGroupByActivity] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [itemsPerGroup, setItemsPerGroup] = useState(20); // Show 20 items per group initially
 
   // Track when documents are initially loaded
   React.useEffect(() => {
@@ -212,19 +214,22 @@ const Folders: React.FC<
     };
   }, [documents, staff]);
 
-  const handleOpenFolder = (document: DocumentResponseData) => {
-    setIsLoading(true);
-    onManageRawData(
-      document,
-      "manage",
-      `/desk/folders/category/${document.document_category_id}/document/${document.id}/edit`
-    );
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-  };
+  const handleOpenFolder = useCallback(
+    (document: DocumentResponseData) => {
+      setIsLoading(true);
+      onManageRawData(
+        document,
+        "manage",
+        `/desk/folders/category/${document.document_category_id}/document/${document.id}/edit`
+      );
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+    },
+    [setIsLoading, onManageRawData]
+  );
 
-  const handleDocumentSelection = (docId: number) => {
+  const handleDocumentSelection = useCallback((docId: number) => {
     setSelectedDocuments((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(docId)) {
@@ -234,23 +239,23 @@ const Folders: React.FC<
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = useCallback((action: string) => {
     // Handle bulk actions like archive, delete, etc.
     // Bulk action executed
     setSelectedDocuments(new Set());
-  };
+  }, []);
 
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (selectedDocuments.size === documents.length) {
       setSelectedDocuments(new Set());
     } else {
       setSelectedDocuments(new Set(documents.map((doc) => doc.id)));
     }
-  };
+  }, [selectedDocuments.size, documents]);
 
-  const getActivityIcon = (groupName: string): string => {
+  const getActivityIcon = useCallback((groupName: string): string => {
     const iconMap: Record<string, string> = {
       "Awaiting My Action": "ri-alarm-warning-line",
       "Awaiting Others": "ri-group-line",
@@ -262,14 +267,35 @@ const Folders: React.FC<
       "All Documents": "ri-file-text-line",
     };
     return iconMap[groupName] || "ri-folder-line";
-  };
+  }, []);
 
-  const slugToTitleCase = (slug: string): string => {
+  const slugToTitleCase = useCallback((slug: string): string => {
     return slug
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-  };
+  }, []);
+
+  const toggleGroupExpansion = useCallback((groupName: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupName)) {
+        newSet.delete(groupName);
+      } else {
+        newSet.add(groupName);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Memoize the displayed documents per group to avoid rendering all at once
+  const getDisplayedDocs = useCallback(
+    (groupDocs: DocumentResponseData[], groupName: string) => {
+      const isExpanded = expandedGroups.has(groupName);
+      return isExpanded ? groupDocs : groupDocs.slice(0, itemsPerGroup);
+    },
+    [expandedGroups, itemsPerGroup]
+  );
 
   return (
     <div className="folder-desk">
@@ -692,84 +718,134 @@ const Folders: React.FC<
 
                     {/* Document List Items */}
                     <div className="document-list">
-                      {groupDocs.map((document) => (
-                        <div
-                          key={document.id}
-                          className="document-list-item"
-                          onClick={() => handleOpenFolder(document)}
-                        >
-                          {/* Checkbox */}
+                      {getDisplayedDocs(groupDocs, groupName).map(
+                        (document) => (
                           <div
-                            className="doc-checkbox"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDocumentSelection(document.id);
-                            }}
+                            key={document.id}
+                            className="document-list-item"
+                            onClick={() => handleOpenFolder(document)}
                           >
-                            <input
-                              type="checkbox"
-                              checked={selectedDocuments.has(document.id)}
-                              onChange={() => {}}
-                              className="list-checkbox"
-                              id={`doc-list-${document.id}`}
-                            />
-                          </div>
-
-                          {/* Document Info */}
-                          <div className="doc-info-main">
-                            <div className="doc-title-row">
-                              <h4 className="doc-title">{document.title}</h4>
-                              <span className="doc-ref">#{document.ref}</span>
-                            </div>
-                            <div className="doc-meta-row">
-                              <span className="doc-type">
-                                <i className="ri-file-text-line"></i>
-                                {document.document_type?.name || "Unknown Type"}
-                              </span>
-                              <span className="doc-owner">
-                                <i className="ri-user-line"></i>
-                                {document.owner?.name || "Unknown"}
-                              </span>
-                              <span className="doc-dept">
-                                <i className="ri-building-line"></i>
-                                {document.owner?.department ||
-                                  document.dept ||
-                                  "N/A"}
-                              </span>
-                              <span className="doc-date">
-                                <i className="ri-calendar-line"></i>
-                                {moment(document.created_at).format(
-                                  "MMM DD, YYYY"
-                                )}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Document Status & Amount */}
-                          <div className="doc-status-section">
-                            <div className="doc-amount">
-                              {document.approved_amount
-                                ? formatCurrencyCompact(
-                                    document.approved_amount
-                                  )
-                                : "₦0.00"}
-                            </div>
+                            {/* Checkbox */}
                             <div
-                              className={`doc-status-badge ${document.status}`}
+                              className="doc-checkbox"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDocumentSelection(document.id);
+                              }}
                             >
-                              {slugToTitleCase(document.status || "unknown")}
+                              <input
+                                type="checkbox"
+                                checked={selectedDocuments.has(document.id)}
+                                onChange={() => {}}
+                                className="list-checkbox"
+                                id={`doc-list-${document.id}`}
+                              />
+                            </div>
+
+                            {/* Document Info */}
+                            <div className="doc-info-main">
+                              <div className="doc-title-row">
+                                <h4 className="doc-title">{document.title}</h4>
+                                <span className="doc-ref">#{document.ref}</span>
+                              </div>
+                              <div className="doc-meta-row">
+                                <span className="doc-type">
+                                  <i className="ri-file-text-line"></i>
+                                  {document.document_type?.name ||
+                                    "Unknown Type"}
+                                </span>
+                                <span className="doc-owner">
+                                  <i className="ri-user-line"></i>
+                                  {document.owner?.name || "Unknown"}
+                                </span>
+                                <span className="doc-dept">
+                                  <i className="ri-building-line"></i>
+                                  {document.owner?.department ||
+                                    document.dept ||
+                                    "N/A"}
+                                </span>
+                                <span className="doc-date">
+                                  <i className="ri-calendar-line"></i>
+                                  {moment(document.created_at).format(
+                                    "MMM DD, YYYY"
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Document Status & Amount */}
+                            <div className="doc-status-section">
+                              <div className="doc-amount">
+                                {document.approved_amount
+                                  ? formatCurrencyCompact(
+                                      document.approved_amount
+                                    )
+                                  : "₦0.00"}
+                              </div>
+                              <div
+                                className={`doc-status-badge ${document.status}`}
+                              >
+                                {slugToTitleCase(document.status || "unknown")}
+                              </div>
+                            </div>
+
+                            {/* Action Button */}
+                            <div className="doc-action">
+                              <button className="list-action-btn">
+                                <span>Open</span>
+                                <i className="ri-arrow-right-line"></i>
+                              </button>
                             </div>
                           </div>
+                        )
+                      )}
 
-                          {/* Action Button */}
-                          <div className="doc-action">
-                            <button className="list-action-btn">
-                              <span>Open</span>
-                              <i className="ri-arrow-right-line"></i>
+                      {/* Load More Button */}
+                      {groupDocs.length > itemsPerGroup &&
+                        !expandedGroups.has(groupName) && (
+                          <div className="text-center py-3">
+                            <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleGroupExpansion(groupName);
+                              }}
+                              style={{
+                                borderRadius: "8px",
+                                padding: "8px 20px",
+                                fontWeight: "500",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              <i className="ri-arrow-down-s-line me-1"></i>
+                              Load More ({groupDocs.length - itemsPerGroup}{" "}
+                              remaining)
                             </button>
                           </div>
-                        </div>
-                      ))}
+                        )}
+
+                      {/* Show Less Button */}
+                      {expandedGroups.has(groupName) &&
+                        groupDocs.length > itemsPerGroup && (
+                          <div className="text-center py-3">
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleGroupExpansion(groupName);
+                              }}
+                              style={{
+                                borderRadius: "8px",
+                                padding: "8px 20px",
+                                fontWeight: "500",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              <i className="ri-arrow-up-s-line me-1"></i>
+                              Show Less
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
                 )
