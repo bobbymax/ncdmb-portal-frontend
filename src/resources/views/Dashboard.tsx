@@ -217,15 +217,34 @@ const Dashboard = () => {
         const response = await documentRepo.collection("documents");
 
         if (response) {
-          const documents = response.data as DocumentResponseData[];
+          // Backend returns: { status, message, data: [...], current_page?, last_page?, ... }
+          // For paginated: data is array at root level with pagination metadata alongside
+          // For non-paginated: data is just array
+          const documents = Array.isArray(response.data)
+            ? (response.data as DocumentResponseData[])
+            : [];
 
           if (documents.length === 0) {
             setNoRecordFound(true);
+          } else {
+            setNoRecordFound(false);
           }
+
           setDocuments(documents);
+
+          // Log pagination info if available
+          if (response.current_page) {
+            console.log("Dashboard: Loaded documents", {
+              page: response.current_page,
+              total: response.total,
+              showing: documents.length,
+            });
+          }
         }
       } catch (error) {
-        // Error fetching documents
+        console.error("Dashboard: Error fetching documents", error);
+        setNoRecordFound(true);
+        setDocuments([]);
       } finally {
         setIsLoading(false);
       }

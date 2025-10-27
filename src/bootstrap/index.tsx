@@ -28,6 +28,7 @@ import { BlockDataType } from "@/app/Repositories/Block/data";
 import GenerateDocument from "resources/views/pages/GenerateDocument";
 import BuildTemplate from "resources/views/pages/BuildTemplate";
 import PerformanceDashboard from "resources/views/PerformanceDashboard";
+import LandingPage from "resources/views/LandingPage";
 
 export interface ActionBttnProps {
   variant: string;
@@ -201,6 +202,8 @@ const Main = () => {
             return renderRoute(repo, view, j);
           })
         )}
+
+        <Route element={<LandingPage />} path="/" />
 
         <Route
           element={

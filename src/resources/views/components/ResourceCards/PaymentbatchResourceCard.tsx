@@ -47,7 +47,10 @@ const PaymentbatchResourceCard: React.FC<PaymentbatchResourceCardProps> = ({
       );
 
       if (response && response.data) {
-        const queued = response.data as DocumentResponseData[];
+        // Handle both paginated and non-paginated responses
+        const queued = Array.isArray(response.data)
+          ? (response.data as DocumentResponseData[])
+          : [];
 
         const categoried =
           queued?.filter((item) => item.type === category?.type) ?? [];
