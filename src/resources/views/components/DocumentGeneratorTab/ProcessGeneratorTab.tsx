@@ -113,7 +113,7 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
   const { state, actions } = usePaperBoard();
   const paymentRepo = new PaymentRepository();
   const { config } = useStateContext();
-  const { getResource } = useResourceContext();
+  const { getResource, getResourceById } = useResourceContext();
   const navigate = useNavigate();
 
   const [currentProcess, setCurrentProcess] =
@@ -141,7 +141,12 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
   const currentDraft = processDraft(state.existingDocument?.drafts);
 
   // Use policy hook with necessary parameters
-  const { getTrackerUserIds, userHasPermission, userCanHandle } = usePolicy({
+  const {
+    getTrackerUserIds,
+    userHasPermission,
+    userCanHandle,
+    processHandled,
+  } = usePolicy({
     currentProcess,
     loggedInUser: state.loggedInUser,
     trackers: state.trackers,
@@ -330,6 +335,67 @@ const ProcessGeneratorTab: React.FC<ProcessGeneratorTabProps> = ({
             }}
           >
             You do not have permission to handle this process
+          </div>
+        </div>
+      ) : processHandled && currentDraft ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "200px",
+            background:
+              "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #bbf7d0 100%)",
+            border: "1px solid #86efac",
+            borderRadius: "12px",
+            padding: "24px",
+            margin: "16px 0",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "48px",
+              color: "#16a34a",
+              marginBottom: "16px",
+              animation: "pulse 2s infinite",
+              filter: "drop-shadow(0 2px 4px rgba(22, 163, 74, 0.3))",
+            }}
+          >
+            <i className="ri-checkbox-circle-line"></i>
+          </div>
+          <div
+            style={{
+              fontSize: "18px",
+              fontWeight: "700",
+              color: "#15803d",
+              textAlign: "center",
+              lineHeight: "1.5",
+              textShadow: "0 1px 2px rgba(21, 128, 61, 0.2)",
+              marginBottom: "8px",
+            }}
+          >
+            Process Completed
+          </div>
+          <div
+            style={{
+              fontSize: "14px",
+              color: "#166534",
+              textAlign: "center",
+              opacity: "0.85",
+            }}
+          >
+            Document process for this stage has been completed by{" "}
+            <strong>
+              {(() => {
+                const operatorId = currentDraft?.operator_id;
+                if (!operatorId) return "Unknown User";
+
+                const operator = getResourceById("users", operatorId);
+                return operator?.name || `User #${operatorId}`;
+              })()}
+            </strong>
           </div>
         </div>
       ) : userCanHandle && (currentDraft?.operator_id ?? 0) < 1 ? (

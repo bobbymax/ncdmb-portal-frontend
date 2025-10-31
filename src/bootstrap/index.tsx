@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import Guest from "resources/templates/Guest";
 import Login from "../resources/views/auth/Login";
 import { AuthGuard } from "../app/Guards/AuthGuard";
+import { EnhancedErrorBoundary } from "../app/Boundaries/EnhancedErrorBoundary";
 import repositories from "./repositories";
 import IndexPage from "resources/views/pages/IndexPage";
 import {
@@ -184,8 +185,10 @@ const renderRoute = <T extends BaseRepository>(
             <div>FileDocket</div>
           ) : view.type === "configurator" ? (
             <BuildTemplate {...componentProps} />
-          ) : (
+          ) : view.type === "raw" ? (
             <ResourceRawPage {...componentProps} />
+          ) : (
+            <div>Page type not found</div>
           )}
         </AuthGuard>
       }
@@ -208,7 +211,14 @@ const Main = () => {
         <Route
           element={
             <AuthGuard>
-              <Dashboard />
+              <EnhancedErrorBoundary
+                componentName="Dashboard"
+                onError={(error, errorInfo) => {
+                  console.error("Dashboard crashed:", error, errorInfo);
+                }}
+              >
+                <Dashboard />
+              </EnhancedErrorBoundary>
             </AuthGuard>
           }
           path="/insights"
@@ -216,7 +226,18 @@ const Main = () => {
         <Route
           element={
             <AuthGuard>
-              <PerformanceDashboard />
+              <EnhancedErrorBoundary
+                componentName="PerformanceDashboard"
+                onError={(error, errorInfo) => {
+                  console.error(
+                    "PerformanceDashboard crashed:",
+                    error,
+                    errorInfo
+                  );
+                }}
+              >
+                <PerformanceDashboard />
+              </EnhancedErrorBoundary>
             </AuthGuard>
           }
           path="/performance"

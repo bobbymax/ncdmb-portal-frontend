@@ -1,0 +1,46 @@
+import { ViewsProps } from "../BaseRepository";
+
+export const inboundViews: ViewsProps[] = [
+  {
+    title: "List of Inbounds",
+    server_url: "inbounds",
+    component: "Inbounds",
+    frontend_path: "/desk/inbounds",
+    type: "index",
+    tag: "Add Inbound",
+    mode: "list",
+  },
+  {
+    title: "Create Inbound",
+    server_url: "inbounds",
+    component: "Inbound",
+    frontend_path: "/desk/inbounds/create",
+    type: "form",
+    tag: "",
+    mode: "store",
+    action: "Add Inbound",
+    index_path: "/desk/inbounds",
+  },
+  {
+    title: "Manage Inbound",
+    server_url: "inbounds",
+    component: "Inbound",
+    frontend_path: "/desk/inbounds/:id/manage",
+    type: "form",
+    tag: "",
+    mode: "update",
+    action: "Update Record",
+    index_path: "/desk/inbounds",
+  },
+  {
+    title: "Inbound Document",
+    server_url: "inbounds",
+    component: "InboundView",
+    frontend_path: "/desk/inbounds/:id/view",
+    type: "raw",
+    tag: "",
+    mode: "update",
+    action: "Update Record",
+    index_path: "/desk/inbounds",
+  },
+];

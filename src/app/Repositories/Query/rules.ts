@@ -1,0 +1,1 @@
+export const queryRules: { [key: string]: string } = {};

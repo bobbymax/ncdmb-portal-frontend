@@ -2,6 +2,12 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import TokenProvider from "lib/TokenProvider";
 import { AuthProvider } from "./Providers/AuthProvider";
+import {
+  errorService,
+  ErrorCategory,
+  ErrorSeverity,
+} from "./Services/ErrorService";
+import { createErrorFromAxios } from "./Errors/AppErrors";
 
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
@@ -14,12 +20,54 @@ const apiInstance = axios.create({
     Accept: "application/json",
     "Content-Type": "application/json",
   },
+  timeout: 30000, // 30 second timeout
 });
 
-// Add response interceptor to handle session expiry globally
-apiInstance.interceptors.response.use(
-  (response) => response,
+// Add request interceptor for logging
+apiInstance.interceptors.request.use(
+  (config) => {
+    // Add request timestamp for performance tracking
+    (config as any).metadata = { startTime: Date.now() };
+    return config;
+  },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor with enhanced error handling
+apiInstance.interceptors.response.use(
+  (response) => {
+    // Log successful requests in development
+    if (process.env.NODE_ENV === "development") {
+      const duration =
+        Date.now() - ((response.config as any).metadata?.startTime || 0);
+      if (duration > 1000) {
+        console.warn(
+          `Slow API call: ${response.config.url} took ${duration}ms`
+        );
+      }
+    }
+    return response;
+  },
+  (error) => {
+    // Create typed error
+    const appError = createErrorFromAxios(error);
+
+    // Log to error service
+    errorService.logError({
+      message: appError.message,
+      category: appError.category as ErrorCategory,
+      severity: errorService.determineSeverity(
+        appError.category as ErrorCategory,
+        appError.code
+      ),
+      code: appError.code,
+      context: appError.context,
+      originalError: error,
+    });
+
+    // Handle authentication errors
     if (error.response?.status === 401 || error.response?.status === 403) {
       // Session expired - clear all auth data
       TokenProvider.getInstance().clearToken();
@@ -31,7 +79,8 @@ apiInstance.interceptors.response.use(
         window.location.href = "/auth/login";
       }
     }
-    return Promise.reject(error);
+
+    return Promise.reject(appError);
   }
 );
 

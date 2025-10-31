@@ -61,6 +61,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/DocumentDraft/data"
   },
   {
+    "key": "DocumentPanel",
+    "path": "../app/Repositories/DocumentPanel/data"
+  },
+  {
     "key": "DocumentRequirement",
     "path": "../app/Repositories/DocumentRequirement/data"
   },

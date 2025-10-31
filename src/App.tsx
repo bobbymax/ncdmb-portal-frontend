@@ -9,9 +9,11 @@ import { LoaderProvider } from "app/Context/LoaderProvider";
 import { ThemeProvider } from "app/Context/ThemeContext";
 import { RequestManagerProvider } from "app/Context/RequestManagerContext";
 import { ResourceProvider } from "app/Context/ResourceContext";
+import { ErrorProvider } from "app/Context/ErrorContext";
+import { useNetworkStatus } from "app/Hooks/useNetworkStatus";
 import PerformanceDebugger from "./components/PerformanceDebugger";
 
-const App = () => {
+const AppContent = () => {
   const { staff } = useAuth();
   const MemoizedSidebar = React.memo(() => {
     const { pages, dashboard, activePage } = useStateContext();
@@ -26,22 +28,30 @@ const App = () => {
     );
   });
 
+  // Monitor network status
+  useNetworkStatus();
+
   return (
-    // <div className="debug-grid">
-    //   <Main />
-    // </div>
+    <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
+      {staff && <MemoizedSidebar />}
+      <Main />
+      <PerformanceDebugger />
+    </div>
+  );
+};
+
+const App = () => {
+  return (
     <ThemeProvider>
-      <LoaderProvider>
-        <RequestManagerProvider batchDelay={100} maxBatchSize={8}>
-          <ResourceProvider>
-            <div id={`${staff ? "wrapper" : "login-wrapper"}`}>
-              {staff && <MemoizedSidebar />}
-              <Main />
-              <PerformanceDebugger />
-            </div>
-          </ResourceProvider>
-        </RequestManagerProvider>
-      </LoaderProvider>
+      <ErrorProvider>
+        <LoaderProvider>
+          <RequestManagerProvider batchDelay={100} maxBatchSize={8}>
+            <ResourceProvider>
+              <AppContent />
+            </ResourceProvider>
+          </RequestManagerProvider>
+        </LoaderProvider>
+      </ErrorProvider>
     </ThemeProvider>
   );
 };

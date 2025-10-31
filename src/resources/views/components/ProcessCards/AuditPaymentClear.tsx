@@ -1,9 +1,27 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ProcessGeneratorCardProps } from "../DocumentGeneratorTab/ProcessGeneratorTab";
 import { PaymentBatchResponseData } from "@/app/Repositories/PaymentBatch/data";
 import { PaymentResponseData } from "@/app/Repositories/Payment/data";
 import Button from "../forms/Button";
 import AuditTrialBalanceDisplay from "./AuditTrialBalanceDisplay";
+import { useModal } from "app/Context/ModalContext";
+import { useAuth } from "app/Context/AuthContext";
+import QueryModal from "../../crud/modals/QueryModal";
+import QueryCard from "./QueryCard";
+
+interface PaymentWithQuery extends PaymentResponseData {
+  localQuery?: {
+    user_id: number;
+    group_id: number;
+    document_id: number;
+    document_draft_id: number;
+    message: string;
+    response: unknown;
+    priority: "low" | "medium" | "high";
+    status: "open" | "closed";
+    timestamp: string;
+  };
+}
 
 const AuditPaymentClear: React.FC<ProcessGeneratorCardProps> = ({
   processCard,
@@ -22,11 +40,23 @@ const AuditPaymentClear: React.FC<ProcessGeneratorCardProps> = ({
   const [selectedPayments, setSelectedPayments] = useState<Set<number>>(
     new Set()
   );
+  const [paymentsWithQueries, setPaymentsWithQueries] = useState<
+    PaymentWithQuery[]
+  >([]);
 
-  const payments = useMemo(
-    () => (existingDocument?.payments || []) as PaymentResponseData[],
-    [existingDocument]
-  );
+  const { openModal, closeModal } = useModal();
+  const { staff } = useAuth();
+
+  // Initialize payments with query support
+  useEffect(() => {
+    const payments = (existingDocument?.payments ||
+      []) as PaymentResponseData[];
+    setPaymentsWithQueries(
+      payments.map((p) => ({ ...p, localQuery: undefined }))
+    );
+  }, [existingDocument]);
+
+  const payments = useMemo(() => paymentsWithQueries, [paymentsWithQueries]);
 
   console.log(payments);
 
@@ -67,6 +97,63 @@ const AuditPaymentClear: React.FC<ProcessGeneratorCardProps> = ({
       currency: currency,
       minimumFractionDigits: 2,
     }).format(numAmount);
+  };
+
+  // Open Query Modal
+  const handleOpenQueryModal = (payment: PaymentWithQuery) => {
+    const existingQuery = payment.localQuery;
+
+    openModal(
+      QueryModal as any,
+      `query-${payment.id}`,
+      {
+        title: existingQuery ? "Edit Query" : "Query Payment",
+        data: existingQuery as any,
+        isUpdating: !!existingQuery,
+        onSubmit: (
+          queryData: any,
+          mode: "store" | "update" | "destroy" | "generate"
+        ) => {
+          handleQueryAttach(payment.id, queryData, payment);
+          closeModal();
+        },
+      },
+      existingQuery as any
+    );
+  };
+
+  // Attach query to payment locally with all required metadata
+  const handleQueryAttach = (
+    paymentId: number,
+    queryData: any,
+    payment: PaymentWithQuery
+  ) => {
+    const fullQueryData = {
+      user_id: staff?.id || 0,
+      group_id: currentProcess?.group_id || 0,
+      document_id: payment.expenditure?.document_id || 0,
+      document_draft_id: currentDraft?.id || 0,
+      message: queryData.message,
+      response: null,
+      priority: queryData.priority as "low" | "medium" | "high",
+      status: "open" as const,
+      timestamp: queryData.timestamp,
+    };
+
+    setPaymentsWithQueries((prev) =>
+      prev.map((p) =>
+        p.id === paymentId ? { ...p, localQuery: fullQueryData } : p
+      )
+    );
+  };
+
+  // Remove query from payment
+  const handleQueryRemove = (paymentId: number) => {
+    setPaymentsWithQueries((prev) =>
+      prev.map((p) =>
+        p.id === paymentId ? { ...p, localQuery: undefined } : p
+      )
+    );
   };
 
   return (
@@ -410,23 +497,31 @@ const AuditPaymentClear: React.FC<ProcessGeneratorCardProps> = ({
                         </div>
                       )}
 
-                      {/* Query Button */}
+                      {/* Query Section */}
                       <div
-                        className="d-flex justify-content-end"
+                        className="d-flex flex-column gap-2"
                         style={{
                           paddingTop: "16px",
                           borderTop: "1px solid #e5e7eb",
                         }}
                       >
-                        <Button
-                          label="Query Payment"
-                          icon="ri-question-line"
-                          variant="warning"
-                          size="sm"
-                          handleClick={() => {
-                            // User will handle this later
-                          }}
-                        />
+                        {payment.localQuery ? (
+                          <QueryCard
+                            query={payment.localQuery}
+                            onEdit={() => handleOpenQueryModal(payment)}
+                            onDelete={() => handleQueryRemove(payment.id)}
+                          />
+                        ) : (
+                          <div className="d-flex justify-content-end">
+                            <Button
+                              label="Query Payment"
+                              icon="ri-question-line"
+                              variant="danger"
+                              size="sm"
+                              handleClick={() => handleOpenQueryModal(payment)}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -476,7 +571,36 @@ const AuditPaymentClear: React.FC<ProcessGeneratorCardProps> = ({
                 <button
                   key={action.id}
                   onClick={() => {
-                    // Handle submit audit clearance
+                    // Collect selected payments with their queries
+                    const selectedPaymentsData = paymentsWithQueries
+                      .filter((p) => selectedPayments.has(p.id))
+                      .map((p) => ({
+                        payment_id: p.id,
+                        query: p.localQuery || null,
+                        total_approved_amount: p.total_approved_amount,
+                        transactions: p.transactions,
+                      }));
+
+                    // Debug: Log the data being submitted
+                    console.log("Submitting audit clearance with queries:", {
+                      selectedPayments: selectedPaymentsData,
+                      queriesCount: selectedPaymentsData.filter((p) => p.query)
+                        .length,
+                    });
+
+                    // Pass to resolve function
+                    resolve(
+                      action.id,
+                      existingDocument?.id || 0,
+                      {
+                        process_card_id: processCard.id,
+                        document_draft_id: currentDraft?.id,
+                        payments: selectedPaymentsData,
+                        summary: null,
+                      },
+                      "store",
+                      "processPaymentClearance"
+                    );
                   }}
                   className="btn btn-success clearance-submit-btn"
                   disabled={!userCanHandle}

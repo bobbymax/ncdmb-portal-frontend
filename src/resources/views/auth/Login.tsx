@@ -10,12 +10,15 @@ import LoginTextInputWithIcon from "../components/forms/LoginTextInputWithIcon";
 import CustomButton from "../components/forms/CustomButton";
 import CompanyLogo from "../components/pages/CompanyLogo";
 import TwoFactorChallenge from "../components/Auth/TwoFactorChallenge";
+import { useErrors } from "app/Context/ErrorContext";
+import { ValidationError } from "app/Errors/AppErrors";
 
 const Login = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated, setStaff } = useAuth();
   const { setPages, setRole, setApps, setGroups, setRemunerations } =
     useStateContext();
+  const { handleError } = useErrors();
 
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -23,6 +26,7 @@ const Login = () => {
   const [requires2FA, setRequires2FA] = useState(false);
   const [userId, setUserId] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,8 +103,25 @@ const Login = () => {
         navigate("/insights");
       }
     } catch (error: any) {
-      // Error during login
-      // Login failed
+      // Handle login error with proper user feedback
+      handleError(
+        error,
+        {
+          component: "Login",
+          action: "authentication",
+        },
+        {
+          showToast: true,
+          silent: false,
+        }
+      );
+
+      // Set error message for display
+      if (error instanceof ValidationError) {
+        setLoginError("Please check your username and password.");
+      } else {
+        setLoginError(error.message || "Login failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
       setIsAnimating(false);
@@ -155,6 +176,17 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Error completing login after 2FA:", error);
+      handleError(
+        error,
+        {
+          component: "Login",
+          action: "2FA completion",
+        },
+        {
+          showToast: true,
+          silent: false,
+        }
+      );
       // Force navigation on error as fallback
       navigate("/desk/folders");
     }
@@ -180,13 +212,33 @@ const Login = () => {
       <div className="login-form-card">
         <CompanyLogo />
 
+        {loginError && (
+          <div
+            className="alert alert-danger"
+            style={{
+              marginBottom: "1.5rem",
+              padding: "0.75rem 1rem",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <i className="ri-error-warning-line"></i>
+            <span>{loginError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-12 mb-3">
               <LoginTextInputWithIcon
                 placeholder="Username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setLoginError(""); // Clear error when user starts typing
+                }}
                 size="md"
                 icon="user-5"
                 width={100}
@@ -198,7 +250,10 @@ const Login = () => {
                 placeholder="Password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setLoginError(""); // Clear error when user starts typing
+                }}
                 size="md"
                 icon="lock-password"
                 width={100}

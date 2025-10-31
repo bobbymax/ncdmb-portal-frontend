@@ -11,6 +11,7 @@ import _ from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRequestManager } from "app/Context/RequestManagerContext";
+import { handleGlobalError } from "app/Services/ErrorService";
 
 interface RestData {
   shouldFetch?: boolean;
@@ -154,8 +155,27 @@ export const useResourceActions = <T extends BaseRepository>(
 
   const handleError = (err: unknown, signal?: AbortSignal) => {
     if (signal?.aborted) {
-      // Fetch aborted
-    } else {
+      // Fetch aborted - don't show error
+      return;
+    }
+
+    // Use the new error handling system
+    try {
+      const appError = handleGlobalError(
+        err,
+        {
+          component: "useResourceActions",
+          url: View.server_url,
+        },
+        {
+          showToast: true,
+          silent: false,
+        }
+      );
+
+      setResourceError(appError.message);
+    } catch (fallbackErr) {
+      // Fallback to simple error handling if ErrorService fails
       const errorMessage =
         err instanceof Error ? err.message : "Failed to fetch data.";
       setResourceError(errorMessage);

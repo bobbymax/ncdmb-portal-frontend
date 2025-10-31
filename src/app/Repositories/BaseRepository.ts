@@ -117,7 +117,8 @@ export interface ViewsProps {
     | "builder"
     | "generator"
     | "configurator"
-    | "configuration";
+    | "configuration"
+    | "raw";
   mode: "store" | "update" | "list";
   tag?: string;
   action?: string;

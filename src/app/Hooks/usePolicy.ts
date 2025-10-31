@@ -8,6 +8,7 @@ import { ProgressTrackerResponseData } from "../Repositories/ProgressTracker/dat
 import { DocumentDraftResponseData } from "../Repositories/DocumentDraft/data";
 import { DocumentResponseData } from "../Repositories/Document/data";
 import { CategoryProgressTrackerProps } from "../Repositories/DocumentCategory/data";
+import { DepartmentResponseData } from "../Repositories/Department/data";
 
 interface UsePolicyParams {
   currentProcess?: ProgressTrackerResponseData | null;
@@ -26,7 +27,7 @@ export const scopes = {
 
 const usePolicy = (params?: UsePolicyParams) => {
   const { staff } = useAuth();
-  const { getResource } = useResourceContext();
+  const { getResource, getResourceById } = useResourceContext();
 
   const {
     currentProcess = null,
@@ -37,8 +38,11 @@ const usePolicy = (params?: UsePolicyParams) => {
   } = params || {};
 
   const users = (getResource("users") as UserResponseData[]) || [];
-
-  // console.log(users);
+  const department =
+    (getResourceById(
+      "departments",
+      staff?.department_id || 0
+    ) as DepartmentResponseData) || null;
 
   /**
    * Get users with higher or equal rank (supervisors/seniors)
@@ -61,7 +65,6 @@ const usePolicy = (params?: UsePolicyParams) => {
         if (!gradeLevel) return [];
 
         const scopeRanks = scopes[scope];
-        // console.log(scopeRanks, gradeLevel);
 
         return users.filter((user) => {
           const userGradeLevel =
@@ -71,8 +74,12 @@ const usePolicy = (params?: UsePolicyParams) => {
           // Check if user's rank is within the scope
           const isInScope = scopeRanks.includes(userGradeLevel.rank);
 
+          // console.log(scopeRanks, isInScope);
+
           // Check if user has higher or equal authority (lower rank number = higher authority)
           const isUpline = userGradeLevel.rank <= gradeLevel.rank;
+
+          // console.log(isUpline);
 
           // Same department check
           const sameDepartment = user.department_id === staff.department_id;
@@ -82,7 +89,10 @@ const usePolicy = (params?: UsePolicyParams) => {
           // Exclude self
           const notSelf = user.id !== staff.id;
 
-          if (scope === "department") {
+          if (
+            scope === "department" &&
+            department?.signatory_staff_id !== staff.id
+          ) {
             return isUpline && sameDepartment && notSelf;
           }
 
@@ -323,6 +333,7 @@ const usePolicy = (params?: UsePolicyParams) => {
   // Computed values
   const userHasPermission = can(loggedInUser?.groups as GroupResponseData[]);
   const userCanHandle = canHandle(currentDraft);
+  const processHandled = currentDraft?.status !== "pending";
 
   return {
     uplines,
@@ -334,6 +345,7 @@ const usePolicy = (params?: UsePolicyParams) => {
     getTrackerUserIds,
     userHasPermission,
     userCanHandle,
+    processHandled,
   };
 };
 

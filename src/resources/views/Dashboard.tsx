@@ -17,10 +17,12 @@ import {
 import { repo, toTitleCase } from "../../bootstrap/repositories";
 import { DocumentResponseData } from "@/app/Repositories/Document/data";
 import { useAuth } from "app/Context/AuthContext";
+import { useErrors } from "app/Context/ErrorContext";
 import "../assets/css/dashboard-flat.css";
 
 const Dashboard = () => {
   const { staff } = useAuth();
+  const { handleError } = useErrors();
   const [documents, setDocuments] = useState<DocumentResponseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [noRecordFound, setNoRecordFound] = useState(false);
@@ -242,7 +244,19 @@ const Dashboard = () => {
           }
         }
       } catch (error) {
-        console.error("Dashboard: Error fetching documents", error);
+        // Use centralized error handling
+        handleError(
+          error,
+          {
+            component: "Dashboard",
+            action: "fetchDocuments",
+          },
+          {
+            showToast: true,
+            silent: false,
+          }
+        );
+
         setNoRecordFound(true);
         setDocuments([]);
       } finally {
@@ -1077,7 +1091,7 @@ const Dashboard = () => {
             </div>
             <div className="widget-content">
               <div className="progress-items">
-                {documentTypeChartData
+                {[...documentTypeChartData]
                   .sort((a, b) => b.value - a.value)
                   .slice(0, 5)
                   .map((item, index) => {

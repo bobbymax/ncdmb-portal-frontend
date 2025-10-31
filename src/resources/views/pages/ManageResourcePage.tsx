@@ -110,6 +110,8 @@ const ManageResourcePage = ({
                   label={view?.action}
                   icon="ri-function-add-fill"
                   isDisabled={!isDisabled || loading}
+                  variant="success"
+                  size="xl"
                 />
                 {view.mode === "update" && (
                   <Button
@@ -118,6 +120,7 @@ const ManageResourcePage = ({
                     handleClick={() => destroy()}
                     isDisabled={loading}
                     variant="danger"
+                    size="xl"
                   />
                 )}
               </div>
