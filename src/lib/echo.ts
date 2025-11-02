@@ -41,7 +41,7 @@ const createEchoInstance = () => {
   }
 
   return new Echo({
-    broadcaster: "pusher",
+    broadcaster: "reverb",
     key: reverbKey,
     wsHost: reverbHost,
     wsPort: reverbPort,
