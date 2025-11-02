@@ -51,6 +51,7 @@ interface AuthContextType {
   setStaff: Dispatch<SetStateAction<AuthUserResponseData | undefined>>;
   authState: AuthState;
   isAuthenticated: boolean;
+  isCheckingSession: boolean;
   setIsAuthenticated: Dispatch<SetStateAction<boolean>>;
   logout: () => void;
   updateAuthenticatedUser: (user: AuthUserResponseData) => void;
@@ -70,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     token: null,
   });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [staff, setStaff] = useState<AuthUserResponseData | undefined>();
   const getUser = () => (staff ? { id: staff.id.toString() } : null);
 
@@ -126,14 +128,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   };
 
-  // reference here
+  // Check for existing session on mount (persists login across refreshes)
+  useEffect(() => {
+    const initializeAuth = async () => {
+      setIsCheckingSession(true);
+      
+      try {
+        const response = await getLoggedInUser();
+        if (response && response.data.data) {
+          setStaff(response.data.data);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+
+    initializeAuth();
+  }, []); // Run once on mount
+
+  // Periodic auth refresh to keep session alive
   useEffect(() => {
     if (isAuthenticated) {
       const interval = setInterval(() => {
         fetchUser();
-      }, 30 * 60 * 1000); // 5 minutes in milliseconds
+      }, 30 * 60 * 1000); // 30 minutes
 
-      return () => clearInterval(interval); // Cleanup interval on unmount
+      return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
 
@@ -144,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setStaff,
         authState,
         isAuthenticated,
+        isCheckingSession,
         setIsAuthenticated,
         logout,
         updateAuthenticatedUser,

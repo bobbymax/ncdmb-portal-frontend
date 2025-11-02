@@ -53,22 +53,38 @@ apiInstance.interceptors.response.use(
   (error) => {
     // Create typed error
     const appError = createErrorFromAxios(error);
+    const url = error.config?.url || "";
 
-    // Log to error service
-    errorService.logError({
-      message: appError.message,
-      category: appError.category as ErrorCategory,
-      severity: errorService.determineSeverity(
-        appError.category as ErrorCategory,
-        appError.code
-      ),
-      code: appError.code,
-      context: appError.context,
-      originalError: error,
-    });
+    // Skip logging for expected 401/403 errors that are not actual problems
+    const isExpectedAuthError =
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      (url.includes("api/user") ||
+        url.includes("broadcasting/auth") ||
+        url.includes("/login") ||
+        url.includes("/logout"));
+
+    // Log to error service (skip expected auth failures)
+    if (!isExpectedAuthError) {
+      errorService.logError({
+        message: appError.message,
+        category: appError.category as ErrorCategory,
+        severity: errorService.determineSeverity(
+          appError.category as ErrorCategory,
+          appError.code
+        ),
+        code: appError.code,
+        context: appError.context,
+        originalError: error,
+      });
+    }
 
     // Handle authentication errors
     if (error.response?.status === 401 || error.response?.status === 403) {
+      // Don't auto-logout for expected auth failures (session checks, etc)
+      if (isExpectedAuthError) {
+        return Promise.reject(appError);
+      }
+
       // Session expired - clear all auth data
       TokenProvider.getInstance().clearToken();
       const authProvider = new AuthProvider();

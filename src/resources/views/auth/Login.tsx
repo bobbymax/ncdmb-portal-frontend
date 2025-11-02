@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStateContext } from "app/Context/ContentContext";
 import { getLoggedInUser, loginStaff } from "app/init";
@@ -15,7 +15,7 @@ import { ValidationError } from "app/Errors/AppErrors";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setIsAuthenticated, setStaff } = useAuth();
+  const { setIsAuthenticated, setStaff, isAuthenticated } = useAuth();
   const { setPages, setRole, setApps, setGroups, setRemunerations } =
     useStateContext();
   const { handleError } = useErrors();
@@ -27,6 +27,13 @@ const Login = () => {
   const [userId, setUserId] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string>("");
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/insights", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

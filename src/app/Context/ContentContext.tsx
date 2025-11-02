@@ -108,6 +108,24 @@ export const ContentContext = ({ children }: ProtectedProps) => {
     return convertValueToDataType(setting.value, setting.input_data_type);
   };
 
+  // Auto-populate pages, apps, role, groups when staff data is available
+  useEffect(() => {
+    if (staff) {
+      const {
+        pages: userPages = [],
+        role: userRole = null,
+        groups: userGroups = [],
+        remunerations: userRemunerations = [],
+      } = staff;
+
+      setApps(userPages.filter((page) => page.type === "app"));
+      setPages(userPages);
+      setRole(userRole);
+      setGroups(userGroups);
+      setRemunerations(userRemunerations);
+    }
+  }, [staff]);
+
   // Fetch settings on component mount
   useEffect(() => {
     if (staff) {
