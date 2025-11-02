@@ -27,11 +27,7 @@ export const inboundConfig: ConfigProp<InboundResponseData> = {
     "ocr_available",
     "ocr_index_version",
   ],
-  associatedResources: [
-    { name: "departments", url: "departments" },
-    { name: "vendors", url: "vendors" },
-    { name: "users", url: "users" },
-  ],
+  associatedResources: [{ name: "vendors", url: "vendors" }],
   state: {
     id: 0,
     received_by_id: 0,

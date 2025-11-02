@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AuthUserResponseData } from "../Context/AuthContext";
+import { ApiService } from "./ApiService";
 
 export interface AIRequestConfig {
   model?: string;
@@ -52,15 +53,27 @@ export interface FraudDetectionResult {
   recommendations: string[];
 }
 
+export interface InboundAnalysisResult {
+  summary: string;
+  keyFeatures: string[];
+  organizationalBenefits: string[];
+  documentType?: string;
+  confidence: number;
+  urgency?: string;
+  suggestedActions?: string[];
+}
+
 class AIService {
   private baseURL: string;
   private apiKey: string;
   private user: AuthUserResponseData | undefined;
+  private apiService: ApiService;
 
   constructor() {
     this.baseURL =
       process.env.REACT_APP_AI_API_ENDPOINT || "https://api.openai.com/v1";
     this.apiKey = process.env.REACT_APP_AI_API_KEY || "";
+    this.apiService = new ApiService();
   }
 
   setUser(user: AuthUserResponseData) {
@@ -289,6 +302,74 @@ class AIService {
       },
       config
     );
+  }
+
+  // Inbound Document Intelligence
+  async analyzeInboundDocument(
+    documentText: string,
+    boardDescription: string,
+    senderInfo: {
+      name: string;
+      email: string;
+      phone: string;
+    },
+    config?: AIRequestConfig,
+    provider?: "openai" | "huggingface"
+  ): Promise<AIResponse<InboundAnalysisResult>> {
+    try {
+      // Call backend API using ApiService (handles auth, identity markers, etc.)
+      const response = await this.apiService.post<{
+        success: boolean;
+        data?: {
+          analysis: InboundAnalysisResult;
+          usage?: {
+            prompt_tokens?: number;
+            completion_tokens?: number;
+            total_tokens?: number;
+          };
+        };
+        message?: string;
+      }>("ai/analyze-inbound", {
+        documentText,
+        boardDescription,
+        senderInfo,
+        config,
+        provider,
+      });
+
+      // Handle the response structure properly
+      if (response.data?.success) {
+        const backendData = response.data?.data;
+
+        // Check if we have the analysis data
+        if (backendData?.analysis) {
+          return {
+            success: true,
+            data: backendData.analysis,
+            usage: backendData.usage
+              ? {
+                  promptTokens: backendData.usage.prompt_tokens || 0,
+                  completionTokens: backendData.usage.completion_tokens || 0,
+                  totalTokens: backendData.usage.total_tokens || 0,
+                }
+              : undefined,
+          };
+        }
+      }
+
+      return {
+        success: false,
+        error: response.data?.message || "AI analysis failed",
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to analyze document",
+      };
+    }
   }
 }
 

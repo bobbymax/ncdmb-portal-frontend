@@ -1,0 +1,323 @@
+/* Inbound Tabs Container */
+.inbound-tabs-container {
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Tab Headers */
+.inbound-tabs-header {
+  display: flex;
+  position: relative;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  padding: 0;
+  margin: 0;
+}
+
+.tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.tab-button i {
+  font-size: 18px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button span {
+  font-weight: 500;
+  transition: font-weight 0.2s ease;
+}
+
+.tab-button:hover {
+  color: #495057;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tab-button:hover i {
+  transform: scale(1.1);
+}
+
+.tab-button.active {
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+.tab-button.active i {
+  transform: scale(1.15);
+}
+
+/* Tab Indicator - Animated underline */
+.tab-indicator {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: calc(100% / 3);
+  height: 3px;
+  background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+  border-radius: 3px 3px 0 0;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+/* Tab Content */
+.inbound-tabs-content {
+  position: relative;
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Tab Content */
+.inbound-tabs-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.inbound-tabs-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.inbound-tabs-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.inbound-tabs-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.tab-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-pane.active {
+  position: relative;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Slide in animation with pull effect */
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Placeholder Styles for Tab Content */
+.inbound-analysis-tab,
+.inbound-instructions-tab,
+.inbound-report-tab {
+  padding: 32px 24px;
+  min-height: 300px;
+}
+
+.analysis-placeholder,
+.instructions-placeholder,
+.report-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.placeholder-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: float 3s ease-in-out infinite;
+}
+
+.placeholder-icon i {
+  font-size: 36px;
+  color: #6c757d;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.analysis-placeholder h4,
+.instructions-placeholder h4,
+.report-placeholder h4 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 12px;
+}
+
+.analysis-placeholder p,
+.instructions-placeholder p,
+.report-placeholder p {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.text-muted.small {
+  font-size: 13px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tab-button span {
+    display: none;
+  }
+  
+  .tab-button {
+    padding: 12px 16px;
+  }
+  
+  .tab-button i {
+    font-size: 20px;
+  }
+  
+  .inbound-analysis-tab,
+  .inbound-instructions-tab,
+  .inbound-report-tab {
+    padding: 24px 16px;
+  }
+}
+
+/* Loading state for tabs */
+.tab-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: #6c757d;
+}
+
+.tab-loading i {
+  font-size: 32px;
+  animation: spin 1s linear infinite;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Analysis Controls */
+.analysis-controls {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.analysis-controls h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.analysis-controls .text-muted.small {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Hover effects for accessibility */
+.tab-button:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+
+.tab-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+  .inbound-tabs-container {
+    background: #1a1a1a;
+  }
+  
+  .inbound-tabs-header {
+    background: #2d2d2d;
+    border-bottom-color: #404040;
+  }
+  
+  .tab-button {
+    color: #adb5bd;
+  }
+  
+  .tab-button:hover {
+    color: #dee2e6;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .tab-button.active {
+    color: #0dcaf0;
+  }
+  
+  .placeholder-icon {
+    background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+  }
+  
+  .placeholder-icon i {
+    color: #adb5bd;
+  }
+  
+  .analysis-placeholder h4,
+  .instructions-placeholder h4,
+  .report-placeholder h4 {
+    color: #f8f9fa;
+  }
+}
+

@@ -121,6 +121,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Import/data"
   },
   {
+    "key": "Inbound",
+    "path": "../app/Repositories/Inbound/data"
+  },
+  {
     "key": "Invoice",
     "path": "../app/Repositories/Invoice/data"
   },
@@ -183,6 +187,10 @@ export const resourceFiles = [
   {
     "key": "ProjectCategory",
     "path": "../app/Repositories/ProjectCategory/data"
+  },
+  {
+    "key": "Query",
+    "path": "../app/Repositories/Query/data"
   },
   {
     "key": "Reconciliation",

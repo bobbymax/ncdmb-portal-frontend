@@ -36,6 +36,24 @@
   color: white;
 }
 
+/* Override icon-badge-purple for consistent sizing in this view */
+.inbound-view .icon-badge-purple {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  box-shadow: 0 4px 6px rgba(168, 85, 247, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inbound-view .icon-badge-purple i {
+  font-size: 20px;
+  color: white;
+}
+
 .pdf-viewer-card {
   min-height: 100%;
 }
@@ -187,5 +205,346 @@
   background-color: #fef3c7;
   color: #78350f;
   border: 1px solid #fcd34d;
+}
+
+/* AI Analysis Container */
+.ai-analysis-container {
+  margin-top: 20px;
+  border: 2px solid #e9d5ff;
+  background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+}
+
+.ai-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.ai-confidence-badge i {
+  font-size: 14px;
+}
+
+/* AI Analysis Results */
+.ai-analysis-results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Analysis Cards */
+.analysis-card {
+  padding: 16px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.analysis-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-color: #a855f7;
+}
+
+.analysis-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.analysis-card-header i {
+  font-size: 20px;
+  color: #a855f7;
+}
+
+.analysis-card-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.analysis-content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Analysis Lists */
+.analysis-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysis-list li {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+}
+
+.analysis-list li i {
+  font-size: 18px;
+  color: #a855f7;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.analysis-list li span {
+  flex: 1;
+}
+
+/* Specific Card Styles */
+.summary-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border-color: #fde047;
+}
+
+.summary-card .analysis-card-header i {
+  color: #ca8a04;
+}
+
+.features-card {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+  border-color: #7dd3fc;
+}
+
+.features-card .analysis-card-header i {
+  color: #0284c7;
+}
+
+.features-card .analysis-list li i {
+  color: #0284c7;
+}
+
+.benefits-card {
+  background: linear-gradient(135deg, #d1fae5 0%, #d1fae5 100%);
+  border-color: #6ee7b7;
+  border-width: 2px;
+}
+
+.benefits-card .analysis-card-header {
+  border-bottom-color: #6ee7b7;
+}
+
+.benefits-card .analysis-card-header i {
+  color: #059669;
+}
+
+.benefits-card .analysis-list li i {
+  color: #059669;
+}
+
+.actions-card {
+  background: linear-gradient(135deg, #fce7f3 0%, #fae8ff 100%);
+  border-color: #f0abfc;
+}
+
+.actions-card .analysis-card-header i {
+  color: #c026d3;
+}
+
+.actions-card .analysis-list li i {
+  color: #c026d3;
+}
+
+/* Analysis Meta */
+.analysis-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.meta-badge i {
+  font-size: 14px;
+}
+
+.meta-badge.urgency-high {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.meta-badge.urgency-medium {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.meta-badge.urgency-low {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+/* Compact Header Styles */
+.compact-header {
+  margin-bottom: 12px !important;
+  padding: 12px 16px !important;
+}
+
+.compact-icon {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.compact-icon i {
+  font-size: 16px !important;
+}
+
+.compact-title {
+  font-size: 15px !important;
+  margin-bottom: 2px !important;
+}
+
+.compact-subtitle {
+  font-size: 11px !important;
+  margin-bottom: 0 !important;
+}
+
+.compact-body {
+  padding: 16px !important;
+}
+
+.compact-tabs-wrapper {
+  padding: 0 !important;
+  padding-top: 16px !important;
+}
+
+/* Compact Info Grid */
+.compact-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.compact-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.compact-info-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.compact-info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.compact-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compact-label i {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.compact-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-value-small {
+  font-size: 13px;
+}
+
+.compact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.compact-badge i {
+  font-size: 14px;
+}
+
+.compact-badge.priority-high {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.compact-badge.priority-medium {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.compact-badge.priority-low {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.compact-badge.security-badge {
+  background-color: #fef3c7;
+  color: #78350f;
+  border: 1px solid #fcd34d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .compact-info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .compact-info-item.full-width {
+    grid-column: auto;
+  }
 }
 
