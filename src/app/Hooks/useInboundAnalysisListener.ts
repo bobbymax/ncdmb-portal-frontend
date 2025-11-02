@@ -3,7 +3,7 @@ import { echo } from "lib/echo";
 import { InboundAnalysisResult } from "app/Services/AIService";
 import { ApiService } from "app/Services/ApiService";
 
-export type AnalysisStep = 
+export type AnalysisStep =
   | "idle"
   | "queueing"
   | "extracting"
@@ -42,13 +42,26 @@ export const useInboundAnalysisListener = (
 
       try {
         const response = await apiService.post<{
-          success: boolean;
+          status?: string;
           message: string;
+          data?: {
+            success: boolean;
+            inbound_id?: number;
+            provider?: string;
+          };
         }>(`inbounds/${inboundId}/analyze`, {
           provider,
         });
 
-        if (response.data?.success) {
+        console.log(response);
+
+        // Check nested success field (backend wraps it in data.data.success)
+        const jobQueued =
+          response.data?.data?.success || response.data?.status === "success";
+
+        // const jobQueued = null;
+
+        if (jobQueued) {
           // Analysis will come via Pusher event
           // Simulate progression through steps
           setTimeout(() => setLoadingStep("extracting"), 1000);
@@ -107,4 +120,3 @@ export const useInboundAnalysisListener = (
     triggerAnalysis,
   };
 };
-

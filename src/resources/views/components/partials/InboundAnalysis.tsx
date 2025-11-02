@@ -50,24 +50,8 @@ const InboundAnalysis: React.FC<
   const displayAnalysis = analysis || (state.analysis as any);
 
   const handleAnalyze = async () => {
-    console.log("🎯 Starting analysis...", {
-      selectedProvider,
-      inboundId: state.id,
-      isAnalyzing,
-    });
     await triggerAnalysis(selectedProvider);
   };
-
-  // Debug: Log loading state changes
-  useEffect(() => {
-    console.log("📊 Loading state:", {
-      isAnalyzing,
-      loadingStep,
-      hasError: !!error,
-      errorMessage: error,
-      hasAnalysis: !!displayAnalysis,
-    });
-  }, [isAnalyzing, loadingStep, error, displayAnalysis]);
 
   const getLoadingMessage = (step: AnalysisStep): string => {
     switch (step) {
