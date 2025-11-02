@@ -53,8 +53,6 @@ export const useInboundAnalysisListener = (
           provider,
         });
 
-        console.log(response);
-
         // Check nested success field (backend wraps it in data.data.success)
         const jobQueued =
           response.data?.data?.success || response.data?.status === "success";
@@ -84,10 +82,12 @@ export const useInboundAnalysisListener = (
   useEffect(() => {
     if (!inboundId) return;
 
+    console.log("🔔 Setting up Pusher listener for inbound:", inboundId);
     const channel = echo.private(`inbound.${inboundId}`);
 
     // Listen for analysis completion
-    channel.listen("InboundAnalysisCompleted", (event: any) => {
+    channel.listen(".InboundAnalysisCompleted", (event: any) => {
+      console.log("✅ InboundAnalysisCompleted event received:", event);
       setLoadingStep("completing");
       setTimeout(() => {
         setAnalysis(event.analysis);
@@ -98,7 +98,8 @@ export const useInboundAnalysisListener = (
     });
 
     // Listen for analysis errors
-    channel.listen("InboundAnalysisFailed", (event: any) => {
+    channel.listen(".InboundAnalysisFailed", (event: any) => {
+      console.log("❌ InboundAnalysisFailed event received:", event);
       setError(event.error || "Analysis failed");
       setIsAnalyzing(false);
       setLoadingStep("idle");
@@ -106,8 +107,8 @@ export const useInboundAnalysisListener = (
 
     // Cleanup on unmount
     return () => {
-      channel.stopListening("InboundAnalysisCompleted");
-      channel.stopListening("InboundAnalysisFailed");
+      channel.stopListening(".InboundAnalysisCompleted");
+      channel.stopListening(".InboundAnalysisFailed");
       echo.leaveChannel(`inbound.${inboundId}`);
     };
   }, [inboundId]);
