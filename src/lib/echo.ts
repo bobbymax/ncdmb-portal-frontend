@@ -93,26 +93,34 @@ const createEchoInstance = () => {
   });
 };
 
-// Export the Echo instance
-export const echo = createEchoInstance();
+// Lazy-load Echo instance to prevent blocking login
+let echoInstance: any = null;
+
+export const echo = new Proxy({} as any, {
+  get(target, prop) {
+    if (!echoInstance) {
+      echoInstance = createEchoInstance();
+    }
+    return (echoInstance as any)[prop];
+  },
+});
 
 // Function to recreate Echo instance with fresh token
 export const refreshEchoAuth = () => {
+  if (!echoInstance) return;
+
   // Disconnect current instance
-  echo.disconnect();
+  echoInstance.disconnect();
 
   // Create new instance with fresh token
-  const newEcho = createEchoInstance();
+  echoInstance = createEchoInstance();
 
-  // Update the exported echo reference
-  Object.assign(echo, newEcho);
-
-  return echo;
+  return echoInstance;
 };
 
-// Set up automatic token refresh when TokenProvider token changes
-TokenProvider.getInstance().subscribe((token) => {
-  if (token) {
-    refreshEchoAuth();
-  }
-});
+// Disable automatic token refresh to prevent loops
+// TokenProvider.getInstance().subscribe((token) => {
+//   if (token) {
+//     refreshEchoAuth();
+//   }
+// });

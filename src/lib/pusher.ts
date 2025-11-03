@@ -3,7 +3,7 @@ import TokenProvider from "./TokenProvider";
 import { ApiService } from "../app/Services/ApiService";
 
 // Enable pusher logging - don't include this in production
-Pusher.logToConsole = process.env.NODE_ENV === "development";
+// Pusher.logToConsole = process.env.NODE_ENV === "development";
 
 // Connection state enum
 export enum PusherConnectionState {

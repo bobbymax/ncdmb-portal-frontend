@@ -18,6 +18,7 @@ import { GradeLevelResponseData } from "../Repositories/GradeLevel/data";
 import TokenProvider from "lib/TokenProvider";
 import { useResourceContext } from "./ResourceContext";
 import { AuthProvider as AuthProviderClass } from "../Providers/AuthProvider";
+import Cookies from "js-cookie";
 
 export type AuthUserResponseData = {
   id: number;
@@ -106,18 +107,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await apiService.post("logout", {});
     } catch (error) {
       // Logout API call failed, but still clear local state
-      console.error("Logout API call failed:", error);
     } finally {
       // Always clear state regardless of API call success
       setAuthState({ staff: null, token: null, refresh_token: null });
       setStaff(undefined);
       setIsAuthenticated(false);
+      
       // Clear token from TokenProvider
       TokenProvider.getInstance().clearToken();
 
-      // Also clear localStorage auth token
+      // Clear client-side cookies (server handles HttpOnly cookies)
+      // Try multiple domain/path combinations to ensure cleanup
+      const cookieVariants = [
+        { domain: '.portal.test', path: '/' },
+        { domain: 'portal.test', path: '/' },
+        { domain: 'localhost', path: '/' },
+        { path: '/' },
+      ];
+      
+      cookieVariants.forEach(options => {
+        Cookies.remove('user_id', options);
+        Cookies.remove('XSRF-TOKEN', options);
+      });
+      
+      // Also remove without options
+      Cookies.remove('user_id');
+      Cookies.remove('XSRF-TOKEN');
+      
+      // Clear localStorage completely
       const authProviderInstance = new AuthProviderClass();
       authProviderInstance.logout();
+      localStorage.clear();
+      
+      // Force redirect to login page
+      window.location.href = '/auth/login';
     }
   };
 
@@ -148,8 +171,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    initializeAuth();
-  }, []); // Run once on mount
+    // ONLY check if we're NOT on the login page AND not already authenticated
+    // This prevents race conditions during login
+    if (!window.location.pathname.includes('/auth/login') && !isAuthenticated) {
+      initializeAuth();
+    } else {
+      setIsCheckingSession(false);
+    }
+  }, []); // Keep dependencies empty to run ONLY once on mount
 
   // Periodic auth refresh to keep session alive
   useEffect(() => {

@@ -59,35 +59,31 @@ const Login = () => {
         return;
       }
 
+      // CRITICAL FIX: Set user_id cookie BEFORE calling getLoggedInUser
+      // This ensures the identity marker is valid for all subsequent requests
+      const userId = loginResponse.data?.user_id || 
+                     loginResponse.data?.data?.user_id || 
+                     loginResponse.data?.data?.id;
+      
+      if (userId) {
+        const cookieOptions = {
+          expires: 7,
+          secure: window.location.protocol === "https:",
+          sameSite: "lax" as const,
+        };
+
+        try {
+          Cookies.set("user_id", userId.toString(), cookieOptions);
+        } catch (cookieError) {
+          localStorage.setItem("user_id", userId.toString());
+        }
+      }
+
+      // NOW fetch user details with valid identity marker
       const staff: AxiosResponse<{ data: AuthUserResponseData }> =
         await getLoggedInUser();
 
       if (staff) {
-        // Save user ID in cookies
-        const cookieOptions = {
-          expires: 7,
-          secure: window.location.protocol === "https:", // Only secure on HTTPS
-          sameSite: "lax" as const, // Less restrictive for better compatibility
-        };
-
-        // Setting cookie with options
-
-        try {
-          Cookies.set(
-            "user_id",
-            staff?.data?.data?.id?.toString(),
-            cookieOptions
-          );
-          // Cookie set successfully
-        } catch (cookieError) {
-          // Cookie setting failed (possibly incognito mode)
-          // Using localStorage fallback for user_id
-          localStorage.setItem(
-            "user_id",
-            staff?.data?.data?.id?.toString() || ""
-          );
-        }
-
         const {
           pages = [],
           role = null,
@@ -102,10 +98,6 @@ const Login = () => {
         setRemunerations(remunerations);
         setIsAuthenticated(true);
         setStaff(staff.data.data);
-
-        // const defaultPage = pages.find(
-        //   (page) => page.id === staff.data.data.default_page_id
-        // );
 
         navigate("/insights");
       }
@@ -138,11 +130,9 @@ const Login = () => {
   // Complete login after 2FA verification
   const handleTwoFactorSuccess = async () => {
     try {
-      const staff: AxiosResponse<{ data: AuthUserResponseData }> =
-        await getLoggedInUser();
-
-      if (staff && staff.data && staff.data.data) {
-        // Save user ID in cookies
+      // CRITICAL FIX: Set user_id cookie BEFORE calling getLoggedInUser
+      // The user_id should already be set during 2FA, but ensure it's set
+      if (userId) {
         const cookieOptions = {
           expires: 7,
           secure: window.location.protocol === "https:",
@@ -150,10 +140,17 @@ const Login = () => {
         };
 
         try {
-          Cookies.set("user_id", staff.data.data.id.toString(), cookieOptions);
+          Cookies.set("user_id", userId.toString(), cookieOptions);
         } catch (cookieError) {
-          localStorage.setItem("user_id", staff.data.data.id.toString());
+          localStorage.setItem("user_id", userId.toString());
         }
+      }
+
+      // NOW fetch user details with valid identity marker
+      const staff: AxiosResponse<{ data: AuthUserResponseData }> =
+        await getLoggedInUser();
+
+      if (staff && staff.data && staff.data.data) {
 
         const {
           pages = [],

@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import PageLoader from "resources/views/components/loaders/PageLoader";
 import ThemeToggle from "resources/views/components/ThemeToggle";
 import DocumentGenerationProgress from "resources/views/components/DocumentGenerationProgress";
+import NotificationBell from "resources/views/components/NotificationBell";
 
 // Global type declaration for the document progress modal
 declare global {
@@ -233,7 +234,7 @@ const Protected = ({ children }: ProtectedProps) => {
             {/* <i className="topheadericon ri-code-s-slash-line" /> */}
             <ThemeToggle />
             {/* <i className="topheadericon ri-grid-line" /> */}
-            <i className="topheadericon ri-notification-2-line" />
+            <NotificationBell />
             <div
               className="profile-section flex align gap-md"
               style={{ position: "relative" }}

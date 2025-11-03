@@ -28,7 +28,7 @@ export default class InboundRepository extends BaseRepository {
       from_phone: data.from_phone ?? "",
       ref_no: data.ref_no ?? "",
       summary: data.summary ?? "",
-      instructions: data.instructions ?? {},
+      instructions: data.instructions ?? [],
       analysis: data.analysis ?? {},
       mailed_at: data.mailed_at ?? "",
       received_at: data.received_at ?? "",

@@ -1,6 +1,7 @@
 import { BaseResponse } from "../BaseRepository";
 import { UploadResponseData } from "../Document/data";
 import { InboundAnalysisResult } from "../../Services/AIService";
+import { InboundInstructionResponseData } from "../InboundInstruction/data";
 
 export interface InboundResponseData extends BaseResponse {
   received_by_id: number;
@@ -12,7 +13,7 @@ export interface InboundResponseData extends BaseResponse {
   from_phone: string;
   ref_no: string;
   summary: string;
-  instructions: unknown;
+  instructions: InboundInstructionResponseData[];
   analysis: InboundAnalysisResult | unknown;
   mailed_at: string;
   received_at: string;

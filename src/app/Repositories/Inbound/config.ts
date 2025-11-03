@@ -27,7 +27,12 @@ export const inboundConfig: ConfigProp<InboundResponseData> = {
     "ocr_available",
     "ocr_index_version",
   ],
-  associatedResources: [{ name: "vendors", url: "vendors" }],
+  associatedResources: [
+    { name: "vendors", url: "vendors" },
+    { name: "users", url: "users" },
+    { name: "departments", url: "departments" },
+    { name: "groups", url: "groups" },
+  ],
   state: {
     id: 0,
     received_by_id: 0,
@@ -39,7 +44,7 @@ export const inboundConfig: ConfigProp<InboundResponseData> = {
     from_phone: "",
     ref_no: "",
     summary: "",
-    instructions: {},
+    instructions: [],
     analysis: {},
     mailed_at: "",
     received_at: "",

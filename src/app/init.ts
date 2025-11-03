@@ -59,9 +59,14 @@ apiInstance.interceptors.response.use(
     const isExpectedAuthError =
       (error.response?.status === 401 || error.response?.status === 403) &&
       (url.includes("api/user") ||
+        url.includes("api/documents") ||
+        url.includes("api/settings") ||
+        url.includes("api/notifications") ||
+        url.includes("api/inbounds") ||
         url.includes("broadcasting/auth") ||
         url.includes("/login") ||
-        url.includes("/logout"));
+        url.includes("/logout") ||
+        url.includes("/sanctum/csrf-cookie"));
 
     // Log to error service (skip expected auth failures)
     if (!isExpectedAuthError) {
