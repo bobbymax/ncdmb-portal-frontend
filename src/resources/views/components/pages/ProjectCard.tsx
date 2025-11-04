@@ -1,15 +1,28 @@
 import { ProjectResponseData } from "@/app/Repositories/Project/data";
 import Button from "../forms/Button";
 import moment from "moment";
-import projectIcon from "../../../assets/images/projects.png";
 
-const projectStatuses = {
-  pending: "#e67e22",
-  registered: "#2980b9",
-  approved: "#27ae60",
-  denied: "#c0392b",
-  kiv: "#8e44ad",
-  discussed: "#2c3e50",
+const projectTypeIcons = {
+  capital: "ri-building-line",
+  operational: "ri-tools-line",
+  maintenance: "ri-hammer-line",
+  research: "ri-flask-line",
+  infrastructure: "ri-road-map-line",
+};
+
+const projectTypeColors = {
+  capital: "#5a9279",
+  operational: "#4caf50",
+  maintenance: "#ff9800",
+  research: "#2196f3",
+  infrastructure: "#9c27b0",
+};
+
+const priorityBadges = {
+  critical: { icon: "ri-error-warning-line", color: "#dc3545" },
+  high: { icon: "ri-alarm-warning-line", color: "#ff9800" },
+  medium: { icon: "ri-information-line", color: "#2196f3" },
+  low: { icon: "ri-checkbox-circle-line", color: "#4caf50" },
 };
 
 const ProjectCard = ({
@@ -26,87 +39,108 @@ const ProjectCard = ({
     proposed_end_date,
     description,
     status,
+    project_type,
+    priority,
+    total_proposed_amount,
+    physical_progress_percentage,
   } = data;
 
+  const projectIcon = projectTypeIcons[project_type] || "ri-folder-line";
+  const projectColor = projectTypeColors[project_type] || "#5a9279";
+  const priorityConfig = priorityBadges[priority] || priorityBadges.medium;
+
   return (
-    <article className="project_card_item">
-      <header className="flex align between mb-4">
-        <div className="title__section__project flex start gap-md align">
-          <img src={projectIcon} alt="Icon for Projects" />
-          <h3>{title}</h3>
+    <div className="modern-project-card">
+      {/* Priority Badge */}
+      <div className="project-priority-badge" style={{ borderColor: priorityConfig.color }}>
+        <i className={priorityConfig.icon} style={{ color: priorityConfig.color }}></i>
+      </div>
+
+      {/* Header */}
+      <div className="project-card-header">
+        <div className="project-icon-wrapper" style={{ backgroundColor: `${projectColor}15` }}>
+          <i className={projectIcon} style={{ color: projectColor }}></i>
         </div>
-        <div
-          className="status__div"
-          style={{
-            backgroundColor: projectStatuses[status],
-            padding: "2px 9px",
-            borderRadius: 2,
-            color: "white",
-          }}
-        >
-          <small
+        <div className="project-title-section">
+          <h5 className="project-card-title">{title}</h5>
+          <div className="project-meta">
+            <span className="project-type-badge" style={{ color: projectColor }}>
+              {project_type}
+            </span>
+            <span className="project-separator">•</span>
+            <span className="project-status-text">{status}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className="project-description">{description || "No description provided"}</p>
+
+      {/* Progress Bar */}
+      <div className="project-progress-section">
+        <div className="progress-label-row">
+          <small className="progress-label">Physical Progress</small>
+          <small className="progress-value">{physical_progress_percentage}%</small>
+        </div>
+        <div className="project-progress-bar">
+          <div
+            className="project-progress-fill"
             style={{
-              fontSize: 8,
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              display: "block",
+              width: `${physical_progress_percentage}%`,
+              backgroundColor: projectColor,
             }}
-          >
-            {status}
-          </small>
-        </div>
-      </header>
-
-      <div className="mid__section__article flex align between gap-md">
-        <div className="event__item flex column start gap-sm">
-          <small>Start Date:</small>
-          <span>{moment(proposed_start_date).format("ll")}</span>
-        </div>
-        <div className="event__item flex column start gap-sm">
-          <small>End Date:</small>
-          <span>{moment(proposed_end_date).format("ll")}</span>
-        </div>
-        <div className="event__item flex column start gap-sm">
-          <small>Progress</small>
-          <p>Progress bar here!!</p>
+          ></div>
         </div>
       </div>
 
-      <div
-        className="bottom__mid__section mb-4"
-        style={{
-          padding: "16px 0",
-          fontSize: 12,
-          textAlign: "justify",
-        }}
-      >
-        <p>{description}</p>
+      {/* Timeline & Budget */}
+      <div className="project-info-grid">
+        <div className="project-info-item">
+          <i className="ri-calendar-check-line" style={{ color: "#4caf50" }}></i>
+          <div className="project-info-content">
+            <small>Start Date</small>
+            <span>{moment(proposed_start_date).format("MMM DD, YYYY")}</span>
+          </div>
+        </div>
+        <div className="project-info-item">
+          <i className="ri-calendar-event-line" style={{ color: "#ff9800" }}></i>
+          <div className="project-info-content">
+            <small>End Date</small>
+            <span>{moment(proposed_end_date).format("MMM DD, YYYY")}</span>
+          </div>
+        </div>
+        <div className="project-info-item">
+          <i className="ri-money-dollar-circle-line" style={{ color: "#2196f3" }}></i>
+          <div className="project-info-content">
+            <small>Budget</small>
+            <span>₦{(total_proposed_amount || 0).toLocaleString()}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="footer__article flex align gap-md">
-        <Button
-          label="Manage"
-          variant="dark"
-          size="xs"
-          handleClick={() => handleAction(id, "manage")}
-          icon="ri-settings-3-line"
-        />
-        <Button
-          label="Perpare Memo"
-          variant="info"
-          size="xs"
-          handleClick={() => handleAction(id, "memo")}
-          icon="ri-article-line"
-        />
-        <Button
-          label="Generate TB Memo"
-          variant="danger"
-          size="xs"
-          handleClick={() => handleAction(id, "tb")}
-          icon="ri-ai-generate"
-        />
+      {/* Actions */}
+      <div className="project-card-actions">
+        <button
+          className="project-action-btn project-action-primary"
+          onClick={() => handleAction(id, "manage")}
+        >
+          <i className="ri-settings-3-line"></i>
+          <span>Manage</span>
+        </button>
+        <button
+          className="project-action-btn project-action-secondary"
+          onClick={() => handleAction(id, "memo")}
+        >
+          <i className="ri-article-line"></i>
+        </button>
+        <button
+          className="project-action-btn project-action-secondary"
+          onClick={() => handleAction(id, "tb")}
+        >
+          <i className="ri-ai-generate"></i>
+        </button>
       </div>
-    </article>
+    </div>
   );
 };
 
