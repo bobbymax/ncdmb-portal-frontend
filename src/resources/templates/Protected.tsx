@@ -15,6 +15,7 @@ import PageLoader from "resources/views/components/loaders/PageLoader";
 import ThemeToggle from "resources/views/components/ThemeToggle";
 import DocumentGenerationProgress from "resources/views/components/DocumentGenerationProgress";
 import NotificationBell from "resources/views/components/NotificationBell";
+import Breadcrumb from "resources/views/components/Breadcrumb";
 
 // Global type declaration for the document progress modal
 declare global {
@@ -402,6 +403,11 @@ const Protected = ({ children }: ProtectedProps) => {
           </div>
         </header>
         {/* End Top Header */}
+
+        {/* Breadcrumb Navigation */}
+        <div style={{ padding: "0 1.5rem", marginTop: "1rem" }}>
+          <Breadcrumb />
+        </div>
 
         {/* Main Content */}
         <div className="main-content">

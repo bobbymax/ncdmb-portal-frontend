@@ -50,6 +50,8 @@ const ManageResourcePage = ({
   useEffect(() => {
     const isValidated = () => {
       const { success, errors } = validate(state);
+
+      // console.log(errors);
       setIsDisabled(success);
       handleValidationErrors(errors);
     };
@@ -62,6 +64,8 @@ const ManageResourcePage = ({
       fill(raw);
     }
   }, [view.mode, raw]);
+
+  // console.log(state);
 
   return (
     <div className="container-fluid">
