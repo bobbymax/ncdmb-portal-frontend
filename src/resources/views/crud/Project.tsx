@@ -7,16 +7,20 @@ import TextInput from "../components/forms/TextInput";
 import Textarea from "../components/forms/Textarea";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { formatOptions } from "app/Support/Helpers";
+import { formatDateForInput } from "app/Support/DateHelpers";
 import { ActionMeta } from "react-select";
 import Box from "../components/forms/Box";
 import { useAuth } from "app/Context/AuthContext";
 import Select from "../components/forms/Select";
 import { FundResponseData } from "@/app/Repositories/Fund/data";
+import FormSection from "../components/forms/FormSection";
+import ToggleCard from "../components/forms/ToggleCard";
 
 interface DependencyProps {
   thresholds: ThresholdResponseData[];
   projectCategories: ProjectCategoryResponseData[];
   funds: FundResponseData[];
+  projectPrograms: any[];
 }
 
 const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
@@ -32,6 +36,7 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
     thresholds = [],
     projectCategories = [],
     funds = [],
+    projectPrograms = [],
   } = useMemo(() => dependencies as DependencyProps, [dependencies]);
 
   const [category, setCategory] = useState<DataOptionsProps | null>(null);
@@ -118,6 +123,26 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
     }
   }, [staff]);
 
+  // Initialize category in update mode
+  useEffect(() => {
+    if (
+      mode === "update" &&
+      state.project_category_id &&
+      projectCategories.length > 0 &&
+      !category
+    ) {
+      const selectedCategory = projectCategories.find(
+        (cat) => cat.id === state.project_category_id
+      );
+      if (selectedCategory) {
+        setCategory({
+          value: selectedCategory.id,
+          label: selectedCategory.name,
+        });
+      }
+    }
+  }, [mode, state.project_category_id, projectCategories, category]);
+
   return (
     <>
       {/* Section 1: Basic Information */}
@@ -140,7 +165,73 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
           </div>
           <div className="card-body">
             <div className="row">
-              <div className="col-md-12 mb-3">
+              {/* Program/Phase Selection */}
+              <div className="col-md-5 mb-3">
+                <MultiSelect
+                  label="Parent Program (Optional)"
+                  options={formatOptions(projectPrograms, "id", "title")}
+                  value={
+                    state.program_id
+                      ? {
+                          value: state.program_id,
+                          label:
+                            projectPrograms.find(
+                              (p) => p.id === state.program_id
+                            )?.title || "",
+                        }
+                      : null
+                  }
+                  onChange={(newValue) => {
+                    const value = newValue as DataOptionsProps;
+                    if (setState) {
+                      setState((prev) => ({
+                        ...prev,
+                        program_id: value?.value ?? null,
+                      }));
+                    }
+                  }}
+                  placeholder="Select program (leave empty for standalone project)"
+                  isSearchable
+                  isDisabled={loading}
+                />
+                <small className="text-muted">
+                  <i className="ri-information-line me-1"></i>
+                  If this is a phase of a larger program, select the program
+                  here
+                </small>
+              </div>
+
+              {state.program_id && (
+                <>
+                  <div className="col-md-3 mb-3">
+                    <TextInput
+                      label="Phase Name"
+                      name="phase_name"
+                      value={state.phase_name || ""}
+                      onChange={handleChange}
+                      placeholder="e.g., Phase 1, Phase 2A"
+                    />
+                    <small className="text-muted">
+                      Human-readable phase identifier
+                    </small>
+                  </div>
+
+                  <div className="col-md-3 mb-3">
+                    <TextInput
+                      label="Phase Order"
+                      name="phase_order"
+                      type="number"
+                      value={state.phase_order || ""}
+                      onChange={handleChange}
+                      placeholder="1, 2, 3..."
+                      min="1"
+                    />
+                    <small className="text-muted">Execution sequence</small>
+                  </div>
+                </>
+              )}
+
+              <div className="col-md-7 mb-3">
                 <TextInput
                   label="Project Title"
                   name="title"
@@ -292,7 +383,7 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
                 <TextInput
                   label="Proposed Start Date"
                   name="proposed_start_date"
-                  value={state.proposed_start_date}
+                  value={formatDateForInput(state.proposed_start_date)}
                   onChange={handleChange}
                   type="date"
                 />
@@ -302,7 +393,7 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
                 <TextInput
                   label="Proposed End Date"
                   name="proposed_end_date"
-                  value={state.proposed_end_date}
+                  value={formatDateForInput(state.proposed_end_date)}
                   onChange={handleChange}
                   type="date"
                 />
@@ -383,46 +474,17 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
               </div>
 
               {/* Budget Options */}
-              <div className="col-md-12 mb-4">
-                <div className="card border-0 bg-light">
-                  <div className="card-body">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div className="flex-grow-1">
-                        <h6 className="mb-1 fw-semibold">
-                          <i className="ri-percent-line me-2 text-primary"></i>
-                          VAT Calculation Mode
-                        </h6>
-                        <small className="text-muted">
-                          Choose how to handle VAT in your budget calculation
-                        </small>
-                      </div>
-                      <div className="form-check form-switch ms-3">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          role="switch"
-                          id="vat-inclusive-switch"
-                          checked={isInclusive === "yes"}
-                          onChange={(e) => {
-                            const isChecked = e.target.checked ? "yes" : "no";
-                            setIsInclusive(isChecked);
-                          }}
-                          disabled={state.sub_total_amount > 0}
-                          style={{ width: "3rem", height: "1.5rem" }}
-                        />
-                        <label
-                          className="form-check-label ms-2 fw-semibold"
-                          htmlFor="vat-inclusive-switch"
-                        >
-                          {isInclusive === "yes"
-                            ? "VAT Inclusive"
-                            : "VAT Exclusive"}
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ToggleCard
+                title="VAT Calculation Mode"
+                description="Choose how to handle VAT in your budget calculation"
+                icon="ri-percent-line"
+                iconColor="#2196f3"
+                checked={isInclusive === "yes"}
+                onChange={(checked) => setIsInclusive(checked ? "yes" : "no")}
+                checkedLabel="VAT Inclusive"
+                uncheckedLabel="VAT Exclusive"
+                disabled={state.sub_total_amount > 0}
+              />
 
               {/* Simple Budget Entry */}
               {isInclusive === "yes" && (
@@ -521,14 +583,207 @@ const Project: React.FC<FormPageComponentProps<ProjectResponseData>> = ({
                           Will be determined based on total amount
                         </span>
                       )}
+                      {state.program_id && (
+                        <span className="ms-3 badge bg-info fs-6">
+                          <i className="ri-stack-line me-1"></i>
+                          Phase-Based Procurement
+                        </span>
+                      )}
                     </div>
                   </div>
+                  {state.program_id && (
+                    <div className="mt-2">
+                      <small className="text-muted">
+                        <i className="ri-lightbulb-line me-1"></i>
+                        <strong>Note:</strong> This phase will be evaluated
+                        independently for procurement approval based on its own
+                        budget amount.
+                      </small>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Section 5: Procurement Details */}
+      {state.type === "third-party" && (
+        <div className="col-md-12 mb-4">
+          <div className="card shadow-sm">
+            <div
+              className="card-header"
+              style={{
+                backgroundColor: "#e8f5e9",
+                borderBottom: "2px solid #a5d6a7",
+              }}
+            >
+              <h6 className="mb-0 text-dark">
+                <i
+                  className="ri-auction-line me-2"
+                  style={{ color: "#66bb6a" }}
+                ></i>
+                Procurement Information
+              </h6>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <Select
+                    label="Procurement Method"
+                    name="procurement_method"
+                    valueKey="value"
+                    labelKey="label"
+                    value={state.procurement_method || ""}
+                    onChange={handleChange}
+                    defaultValue=""
+                    defaultCheckDisabled
+                    options={[
+                      {
+                        value: "open_competitive",
+                        label: "Open Competitive Bidding (>₦50M)",
+                      },
+                      {
+                        value: "selective",
+                        label: "Selective Bidding (₦10M-₦50M)",
+                      },
+                      {
+                        value: "rfq",
+                        label: "Request for Quotation (₦250K-₦5M)",
+                      },
+                      { value: "direct", label: "Direct Procurement (<₦5M)" },
+                      { value: "emergency", label: "Emergency Procurement" },
+                      { value: "framework", label: "Framework Agreement" },
+                    ]}
+                  />
+                  <small className="text-muted">
+                    Select appropriate method based on project value and urgency
+                  </small>
+                </div>
+
+                <div className="col-md-6 mb-3">
+                  <Select
+                    label="Procurement Type"
+                    name="procurement_type"
+                    valueKey="value"
+                    labelKey="label"
+                    value={state.procurement_type || ""}
+                    onChange={handleChange}
+                    defaultValue=""
+                    defaultCheckDisabled
+                    options={[
+                      { value: "goods", label: "Goods/Supplies" },
+                      { value: "works", label: "Works/Construction" },
+                      { value: "services", label: "Services" },
+                      { value: "consultancy", label: "Consultancy Services" },
+                    ]}
+                  />
+                </div>
+
+                <div className="col-md-12 mb-3">
+                  <Textarea
+                    label="Method Justification"
+                    name="method_justification"
+                    value={state.method_justification || ""}
+                    onChange={handleChange}
+                    placeholder="Provide justification for the selected procurement method (mandatory for direct and emergency procurement)"
+                    rows={3}
+                  />
+                  <small className="text-muted">
+                    Required for compliance with Public Procurement Act 2007
+                  </small>
+                </div>
+
+                {/* BPP Clearance Indicator */}
+                {state.total_proposed_amount >= 50000000 && (
+                  <div className="col-md-12">
+                    <div className="alert alert-warning mb-0">
+                      <div className="d-flex align-items-start">
+                        <i className="ri-alert-line me-3 fs-4"></i>
+                        <div className="flex-grow-1">
+                          <h6 className="mb-2">
+                            <strong>⚠️ BPP Clearance Required</strong>
+                          </h6>
+                          <p className="mb-1 small">
+                            This project exceeds <strong>₦50,000,000</strong>{" "}
+                            and requires
+                            <strong>
+                              {" "}
+                              Bureau of Public Procurement (BPP)
+                            </strong>{" "}
+                            clearance:
+                          </p>
+                          <ul className="mb-0 small ps-3">
+                            <li>
+                              No Objection Certificate (NOC) to invite bids
+                            </li>
+                            <li>
+                              No Objection Certificate (NOC) to award contract
+                            </li>
+                            <li>Minimum 6-week tender period</li>
+                            <li>Public bid opening ceremony</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Procurement Guide */}
+                {state.procurement_method && (
+                  <div className="col-md-12 mt-2">
+                    <div className="card border-0 bg-light">
+                      <div className="card-body">
+                        <h6 className="mb-2">
+                          <i className="ri-information-line me-2"></i>
+                          Procurement Timeline Guide
+                        </h6>
+                        <small className="text-muted">
+                          {state.procurement_method === "open_competitive" && (
+                            <>
+                              <strong>Open Competitive:</strong> Minimum 6-week
+                              submission period, public advertisement, pre-bid
+                              meeting, BPP clearance required
+                            </>
+                          )}
+                          {state.procurement_method === "selective" && (
+                            <>
+                              <strong>Selective Bidding:</strong> Minimum 4-week
+                              submission period, invitation to pre-qualified
+                              vendors
+                            </>
+                          )}
+                          {state.procurement_method === "rfq" && (
+                            <>
+                              <strong>Request for Quotation:</strong> Minimum 3
+                              written quotations, simplified evaluation process
+                            </>
+                          )}
+                          {state.procurement_method === "direct" && (
+                            <>
+                              <strong>Direct Procurement:</strong> Single
+                              source, written justification required, value must
+                              be below ₦5M
+                            </>
+                          )}
+                          {state.procurement_method === "emergency" && (
+                            <>
+                              <strong>Emergency:</strong> BPP notification
+                              required, detailed justification for emergency
+                              status mandatory
+                            </>
+                          )}
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

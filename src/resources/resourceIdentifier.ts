@@ -125,6 +125,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Inbound/data"
   },
   {
+    "key": "InboundInstruction",
+    "path": "../app/Repositories/InboundInstruction/data"
+  },
+  {
     "key": "Invoice",
     "path": "../app/Repositories/Invoice/data"
   },
@@ -157,6 +161,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/Milestone/data"
   },
   {
+    "key": "Notification",
+    "path": "../app/Repositories/Notification/data"
+  },
+  {
     "key": "Page",
     "path": "../app/Repositories/Page/data"
   },
@@ -177,6 +185,10 @@ export const resourceFiles = [
     "path": "../app/Repositories/ProcessCard/data"
   },
   {
+    "key": "ProcurementAuditTrail",
+    "path": "../app/Repositories/ProcurementAuditTrail/data"
+  },
+  {
     "key": "ProgressTracker",
     "path": "../app/Repositories/ProgressTracker/data"
   },
@@ -185,8 +197,28 @@ export const resourceFiles = [
     "path": "../app/Repositories/Project/data"
   },
   {
+    "key": "ProjectBid",
+    "path": "../app/Repositories/ProjectBid/data"
+  },
+  {
+    "key": "ProjectBidEvaluation",
+    "path": "../app/Repositories/ProjectBidEvaluation/data"
+  },
+  {
+    "key": "ProjectBidInvitation",
+    "path": "../app/Repositories/ProjectBidInvitation/data"
+  },
+  {
     "key": "ProjectCategory",
     "path": "../app/Repositories/ProjectCategory/data"
+  },
+  {
+    "key": "ProjectEvaluationCommittee",
+    "path": "../app/Repositories/ProjectEvaluationCommittee/data"
+  },
+  {
+    "key": "ProjectProgram",
+    "path": "../app/Repositories/ProjectProgram/data"
   },
   {
     "key": "Query",

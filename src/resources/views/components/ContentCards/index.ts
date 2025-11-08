@@ -10,3 +10,4 @@ export { default as InvoiceContentCard } from "./InvoiceContentCard";
 export { default as RequisitionContentCard } from "./RequisitionContentCard";
 export { default as SignatureContentCard } from "./SignatureContentCard";
 export { default as PaymentBatchContentCard } from "./PaymentBatchContentCard";
+export { default as PrayerContentCard } from "./PrayerContentCard";

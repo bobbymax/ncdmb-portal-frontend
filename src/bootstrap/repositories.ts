@@ -4,6 +4,11 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import ProjectBidInvitationRepository from "app/Repositories/ProjectBidInvitation/ProjectBidInvitationRepository";
+import ProjectBidRepository from "app/Repositories/ProjectBid/ProjectBidRepository";
+import ProjectBidEvaluationRepository from "app/Repositories/ProjectBidEvaluation/ProjectBidEvaluationRepository";
+import ProjectEvaluationCommitteeRepository from "app/Repositories/ProjectEvaluationCommittee/ProjectEvaluationCommitteeRepository";
+import ProcurementAuditTrailRepository from "app/Repositories/ProcurementAuditTrail/ProcurementAuditTrailRepository";
 import InboundInstructionRepository from "app/Repositories/InboundInstruction/InboundInstructionRepository";
 import InboundRepository from "app/Repositories/Inbound/InboundRepository";
 import QueryRepository from "app/Repositories/Query/QueryRepository";
@@ -14,6 +19,7 @@ import ThreadRepository from "app/Repositories/Thread/ThreadRepository";
 import InvoiceRepository from "app/Repositories/Invoice/InvoiceRepository";
 import MilestoneRepository from "app/Repositories/Milestone/MilestoneRepository";
 import ProjectRepository from "app/Repositories/Project/ProjectRepository";
+import ProjectProgramRepository from "app/Repositories/ProjectProgram/ProjectProgramRepository";
 import ProjectCategoryRepository from "app/Repositories/ProjectCategory/ProjectCategoryRepository";
 import ThresholdRepository from "app/Repositories/Threshold/ThresholdRepository";
 import TemplateRepository from "app/Repositories/Template/TemplateRepository";
@@ -72,6 +78,11 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+new ProjectBidInvitationRepository(),
+new ProjectBidRepository(),
+new ProjectBidEvaluationRepository(),
+new ProjectEvaluationCommitteeRepository(),
+new ProcurementAuditTrailRepository(),
 new InboundInstructionRepository(),
 new InboundRepository(),
 new QueryRepository(),
@@ -82,6 +93,7 @@ new SettingRepository(),
   new InvoiceRepository(),
   new MilestoneRepository(),
   new ProjectRepository(),
+  new ProjectProgramRepository(),
   new ProjectCategoryRepository(),
   new ThresholdRepository(),
   new TemplateRepository(),

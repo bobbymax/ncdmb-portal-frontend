@@ -28,6 +28,25 @@ export interface ProtectedProps {
   children: ReactNode;
 }
 
+const SIDEBAR_STATE_KEY = "portal:sidebarCollapsed";
+
+const applySidebarCollapsedState = (collapsed: boolean) => {
+  const sidebar = document.getElementById("sidebar-wrapper");
+  const wrapper = document.getElementById("wrapper");
+
+  if (sidebar) {
+    sidebar.classList.toggle("sidebar-collapsed", collapsed);
+
+    if (!collapsed) {
+      sidebar.classList.remove("sidebar-open");
+    }
+  }
+
+  if (wrapper) {
+    wrapper.classList.toggle("sidebar-collapsed", collapsed);
+  }
+};
+
 const Protected = ({ children }: ProtectedProps) => {
   const { staff, logout } = useAuth();
   const navigate = useNavigate();
@@ -66,17 +85,12 @@ const Protected = ({ children }: ProtectedProps) => {
   };
 
   const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-    const sidebar = document.getElementById("sidebar-wrapper");
-    const wrapper = document.getElementById("wrapper");
-
-    if (sidebar) {
-      sidebar.classList.toggle("sidebar-collapsed");
-    }
-
-    if (wrapper) {
-      wrapper.classList.toggle("sidebar-collapsed");
-    }
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      applySidebarCollapsedState(next);
+      localStorage.setItem(SIDEBAR_STATE_KEY, String(next));
+      return next;
+    });
   };
 
   const toggleProfileDropdown = () => {
@@ -101,33 +115,19 @@ const Protected = ({ children }: ProtectedProps) => {
     };
   }, [isProfileDropdownOpen]);
 
-  // Clean up sidebar classes on mount and unmount
+  // Initialize sidebar state on mount and clean up on unmount
   React.useEffect(() => {
-    const sidebar = document.getElementById("sidebar-wrapper");
-    const wrapper = document.getElementById("wrapper");
+    const stored = localStorage.getItem(SIDEBAR_STATE_KEY);
+    const collapsed = stored === "true";
 
-    // Clean up on mount (in case classes persist from previous session)
-    if (sidebar) {
-      sidebar.classList.remove("sidebar-collapsed", "sidebar-open");
-    }
-    if (wrapper) {
-      wrapper.classList.remove("sidebar-collapsed");
-    }
-
-    // Reset state
-    setIsSidebarCollapsed(false);
+    setIsSidebarCollapsed(collapsed);
     setIsMobileMenuOpen(false);
+    applySidebarCollapsedState(collapsed);
 
-    // Cleanup on unmount (for logout)
     return () => {
-      if (sidebar) {
-        sidebar.classList.remove("sidebar-collapsed", "sidebar-open");
-      }
-      if (wrapper) {
-        wrapper.classList.remove("sidebar-collapsed");
-      }
+      applySidebarCollapsedState(false);
     };
-  }, []); // Empty dependency array = runs once on mount and cleanup on unmount
+  }, []);
 
   // Function to show the progress modal globally
   const showDocumentProgressModal = (onComplete: () => void) => {

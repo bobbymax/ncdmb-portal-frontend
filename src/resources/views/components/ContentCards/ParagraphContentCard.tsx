@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
 import { SheetProps } from "resources/views/pages/DocumentTemplateContent";
@@ -9,13 +9,24 @@ interface ParagraphContentCardProps {
   isEditing: boolean;
 }
 
+const getParagraphValue = (value: unknown): string =>
+  typeof value === "string" ? value : "";
+
 const ParagraphContentCard: React.FC<ParagraphContentCardProps> = ({
   item,
   onClose,
   isEditing,
 }) => {
   const { state, actions } = usePaperBoard();
-  const [paragraph, setParagraph] = useState("");
+  const [paragraph, setParagraph] = useState<string>(
+    getParagraphValue(item.content?.paragraph)
+  );
+
+  useEffect(() => {
+    if (isEditing) {
+      setParagraph(getParagraphValue(item.content?.paragraph));
+    }
+  }, [isEditing, item]);
 
   const handleSave = () => {
     const updatedItem = {
@@ -23,6 +34,7 @@ const ParagraphContentCard: React.FC<ParagraphContentCardProps> = ({
       content: {
         id: item.id,
         order: item.order,
+        paragraph: paragraph,
       } as SheetProps,
     };
 
@@ -37,12 +49,8 @@ const ParagraphContentCard: React.FC<ParagraphContentCardProps> = ({
   if (isEditing) {
     return (
       <div className="inline__content__card paragraph__card">
-        <div className="inline__card__header">
-          <h5>Paragraph Configuration</h5>
-        </div>
         <div className="inline__card__content">
           <div className="form__group">
-            <label>Paragraph Content</label>
             <textarea
               value={paragraph}
               onChange={(e) => setParagraph(e.target.value)}
@@ -66,18 +74,13 @@ const ParagraphContentCard: React.FC<ParagraphContentCardProps> = ({
 
   // View mode
   return (
-    <div className="inline__content__card paragraph__card view__mode">
-      <div className="inline__card__header">
-        <h5>Paragraph</h5>
-      </div>
-      <div className="inline__card__content">
-        <div className="content__display">
-          <div className="content__field">
-            <label>Content:</label>
-            <span className="content__text">
-              {paragraph || "No paragraph content set"}
-            </span>
-          </div>
+    <div className="inline__card__content">
+      <div className="content__display">
+        <div className="content__field">
+          <p style={{ whiteSpace: "pre-wrap", textAlign: "justify" }}>
+            {getParagraphValue(item.content?.paragraph) ||
+              "No paragraph content set"}
+          </p>
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ interface A4SheetProps {
   state: {
     body: ContentBlock[];
     configState: ProcessFlowConfigProps | null;
-    documentState: { title?: string } | null;
+    documentState: { title?: string; ref?: string | null } | null;
     resourceLinks: ContentBlock[] | null;
     template: any;
   };
@@ -44,7 +44,7 @@ interface A4SheetProps {
     configState: ProcessFlowConfigProps;
     title: string | null;
     date: string;
-    ref: any;
+    code: string | null;
   }>;
   isEditor: boolean;
   uplines: (
@@ -71,8 +71,6 @@ const A4Sheet: React.FC<A4SheetProps> = ({
   isEditor,
   uplines,
 }) => {
-  // Debug logging removed for production
-
   return (
     <div className="a4__sheet" data-context={isEditor ? "generator" : "desk"}>
       {/* Background logo with fade effect */}
@@ -96,7 +94,9 @@ const A4Sheet: React.FC<A4SheetProps> = ({
           configState={state.configState as ProcessFlowConfigProps}
           title={state.documentState?.title ?? null}
           date={moment().format("DD/MM/YYYY")}
-          ref={null}
+          code={
+            (state.documentState?.ref as string) ?? "{{ system generated ref }}"
+          }
         />
       </div>
 

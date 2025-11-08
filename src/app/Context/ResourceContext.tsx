@@ -19,6 +19,7 @@ import { UserResponseData } from "../Repositories/User/data";
 import { DepartmentResponseData } from "../Repositories/Department/data";
 import { FundResponseData } from "../Repositories/Fund/data";
 import { GroupResponseData } from "../Repositories/Group/data";
+import { RoleResponseData } from "../Repositories/Role/data";
 import { WorkflowStageResponseData } from "../Repositories/WorkflowStage/data";
 import { DocumentActionResponseData } from "../Repositories/DocumentAction/data";
 import { CarderResponseData } from "../Repositories/Carder/data";
@@ -34,6 +35,7 @@ export type ResourceType =
   | "departments"
   | "funds"
   | "groups"
+  | "roles"
   | "workflowStages"
   | "documentActions"
   | "services"
@@ -50,6 +52,7 @@ export type ResourceData =
   | DepartmentResponseData[]
   | FundResponseData[]
   | GroupResponseData[]
+  | RoleResponseData[]
   | WorkflowStageResponseData[]
   | DocumentActionResponseData[]
   | string[]
@@ -67,6 +70,7 @@ export interface ResourceMap {
   departments: DepartmentResponseData[];
   funds: FundResponseData[];
   groups: GroupResponseData[];
+  roles: RoleResponseData[];
   workflowStages: WorkflowStageResponseData[];
   documentActions: DocumentActionResponseData[];
   services: string[];
@@ -85,6 +89,7 @@ export interface LoadingMap {
   departments: boolean;
   funds: boolean;
   groups: boolean;
+  roles: boolean;
   workflowStages: boolean;
   documentActions: boolean;
   services: boolean;
@@ -148,6 +153,7 @@ const ROUTE_RESOURCE_MAP: RouteResourceMap = {
     "users",
     "funds",
     "groups",
+    "roles",
     "workflowStages",
     "documentActions",
     "carders",
@@ -210,6 +216,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     departments: [],
     funds: [],
     groups: [],
+    roles: [],
     workflowStages: [],
     documentActions: [],
     services: [],
@@ -227,6 +234,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     departments: false,
     funds: false,
     groups: false,
+    roles: false,
     workflowStages: false,
     documentActions: false,
     services: false,
@@ -262,6 +270,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         departments: [],
         funds: [],
         groups: [],
+        roles: [],
         workflowStages: [],
         documentActions: [],
         services: [],
@@ -288,6 +297,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       departments: () => repo("department"),
       funds: () => repo("fund"),
       groups: () => repo("group"),
+      roles: () => repo("role"),
       workflowStages: () => repo("workflowStage"),
       documentActions: () => repo("documentAction"),
       carders: () => repo("carder"),
@@ -503,6 +513,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       departments: [],
       funds: [],
       groups: [],
+      roles: [],
       workflowStages: [],
       documentActions: [],
       services: [],

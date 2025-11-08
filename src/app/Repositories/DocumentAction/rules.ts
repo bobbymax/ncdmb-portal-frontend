@@ -1,5 +1,5 @@
 export const documentActionRules: { [key: string]: string } = {
-  carder_id: "required|integer",
+  carder_id: "required",
   name: "required|string",
   button_text: "required|string",
   url: "required|string",

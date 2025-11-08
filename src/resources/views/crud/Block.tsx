@@ -63,6 +63,8 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "signature", label: "Signature" },
             { value: "paper_title", label: "Paper Title" },
             { value: "payment_batch", label: "Payment Batch" },
+            { value: "prayer", label: "Prayer" },
+            { value: "header", label: "Header" },
           ]}
         />
       </div>
@@ -88,6 +90,8 @@ const Block: React.FC<FormPageComponentProps<BlockResponseData>> = ({
             { value: "ListBlock", label: "List Block" },
             { value: "ExpenseBlock", label: "Expense Block" },
             { value: "TitleBlock", label: "Title Block" },
+            { value: "PrayerBlock", label: "Prayer Block" },
+            { value: "HeaderBlock", label: "Header Block" },
           ]}
         />
       </div>

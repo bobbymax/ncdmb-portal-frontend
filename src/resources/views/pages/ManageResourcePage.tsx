@@ -54,6 +54,8 @@ const ManageResourcePage = ({
       // console.log(errors);
       setIsDisabled(success);
       handleValidationErrors(errors);
+
+      // console.log(errors);
     };
 
     isValidated();

@@ -48,6 +48,8 @@ export const useTemplateHeader = (
       const { code, configState, tagline, title, date, ref } = params;
       const header = template?.header;
 
+      // console.log(ref);
+
       switch (header) {
         case "banner":
           return null;
@@ -63,7 +65,7 @@ export const useTemplateHeader = (
               to={configState?.to ?? null}
               from={configState?.from ?? null}
               through={configState?.through ?? null}
-              ref={code ?? null}
+              code={code ?? null}
               date={moment().format()}
               title={title ?? null}
             />

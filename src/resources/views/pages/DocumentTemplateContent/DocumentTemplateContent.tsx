@@ -101,6 +101,7 @@ export type DeskComponentPropTypes =
   | "paper_title"
   | "payment_batch"
   | "title"
+  | "prayer"
   | "paragraph"
   | "expense"
   | "invoice"

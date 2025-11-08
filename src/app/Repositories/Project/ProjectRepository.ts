@@ -24,6 +24,11 @@ export default class ProjectRepository extends BaseRepository {
 
   public fromJson(data: JsonResponse): ProjectResponseData {
     return {
+      // Program/Phase fields
+      program_id: data.program_id ?? null,
+      phase_name: data.phase_name ?? null,
+      phase_order: data.phase_order ?? null,
+      
       // Existing fields
       id: data.id ?? 0,
       user_id: data.user_id ?? 0,
@@ -75,6 +80,19 @@ export default class ProjectRepository extends BaseRepository {
       execution_status: data.execution_status ?? "not-started",
       overall_health: data.overall_health ?? "on-track",
 
+      // Procurement fields
+      procurement_method: data.procurement_method ?? null,
+      procurement_reference: data.procurement_reference ?? null,
+      procurement_type: data.procurement_type ?? null,
+      method_justification: data.method_justification ?? null,
+      requires_bpp_clearance: data.requires_bpp_clearance ?? false,
+      bpp_no_objection_invite: data.bpp_no_objection_invite ?? null,
+      bpp_no_objection_award: data.bpp_no_objection_award ?? null,
+      bpp_invite_date: data.bpp_invite_date ?? null,
+      bpp_award_date: data.bpp_award_date ?? null,
+      advertised_at: data.advertised_at ?? null,
+      advertisement_reference: data.advertisement_reference ?? null,
+
       // New fields - Additional Dates
       concept_date: data.concept_date ?? "",
       approval_date: data.approval_date ?? "",
@@ -107,6 +125,9 @@ export default class ProjectRepository extends BaseRepository {
       is_archived: data.is_archived ?? false,
       archived_at: data.archived_at ?? "",
       archived_by: data.archived_by ?? null,
+
+      // Relationships
+      program: data.program ?? null,
 
       // Timestamps
       created_at: data.created_at ?? "",

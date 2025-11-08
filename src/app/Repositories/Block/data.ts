@@ -16,7 +16,9 @@ export type BlockDataType =
   | "expense"
   | "paper_title"
   | "signature"
-  | "payment_batch";
+  | "payment_batch"
+  | "prayer"
+  | "header";
 
 export type BlockInputType =
   | "ParagraphBlock"
@@ -28,7 +30,9 @@ export type BlockInputType =
   | "ListBlock"
   | "ExpenseBlock"
   | "TitleBlock"
-  | "SignatureBlock";
+  | "SignatureBlock"
+  | "PrayerBlock"
+  | "HeaderBlock";
 
 export interface BlockResponseData extends BaseResponse {
   title: string;

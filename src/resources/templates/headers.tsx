@@ -10,7 +10,7 @@ import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategor
 import { DeskComponentPropTypes } from "resources/views/pages/DocumentTemplateContent";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { useResourceContext } from "app/Context/ResourceContext";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStateContext } from "app/Context/ContentContext";
 import { FundResponseData } from "@/app/Repositories/Fund/data";
 import { PaymentBatchContentProps } from "../views/components/ContentCards/PaymentBatchContentCard";
@@ -252,7 +252,7 @@ export const InternalMemoHeader = ({
   to,
   from,
   through,
-  ref,
+  code,
   date,
   title,
   modify,
@@ -261,12 +261,93 @@ export const InternalMemoHeader = ({
   to: CategoryProgressTrackerProps | null;
   from: CategoryProgressTrackerProps | null;
   through?: CategoryProgressTrackerProps | null;
-  ref: string | null;
+  code: string | null;
   date: string | null;
   title: string | null;
   modify?: (data: CategoryProgressTrackerProps, key: ProcessType) => void;
   isDisplay?: boolean;
 }) => {
+  const { getResourceById } = useResourceContext();
+
+  const resolveTrackerDetails = useCallback(
+    (tracker: CategoryProgressTrackerProps | null) => {
+      if (!tracker) {
+        return null;
+      }
+
+      const stage = tracker.workflow_stage_id
+        ? getResourceById("workflowStages", tracker.workflow_stage_id)
+        : null;
+      const department = tracker.department_id
+        ? getResourceById("departments", tracker.department_id)
+        : null;
+      const group = tracker.group_id
+        ? getResourceById("groups", tracker.group_id)
+        : null;
+
+      return {
+        stage:
+          stage?.name ??
+          tracker.identifier ??
+          (tracker.workflow_stage_id
+            ? tracker.workflow_stage_id.toString()
+            : ""),
+        department: department?.abv !== "ESO" ? department?.abv : "",
+        group:
+          group?.name ?? (tracker.group_id ? tracker.group_id.toString() : ""),
+      };
+    },
+    [getResourceById]
+  );
+
+  const toDetails = useMemo(
+    () => resolveTrackerDetails(to),
+    [to, resolveTrackerDetails]
+  );
+  const fromDetails = useMemo(
+    () => resolveTrackerDetails(from),
+    [from, resolveTrackerDetails]
+  );
+  const throughDetails = useMemo(
+    () => resolveTrackerDetails(through ?? null),
+    [through, resolveTrackerDetails]
+  );
+
+  const formatTrackerDisplay = useCallback(
+    (
+      details: ReturnType<typeof resolveTrackerDetails>,
+      options: { showDepartment?: boolean; showGroup?: boolean } = {}
+    ) => {
+      if (!details) return "";
+
+      const segments: string[] = [];
+      if (details.stage) segments.push(details.stage);
+
+      if (options.showDepartment && details.department) {
+        segments.push(details.department);
+      }
+
+      if (options.showGroup && details.group) {
+        segments.push(details.group);
+      }
+
+      return segments.join(", ");
+    },
+    []
+  );
+
+  const toDisplay = formatTrackerDisplay(toDetails, {
+    showDepartment: !isDisplay,
+    showGroup: isDisplay,
+  });
+  const throughDisplay = formatTrackerDisplay(throughDetails, {
+    showDepartment: isDisplay,
+  });
+  const fromDisplay = formatTrackerDisplay(fromDetails, {
+    showDepartment: !isDisplay,
+    showGroup: isDisplay,
+  });
+
   return (
     <div className="printable__page__header mb-4">
       <div className="top__banner flex align gap-lg center">
@@ -281,9 +362,7 @@ export const InternalMemoHeader = ({
                 <div className="flex align gap-md">
                   <span>TO:</span>
                   <span style={{ textTransform: "uppercase" }}>
-                    {`${to?.workflow_stage_id ?? ""}${
-                      !isDisplay ? `, ${to?.department_id ?? ""}` : ""
-                    }`}
+                    {toDisplay}
                   </span>
                 </div>
               </td>
@@ -294,9 +373,7 @@ export const InternalMemoHeader = ({
                   <div className="flex align gap-md">
                     <span>THROUGH:</span>
                     <span style={{ textTransform: "uppercase" }}>
-                      {`${through?.workflow_stage_id ?? ""}${
-                        isDisplay ? `, ${through?.department_id ?? ""}` : ""
-                      }`}
+                      {throughDisplay}
                     </span>
                   </div>
                 </td>
@@ -307,9 +384,7 @@ export const InternalMemoHeader = ({
                 <div className="flex align gap-md">
                   <span>FROM:</span>
                   <span style={{ textTransform: "uppercase" }}>
-                    {`${from?.workflow_stage_id ?? ""}${
-                      !isDisplay ? `, ${from?.department_id ?? ""}` : ""
-                    }`}
+                    {fromDisplay}
                   </span>
                 </div>
               </td>
@@ -318,7 +393,7 @@ export const InternalMemoHeader = ({
               <td style={{ width: "50%" }}>
                 <div className="flex align gap-md">
                   <span>REF:</span>
-                  <span style={{ textTransform: "uppercase" }}>{ref}</span>
+                  <span style={{ textTransform: "uppercase" }}>{code}</span>
                 </div>
               </td>
               <td style={{ width: "50%" }}>

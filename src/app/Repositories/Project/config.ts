@@ -3,6 +3,11 @@ import { ProjectResponseData } from "./data";
 
 export const projectConfig: ConfigProp<ProjectResponseData> = {
   fillables: [
+    // Program/Phase fields
+    "program_id",
+    "phase_name",
+    "phase_order",
+    
     // Existing fillables
     "user_id",
     "department_id",
@@ -48,6 +53,11 @@ export const projectConfig: ConfigProp<ProjectResponseData> = {
     "execution_status",
     "overall_health",
 
+    // New fillables - Procurement
+    "procurement_method",
+    "procurement_type",
+    "method_justification",
+
     // New fillables - Dates
     "concept_date",
     "approval_date",
@@ -84,11 +94,17 @@ export const projectConfig: ConfigProp<ProjectResponseData> = {
   associatedResources: [
     { name: "thresholds", url: "thresholds" },
     { name: "projectCategories", url: "projectCategories" },
+    { name: "projectPrograms", url: "projectPrograms" },
     { name: "departments", url: "departments" },
     { name: "users", url: "users" },
     { name: "funds", url: "funds" },
   ],
   state: {
+    // Program/Phase fields
+    program_id: null,
+    phase_name: null,
+    phase_order: null,
+    
     // Existing state
     id: 0,
     user_id: 0,
@@ -137,6 +153,19 @@ export const projectConfig: ConfigProp<ProjectResponseData> = {
     lifecycle_stage: "concept",
     execution_status: "not-started",
     overall_health: "on-track",
+
+    // New state - Procurement
+    procurement_method: null,
+    procurement_reference: null,
+    procurement_type: null,
+    method_justification: null,
+    requires_bpp_clearance: false,
+    bpp_no_objection_invite: null,
+    bpp_no_objection_award: null,
+    bpp_invite_date: null,
+    bpp_award_date: null,
+    advertised_at: null,
+    advertisement_reference: null,
 
     // New state - Additional Dates
     concept_date: "",

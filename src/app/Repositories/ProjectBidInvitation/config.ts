@@ -1,0 +1,72 @@
+import { ConfigProp } from "../BaseRepository";
+import { ProjectBidInvitationResponseData } from "./data";
+
+export const projectBidInvitationConfig: ConfigProp<ProjectBidInvitationResponseData> = {
+  fillables: [
+    "project_id",
+    "title",
+    "description",
+    "technical_specifications",
+    "scope_of_work",
+    "deliverables",
+    "terms_and_conditions",
+    "required_documents",
+    "eligibility_criteria",
+    "bid_security_required",
+    "bid_security_amount",
+    "estimated_contract_value",
+    "submission_deadline",
+    "opening_date",
+    "opening_location",
+    "evaluation_criteria",
+    "technical_weight",
+    "financial_weight",
+  ],
+  
+  associatedResources: [
+    { name: "projects", url: "projects" },
+  ],
+  
+  state: {
+    id: 0,
+    project_id: 0,
+    invitation_reference: "",
+    title: "",
+    description: null,
+    technical_specifications: null,
+    scope_of_work: null,
+    deliverables: null,
+    terms_and_conditions: null,
+    required_documents: null,
+    eligibility_criteria: null,
+    bid_security_required: true,
+    bid_security_amount: null,
+    bid_security_validity_days: 90,
+    estimated_contract_value: null,
+    advertisement_date: null,
+    pre_bid_meeting_date: null,
+    pre_bid_meeting_location: null,
+    submission_deadline: "",
+    bid_validity_days: 90,
+    opening_date: "",
+    opening_location: null,
+    evaluation_criteria: null,
+    technical_weight: 70,
+    financial_weight: 30,
+    published_newspapers: null,
+    published_bpp_portal: false,
+    tender_document_url: null,
+    bill_of_quantities_url: null,
+    status: "draft",
+    created_at: "",
+    updated_at: "",
+  },
+  
+  actions: [
+    { label: "view", icon: "ri-eye-line", variant: "info", conditions: [], operator: "and", display: "View" },
+    { label: "update", icon: "ri-pencil-line", variant: "warning", conditions: [], operator: "and", display: "Edit" },
+    { label: "destroy", icon: "ri-delete-bin-line", variant: "danger", conditions: [], operator: "and", display: "Delete" },
+    { label: "manage", icon: "ri-mail-send-line", variant: "success", conditions: [], operator: "and", display: "Publish" },
+  ],
+};
+

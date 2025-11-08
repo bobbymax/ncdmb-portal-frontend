@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { SheetProps } from "../../pages/DocumentTemplateContent";
 
 interface HeaderContentCardProps {
   item: ContentBlock;
@@ -8,13 +9,24 @@ interface HeaderContentCardProps {
   isEditing: boolean;
 }
 
+const getHeaderValue = (value: unknown): string =>
+  typeof value === "string" ? value : "";
+
 const HeaderContentCard: React.FC<HeaderContentCardProps> = ({
   item,
   onClose,
   isEditing,
 }) => {
   const { state, actions } = usePaperBoard();
-  const [headerText, setHeaderText] = useState("");
+  const [headerText, setHeaderText] = useState(
+    getHeaderValue(item.content?.header)
+  );
+
+  useEffect(() => {
+    if (isEditing) {
+      setHeaderText(getHeaderValue(item.content?.header));
+    }
+  }, [isEditing, item.content?.header]);
 
   const handleSave = () => {
     const updatedItem = {
@@ -22,20 +34,8 @@ const HeaderContentCard: React.FC<HeaderContentCardProps> = ({
       content: {
         id: item.id,
         order: item.order,
-        payment_batch: undefined,
-        paper_title: undefined,
-        title: undefined,
-        paragraph: undefined,
-        expense: undefined,
-        invoice: undefined,
-        requisition: undefined,
-        signature: undefined,
-        text: undefined,
-        table: undefined,
-        list: undefined,
         header: headerText,
-        event: undefined,
-      },
+      } as SheetProps,
     };
 
     const newBody = state.body.map((bodyItem) =>
@@ -78,20 +78,10 @@ const HeaderContentCard: React.FC<HeaderContentCardProps> = ({
 
   // View mode
   return (
-    <div className="inline__content__card header__card view__mode">
-      <div className="inline__card__header">
-        <h5>Header</h5>
-      </div>
-      <div className="inline__card__content">
-        <div className="content__display">
-          <div className="content__field">
-            <label>Text:</label>
-            <span className="content__text">
-              {headerText || "No header text set"}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="inline__card__content">
+      <h5 style={{ textTransform: "capitalize", color: "green" }}>
+        {getHeaderValue(item.content?.header) || "No header text set"}
+      </h5>
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
   RequisitionContentCard,
   SignatureContentCard,
   PaymentBatchContentCard,
+  PrayerContentCard,
 } from "./index";
 import { ContextType } from "app/Context/PaperBoardContext";
 import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategory/data";
@@ -64,6 +65,14 @@ const InlineContentCard: React.FC<InlineContentCardProps> = ({
     case "paragraph":
       return (
         <ParagraphContentCard
+          item={item}
+          onClose={onClose}
+          isEditing={isEditing}
+        />
+      );
+    case "prayer":
+      return (
+        <PrayerContentCard
           item={item}
           onClose={onClose}
           isEditing={isEditing}

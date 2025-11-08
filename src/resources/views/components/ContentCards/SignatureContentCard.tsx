@@ -46,6 +46,8 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   // Use ref to track previous configState to detect actual changes
   const previousConfigState = useRef<ProcessFlowConfigProps | null>(null);
 
+  // console.log(state.configState);
+
   // Get stages that should be signed from configState
   const signableStages: CategoryProgressTrackerProps[] = useMemo(() => {
     const stages: CategoryProgressTrackerProps[] = [];

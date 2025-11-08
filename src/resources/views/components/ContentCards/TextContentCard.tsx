@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { usePaperBoard } from "app/Context/PaperBoardContext";
 import { ContentBlock } from "@/resources/views/crud/DocumentTemplateBuilder";
+import { SheetProps } from "../../pages/DocumentTemplateContent";
 
 interface TextContentCardProps {
   item: ContentBlock;
@@ -22,20 +23,8 @@ const TextContentCard: React.FC<TextContentCardProps> = ({
       content: {
         id: item.id,
         order: item.order,
-        payment_batch: undefined,
-        paper_title: undefined,
-        title: undefined,
-        paragraph: undefined,
-        expense: undefined,
-        invoice: undefined,
-        requisition: undefined,
-        signature: undefined,
         text,
-        table: undefined,
-        list: undefined,
-        header: undefined,
-        event: undefined,
-      },
+      } as SheetProps,
     };
 
     const newBody = state.body.map((bodyItem) =>

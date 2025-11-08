@@ -1,6 +1,7 @@
 import { BaseResponse } from "../BaseRepository";
 import { InvoiceResponseData } from "../Invoice/data";
 import { MilestoneResponseData } from "../Milestone/data";
+import type { ProjectProgramResponseData } from "../ProjectProgram/data";
 
 export type ResourceFoundation = "staff" | "third-party";
 
@@ -38,7 +39,22 @@ export type LandAcquisitionStatus =
   | "completed";
 export type RiskLevel = "low" | "medium" | "high" | "critical";
 
+export type ProcurementMethod =
+  | "open_competitive"
+  | "selective"
+  | "rfq"
+  | "direct"
+  | "emergency"
+  | "framework";
+
+export type ProcurementType = "goods" | "works" | "services" | "consultancy";
+
 export interface ProjectResponseData extends BaseResponse {
+  // Program/Phase fields
+  program_id: number | null;
+  phase_name: string | null;
+  phase_order: number | null;
+  
   // Existing fields
   user_id: number; // handled on server
   department_id: number; // handled on server
@@ -96,6 +112,19 @@ export interface ProjectResponseData extends BaseResponse {
   execution_status: ExecutionStatus; // ignore
   overall_health: OverallHealth; // ignore
 
+  // Procurement Fields
+  procurement_method: ProcurementMethod | null;
+  procurement_reference: string | null; // ignore
+  procurement_type: ProcurementType | null;
+  method_justification: string | null;
+  requires_bpp_clearance: boolean; // ignore
+  bpp_no_objection_invite: string | null; // ignore
+  bpp_no_objection_award: string | null; // ignore
+  bpp_invite_date: string | null; // ignore
+  bpp_award_date: string | null; // ignore
+  advertised_at: string | null; // ignore
+  advertisement_reference: string | null; // ignore
+
   // New Additional Dates
   concept_date: string; // ignore
   approval_date: string; // ignore
@@ -127,6 +156,9 @@ export interface ProjectResponseData extends BaseResponse {
   is_archived: boolean; // ignore
   archived_at: string; // ignore
   archived_by: number | null; // ignore
+
+  // Relationships
+  program?: ProjectProgramResponseData | null;
 
   // Timestamps
   created_at?: string; // handled on server
