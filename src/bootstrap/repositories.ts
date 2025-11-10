@@ -70,6 +70,12 @@ import WorkflowStageRepository from "app/Repositories/WorkflowStage/WorkflowStag
 import GradeLevelRepository from "app/Repositories/GradeLevel/GradeLevelRepository";
 import GroupRepository from "app/Repositories/Group/GroupRepository";
 import WorkflowRepository from "app/Repositories/Workflow/WorkflowRepository";
+import InventoryLocationRepository from "app/Repositories/InventoryLocation/InventoryLocationRepository";
+import InventoryBalanceRepository from "app/Repositories/InventoryBalance/InventoryBalanceRepository";
+import InventoryTransactionRepository from "app/Repositories/InventoryTransaction/InventoryTransactionRepository";
+import InventoryIssueRepository from "app/Repositories/InventoryIssue/InventoryIssueRepository";
+import InventoryReturnRepository from "app/Repositories/InventoryReturn/InventoryReturnRepository";
+import InventoryAdjustmentRepository from "app/Repositories/InventoryAdjustment/InventoryAdjustmentRepository";
 import { lazy } from "react";
 
 export const lazyLoad = (componentPath: string) => {
@@ -144,6 +150,12 @@ new SettingRepository(),
   new GradeLevelRepository(),
   new GroupRepository(),
   new WorkflowRepository(),
+  new InventoryBalanceRepository(),
+  new InventoryTransactionRepository(),
+  new InventoryIssueRepository(),
+  new InventoryReturnRepository(),
+  new InventoryAdjustmentRepository(),
+  new InventoryLocationRepository(),
   new UserRepository(),
   new PageRepository(),
   new RoleRepository(),

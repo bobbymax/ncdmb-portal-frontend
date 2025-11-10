@@ -17924,8 +17924,11 @@ body,
 .panel__content {
   width: 100%;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
+  min-height: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
 
 /* Custom Scrollbar Styling for Tab Panels */
@@ -19036,7 +19039,12 @@ body,
 .settings__generator__tab {
   padding: 20px;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: visible;
+}
+
+.resource__generator__tab {
+  position: static;
+  overflow: visible;
 }
 
 .comments__generator__tab {

@@ -16,6 +16,7 @@ interface MultiSelectProps {
   isSearchable?: boolean;
   isMulti?: boolean;
   isDisabled?: boolean;
+  isClearable?: boolean;
   description?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   width?: number;
@@ -30,6 +31,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   isSearchable = true,
   isMulti = false,
   isDisabled = false,
+  isClearable = false,
   description,
   size = "lg",
   width = 100,
@@ -302,6 +304,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
         isSearchable={isSearchable}
         isMulti={isMulti}
         isDisabled={isDisabled}
+        isClearable={isClearable}
         classNamePrefix="storm-multiselect"
         styles={finalStyles}
         menuPortalTarget={document.body}

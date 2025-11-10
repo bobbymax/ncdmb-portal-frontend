@@ -345,6 +345,10 @@ export type PaperBoardAction =
       payload: boolean;
     }
   | {
+      type: "SET_MODE";
+      payload: "store" | "update";
+    }
+  | {
       type: "ADD_DOCUMENT_ACTIVITY";
       payload: DocumentActivity;
     }
@@ -424,6 +428,7 @@ export interface PaperBoardContextType {
     setTrackers: (trackers: CategoryProgressTrackerProps[]) => void;
     setPages: (pages: DocumentResponseData[]) => void;
     setIsLoadingPages: (loading: boolean) => void;
+    setMode: (mode: "store" | "update") => void;
     // Resource management methods removed - use ResourceContext directly
   };
 }

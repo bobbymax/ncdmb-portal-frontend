@@ -581,7 +581,7 @@ const DocumentTemplateContent = ({
       }
 
       // Sync department owner
-      if (state.existingDocument.dept) {
+      if (state.existingDocument.dept && state.category?.scope === "personal") {
         actions.setDepartmentOwner({
           value: state.existingDocument.department_id || 0,
           label: state.existingDocument.dept,
@@ -1272,7 +1272,7 @@ const DocumentTemplateContent = ({
     }
   }, [logDocumentGenerate]);
 
-  // console.log(state.existingDocument);
+  // console.log(state.body);
 
   const handleDocumentGenerationComplete = useCallback(async () => {
     try {
@@ -1326,7 +1326,7 @@ const DocumentTemplateContent = ({
         config: state.configState,
         template: state.template,
         category: category,
-        mode: state.existingDocument ? "update" : "store",
+        mode: !state.existingDocument ? state.mode : "update",
         existing_document_id: state.existingDocument?.id ?? 0,
         existing_resource_id: state.existingDocument?.documentable_id ?? 0,
         service: category?.service,
@@ -1352,6 +1352,7 @@ const DocumentTemplateContent = ({
         ),
         approval_memo: state.approval_memo,
         budget_year: period,
+        resource: state.resource,
         conversations,
       };
 

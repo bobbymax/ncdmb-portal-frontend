@@ -38,6 +38,10 @@ export interface InvoiceTotals {
   grandTotal: number;
 }
 
+export interface InvoiceContentWithTotals extends InvoiceContent {
+  totals?: InvoiceTotals | null;
+}
+
 export const DEFAULT_VAT_RATE = 7.5;
 export const DEFAULT_COLUMN_WIDTH = 20;
 
@@ -135,8 +139,10 @@ export const autoNumberRows = (
   });
 };
 
-export const normalizeInvoiceContent = (value: unknown): InvoiceContent => {
-  const defaultContent: InvoiceContent = {
+export const normalizeInvoiceContent = (
+  value: unknown
+): InvoiceContentWithTotals => {
+  const defaultContent: InvoiceContentWithTotals = {
     headers: createDefaultHeaders(),
     rows: [],
     settings: {
@@ -144,13 +150,14 @@ export const normalizeInvoiceContent = (value: unknown): InvoiceContent => {
       showTotals: false,
       currencyHeaderId: undefined,
     },
+    totals: null,
   };
 
   if (!value || typeof value !== "object") {
     return defaultContent;
   }
 
-  const content = value as Partial<InvoiceContent>;
+  const content = value as Partial<InvoiceContentWithTotals>;
 
   const headers = Array.isArray(content.headers)
     ? content.headers
@@ -215,11 +222,18 @@ export const normalizeInvoiceContent = (value: unknown): InvoiceContent => {
       headers.find((header) => header.type === "currency")?.id ?? undefined;
   }
 
-  return {
+  const normalized: InvoiceContentWithTotals = {
     headers,
     rows: autoNumberRows(withShape, headers),
     settings,
+    totals: content.totals ?? null,
   };
+
+  if (!normalized.totals) {
+    normalized.totals = computeInvoiceTotals(normalized, DEFAULT_VAT_RATE);
+  }
+
+  return normalized;
 };
 
 export const parseNumericValue = (value: string): number => {

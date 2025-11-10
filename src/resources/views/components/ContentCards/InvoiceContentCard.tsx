@@ -9,6 +9,7 @@ import {
   DEFAULT_VAT_RATE,
   clampWidthPercent,
   InvoiceContent,
+  InvoiceContentWithTotals,
   InvoiceHeader,
   InvoiceHeaderType,
   InvoiceRow,
@@ -72,7 +73,7 @@ const buildInvoiceContentForSave = (
   headers: InvoiceHeader[],
   rows: InvoiceRow[],
   settings: InvoiceTableSettings
-): InvoiceContent => {
+): InvoiceContentWithTotals => {
   const sanitizedHeaders = sanitizeHeaders(headers);
   const rowsWithShape = ensureRowsShape(rows, sanitizedHeaders);
   const numberedRows = autoNumberRows(
@@ -93,10 +94,17 @@ const buildInvoiceContentForSave = (
       : undefined,
   };
 
-  return {
+  const content: InvoiceContent = {
     headers: sanitizedHeaders,
     rows: numberedRows,
     settings: sanitizedSettings,
+  };
+
+  const totals = computeInvoiceTotals(content, DEFAULT_VAT_RATE);
+
+  return {
+    ...content,
+    totals,
   };
 };
 

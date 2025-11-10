@@ -1,3 +1,4 @@
+import { DataOptionsProps } from "@/resources/views/components/forms/MultiSelect";
 import { BaseResponse } from "../BaseRepository";
 import { InvoiceResponseData } from "../Invoice/data";
 import { MilestoneResponseData } from "../Milestone/data";
@@ -54,7 +55,7 @@ export interface ProjectResponseData extends BaseResponse {
   program_id: number | null;
   phase_name: string | null;
   phase_order: number | null;
-  
+
   // Existing fields
   user_id: number; // handled on server
   department_id: number; // handled on server
@@ -159,6 +160,8 @@ export interface ProjectResponseData extends BaseResponse {
 
   // Relationships
   program?: ProjectProgramResponseData | null;
+  department_owner?: DataOptionsProps | null;
+  fund?: DataOptionsProps | null;
 
   // Timestamps
   created_at?: string; // handled on server

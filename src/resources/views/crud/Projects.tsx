@@ -114,7 +114,7 @@ const Projects: React.FC<
                   onManageRawData(
                     project,
                     "manage",
-                    `/desk/projects/${id}/manage`
+                    `/procurement/projects/${id}/manage`
                   );
                 }
               }}

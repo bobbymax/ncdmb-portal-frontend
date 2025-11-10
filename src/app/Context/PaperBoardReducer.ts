@@ -329,6 +329,11 @@ export const paperBoardReducer = (
         ...state,
         isLoadingPages: action.payload,
       };
+    case "SET_MODE":
+      return {
+        ...state,
+        mode: action.payload,
+      };
     default:
       return state;
   }

@@ -129,6 +129,30 @@ export const resourceFiles = [
     "path": "../app/Repositories/InboundInstruction/data"
   },
   {
+    "key": "InventoryAdjustment",
+    "path": "../app/Repositories/InventoryAdjustment/data"
+  },
+  {
+    "key": "InventoryBalance",
+    "path": "../app/Repositories/InventoryBalance/data"
+  },
+  {
+    "key": "InventoryIssue",
+    "path": "../app/Repositories/InventoryIssue/data"
+  },
+  {
+    "key": "InventoryLocation",
+    "path": "../app/Repositories/InventoryLocation/data"
+  },
+  {
+    "key": "InventoryReturn",
+    "path": "../app/Repositories/InventoryReturn/data"
+  },
+  {
+    "key": "InventoryTransaction",
+    "path": "../app/Repositories/InventoryTransaction/data"
+  },
+  {
     "key": "Invoice",
     "path": "../app/Repositories/Invoice/data"
   },

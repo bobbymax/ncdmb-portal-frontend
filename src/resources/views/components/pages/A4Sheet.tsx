@@ -9,6 +9,7 @@ import { CategoryProgressTrackerProps } from "@/app/Repositories/DocumentCategor
 import { SelectedActionsProps } from "../../crud/DocumentCategoryConfiguration";
 import { UserResponseData } from "@/app/Repositories/User/data";
 import { scopes } from "app/Hooks/usePolicy";
+import { DocumentResponseData } from "@/app/Repositories/Document/data";
 
 interface A4SheetProps {
   // State props
@@ -17,6 +18,7 @@ interface A4SheetProps {
     configState: ProcessFlowConfigProps | null;
     documentState: { title?: string; ref?: string | null } | null;
     resourceLinks: ContentBlock[] | null;
+    existingDocument?: DocumentResponseData | null;
     template: any;
   };
 
@@ -95,7 +97,8 @@ const A4Sheet: React.FC<A4SheetProps> = ({
           title={state.documentState?.title ?? null}
           date={moment().format("DD/MM/YYYY")}
           code={
-            (state.documentState?.ref as string) ?? "{{ system generated ref }}"
+            (state.existingDocument?.ref as string) ??
+            "{{ system generated ref }}"
           }
         />
       </div>

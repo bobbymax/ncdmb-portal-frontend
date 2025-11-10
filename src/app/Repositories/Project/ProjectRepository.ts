@@ -28,7 +28,7 @@ export default class ProjectRepository extends BaseRepository {
       program_id: data.program_id ?? null,
       phase_name: data.phase_name ?? null,
       phase_order: data.phase_order ?? null,
-      
+
       // Existing fields
       id: data.id ?? 0,
       user_id: data.user_id ?? 0,
@@ -128,7 +128,8 @@ export default class ProjectRepository extends BaseRepository {
 
       // Relationships
       program: data.program ?? null,
-
+      department_owner: data.department_owner ?? null,
+      fund: data.fund ?? null,
       // Timestamps
       created_at: data.created_at ?? "",
       updated_at: data.updated_at ?? "",

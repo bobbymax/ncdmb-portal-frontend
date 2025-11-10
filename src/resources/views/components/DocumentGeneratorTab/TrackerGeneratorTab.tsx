@@ -44,15 +44,21 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
   isLast = false,
 }) => {
   return (
-    <div className="timeline-item">
-      <div className="timeline-marker">
-        <div className={`timeline-circle ${isActive ? "active" : ""}`}></div>
-        {!isLast && <div className="timeline-line"></div>}
+    <div
+      className={`tracker__timeline-item ${isActive ? "is-active" : ""} ${
+        isLast ? "is-last" : ""
+      }`}
+    >
+      <div className="tracker__timeline-marker">
+        <span className="tracker__timeline-dot">
+          <i className="ri-flag-2-line" />
+        </span>
+        {!isLast && <span className="tracker__timeline-connector" />}
       </div>
-      <div className="timeline-content">
-        <div className="timeline-timestamp">{timestamp}</div>
-        <div className="timeline-title">{title}</div>
-        {subtitle && <div className="timeline-subtitle">{subtitle}</div>}
+      <div className="tracker__timeline-body">
+        <span className="tracker__timeline-timestamp">{timestamp}</span>
+        <h4 className="tracker__timeline-title">{title}</h4>
+        {subtitle && <p className="tracker__timeline-subtitle">{subtitle}</p>}
       </div>
     </div>
   );
@@ -67,42 +73,36 @@ const SignatureTimelineItem: React.FC<SignatureTimelineItemProps> = ({
 }) => {
   const { getResourceById } = useResourceContext();
 
-  const getSignatoryTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      owner: "Owner",
-      witness: "Witness",
-      approval: "Approver",
-      authorised: "Authorised",
-      attestation: "Attestation",
-      auditor: "Auditor",
-      initiator: "Initiator",
-      vendor: "Vendor",
-      other: "Other",
-    };
-    return labels[type] || type;
+  const iconMap: Record<typeof stageType, string> = {
+    from: "ri-mail-send-line",
+    through: "ri-route-line",
+    to: "ri-checkbox-circle-line",
   };
 
-  const getStageLabel = (type: string) => {
-    switch (type) {
-      case "from":
-        return "Document Initiated";
-      case "through":
-        return "Document Processed";
-      case "to":
-        return "Document Finalized";
-      default:
-        return type;
-    }
+  const stageTitleMap: Record<typeof stageType, string> = {
+    from: "Document Initiated",
+    through: "Document Processed",
+    to: "Document Finalized",
+  };
+
+  const signatoryLabelMap: Record<string, string> = {
+    owner: "Owner",
+    witness: "Witness",
+    approval: "Approver",
+    authorised: "Authorised",
+    attestation: "Attestation",
+    auditor: "Auditor",
+    initiator: "Initiator",
+    vendor: "Vendor",
+    other: "Other",
   };
 
   const getActionSummary = () => {
     if (!stage.actions || stage.actions.length === 0) return null;
-
     const completedActions = stage.actions.filter(
       (action) =>
         action.action_status === "passed" || action.action_status === "complete"
     );
-
     if (completedActions.length === 0) return null;
 
     return `${completedActions.length} action${
@@ -125,8 +125,8 @@ const SignatureTimelineItem: React.FC<SignatureTimelineItemProps> = ({
         .slice(0, 2);
       return {
         name: fullName,
-        initials: initials,
-        user: user,
+        initials,
+        user,
       };
     }
     return {
@@ -138,25 +138,47 @@ const SignatureTimelineItem: React.FC<SignatureTimelineItemProps> = ({
 
   const actionSummary = getActionSummary();
   const userInfo = getUserInfo();
+  const stageIcon = iconMap[stageType];
+  const stageLabel = stageTitleMap[stageType] || stageType;
+  const signatoryLabel =
+    signatoryLabelMap[stage.signatory_type] || stage.signatory_type;
 
   return (
-    <div className="timeline-item">
-      <div className="timeline-marker">
-        <div className={`timeline-circle ${isActive ? "active" : ""}`}></div>
-        {!isLast && <div className="timeline-line"></div>}
+    <div
+      className={`tracker__timeline-item tracker__timeline-item--signature ${
+        isActive ? "is-active" : ""
+      } ${isLast ? "is-last" : ""}`}
+    >
+      <div className="tracker__timeline-marker">
+        <span className="tracker__timeline-dot">
+          <i className={stageIcon} />
+        </span>
+        {!isLast && <span className="tracker__timeline-connector" />}
       </div>
-      <div className="timeline-content">
-        <div className="timeline-timestamp">{timestamp}</div>
-        <div className="timeline-title">{getStageLabel(stageType)}</div>
-        <div className="timeline-user-info">
-          <div className="timeline-user-avatar">{userInfo.initials}</div>
-          <div className="timeline-user-name">{userInfo.name}</div>
+      <div className="tracker__timeline-body">
+        <div className="tracker__timeline-header">
+          <span className="tracker__timeline-timestamp">{timestamp}</span>
+          <span className="tracker__tag tracker__tag--neutral">
+            {signatoryLabel}
+          </span>
         </div>
-        <div className="timeline-user-details">
-          {getSignatoryTypeLabel(stage.signatory_type)}
-          {stage.should_be_signed === "yes" && " • Signature Required"}
-          {actionSummary && ` • ${actionSummary}`}
+        <h4 className="tracker__timeline-title">{stageLabel}</h4>
+
+        <div className="tracker__user">
+          <span className="tracker__user-avatar">{userInfo.initials}</span>
+          <div className="tracker__user-meta">
+            <span className="tracker__user-name">{userInfo.name}</span>
+            <span className="tracker__user-role">
+              {stage.should_be_signed === "yes"
+                ? "Signature required"
+                : "Acknowledgement"}
+            </span>
+          </div>
         </div>
+
+        {actionSummary && (
+          <div className="tracker__timeline-footer">{actionSummary}</div>
+        )}
       </div>
     </div>
   );
@@ -176,12 +198,10 @@ const ProcessTimelineItem: React.FC<ProcessTimelineItemProps> = ({
   const processIdentifier = process.identifier || "unknown";
 
   const getUserInfo = () => {
-    // Find the draft that matches this process
     const matchingDraft = state.existingDocument?.drafts?.find(
       (draft) => draft.progress_tracker_id === process.id
     );
 
-    // If no matching draft found, the process hasn't happened yet
     if (!matchingDraft || !matchingDraft.operator_id) {
       return {
         name: "Pending Assignment",
@@ -191,7 +211,6 @@ const ProcessTimelineItem: React.FC<ProcessTimelineItemProps> = ({
       };
     }
 
-    // Get user information from the draft's operator_id
     const user = getResourceById("users", matchingDraft.operator_id);
     if (user) {
       const fullName =
@@ -206,11 +225,12 @@ const ProcessTimelineItem: React.FC<ProcessTimelineItemProps> = ({
         .slice(0, 2);
       return {
         name: fullName,
-        initials: initials,
-        user: user,
+        initials,
+        user,
         isPending: false,
       };
     }
+
     return {
       name: `User ID: ${matchingDraft.operator_id}`,
       initials: "U",
@@ -222,31 +242,47 @@ const ProcessTimelineItem: React.FC<ProcessTimelineItemProps> = ({
   const userInfo = getUserInfo();
 
   return (
-    <div className="timeline-item">
-      <div className="timeline-marker">
-        <div className={`timeline-circle ${isActive ? "active" : ""}`}></div>
-        {!isLast && <div className="timeline-line"></div>}
+    <div
+      className={`tracker__timeline-item tracker__timeline-item--process ${
+        isActive ? "is-active" : ""
+      } ${isLast ? "is-last" : ""}`}
+    >
+      <div className="tracker__timeline-marker">
+        <span className="tracker__timeline-dot">
+          <i className="ri-flow-chart" />
+        </span>
+        {!isLast && <span className="tracker__timeline-connector" />}
       </div>
-      <div className="timeline-content">
-        <div className="timeline-timestamp">{timestamp}</div>
-        <div className="timeline-title">{processName}</div>
-        <div className="timeline-user-info">
-          <div
-            className={`timeline-user-avatar ${
-              userInfo.isPending ? "pending" : ""
+      <div className="tracker__timeline-body">
+        <div className="tracker__timeline-header">
+          <span className="tracker__timeline-timestamp">{timestamp}</span>
+          <span className="tracker__tag">
+            {process.department?.abv || "Dept"} •{" "}
+            {process.group?.name || "Group"}
+          </span>
+        </div>
+        <h4 className="tracker__timeline-title">{processName}</h4>
+        <p className="tracker__timeline-subtitle">
+          {processIdentifier.toUpperCase()}
+          {isActive && (
+            <span className="tracker__tag tracker__tag--active">Now</span>
+          )}
+        </p>
+
+        <div className="tracker__user">
+          <span
+            className={`tracker__user-avatar ${
+              userInfo.isPending ? "is-pending" : ""
             }`}
           >
             {userInfo.initials}
+          </span>
+          <div className="tracker__user-meta">
+            <span className="tracker__user-name">{userInfo.name}</span>
+            <span className="tracker__user-role">
+              {userInfo.isPending ? "Awaiting assignment" : "Last operator"}
+            </span>
           </div>
-          <div className="timeline-user-name">{userInfo.name}</div>
-        </div>
-        <div className="timeline-user-details">
-          {userInfo.isPending
-            ? "Awaiting Assignment"
-            : `${process.department?.abv || "Unknown Dept"} • ${
-                process.group?.name || "Unknown Group"
-              }`}
-          {isActive && " • Current Position"}
         </div>
       </div>
     </div>
@@ -263,12 +299,15 @@ const TrackerGeneratorTab: React.FC<TrackerGeneratorTabProps> = ({
 
   if (!existingDocument) {
     return (
-      <div className="tracker-empty-state">
-        <div className="tracker-empty-icon">
-          <i className="ri-road-map-line"></i>
+      <div className="tracker__empty">
+        <div className="tracker__empty-icon">
+          <i className="ri-road-map-line" />
         </div>
-        <h4>No Document Tracking Available</h4>
-        <p>Document tracking information will appear here once available.</p>
+        <h4>Tracking information not available</h4>
+        <p>
+          Once activity is logged on this document, the full timeline appears
+          here.
+        </p>
       </div>
     );
   }
@@ -316,41 +355,82 @@ const TrackerGeneratorTab: React.FC<TrackerGeneratorTabProps> = ({
   const configTimestamps = getConfigTimestamps();
 
   return (
-    <div className="tracker-generator-tab">
-      {/* Document Header */}
-      <div className="tracker-document-header">
-        <div className="tracker-document-icon">
-          <i className="ri-file-text-line"></i>
+    <div className="tracker__layout">
+      <section className="tracker__panel tracker__panel--header">
+        <div className="tracker__panel-icon">
+          <i className="ri-file-text-line" />
         </div>
-        <div className="tracker-document-info">
-          <h3 className="tracker-document-title">{existingDocument.title}</h3>
-          <div className="tracker-document-meta">
-            <span className="tracker-document-ref">
-              <i className="ri-hashtag"></i>
+        <div className="tracker__panel-body">
+          <h2 className="tracker__panel-title">{existingDocument.title}</h2>
+          <div className="tracker__panel-meta">
+            <span className="tracker__tag tracker__tag--id">
+              <i className="ri-hashtag" />
               {existingDocument.ref}
             </span>
             <span
-              className={`tracker-document-status status-${existingDocument.status}`}
+              className={`tracker__status tracker__status--${existingDocument.status}`}
             >
               {existingDocument.status}
             </span>
             {existingDocument.is_completed && (
-              <span className="tracker-document-completed">
-                <i className="ri-checkbox-circle-fill"></i>
+              <span className="tracker__status tracker__status--completed">
+                <i className="ri-checkbox-circle-fill" />
                 Completed
               </span>
             )}
           </div>
         </div>
-      </div>
-
-      {/* Users that signed on this document */}
-      {hasConfig && existingDocument.config && (
-        <div className="timeline-section">
-          <div className="timeline-section-header">
-            <h3>Signatories</h3>
+        <div className="tracker__panel-stats">
+          <div className="tracker__stat-card">
+            <span className="tracker__stat-icon tracker__stat-icon--created">
+              <i className="ri-calendar-event-line" />
+            </span>
+            <div className="tracker__stat-body">
+              <span className="tracker__stat-label">Created</span>
+              <span className="tracker__stat-value">
+                {existingDocument.created_at
+                  ? new Date(existingDocument.created_at).toLocaleDateString(
+                      "en-US",
+                      { year: "numeric", month: "short", day: "numeric" }
+                    )
+                  : "N/A"}
+              </span>
+            </div>
           </div>
-          <div className="timeline-container">
+          <div className="tracker__stat-card">
+            <span className="tracker__stat-icon tracker__stat-icon--updated">
+              <i className="ri-time-line" />
+            </span>
+            <div className="tracker__stat-body">
+              <span className="tracker__stat-label">Last Updated</span>
+              <span className="tracker__stat-value">
+                {existingDocument.updated_at
+                  ? new Date(existingDocument.updated_at).toLocaleDateString(
+                      "en-US",
+                      { year: "numeric", month: "short", day: "numeric" }
+                    )
+                  : "N/A"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {hasConfig && existingDocument.config && (
+        <section className="tracker__panel">
+          <header className="tracker__panel-header">
+            <div>
+              <h3 className="tracker__panel-heading">
+                <i className="ri-verified-badge-line" />
+                Signatory Trail
+              </h3>
+              <p className="tracker__panel-subheading">
+                Track signatures and authorisations across this document.
+              </p>
+            </div>
+          </header>
+
+          <div className="tracker__timeline">
             {existingDocument.config.from && (
               <SignatureTimelineItem
                 stage={existingDocument.config.from}
@@ -389,20 +469,29 @@ const TrackerGeneratorTab: React.FC<TrackerGeneratorTabProps> = ({
                   existingDocument.pointer ===
                   existingDocument.config.to.identifier
                 }
-                isLast={true}
+                isLast
               />
             )}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Users that processed this document */}
       {hasProcesses && existingDocument.processes && (
-        <div className="timeline-section">
-          <div className="timeline-section-header">
-            <h3>Processes</h3>
-          </div>
-          <div className="timeline-container">
+        <section className="tracker__panel">
+          <header className="tracker__panel-header">
+            <div>
+              <h3 className="tracker__panel-heading">
+                <i className="ri-route-line" />
+                Workflow Progress
+              </h3>
+              <p className="tracker__panel-subheading">
+                Overview of the departments and teams that touched this
+                document.
+              </p>
+            </div>
+          </header>
+
+          <div className="tracker__timeline">
             {existingDocument.processes.map((process, index) => (
               <ProcessTimelineItem
                 key={process.id}
@@ -413,28 +502,34 @@ const TrackerGeneratorTab: React.FC<TrackerGeneratorTabProps> = ({
               />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Activity Summary */}
       {(hasThreads || hasUploads) && (
-        <div className="collaboration-summary-section">
-          <div className="section-header">
-            <i className="ri-team-line"></i>
-            <h3>Activity Summary</h3>
-          </div>
+        <section className="tracker__panel tracker__panel--summary">
+          <header className="tracker__panel-header">
+            <div>
+              <h3 className="tracker__panel-heading">
+                <i className="ri-team-line" />
+                Collaboration Summary
+              </h3>
+              <p className="tracker__panel-subheading">
+                Conversations and supporting files shared across the workflow.
+              </p>
+            </div>
+          </header>
 
-          <div className="collaboration-summary-grid">
+          <div className="tracker__summary-grid">
             {hasThreads && existingDocument.threads && (
-              <div className="collaboration-item">
-                <div className="collaboration-icon threads">
-                  <i className="ri-chat-3-line"></i>
+              <div className="tracker__summary-card">
+                <div className="tracker__summary-icon tracker__summary-icon--threads">
+                  <i className="ri-chat-3-line" />
                 </div>
-                <div className="collaboration-details">
-                  <span className="collaboration-count">
+                <div className="tracker__summary-body">
+                  <span className="tracker__summary-count">
                     {existingDocument.threads.length}
                   </span>
-                  <span className="collaboration-label">
+                  <span className="tracker__summary-label">
                     Discussion Threads
                   </span>
                 </div>
@@ -442,62 +537,21 @@ const TrackerGeneratorTab: React.FC<TrackerGeneratorTabProps> = ({
             )}
 
             {hasUploads && existingDocument.uploads && (
-              <div className="collaboration-item">
-                <div className="collaboration-icon uploads">
-                  <i className="ri-file-upload-line"></i>
+              <div className="tracker__summary-card">
+                <div className="tracker__summary-icon tracker__summary-icon--uploads">
+                  <i className="ri-file-upload-line" />
                 </div>
-                <div className="collaboration-details">
-                  <span className="collaboration-count">
+                <div className="tracker__summary-body">
+                  <span className="tracker__summary-count">
                     {existingDocument.uploads.length}
                   </span>
-                  <span className="collaboration-label">Uploaded Files</span>
+                  <span className="tracker__summary-label">Uploaded Files</span>
                 </div>
               </div>
             )}
           </div>
-        </div>
+        </section>
       )}
-
-      {/* Timeline Footer */}
-      <div className="tracker-timeline-footer">
-        <div className="timeline-footer-item">
-          <i className="ri-calendar-event-line"></i>
-          <div className="timeline-footer-details">
-            <span className="timeline-footer-label">Created</span>
-            <span className="timeline-footer-value">
-              {existingDocument.created_at
-                ? new Date(existingDocument.created_at).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )
-                : "N/A"}
-            </span>
-          </div>
-        </div>
-
-        <div className="timeline-footer-item">
-          <i className="ri-time-line"></i>
-          <div className="timeline-footer-details">
-            <span className="timeline-footer-label">Last Updated</span>
-            <span className="timeline-footer-value">
-              {existingDocument.updated_at
-                ? new Date(existingDocument.updated_at).toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )
-                : "N/A"}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

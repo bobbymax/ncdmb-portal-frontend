@@ -515,6 +515,9 @@ export const PaperBoardProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoadingPages: (loading: boolean) => {
       dispatch({ type: "SET_IS_LOADING_PAGES", payload: loading });
     },
+    setMode: (mode: "store" | "update") => {
+      dispatch({ type: "SET_MODE", payload: mode });
+    },
 
     // Resource management methods removed - use ResourceContext directly
   };

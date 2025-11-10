@@ -12,6 +12,7 @@ export interface TextInputProps {
     | "email"
     | "date"
     | "datetime"
+    | "datetime-local"
     | "time"
     | "month";
   value?: number | string | undefined | any;
@@ -22,6 +23,8 @@ export interface TextInputProps {
   isDisabled?: boolean;
   min?: string | number;
   max?: string | number;
+  step?: string | number;
+  maxLength?: number;
   width?: number;
   isMulti?: boolean;
   accept?: string;
@@ -45,6 +48,8 @@ const TextInput: React.FC<TextInputProps> = ({
   onBlur,
   accept,
   uppercase,
+  step,
+  maxLength,
   ...attributes
 }) => {
   return (
@@ -69,6 +74,8 @@ const TextInput: React.FC<TextInputProps> = ({
         multiple={isMulti}
         min={min}
         max={max}
+        step={step}
+        maxLength={maxLength}
         style={{ width: `${width}%` }}
         accept={accept}
         {...attributes}

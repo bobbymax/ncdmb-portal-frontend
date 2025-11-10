@@ -48,8 +48,6 @@ export const useTemplateHeader = (
       const { code, configState, tagline, title, date, ref } = params;
       const header = template?.header;
 
-      // console.log(ref);
-
       switch (header) {
         case "banner":
           return null;
