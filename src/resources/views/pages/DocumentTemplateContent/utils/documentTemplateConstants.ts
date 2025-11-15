@@ -12,6 +12,11 @@ export const DEFAULT_META_DATA = {
     fallback_approver: null,
     for_signed: false,
     days: 30,
+    allowedActions: {
+      from: [],
+      through: [],
+      to: [],
+    },
     frequency: "days" as const,
   },
   recipients: [],

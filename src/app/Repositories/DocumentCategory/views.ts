@@ -37,7 +37,7 @@ export const documentCategoryViews: ViewsProps[] = [
     server_url: "documentCategories",
     component: "DocumentCategorySignatories",
     frontend_path: "/specifications/document-categories/:id/signatories",
-    type: "form",
+    type: "raw",
     tag: "",
     mode: "update",
     action: "Update Signatories",

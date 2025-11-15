@@ -6,6 +6,7 @@ import "../../assets/css/notifications.css";
 
 const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [shake, setShake] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const prevUnreadCount = useRef(0);
@@ -20,6 +21,21 @@ const NotificationBell: React.FC = () => {
     loadMore,
   } = useNotifications();
 
+  const handleToggle = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+      setTimeout(() => setIsVisible(true), 10);
+    } else {
+      setIsVisible(false);
+      setTimeout(() => setIsOpen(false), 300);
+    }
+  };
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => setIsOpen(false), 300);
+  };
+
   // Shake animation when new notification arrives
   useEffect(() => {
     if (unreadCount > prevUnreadCount.current && unreadCount > 0) {
@@ -33,7 +49,7 @@ const NotificationBell: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!bellRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
+        handleClose();
       }
     };
 
@@ -50,7 +66,7 @@ const NotificationBell: React.FC = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
+        handleClose();
       }
     };
 
@@ -62,7 +78,7 @@ const NotificationBell: React.FC = () => {
     <div className="notification-bell-container" ref={bellRef}>
       <button
         className={`notification-bell ${shake ? "shake" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         aria-label="Notifications"
       >
         <i className="ri-notification-2-line" />
@@ -81,7 +97,7 @@ const NotificationBell: React.FC = () => {
             unreadCount={unreadCount}
             isLoading={isLoading}
             hasMore={hasMore}
-            onClose={() => setIsOpen(false)}
+            onClose={handleClose}
             onMarkAsRead={markAsRead}
             onMarkAllAsRead={markAllAsRead}
             onLoadMore={loadMore}

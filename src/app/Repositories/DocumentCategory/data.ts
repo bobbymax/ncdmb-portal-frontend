@@ -86,6 +86,31 @@ export type DocumentPolicy = {
   for_signed: boolean;
   days: number;
   frequency: "days" | "weeks" | "months" | "years";
+  allowedActions?: {
+    from: number[];
+    through: number[];
+    to: number[];
+  };
+  // Signatory resolution properties
+  department_id?: number | null; // Department that owns this category
+  initiator_group_id?: number | null; // Group that can initiate documents
+  approval_group_id?: number | null; // Group that approves documents
+  destination_department_id?: number | null; // Department where approval happens
+  mustPassThrough?: boolean; // If true, enforce through even if same department (deprecated enforcement mechanism)
+  explicitlyEnforceThrough?: boolean; // If true, enforce through even if initiator and approver are in the same department
+  through_group_id?: number | null; // Group to use for through resolution when mustPassThrough is true
+  // Workflow stage IDs for actions
+  initiator_workflow_stage_id?: number | null; // Workflow stage for initiator (configState.from)
+  approval_workflow_stage_id?: number | null; // Workflow stage for approver (configState.to)
+  through_workflow_stage_id?: number | null; // Workflow stage for through (configState.through) - optional
+  // Signing control properties
+  initiator_should_sign?: boolean; // Controls if initiator should sign (default: true)
+  through_should_sign?: boolean; // Controls if through should sign (default: true)
+  // Note: "to" (approver) always signs, no property needed
+  // Fixed user IDs (override group/department resolution)
+  initiator_user_id?: number | null; // Fixed user for initiator (bypasses group resolution)
+  through_user_id?: number | null; // Fixed user for through (bypasses group/hierarchy resolution)
+  to_user_id?: number | null; // Fixed user for approver (bypasses group resolution)
 };
 
 export type DocumentMetaDataProps = {

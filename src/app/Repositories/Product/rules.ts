@@ -1,0 +1,18 @@
+export const productRules: { [key: string]: string } = {
+  product_category_id: "required|numeric",
+  department_id: "required|numeric",
+  product_brand_id: "sometimes|numeric",
+  primary_vendor_id: "sometimes|numeric",
+  name: "required|string",
+  label: "required|string",
+  code: "required|string",
+  description: "nullable|string",
+  restock_qty: "required|numeric",
+  reorder_point: "required|numeric",
+  max_stock_level: "required|numeric",
+  track_batches: "sometimes|boolean",
+  owner: "required|string",
+  request_on_delivery: "sometimes|boolean",
+  out_of_stock: "sometimes|boolean",
+  is_blocked: "sometimes|boolean",
+};

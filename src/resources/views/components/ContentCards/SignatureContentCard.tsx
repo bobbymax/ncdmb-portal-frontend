@@ -19,6 +19,10 @@ import { scopes } from "app/Hooks/usePolicy";
 import MultiSelect, { DataOptionsProps } from "../forms/MultiSelect";
 import { ActionMeta } from "react-select";
 import { formatOptions } from "app/Support/Helpers";
+import {
+  getSignableStages,
+  useConfigStateSignatures,
+} from "app/Utils/configStateToSignatures";
 
 interface SignatureContentCardProps {
   item: ContentBlock;
@@ -49,43 +53,10 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
   // console.log(state.configState);
 
   // Get stages that should be signed from configState
-  const signableStages: CategoryProgressTrackerProps[] = useMemo(() => {
-    const stages: CategoryProgressTrackerProps[] = [];
-    if (state.configState) {
-      // "from" must always be first (top or left)
-      if (
-        state.configState.from &&
-        state.configState.from.should_be_signed === "yes"
-      ) {
-        stages.push({
-          ...state.configState.from,
-          order: stages.length + 1,
-          flow_type: "from",
-        });
-      }
-      if (
-        state.configState.through &&
-        state.configState.through.should_be_signed === "yes"
-      ) {
-        stages.push({
-          ...state.configState.through,
-          order: stages.length + 1,
-          flow_type: "through",
-        });
-      }
-      if (
-        state.configState.to &&
-        state.configState.to.should_be_signed === "yes"
-      ) {
-        stages.push({
-          ...state.configState.to,
-          order: stages.length + 1,
-          flow_type: "to",
-        });
-      }
-    }
-    return stages;
-  }, [state.configState]);
+  const signableStages: CategoryProgressTrackerProps[] = useMemo(
+    () => getSignableStages(state.configState),
+    [state.configState]
+  );
 
   const signatureButton: SelectedActionsProps | null = useMemo(() => {
     if (signableStages.length === 0) return null;
@@ -98,54 +69,18 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
     );
   }, [currentTracker, currentPageActions, signableStages.length]);
 
+  // Get existing signature data from the item content if it exists
+  const existingSignatures = useMemo(
+    () => (item.content?.signature as any)?.signatures || [],
+    [item.content?.signature]
+  );
+
   // Create signature data using actual user information from ResourceContext
-  const signatures: SignatureResponseData[] = useMemo(() => {
-    if (signableStages.length === 0) return [];
-    // Get existing signature data from the item content if it exists
-    const existingSignatures =
-      (item.content?.signature as any)?.signatures || [];
-
-    return signableStages.map(
-      (stage: CategoryProgressTrackerProps, index: number) => {
-        // Find the user from ResourceContext based on stage.user_id
-        const user = getResourceById("users", stage.user_id);
-
-        // Find existing signature for this stage
-        const existingSignature = existingSignatures.find(
-          (sig: any) => sig.flow_type === stage.flow_type
-        );
-
-        return {
-          id: existingSignature?.id || index + 1,
-          signatory_id: stage.user_id,
-          user_id: stage.user_id,
-          document_draft_id: 0, // Will be set when document is created
-          type: "signatory" as any, // Default type
-          flow_type: stage.flow_type,
-          signature: existingSignature?.signature || null,
-          user: user || null,
-          group_id: stage.group_id,
-          order: stage.order,
-          approving_officer: user
-            ? {
-                name:
-                  `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-                  user.name ||
-                  "Unknown User",
-                grade_level: user.grade_level || "",
-              }
-            : {
-                name: `User ID: ${stage.user_id}`,
-                grade_level: "",
-              },
-        } as SignatureResponseData;
-      }
-    );
-  }, [
-    signableStages,
+  const signatures: SignatureResponseData[] = useConfigStateSignatures(
+    state.configState,
     getResourceById,
-    (item.content?.signature as any)?.signatures,
-  ]);
+    existingSignatures
+  );
 
   // Use ref to access current signatures without causing re-renders
   const signaturesRef = useRef<SignatureResponseData[]>(signatures);
@@ -322,6 +257,8 @@ const SignatureContentCard: React.FC<SignatureContentCardProps> = ({
       },
     [state.configState, actions]
   );
+
+  console.log(signatures);
 
   if (isEditing) {
     // Disable editing if document already exists

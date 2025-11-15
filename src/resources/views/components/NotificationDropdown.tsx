@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { NotificationResponseData } from "app/Repositories/Notification/data";
 import { formatDistanceToNow } from "date-fns";
@@ -25,6 +25,27 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onLoadMore,
 }) => {
   const navigate = useNavigate();
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Smooth entrance animation
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  // Handle close with animation
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  // Filter notifications based on selected filter
+  const filteredNotifications =
+    filter === "unread"
+      ? notifications.filter((n) => !n.read_at)
+      : notifications;
 
   const handleNotificationClick = (notification: NotificationResponseData) => {
     // Mark as read
@@ -76,90 +97,143 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   return (
-    <div className="notification-dropdown">
-      {/* Header */}
-      <div className="notification-dropdown-header">
-        <h4>Notifications{unreadCount > 0 && ` (${unreadCount})`}</h4>
-        {unreadCount > 0 && (
-          <button className="mark-all-read-btn" onClick={onMarkAllAsRead}>
-            Mark all read
-          </button>
-        )}
-      </div>
-
-      {/* Notification List */}
-      <div className="notification-list">
-        {notifications.length === 0 && !isLoading ? (
-          <div className="notification-empty">
-            <i className="ri-notification-off-line" />
-            <p>No notifications yet</p>
+    <>
+      {/* Backdrop */}
+      <div
+        className="notification-dropdown-backdrop"
+        onClick={handleClose}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.3)",
+          backdropFilter: "blur(4px)",
+          zIndex: 9998,
+          opacity: isVisible ? 1 : 0,
+          transition: "opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      />
+      
+      <div
+        className="notification-dropdown"
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible
+            ? "translateY(0) scale(1)"
+            : "translateY(-10px) scale(0.98)",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
+        {/* Header */}
+        <div className="notification-dropdown-header">
+          <h4>Notifications</h4>
+          <div className="notification-filter-buttons">
+            <button
+              className={`filter-btn ${filter === "all" ? "active" : ""}`}
+              onClick={() => setFilter("all")}
+            >
+              All
+            </button>
+            <button
+              className={`filter-btn ${filter === "unread" ? "active" : ""}`}
+              onClick={() => setFilter("unread")}
+            >
+              Unread
+              {unreadCount > 0 && (
+                <span className="filter-badge">{unreadCount}</span>
+              )}
+            </button>
           </div>
-        ) : (
-          <>
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`notification-item ${!notification.read_at ? 'unread' : ''}`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="notification-item-content">
-                  <div className={`notification-icon ${notification.data?.resource_type || 'default'}`}>
-                    <i className={getNotificationIcon(notification.data?.resource_type || 'notification')} />
-                  </div>
-                  <div className="notification-body">
-                    <div className="notification-title">
-                      {getNotificationMessage(notification)}
+        </div>
+
+        {/* Notification List */}
+        <div className="notification-list">
+          {filteredNotifications.length === 0 && !isLoading ? (
+            <div className="notification-empty">
+              <i className="ri-notification-off-line" />
+              <p>
+                {filter === "unread"
+                  ? "No unread notifications"
+                  : "No notifications yet"}
+              </p>
+            </div>
+          ) : (
+            <>
+              {filteredNotifications.map((notification, index) => (
+                <div
+                  key={notification.id}
+                  className={`notification-item ${
+                    !notification.read_at ? "unread" : ""
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                  style={{
+                    animationDelay: `${index * 0.03}s`,
+                  }}
+                >
+                  <div className="notification-item-content">
+                    <div className="notification-avatar-wrapper">
+                      <div
+                        className={`notification-icon ${
+                          notification.data?.resource_type || "default"
+                        }`}
+                      >
+                        <i
+                          className={getNotificationIcon(
+                            notification.data?.resource_type || "notification"
+                          )}
+                        />
+                      </div>
+                      {!notification.read_at && (
+                        <span className="notification-unread-dot" />
+                      )}
                     </div>
-                    <div className="notification-message">
-                      {getNotificationPreview(notification)}
-                    </div>
-                    <div className="notification-time">
-                      {!notification.read_at && <span className="notification-unread-dot" />}
-                      <i className="ri-time-line" />
-                      <span>{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                    <div className="notification-body">
+                      <div className="notification-title">
+                        <span className="notification-sender">
+                          {getNotificationMessage(notification)}
+                        </span>
+                        <span className="notification-time-text">
+                          {formatDistanceToNow(
+                            new Date(notification.created_at),
+                            { addSuffix: true }
+                          )}
+                        </span>
+                      </div>
+                      <div className="notification-message">
+                        {getNotificationPreview(notification)}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            
-            {hasMore && (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>
-                <button 
-                  onClick={onLoadMore} 
-                  disabled={isLoading}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#137547',
-                    fontWeight: 600,
-                    cursor: isLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {isLoading ? 'Loading...' : 'Load more'}
-                </button>
-              </div>
-            )}
-          </>
+              ))}
+
+              {hasMore && (
+                <div className="notification-load-more">
+                  <button
+                    onClick={onLoadMore}
+                    disabled={isLoading}
+                    className="load-more-btn"
+                  >
+                    {isLoading ? "Loading..." : "Load more"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        {unreadCount > 0 && (
+          <div className="notification-dropdown-footer">
+            <button className="mark-all-read-btn" onClick={onMarkAllAsRead}>
+              Mark all as read
+            </button>
+          </div>
         )}
       </div>
-
-      {/* Footer */}
-      <div className="notification-dropdown-footer">
-        <a 
-          href="#" 
-          className="view-all-link" 
-          onClick={(e) => {
-            e.preventDefault();
-            navigate('/notifications');
-            onClose();
-          }}
-        >
-          View all notifications
-        </a>
-      </div>
-    </div>
+    </>
   );
 };
 

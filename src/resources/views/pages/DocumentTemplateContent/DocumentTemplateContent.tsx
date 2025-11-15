@@ -22,6 +22,13 @@ import { useTemplateHeader } from "app/Hooks/useTemplateHeader";
 import { useCore } from "app/Hooks/useCore";
 import { useActivityLogger } from "app/Hooks/useActivityLogger";
 import moment from "moment";
+// import {
+//   testPersonalScope,
+//   runAllTests,
+//   testOfficialScopeWithInitiator,
+//   testThroughResolution,
+//   testMustPassThrough,
+// } from "app/Utils/testSignatoryConfiguration";
 
 // Create a component map for dynamic imports
 const COMPONENT_MAP: Record<
@@ -96,6 +103,8 @@ import {
   SAMPLE_BLOCKS,
   DEFAULT_TAB_ORDER,
 } from "./utils";
+import { useAuth } from "app/Context/AuthContext";
+import { useDocumentSignatories } from "app/Hooks/useDocumentSignatories";
 
 export type DeskComponentPropTypes =
   | "paper_title"
@@ -137,6 +146,8 @@ const DocumentTemplateContent = ({
   mode,
   existingDocument: propExistingDocument,
 }: DocumentTemplateContentProps) => {
+  const { staff } = useAuth();
+  const { resolveSignatories } = useDocumentSignatories();
   const { state, actions } = usePaperBoard();
   const { getResourceById, loading: resourceLoading } = useResourceContext();
   const { documentPanels } = usePaperBoardResources();
@@ -150,7 +161,17 @@ const DocumentTemplateContent = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const documentElementRef = useRef<HTMLDivElement>(null);
 
-  // console.log(state.configState);
+  const result = resolveSignatories(
+    state.category as DocumentCategoryResponseData,
+    propExistingDocument?.config
+  );
+
+  console.log("Formed ConfigState", result);
+
+  // testPersonalScope();
+  // testOfficialScopeWithInitiator();
+  // testThroughResolution();
+  // testMustPassThrough();
 
   // Mounting guard states
   const [isMounted, setIsMounted] = useState(false);

@@ -1,0 +1,16 @@
+export const vendorRules: { [key: string]: string } = {
+  name: "required|string",
+  representative_name: "required|string",
+  authorising_representative: "required|string",
+  phone: "required|string",
+  email: "required|email",
+  ncec_no: "sometimes|nullable|string",
+  reg_no: "sometimes|nullable|string",
+  tin_number: "sometimes|nullable|string",
+  address: "required|string",
+  bank_account_name: "sometimes|nullable|string",
+  bank_account_number: "sometimes|nullable|string",
+  bank_name: "sometimes|nullable|string",
+  payment_code: "sometimes|nullable|string",
+  website: "required|string",
+};

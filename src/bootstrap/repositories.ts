@@ -4,6 +4,11 @@ import PageRepository from "app/Repositories/Page/PageRepository";
 import RoleRepository from "app/Repositories/Role/RoleRepository";
 import UserRepository from "app/Repositories/User/UserRepository";
 /* PLOP_INJECT_REPOSITORY_IMPORT */
+import VendorRepository from "app/Repositories/Vendor/VendorRepository";
+import ProductMeasurementRepository from "app/Repositories/ProductMeasurement/ProductMeasurementRepository";
+import MeasurementTypeRepository from "app/Repositories/MeasurementType/MeasurementTypeRepository";
+import ProductStockRepository from "app/Repositories/ProductStock/ProductStockRepository";
+import ProductCategoryRepository from "app/Repositories/ProductCategory/ProductCategoryRepository";
 import ProjectBidInvitationRepository from "app/Repositories/ProjectBidInvitation/ProjectBidInvitationRepository";
 import ProjectBidRepository from "app/Repositories/ProjectBid/ProjectBidRepository";
 import ProjectBidEvaluationRepository from "app/Repositories/ProjectBidEvaluation/ProjectBidEvaluationRepository";
@@ -76,6 +81,7 @@ import InventoryTransactionRepository from "app/Repositories/InventoryTransactio
 import InventoryIssueRepository from "app/Repositories/InventoryIssue/InventoryIssueRepository";
 import InventoryReturnRepository from "app/Repositories/InventoryReturn/InventoryReturnRepository";
 import InventoryAdjustmentRepository from "app/Repositories/InventoryAdjustment/InventoryAdjustmentRepository";
+import ProductRepository from "app/Repositories/Product/ProductRepository";
 import { lazy } from "react";
 
 export const lazyLoad = (componentPath: string) => {
@@ -84,6 +90,11 @@ export const lazyLoad = (componentPath: string) => {
 
 const repositories: Array<BaseRepository> = [
   /* PLOP_INJECT_REPOSITORY_INSTANCE */
+new VendorRepository(),
+new ProductMeasurementRepository(),
+new MeasurementTypeRepository(),
+new ProductStockRepository(),
+new ProductCategoryRepository(),
 new ProjectBidInvitationRepository(),
 new ProjectBidRepository(),
 new ProjectBidEvaluationRepository(),
@@ -150,6 +161,7 @@ new SettingRepository(),
   new GradeLevelRepository(),
   new GroupRepository(),
   new WorkflowRepository(),
+  new ProductRepository(),
   new InventoryBalanceRepository(),
   new InventoryTransactionRepository(),
   new InventoryIssueRepository(),

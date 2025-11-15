@@ -1,0 +1,1 @@
+export const productStockRules: { [key: string]: string } = {};

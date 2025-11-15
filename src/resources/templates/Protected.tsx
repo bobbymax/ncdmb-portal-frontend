@@ -53,6 +53,8 @@ const Protected = ({ children }: ProtectedProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isProfileDropdownVisible, setIsProfileDropdownVisible] =
+    useState(false);
   const profileButtonRef = useRef<HTMLDivElement>(null);
 
   // Global modal state for document generation progress
@@ -94,7 +96,15 @@ const Protected = ({ children }: ProtectedProps) => {
   };
 
   const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+    if (!isProfileDropdownOpen) {
+      setIsProfileDropdownOpen(true);
+      // Trigger animation after state update
+      setTimeout(() => setIsProfileDropdownVisible(true), 10);
+    } else {
+      setIsProfileDropdownVisible(false);
+      // Close after animation completes
+      setTimeout(() => setIsProfileDropdownOpen(false), 200);
+    }
   };
 
   // Close dropdown when clicking outside
@@ -102,7 +112,8 @@ const Protected = ({ children }: ProtectedProps) => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest(".profile-section")) {
-        setIsProfileDropdownOpen(false);
+        setIsProfileDropdownVisible(false);
+        setTimeout(() => setIsProfileDropdownOpen(false), 200);
       }
     };
 
@@ -273,124 +284,221 @@ const Protected = ({ children }: ProtectedProps) => {
             {isProfileDropdownOpen &&
               profileButtonRef.current &&
               createPortal(
-                <div
-                  className="profile-dropdown-menu"
-                  style={{
-                    position: "fixed",
-                    top: "60px",
-                    right: "20px",
-                    backgroundColor: "white",
-                    borderRadius: "8px",
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
-                    minWidth: "220px",
-                    zIndex: 9999,
-                    overflow: "hidden",
-                  }}
-                >
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsProfileDropdownOpen(false);
-                      navigate("/profile-settings");
+                <>
+                  {/* Backdrop */}
+                  <div
+                    onClick={() => {
+                      setIsProfileDropdownVisible(false);
+                      setTimeout(() => setIsProfileDropdownOpen(false), 200);
                     }}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "12px 16px",
-                      color: "#1f2937",
-                      textDecoration: "none",
-                      transition: "all 0.2s ease",
-                      borderBottom: "1px solid #f3f4f6",
+                      position: "fixed",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: "rgba(0, 0, 0, 0.3)",
+                      backdropFilter: "blur(4px)",
+                      zIndex: 9998,
+                      opacity: isProfileDropdownVisible ? 1 : 0,
+                      transition: "opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.paddingLeft = "20px";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.paddingLeft = "16px";
+                  />
+                  <div
+                    className="profile-dropdown-menu"
+                    style={{
+                      position: "fixed",
+                      top: "70px",
+                      right: "20px",
+                      backgroundColor: "white",
+                      borderRadius: "16px",
+                      boxShadow:
+                        "0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+                      minWidth: "240px",
+                      zIndex: 9999,
+                      overflow: "hidden",
+                      opacity: isProfileDropdownVisible ? 1 : 0,
+                      transform: isProfileDropdownVisible
+                        ? "translateY(0) scale(1)"
+                        : "translateY(-10px) scale(0.98)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     }}
                   >
-                    <i
-                      className="ri-user-settings-line"
-                      style={{ color: "#137547", fontSize: "1.1rem" }}
-                    ></i>
-                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
-                      Profile Settings
-                    </span>
-                  </a>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsProfileDropdownVisible(false);
+                        setTimeout(() => {
+                          setIsProfileDropdownOpen(false);
+                          navigate("/profile-settings");
+                        }, 200);
+                      }}
+                      className="profile-dropdown-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "14px 20px",
+                        color: "#1f2937",
+                        textDecoration: "none",
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                        e.currentTarget.style.paddingLeft = "24px";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                        e.currentTarget.style.paddingLeft = "20px";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "8px",
+                          background:
+                            "linear-gradient(135deg, #137547 0%, #0d5233 100%)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <i
+                          className="ri-user-settings-line"
+                          style={{ color: "white", fontSize: "18px" }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          flex: 1,
+                        }}
+                      >
+                        Profile Settings
+                      </span>
+                    </a>
 
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsProfileDropdownOpen(false);
-                      navigate("/security-settings");
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "12px 16px",
-                      color: "#1f2937",
-                      textDecoration: "none",
-                      transition: "all 0.2s ease",
-                      borderBottom: "1px solid #f3f4f6",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.paddingLeft = "20px";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.paddingLeft = "16px";
-                    }}
-                  >
-                    <i
-                      className="ri-shield-check-line"
-                      style={{ color: "#137547", fontSize: "1.1rem" }}
-                    ></i>
-                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
-                      Security
-                    </span>
-                  </a>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsProfileDropdownVisible(false);
+                        setTimeout(() => {
+                          setIsProfileDropdownOpen(false);
+                          navigate("/security-settings");
+                        }, 200);
+                      }}
+                      className="profile-dropdown-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "14px 20px",
+                        color: "#1f2937",
+                        textDecoration: "none",
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                        e.currentTarget.style.paddingLeft = "24px";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                        e.currentTarget.style.paddingLeft = "20px";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "8px",
+                          background:
+                            "linear-gradient(135deg, #137547 0%, #0d5233 100%)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <i
+                          className="ri-shield-check-line"
+                          style={{ color: "white", fontSize: "18px" }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          flex: 1,
+                        }}
+                      >
+                        Security
+                      </span>
+                    </a>
 
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsProfileDropdownOpen(false);
-                      // Navigate to preferences when ready
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "12px 16px",
-                      color: "#1f2937",
-                      textDecoration: "none",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#f9fafb";
-                      e.currentTarget.style.paddingLeft = "20px";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "white";
-                      e.currentTarget.style.paddingLeft = "16px";
-                    }}
-                  >
-                    <i
-                      className="ri-settings-3-line"
-                      style={{ color: "#137547", fontSize: "1.1rem" }}
-                    ></i>
-                    <span style={{ fontSize: "0.9rem", fontWeight: "500" }}>
-                      Preferences
-                    </span>
-                  </a>
-                </div>,
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsProfileDropdownVisible(false);
+                        setTimeout(() => setIsProfileDropdownOpen(false), 200);
+                        // Navigate to preferences when ready
+                      }}
+                      className="profile-dropdown-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        padding: "14px 20px",
+                        color: "#1f2937",
+                        textDecoration: "none",
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f9fafb";
+                        e.currentTarget.style.paddingLeft = "24px";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "white";
+                        e.currentTarget.style.paddingLeft = "20px";
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "8px",
+                          background:
+                            "linear-gradient(135deg, #137547 0%, #0d5233 100%)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <i
+                          className="ri-settings-3-line"
+                          style={{ color: "white", fontSize: "18px" }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          flex: 1,
+                        }}
+                      >
+                        Preferences
+                      </span>
+                    </a>
+                  </div>
+                </>,
                 document.body
               )}
             <Button

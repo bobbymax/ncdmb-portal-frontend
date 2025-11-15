@@ -28,6 +28,7 @@ import { WorkflowResponseData } from "../Repositories/Workflow/data";
 import { JournalTypeResponseData } from "../Repositories/JournalType/data";
 import { DocumentPanelResponseData } from "../Repositories/DocumentPanel/data";
 import { ExpenditureResponseData } from "../Repositories/Expenditure/data";
+import { ThresholdResponseData } from "../Repositories/Threshold/data";
 
 // Resource types mapping
 export type ResourceType =
@@ -45,7 +46,8 @@ export type ResourceType =
   | "projects"
   | "journalTypes"
   | "documentPanels"
-  | "expenditures";
+  | "expenditures"
+  | "thresholds";
 
 export type ResourceData =
   | UserResponseData[]
@@ -62,6 +64,7 @@ export type ResourceData =
   | JournalTypeResponseData[]
   | DocumentPanelResponseData[]
   | ExpenditureResponseData[]
+  | ThresholdResponseData[]
   | any[];
 
 // Resource map interface
@@ -81,6 +84,7 @@ export interface ResourceMap {
   journalTypes: JournalTypeResponseData[];
   documentPanels: DocumentPanelResponseData[];
   expenditures: ExpenditureResponseData[];
+  thresholds: ThresholdResponseData[];
 }
 
 // Loading states interface
@@ -100,6 +104,7 @@ export interface LoadingMap {
   journalTypes: boolean;
   documentPanels: boolean;
   expenditures: boolean;
+  thresholds: boolean;
 }
 
 // Cache information interface
@@ -161,6 +166,7 @@ const ROUTE_RESOURCE_MAP: RouteResourceMap = {
     "workflows",
     "journalTypes",
     "documentPanels",
+    "thresholds",
   ],
   "/performance": ["funds", "expenditures"],
 
@@ -227,6 +233,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     journalTypes: [],
     documentPanels: [],
     expenditures: [],
+    thresholds: [],
   });
 
   const [loading, setLoading] = useState<LoadingMap>({
@@ -245,6 +252,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
     journalTypes: false,
     documentPanels: false,
     expenditures: false,
+    thresholds: false,
   });
 
   // Cache management
@@ -281,6 +289,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
         journalTypes: [],
         documentPanels: [],
         expenditures: [],
+        thresholds: [],
       });
       setCache((prev) => ({
         ...prev,
@@ -307,6 +316,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       journalTypes: () => repo("journalType"),
       documentPanels: () => repo("documentPanel"),
       expenditures: () => repo("expenditure"),
+      thresholds: () => repo("threshold"),
     }),
     []
   );
@@ -524,6 +534,7 @@ export const ResourceProvider: React.FC<ResourceProviderProps> = ({
       journalTypes: [],
       documentPanels: [],
       expenditures: [],
+      thresholds: [],
     });
 
     setCache((prev) => ({

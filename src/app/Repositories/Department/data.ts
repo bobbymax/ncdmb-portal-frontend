@@ -10,6 +10,7 @@ export interface DepartmentResponseData extends BaseResponse {
   director: number;
   signatory_staff_id: number;
   alternate_signatory_staff_id: number;
+  is_soverign?: boolean;
   is_blocked: number;
   created_at?: string;
   updated_at?: string;

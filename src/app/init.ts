@@ -20,7 +20,7 @@ const apiInstance = axios.create({
     Accept: "application/json",
     "Content-Type": "application/json",
   },
-  timeout: 30000, // 30 second timeout
+  // timeout: 30000, // 30 second timeout
 });
 
 // Add request interceptor for logging

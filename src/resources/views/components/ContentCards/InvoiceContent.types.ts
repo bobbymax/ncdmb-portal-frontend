@@ -163,7 +163,9 @@ export const normalizeInvoiceContent = (
     ? content.headers
         .filter(
           (header): header is InvoiceHeader =>
-            !!header && typeof header === "object" && typeof header.id === "string"
+            !!header &&
+            typeof header === "object" &&
+            typeof header.id === "string"
         )
         .map((header) => ({
           ...header,
@@ -193,7 +195,11 @@ export const normalizeInvoiceContent = (
             const value = row.values?.[header.id];
             if (value === undefined || value === null) {
               acc[header.id] =
-                header.type === "numbering" ? "0" : header.type === "date" ? "" : "";
+                header.type === "numbering"
+                  ? "0"
+                  : header.type === "date"
+                  ? ""
+                  : "";
             } else {
               acc[header.id] = String(value);
             }
@@ -278,9 +284,7 @@ export const computeInvoiceTotals = (
 
   const hasAdminFee = settings.adminFee > 1;
 
-  const adminFeeAmount = hasAdminFee
-    ? (subTotal * settings.adminFee) / 100
-    : 0;
+  const adminFeeAmount = hasAdminFee ? (subTotal * settings.adminFee) / 100 : 0;
 
   const vatBase = hasAdminFee ? adminFeeAmount : subTotal;
   const vatAmount = vatBase * (vatRate / 100);
@@ -295,4 +299,3 @@ export const computeInvoiceTotals = (
     grandTotal,
   };
 };
-

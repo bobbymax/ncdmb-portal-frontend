@@ -1,0 +1,51 @@
+import { ConfigProp } from "../BaseRepository";
+import { VendorResponseData } from "./data";
+
+export const vendorConfig: ConfigProp<VendorResponseData> = {
+  fillables: [
+    "name",
+    "representative_name",
+    "authorising_representative",
+    "phone",
+    "email",
+    "ncec_no",
+    "reg_no",
+    "tin_number",
+    "address",
+    "bank_account_name",
+    "bank_account_number",
+    "bank_name",
+    "payment_code",
+    "website",
+    "logo",
+  ],
+  associatedResources: [],
+  state: {
+    id: 0,
+    name: "",
+    representative_name: "",
+    authorising_representative: "",
+    phone: "",
+    email: "",
+    ncec_no: "",
+    reg_no: "",
+    tin_number: "",
+    address: "",
+    bank_account_name: "",
+    bank_account_number: "",
+    bank_name: "",
+    payment_code: "",
+    website: "",
+    logo: "",
+  },
+  actions: [
+    {
+      label: "manage",
+      icon: "ri-settings-3-line",
+      variant: "success",
+      conditions: [],
+      operator: "and",
+      display: "Manage",
+    },
+  ],
+};

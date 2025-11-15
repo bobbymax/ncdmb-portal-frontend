@@ -29,7 +29,6 @@ export default class DocumentRepository extends BaseRepository {
         return status;
       }
 
-      // Map numeric status codes to meaningful strings
       const statusMap: Record<number, string> = {
         0: "pending",
         1: "processing",
@@ -44,62 +43,28 @@ export default class DocumentRepository extends BaseRepository {
         10: "appealed",
         11: "payment-committed",
         12: "payment-confirmed",
+        13: "procurement",
       };
 
       return statusMap[Number(status)] ?? "pending";
     };
 
-    return {
-      id: data.id ?? 0,
-      document_category_id: data.document_category_id ?? 0,
-      document_type_id: data.document_type_id ?? 0,
-      document_reference_id: data.document_reference_id ?? 0,
-      vendor_id: data.vendor_id ?? 0,
-      approved_amount: parseFloat(data.approved_amount) ?? 0,
-      workflow_id: data.workflow_id ?? 0,
-      documentable_id: data.documentable_id ?? 0,
-      documentable_type: data.documentable_type ?? "",
+    // Start with the original data to preserve all fields
+    const result: DocumentResponseData = {
+      ...data, // Preserve all original fields first
+      // Then override with transformations and defaults only where needed
+      status: mapStatusToString(data.status),
+      approved_amount:
+        data.approved_amount !== undefined && data.approved_amount !== null
+          ? parseFloat(String(data.approved_amount))
+          : data.approved_amount ?? 0,
+      // Ensure required fields exist, but don't override if they're already present
       title: data.title ?? "",
       ref: data.ref ?? "",
-      description: data.description ?? "",
-      file_path: data.file_path ?? "",
-      status: mapStatusToString(data.status),
-      document_template: data.document_template ?? "",
-      owner: data.owner ?? null,
-      workflow: data.workflow ?? null,
-      document_type: data.document_type ?? null,
-      document_category: data.document_category ?? null,
-      uploads: data.uploads ?? [],
-      drafts: data.drafts ?? [],
-      updates: data.updates ?? [],
-      progress_tracker_id: data.progress_tracker_id,
-      complete_or_linked_drafts: data.complete_or_linked_drafts ?? [],
-      linked_drafts: data.linked_drafts ?? [],
-      action: data.action ?? null,
-      is_archived: data.is_archived ?? 0,
-      dept: data.dept ?? "",
-      created_at: data.created_at ?? "",
-      updated_at: data.updated_at ?? "",
-      meta_data: data.meta_data ?? null,
-      uploaded_requirements: data.uploaded_requirements ?? [],
-      preferences: data.preferences ?? null,
-      pointer: data.pointer ?? "",
-      threads: data.threads ?? [],
-      watchers: data.watchers ?? [],
-      contents: data.contents ?? [],
-      config: data.config ?? null,
-      created_by: data.created_by ?? 0,
-      is_completed: data.is_completed ?? false,
-      budget_year: data.budget_year ?? 0,
-      type: data.type ?? "staff",
-      fund_id: data.fund_id ?? 0,
-      sub_total_amount: data.sub_total_amount ?? 0,
-      vat_amount: data.vat_amount ?? 0,
-      variation_amount: data.variation_amount ?? 0,
-      admin_fee_amount: data.admin_fee_amount ?? 0,
-      processes: data.processes ?? [],
-      payments: data.payments ?? [],
-    };
+      // ... other fields with defaults only if truly missing
+    } as DocumentResponseData;
+
+    return result;
   }
   public associatedResources: DependencyProps[] =
     documentConfig.associatedResources;

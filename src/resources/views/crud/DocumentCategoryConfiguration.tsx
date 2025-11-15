@@ -7,6 +7,7 @@ import {
 import DocumentCategoryRepository from "@/app/Repositories/DocumentCategory/DocumentCategoryRepository";
 import { BuilderComponentProps } from "@/bootstrap";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import MultiSelect, { DataOptionsProps } from "../components/forms/MultiSelect";
 import { UserResponseData } from "@/app/Repositories/User/data";
 import { WorkflowStageResponseData } from "@/app/Repositories/WorkflowStage/data";
@@ -19,45 +20,50 @@ import { DocumentActionResponseData } from "@/app/Repositories/DocumentAction/da
 import Select from "../components/forms/Select";
 import TextInput from "../components/forms/TextInput";
 import Button from "../components/forms/Button";
+import { useModal } from "app/Context/ModalContext";
+import PostProcessingActivityModal from "./modals/PostProcessingActivityModal";
 import Alert from "app/Support/Alert";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { PermissionTypes } from "@/app/Repositories/ProgressTracker/data";
-import { BlockResponseData } from "@/app/Repositories/Block/data";
+import { useAuth } from "app/Context/AuthContext";
+import { useDocumentSignatories } from "app/Hooks/useDocumentSignatories";
+import { SignatoryConfiguration } from "app/Utils/SignatoryConfiguration";
+import { ProcessFlowConfigProps } from "./DocumentWorkflow";
 import { WorkflowResponseData } from "@/app/Repositories/Workflow/data";
 
 export type ProcessActivitiesProps = {
-  id: number;
-  identifier: string;
+  id?: number;
   title: string;
-  workflow_stage_id: number;
   workflow_id: number;
+  workflow_stage_id: number;
   group_id: number;
   department_id: number;
-  action_label: string;
+  document_action_status: string;
   trigger_action_id: number;
-  category: "process" | "activity";
+  category: "add_tracker" | "notify" | "mail" | "default" | "no_action";
   user_id: number;
-  status: "pending" | "completed" | "failed";
-  permission: PermissionTypes;
-  blocks: BlockResponseData[];
-  document_action_id: number;
-  order: number;
 };
 
 export type SelectedActionsProps = {
   identifier: string;
-  tracker: CategoryProgressTrackerProps;
   action: DocumentActionResponseData;
+};
+
+export type RecipientProps = {
+  id: number;
+  type: "user" | "group";
+  name: string;
+  email?: string;
+  description?: string;
 };
 
 type DependencyProps = {
   users: UserResponseData[];
-  workflows: WorkflowResponseData[];
   workflowStages: WorkflowStageResponseData[];
   groups: GroupResponseData[];
   departments: DepartmentResponseData[];
   documentActions: DocumentActionResponseData[];
+  workflows: WorkflowResponseData[];
 };
 
 const DocumentCategoryConfiguration: React.FC<
@@ -74,27 +80,9 @@ const DocumentCategoryConfiguration: React.FC<
   updateGlobalState,
   dependencies,
 }) => {
+  const { staff } = useAuth();
+  const { resolveSignatories } = useDocumentSignatories();
   const navigate = useNavigate();
-  const [documentConfigState, setDocumentConfigState] =
-    useState<ProcessActivitiesProps>({
-      id: 0,
-      identifier: "",
-      title: "",
-      workflow_id: 0,
-      workflow_stage_id: 0,
-      group_id: 0,
-      department_id: 0,
-      action_label: "",
-      trigger_action_id: 0,
-      category: "process",
-      user_id: 0,
-      status: "pending",
-      permission: "r",
-      document_action_id: 0,
-      order: 0,
-      blocks: [],
-    });
-
   const [policy, setPolicy] = useState<DocumentPolicy>({
     strict: false,
     scope: "public",
@@ -104,83 +92,426 @@ const DocumentCategoryConfiguration: React.FC<
     for_signed: false,
     days: 0,
     frequency: "days",
+    allowedActions: {
+      from: [],
+      through: [],
+      to: [],
+    },
+    // Signatory resolution properties
+    department_id: null,
+    initiator_group_id: null,
+    approval_group_id: null,
+    destination_department_id: null,
+    mustPassThrough: false,
+    through_group_id: null,
+    // Workflow stage IDs for actions
+    initiator_workflow_stage_id: null,
+    approval_workflow_stage_id: null,
+    through_workflow_stage_id: null,
+    // Signing control properties
+    initiator_should_sign: true,
+    through_should_sign: true,
+    // Fixed user IDs
+    initiator_user_id: null,
+    through_user_id: null,
+    to_user_id: null,
   });
 
   const [postProcessingActivities, setPostProcessingActivities] = useState<
     ProcessActivitiesProps[]
   >([]);
 
-  const [showPostProcessingForm, setShowPostProcessingForm] = useState(false);
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const trackers: CategoryProgressTrackerProps[] =
+    state.workflow?.trackers || [];
 
-  // Transform signatories to trackers if available, otherwise fallback to workflow trackers
-  const trackers: CategoryProgressTrackerProps[] = useMemo(() => {
-    if (state?.signatories && state.signatories.length > 0) {
-      // Transform SignatoryResponseData[] to CategoryProgressTrackerProps[]
-      return state.signatories.map((signatory) => ({
-        flow_type: signatory.flow_type,
-        identifier: signatory.identifier,
-        workflow_stage_id: signatory.workflow_stage_id,
-        group_id: signatory.group_id,
-        department_id: signatory.department_id,
-        carder_id: signatory.carder_id,
-        user_id: signatory.user_id,
-        order: signatory.order,
-        permission: "rw" as PermissionTypes, // Default permission
-        signatory_type: signatory.type, // type → signatory_type
-        should_be_signed: signatory.should_sign ? "yes" : "no", // boolean → "yes" | "no"
-        actions: signatory.actions || [], // Default to empty array if undefined
-      }));
-    }
+  const [selectedActions, setSelectedActions] = useState<DataOptionsProps[]>(
+    []
+  );
 
-    // Fallback to workflow trackers
-    return state.workflow?.trackers || [];
-  }, [state?.signatories, state.workflow?.trackers]);
-
-  const [selectedActions, setSelectedActions] = useState<
-    SelectedActionsProps[]
-  >([]);
-
-  const [selectedGroups, setSelectedGroups] = useState<GroupResponseData[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<DataOptionsProps[]>([]);
-
-  const [selectedOptions, setSelectedOptions] = useState<{
-    workflow: DataOptionsProps | null;
-    workflow_stage: DataOptionsProps | null;
-    group: DataOptionsProps | null;
-    department: DataOptionsProps | null;
-    user: DataOptionsProps | null;
-    trigger_action: DataOptionsProps | null;
-  }>({
-    workflow: null,
-    workflow_stage: null,
-    group: null,
-    department: null,
-    user: null,
-    trigger_action: null,
-  });
-
-  const [processActions, setProcessActions] = useState<
-    DocumentActionResponseData[]
+  const [recipientSearchQuery, setRecipientSearchQuery] = useState<string>("");
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] =
+    useState<number>(-1);
+  const [selectedRecipients, setSelectedRecipients] = useState<
+    RecipientProps[]
   >([]);
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
-  const handleCardClick = useCallback(
-    (cardId: number) => {
-      setExpandedCard(expandedCard === cardId ? null : cardId);
+  const {
+    users = [],
+    workflowStages = [],
+    groups = [],
+    departments = [],
+    documentActions = [],
+    workflows = [],
+  } = useMemo(() => dependencies as DependencyProps, [dependencies]);
+
+  const workflowOptions = useMemo(
+    () => formatOptions(workflows, "id", "name", true),
+    [workflows]
+  );
+
+  const workflowStageOptions = useMemo(
+    () => formatOptions(workflowStages, "id", "name"),
+    [workflowStages]
+  );
+
+  const groupOptions = useMemo(
+    () => formatOptions(groups, "id", "name"),
+    [groups]
+  );
+
+  const departmentOptions = useMemo(() => {
+    const formatted = formatOptions(departments, "id", "name");
+    return [{ value: 0, label: "Originating Department" }, ...formatted];
+  }, [departments]);
+
+  const userOptions = useMemo(
+    () => formatOptions(users, "id", "name", true),
+    [users]
+  );
+
+  // Helper function to resolve department name
+  const resolveDepartmentName = useCallback(
+    (departmentId: number | null | undefined): string => {
+      if (!departmentId || departmentId < 1) {
+        return "Originating Department";
+      }
+      const department = departments.find((d) => d.id === departmentId);
+      return department?.name || `Department ${departmentId}`;
     },
-    [expandedCard]
+    [departments]
+  );
+
+  // console.log(resolveDepartmentName(policy.department_id));
+
+  // console.log(departments);
+
+  // Helper function to resolve group name
+  const resolveGroupName = useCallback(
+    (groupId: number | null | undefined): string | null => {
+      if (!groupId || groupId === 0) return null;
+      const group = groups.find((g) => g.id === groupId);
+      return group?.name || `Group ${groupId}`;
+    },
+    [groups]
+  );
+
+  // Helper function to resolve workflow stage name and get actions
+  const resolveWorkflowStage = useCallback(
+    (
+      stageId: number | null | undefined
+    ): {
+      name: string | null;
+      actions: DocumentActionResponseData[];
+    } => {
+      if (!stageId || stageId === 0) {
+        return { name: null, actions: [] };
+      }
+      const stage = workflowStages.find((ws) => ws.id === stageId);
+      if (!stage) {
+        return { name: null, actions: [] };
+      }
+      // console.log(stage);
+      return {
+        name: stage.name || `Stage ${stageId}`,
+        actions:
+          (stage.actions as unknown as DocumentActionResponseData[]) || [],
+      };
+    },
+    [workflowStages]
+  );
+
+  const resolveUserById = useCallback(
+    (userId: number | null | undefined) => {
+      if (!userId || userId <= 0) return null;
+      return users.find((user) => user.id === userId) || null;
+    },
+    [users]
+  );
+
+  const resolveUserName = useCallback(
+    (userId: number | null | undefined): string => {
+      const user = resolveUserById(userId);
+      return user?.name || (userId ? `User ${userId}` : "Not specified");
+    },
+    [resolveUserById]
+  );
+
+  const resolveDocumentActionName = useCallback(
+    (actionId: number | null | undefined): string => {
+      if (!actionId || actionId <= 0) {
+        return "Not specified";
+      }
+      const action = documentActions.find((a) => a.id === actionId);
+      return (
+        action?.name ||
+        action?.label ||
+        action?.button_text ||
+        `Action ${actionId}`
+      );
+    },
+    [documentActions]
+  );
+
+  const { openModal, closeModal } = useModal();
+
+  const handlePostProcessingModalSubmit = useCallback(
+    (
+      response: object | string,
+      mode: "store" | "update" | "destroy" | "generate"
+    ) => {
+      const payload = response as {
+        activity: ProcessActivitiesProps;
+        index: number | null;
+      };
+
+      if (!payload?.activity) {
+        return;
+      }
+
+      setPostProcessingActivities((prev) => {
+        const next = [...prev];
+
+        if (mode === "update" && payload.index !== null) {
+          next[payload.index] = payload.activity;
+        } else {
+          next.push(payload.activity);
+        }
+
+        return next;
+      });
+
+      toast.success(
+        mode === "update"
+          ? "Activity updated successfully"
+          : "Activity added successfully"
+      );
+      closeModal();
+    },
+    [closeModal]
+  );
+
+  const handleOpenPostProcessingForm = useCallback(
+    (activity?: ProcessActivitiesProps | null, index: number | null = null) => {
+      openModal(PostProcessingActivityModal, "post-processing-config", {
+        title:
+          index !== null
+            ? "Edit Post Processing Activity"
+            : "Add Post Processing Activity",
+        isUpdating: index !== null,
+        onSubmit: handlePostProcessingModalSubmit,
+        dependencies: [
+          [
+            {
+              activity: activity || null,
+              editingIndex: index,
+              workflowStages,
+              documentActions,
+              workflows,
+              workflowOptions,
+              options: {
+                workflowStageOptions,
+                groupOptions,
+                departmentOptions,
+                userOptions,
+                workflowOptions,
+              },
+            },
+          ],
+        ],
+      });
+    },
+    [
+      openModal,
+      handlePostProcessingModalSubmit,
+      workflowStages,
+      documentActions,
+      workflows,
+      workflowOptions,
+      workflowStageOptions,
+      groupOptions,
+      departmentOptions,
+      userOptions,
+    ]
+  );
+
+  // Handle channel action selection
+  const handleChannelActionChange = useCallback(
+    (
+      channel: "from" | "through" | "to",
+      actionId: number,
+      checked: boolean
+    ) => {
+      setPolicy((prev) => {
+        // Ensure allowedActions exists
+        const currentAllowedActions = prev.allowedActions || {
+          from: [],
+          through: [],
+          to: [],
+        };
+        const currentActions = currentAllowedActions[channel] || [];
+
+        if (checked) {
+          return {
+            ...prev,
+            allowedActions: {
+              ...currentAllowedActions,
+              [channel]: Array.from(new Set([...currentActions, actionId])),
+            },
+          };
+        } else {
+          return {
+            ...prev,
+            allowedActions: {
+              ...currentAllowedActions,
+              [channel]: currentActions.filter((id) => id !== actionId),
+            },
+          };
+        }
+      });
+    },
+    []
+  );
+
+  // console.log(generateConfigState());
+
+  // Filtered recipients search logic
+  const filteredRecipients = useMemo(() => {
+    if (!recipientSearchQuery.trim()) return [];
+
+    const query = recipientSearchQuery.toLowerCase();
+    const results: RecipientProps[] = [];
+
+    // Search users
+    users.forEach((user) => {
+      if (
+        user.name?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query)
+      ) {
+        results.push({
+          id: user.id,
+          type: "user",
+          name: user.name || `User ${user.id}`,
+          email: user.email,
+        });
+      }
+    });
+
+    // Search groups
+    groups.forEach((group) => {
+      if (
+        group.name?.toLowerCase().includes(query) ||
+        group.label?.toLowerCase().includes(query) ||
+        group.scope?.toLowerCase().includes(query)
+      ) {
+        results.push({
+          id: group.id,
+          type: "group",
+          name: group.name || `Group ${group.id}`,
+          description: `${group.label} (${group.scope})`,
+        });
+      }
+    });
+
+    return results.slice(0, 10);
+  }, [recipientSearchQuery, users, groups]);
+
+  // Select and remove recipient functions
+  const selectRecipient = useCallback(
+    (recipient: RecipientProps) => {
+      const isAlreadySelected = selectedRecipients.some(
+        (r) => r.id === recipient.id && r.type === recipient.type
+      );
+
+      if (!isAlreadySelected) {
+        const updatedRecipients = [...selectedRecipients, recipient];
+        setSelectedRecipients(updatedRecipients);
+
+        // Convert to DataOptionsProps format for saving
+        const updatedDataOptions: DataOptionsProps[] = updatedRecipients.map(
+          (r) => ({
+            value: r.id,
+            label: r.name,
+            type: r.type, // Store type in the data
+          })
+        );
+        setSelectedUsers(updatedDataOptions);
+      }
+
+      setRecipientSearchQuery("");
+      setSelectedSuggestionIndex(-1);
+    },
+    [selectedRecipients]
+  );
+
+  const removeRecipient = useCallback(
+    (recipient: RecipientProps) => {
+      const updatedRecipients = selectedRecipients.filter(
+        (r) => !(r.id === recipient.id && r.type === recipient.type)
+      );
+      setSelectedRecipients(updatedRecipients);
+
+      // Update selectedUsers to match
+      const updatedDataOptions: DataOptionsProps[] = updatedRecipients.map(
+        (r) => ({
+          value: r.id,
+          label: r.name,
+          type: r.type,
+        })
+      );
+      setSelectedUsers(updatedDataOptions);
+    },
+    [selectedRecipients]
   );
 
   const handleUpdateConfiguration = useCallback(() => {
+    // Combine channel actions with selectedActions
+    const allActionIds = new Set<number>();
+
+    // Add channel actions from policy.allowedActions
+    if (policy.allowedActions) {
+      policy.allowedActions.from.forEach((id) => allActionIds.add(id));
+      policy.allowedActions.through.forEach((id) => allActionIds.add(id));
+      policy.allowedActions.to.forEach((id) => allActionIds.add(id));
+    }
+
+    // Add existing selectedActions
+    selectedActions.forEach((action) => allActionIds.add(action.value));
+
+    // Convert all action IDs to SelectedActionsProps[]
+    const convertedActions: SelectedActionsProps[] = Array.from(
+      allActionIds
+    ).map((actionId) => {
+      // Find the full action data from documentActions
+      const fullAction = documentActions.find((da) => da.id === actionId);
+      return {
+        identifier:
+          fullAction?.name || fullAction?.label || `Action ${actionId}`,
+        action: fullAction || ({} as DocumentActionResponseData),
+      };
+    });
+
     const configuration = {
       ...state,
-      identifier: documentConfigState.identifier,
       meta_data: {
         policy,
         recipients: selectedUsers,
-        actions: selectedActions,
+        actions: convertedActions,
         activities: postProcessingActivities,
-      },
+        comments: state.meta_data?.comments || [],
+        settings: state.meta_data?.settings || {
+          priority: "medium",
+          accessLevel: "private",
+          access_token: "",
+          lock: false,
+          confidentiality: "general",
+        },
+      } as DocumentMetaDataProps,
     };
 
     Alert.flash(
@@ -205,95 +536,75 @@ const DocumentCategoryConfiguration: React.FC<
     selectedUsers,
     selectedActions,
     postProcessingActivities,
+    documentActions,
+    state,
     repo,
-    state.id,
-    documentConfigState.identifier,
+    navigate,
   ]);
 
   const handleActionChange = useCallback(
-    (
-      tracker: CategoryProgressTrackerProps,
-      action: DocumentActionResponseData,
-      checked: boolean
-    ) => {
+    (action: DataOptionsProps, checked: boolean) => {
       setSelectedActions((prev) => {
         if (checked) {
-          // Check if this specific action is already selected
-          const isAlreadySelected = prev.some(
-            (a) =>
-              a.identifier === tracker.identifier && a.action.id === action.id
-          );
-          if (!isAlreadySelected) {
-            return [
-              ...prev,
-              { identifier: tracker.identifier, tracker, action },
-            ];
-          }
-          return prev;
-        } else {
-          // Remove this specific action
-          return prev.filter(
-            (a) =>
-              !(
-                a.identifier === tracker.identifier && a.action.id === action.id
-              )
-          );
+          return [...prev, action];
         }
+        return prev.filter((a) => a.label !== action.label);
       });
     },
     []
   );
 
-  const {
-    users = [],
-    workflows = [],
-    workflowStages = [],
-    groups = [],
-    departments = [],
-    documentActions = [],
-  } = useMemo(() => dependencies as DependencyProps, [dependencies]);
-
-  const handleSelectionChange = useCallback(
-    (key: keyof typeof selectedOptions) => (newValue: unknown) => {
-      const updatedValue = Array.isArray(newValue)
-        ? (newValue as DataOptionsProps[])
-        : (newValue as DataOptionsProps);
-
-      setSelectedOptions((prev) => ({ ...prev, [key]: updatedValue }));
-
-      if (!Array.isArray(updatedValue)) {
-        setDocumentConfigState((prev) => ({
-          ...prev,
-          [`${key}_id`]: updatedValue.value,
-        }));
-      } else {
-        setDocumentConfigState((prev) => ({
-          ...prev,
-          [key]: updatedValue,
-        }));
+  const handleDeleteActivity = useCallback((index: number) => {
+    Alert.flash(
+      "Remove Activity",
+      "warning",
+      "Are you sure you want to remove this post-processing activity?"
+    ).then((result) => {
+      if (result.isConfirmed) {
+        setPostProcessingActivities((prev) =>
+          prev.filter((_, idx) => idx !== index)
+        );
+        toast.info("Activity removed");
       }
-    },
+    });
+  }, []);
+
+  const handlePolicyFieldChange = useCallback(
+    (field: keyof DocumentPolicy) =>
+      (newValue: unknown, actionMeta: ActionMeta<unknown>) => {
+        const updatedValue = Array.isArray(newValue)
+          ? (newValue as DataOptionsProps[])[0] || null
+          : (newValue as DataOptionsProps) || null;
+
+        // For fields that store IDs as numbers, extract the value
+        const idFields: (keyof DocumentPolicy)[] = [
+          "department_id",
+          "initiator_group_id",
+          "approval_group_id",
+          "destination_department_id",
+          "through_group_id",
+          "initiator_workflow_stage_id",
+          "approval_workflow_stage_id",
+          "through_workflow_stage_id",
+          "initiator_user_id",
+          "through_user_id",
+          "to_user_id",
+        ];
+
+        if (idFields.includes(field)) {
+          setPolicy((prev) => ({
+            ...prev,
+            [field]: updatedValue?.value || null,
+          }));
+        } else {
+          setPolicy((prev) => ({
+            ...prev,
+            [field]: updatedValue,
+          }));
+        }
+      },
     []
   );
-
-  useEffect(() => {
-    if (selectedOptions.workflow_stage?.value) {
-      const workflowStage: WorkflowStageResponseData | null =
-        workflowStages.find(
-          (stage) => stage.id === selectedOptions.workflow_stage?.value
-        ) ?? null;
-
-      if (workflowStage) {
-        setProcessActions(
-          workflowStage.actions as unknown as DocumentActionResponseData[]
-        );
-
-        setSelectedGroups(
-          workflowStage?.groups as unknown as GroupResponseData[]
-        );
-      }
-    }
-  }, [selectedOptions.workflow_stage]);
 
   const renderMultiSelect = (
     label: string,
@@ -331,30 +642,117 @@ const DocumentCategoryConfiguration: React.FC<
     </div>
   );
 
-  // Debug logging removed for production
+  // Calculate dropdown position
+  useEffect(() => {
+    if (recipientSearchQuery.trim()) {
+      const searchInput = document.querySelector(
+        'input[name="recipient-search"]'
+      ) as HTMLInputElement;
+      if (searchInput) {
+        const rect = searchInput.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 6,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      }
+    } else {
+      setDropdownPosition(null);
+    }
+  }, [recipientSearchQuery]);
 
   useEffect(() => {
     if (state.meta_data) {
-      setPolicy(state.meta_data.policy as DocumentPolicy);
+      const existingPolicy = (state.meta_data.policy as DocumentPolicy) || {};
+      const defaultPolicy: DocumentPolicy = {
+        strict: false,
+        scope: "public",
+        can_override: false,
+        clearance_level: null,
+        fallback_approver: null,
+        for_signed: false,
+        days: 0,
+        frequency: "days",
+        allowedActions: {
+          from: [],
+          through: [],
+          to: [],
+        },
+        department_id: null,
+        initiator_group_id: null,
+        approval_group_id: null,
+        destination_department_id: null,
+        mustPassThrough: false,
+        through_group_id: null,
+        initiator_workflow_stage_id: null,
+        approval_workflow_stage_id: null,
+        through_workflow_stage_id: null,
+        initiator_should_sign: true,
+        through_should_sign: true,
+        initiator_user_id: null,
+        through_user_id: null,
+        to_user_id: null,
+      };
 
+      const mergedAllowedActions = {
+        from: existingPolicy.allowedActions?.from || [],
+        through: existingPolicy.allowedActions?.through || [],
+        to: existingPolicy.allowedActions?.to || [],
+      };
+      setPolicy({
+        ...defaultPolicy,
+        ...existingPolicy,
+        // Ensure allowedActions has the correct structure
+        allowedActions: mergedAllowedActions,
+      });
       if (state.meta_data.actions) {
-        setSelectedActions(
-          state.meta_data.actions as unknown as SelectedActionsProps[]
-        );
-      }
+        // Convert SelectedActionsProps[] to DataOptionsProps[]
 
+        // I think i understand it now.
+        const convertedActions: DataOptionsProps[] =
+          state.meta_data.actions.map((action) => ({
+            value: action.action.id,
+            label:
+              action.identifier ||
+              action.action.name ||
+              action.action.label ||
+              "",
+          }));
+        setSelectedActions(convertedActions);
+
+        // TODO: Load channel-based actions if stored separately
+        // For now, we'll derive them from the workflow stages
+      }
       if (state.meta_data.recipients) {
         setSelectedUsers(state.meta_data.recipients);
+        // Convert DataOptionsProps[] to RecipientProps[]
+        const convertedRecipients: RecipientProps[] =
+          state.meta_data.recipients.map((r) => {
+            const type = (r as any).type || "user"; // Default to user if type not found
+            if (type === "group") {
+              const group = groups.find((g) => g.id === r.value);
+              return {
+                id: r.value,
+                type: "group",
+                name: r.label,
+                description: group
+                  ? `${group.label} (${group.scope})`
+                  : undefined,
+              };
+            } else {
+              const user = users.find((u) => u.id === r.value);
+              return {
+                id: r.value,
+                type: "user",
+                name: r.label,
+                email: user?.email,
+              };
+            }
+          });
+        setSelectedRecipients(convertedRecipients);
       }
-
       if (state.meta_data.activities) {
-        // Validate and cast the activities data
-        const activities = Array.isArray(state.meta_data.activities)
-          ? (state.meta_data.activities as ProcessActivitiesProps[])
-          : [];
-        setPostProcessingActivities(activities);
-      } else {
-        setPostProcessingActivities([]);
+        setPostProcessingActivities(state.meta_data.activities);
       }
     }
   }, [
@@ -362,948 +760,1256 @@ const DocumentCategoryConfiguration: React.FC<
     state.meta_data?.recipients,
     state.meta_data?.activities,
     state.meta_data?.policy,
+    users,
+    groups,
   ]);
-
-  // Initialize selectedActions from tracker.actions when trackers are loaded
-  useEffect(() => {
-    if (trackers.length > 0 && selectedActions.length === 0) {
-      const actionsFromTrackers: SelectedActionsProps[] = [];
-
-      trackers.forEach((tracker) => {
-        if (tracker.actions && tracker.actions.length > 0) {
-          tracker.actions.forEach((action) => {
-            actionsFromTrackers.push({
-              identifier: tracker.identifier,
-              tracker,
-              action,
-            });
-          });
-        }
-      });
-
-      if (actionsFromTrackers.length > 0) {
-        setSelectedActions(actionsFromTrackers);
-      }
-    }
-  }, [trackers, selectedActions.length]);
 
   return (
     <>
-      <div className="configuration__settings__panel">
-        <div className="configuration__settings__panel__content">
-          <div className="configuration__settings__panel__info">
-            <h4>Document Category Configuration</h4>
-            <p>
-              Configure workflow actions, post-processing activities, policies,
-              and notifications for this document category.
-            </p>
-          </div>
-          <div className="configuration__settings__panel__actions">
-            <Button
-              label="Update Category Configuration"
-              handleClick={handleUpdateConfiguration}
-              size="sm"
-              variant="success"
-              type="button"
-              icon="ri-save-line"
-            />
-          </div>
-        </div>
+      <div className="configuration__header__section mb-4">
+        <h3>Document Category Configuration</h3>
       </div>
-      <div className="configuration__settings__container">
-        <div className="configuration__settings__item">
-          <div className="configuration__settings__icon">
-            <i className="ri-settings-4-line"></i>
+
+      <div className="configuration__body__section">
+        <div className="configuration__body__item">
+          <div className="configuration__body__section__header">
+            <h5>
+              <i className="ri-shield-check-line"></i>
+              Policy Configuration
+            </h5>
           </div>
-          <h3>
-            <i className="ri-settings-4-line"></i>
-            Actions
-          </h3>
 
-          <div className="configuration__settings__actions">
-            {trackers.length > 0 ? (
-              trackers.map((tracker, idx) => {
-                const stage: WorkflowStageResponseData | null =
-                  workflowStages.find(
-                    (stage) => stage.id === tracker.workflow_stage_id
-                  ) ?? null;
-
-                const actions =
-                  stage?.actions as unknown as DocumentActionResponseData[];
-
-                return (
-                  <div className="track__item" key={idx}>
-                    <h5>
-                      {toTitleCase(
-                        stage?.name || `Stage ID: ${tracker.workflow_stage_id}`
-                      )}
-                    </h5>
-                    {(actions ?? []).map((action, actionIdx) => (
-                      <div
-                        className="track__item__action"
-                        key={`${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
-                      >
-                        <input
-                          type="checkbox"
-                          id={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
-                          onChange={(e) => {
-                            handleActionChange(
-                              tracker,
-                              action,
-                              e.target.checked
-                            );
-                          }}
-                          checked={
-                            selectedActions.some(
-                              (a) =>
-                                a.identifier === tracker.identifier &&
-                                a.action.id === action.id
-                            ) ||
-                            tracker.actions?.some((a) => a.id === action.id) ||
-                            false
-                          }
-                          disabled={true}
-                        />
-                        <label
-                          htmlFor={`action-${tracker.workflow_stage_id}-${action.label}-${actionIdx}`}
-                        >
-                          {toTitleCase(action.button_text ?? "")}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="trackers__empty__state">
-                <i className="ri-route-line"></i>
-                <p>No workflow trackers configured</p>
-                <span>
-                  Workflow stages and actions will appear here once configured
-                </span>
+          <div className="configuration__body__item__content">
+            {/* Basic Policy Settings */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-strict">Strict Policy</label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-strict"
+                    checked={policy.strict}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        strict: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-strict"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Enforce strict policy rules
+                    </span>
+                    <small className="policy__checkbox__description">
+                      When enabled, all policy rules must be strictly followed
+                      without exceptions
+                    </small>
+                  </label>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-        <div className="configuration__settings__item">
-          <div className="configuration__settings__icon">
-            <i className="ri-refresh-line"></i>
-          </div>
-          <div className="configuration__settings__header">
-            <h3>
-              <i className="ri-refresh-line"></i>
-              Post Processing Activities
-            </h3>
-            <button
-              className="configuration__settings__toggle__btn"
-              onClick={() => setShowPostProcessingForm(!showPostProcessingForm)}
-            >
-              <i
-                className={
-                  showPostProcessingForm ? "ri-eye-off-line" : "ri-eye-line"
-                }
-              ></i>
-              <span>{showPostProcessingForm ? "Hide" : "Show"}</span>
-            </button>
-          </div>
-          {/* Form Section */}
-          <div
-            className="configuration__settings__actions mt-5"
-            style={{ display: showPostProcessingForm ? "block" : "none" }}
-          >
-            <div className="row">
-              <div className="col-md-12 mb-2">
-                <TextInput
-                  label="Name"
-                  name="title"
-                  onChange={(e) => {
-                    setDocumentConfigState((prev) => ({
-                      ...prev,
-                      title: e.target.value,
-                    }));
-                  }}
-                  value={documentConfigState.title}
-                  placeholder="Activity Name"
-                  size="lg"
-                />
-              </div>
-              {renderMultiSelect(
-                "Desk",
-                formatOptions(workflowStages, "id", "name"),
-                selectedOptions.workflow_stage,
-                handleSelectionChange("workflow_stage"),
-                "Desk"
-              )}
-              {renderMultiSelect(
-                "Department",
-                formatOptions(departments, "id", "abv", true),
-                selectedOptions.department,
-                handleSelectionChange("department"),
-                "Department",
-                false,
-                6
-              )}
-              <div className="col-md-6 mb-3">
+            </div>
+
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-scope">Document Scope</label>
                 <Select
-                  label="Category"
-                  options={[
-                    {
-                      label: "Process",
-                      value: "process",
-                    },
-                    {
-                      label: "Activity",
-                      value: "activity",
-                    },
-                  ]}
-                  onChange={(e) => {
-                    setDocumentConfigState((prev) => ({
+                  label=""
+                  value={policy.scope}
+                  onChange={(e) =>
+                    setPolicy((prev) => ({
                       ...prev,
-                      category: e.target.value as "process" | "activity",
-                    }));
-                  }}
-                  defaultValue=""
-                  valueKey="value"
-                  labelKey="label"
-                  defaultCheckDisabled
-                  size="xl"
-                />
-              </div>
-              {renderMultiSelect(
-                "Group",
-                formatOptions(selectedGroups, "id", "name"),
-                selectedOptions.group,
-                handleSelectionChange("group"),
-                "Group",
-                false,
-                6
-              )}
-              <div className="col-md-6 mb-3">
-                <Select
-                  label="Event"
-                  options={
-                    selectedActions.length > 0
-                      ? selectedActions.map((sel) => ({
-                          label: toTitleCase(sel.action?.draft_status ?? ""),
-                          value: sel.action?.id,
-                        }))
-                      : [{ label: "No Actions", value: 0 }]
+                      scope: e.target.value as DocumentPolicy["scope"],
+                    }))
                   }
-                  value={documentConfigState.document_action_id}
-                  onChange={(e) => {
-                    setDocumentConfigState((prev) => ({
-                      ...prev,
-                      document_action_id: Number(e.target.value),
-                    }));
-                  }}
                   defaultValue=""
+                  defaultText="Select scope"
+                  name="scope"
                   valueKey="value"
-                  isDisabled={false}
                   labelKey="label"
-                  defaultCheckDisabled
-                  size="xl"
+                  options={[
+                    { value: "public", label: "Public" },
+                    { value: "private", label: "Private" },
+                    { value: "confidential", label: "Confidential" },
+                    { value: "restricted", label: "Restricted" },
+                  ]}
                 />
+                <small>
+                  Determines the visibility and access level of documents in
+                  this category
+                </small>
               </div>
-              {renderMultiSelect(
-                "Trigger Workflow",
-                formatOptions(workflows, "id", "name", true),
-                selectedOptions.workflow,
-                handleSelectionChange("workflow"),
-                "Workflow",
-                false,
-                6
-              )}
-              {renderMultiSelect(
-                "Trigger Action",
-                formatOptions(processActions, "id", "name", true),
-                selectedOptions.trigger_action,
-                handleSelectionChange("trigger_action"),
-                "Action",
-                false,
-                6
-              )}
-              {renderMultiSelect(
-                "Staff",
-                formatOptions(users, "id", "name", true),
-                selectedOptions.user,
-                handleSelectionChange("user"),
-                "User"
-              )}
 
-              <div className="col-md-12 mt-4 mb-3">
-                {/* Button Area */}
-                <Button
-                  label="Add Activity"
-                  handleClick={(value: any) => {
-                    // Validate required fields
-                    if (
-                      !documentConfigState.title ||
-                      !documentConfigState.workflow_stage_id
-                    )
-                      return;
+              <div className="policy__form__field">
+                <label htmlFor="policy-can-override">Allow Override</label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-can-override"
+                    checked={policy.can_override}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        can_override: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-can-override"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Allow policy override
+                    </span>
+                    <small className="policy__checkbox__description">
+                      Enable administrators to override policy rules when
+                      necessary
+                    </small>
+                  </label>
+                </div>
+              </div>
+            </div>
 
-                    // Create new activity with all required fields
-                    const newActivity: ProcessActivitiesProps = {
-                      id: Date.now(), // Temporary ID for now
-                      identifier: `activity_${Date.now()}`, // Generate unique identifier
-                      title: documentConfigState.title,
-                      workflow_stage_id: documentConfigState.workflow_stage_id,
-                      workflow_id: documentConfigState.workflow_id || 0,
-                      group_id: documentConfigState.group_id || 0,
-                      department_id: documentConfigState.department_id || 0,
-                      action_label: documentConfigState.action_label || "",
-                      trigger_action_id:
-                        documentConfigState.trigger_action_id || 0,
-                      category: documentConfigState.category,
-                      user_id: documentConfigState.user_id || 0,
-                      status: "pending",
-                      permission: "r",
-                      document_action_id:
-                        documentConfigState.document_action_id || 0,
-                      order: postProcessingActivities.length + 1, // Set proper order
-                      blocks: [], // Initialize empty blocks array
-                    };
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-clearance-level">Clearance Level</label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(groups, "id", "name", true),
+                  policy.clearance_level,
+                  handlePolicyFieldChange("clearance_level"),
+                  "Select clearance level",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
 
-                    // Creating new activity
+              <div className="policy__form__field">
+                <label htmlFor="policy-fallback-approver">
+                  Fallback Approver
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(groups, "id", "name", true),
+                  policy.fallback_approver,
+                  handlePolicyFieldChange("fallback_approver"),
+                  "Select fallback approver",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+            </div>
 
-                    // Add to postProcessingActivities
-                    setPostProcessingActivities((prev) => {
-                      const updated = [...prev, newActivity];
-                      // Updated activities
-                      return updated;
-                    });
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-for-signed">For Signed Documents</label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-for-signed"
+                    checked={policy.for_signed}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        for_signed: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-for-signed"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Apply policy to signed documents only
+                    </span>
+                    <small className="policy__checkbox__description">
+                      Policy rules will only apply to documents that have been
+                      signed
+                    </small>
+                  </label>
+                </div>
+              </div>
+            </div>
 
-                    // Reset form
-                    setDocumentConfigState({
-                      id: 0,
-                      identifier: "",
-                      title: "",
-                      workflow_stage_id: 0,
-                      workflow_id: 0,
-                      group_id: 0,
-                      department_id: 0,
-                      action_label: "",
-                      trigger_action_id: 0,
-                      category: "process",
-                      user_id: 0,
-                      status: "pending",
-                      permission: "r",
-                      document_action_id: 0,
-                      order: 0,
-                      blocks: [],
-                    });
-
-                    // Reset selected options
-                    setSelectedOptions({
-                      workflow: null,
-                      workflow_stage: null,
-                      group: null,
-                      department: null,
-                      user: null,
-                      trigger_action: null,
-                    });
-
-                    setShowPostProcessingForm(false);
-                  }}
-                  size="sm"
-                  variant="dark"
-                  type="button"
-                  icon="ri-terminal-box-line"
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-days">Retention Period (Days)</label>
+                <TextInput
+                  type="number"
+                  value={policy.days}
+                  onChange={(e) =>
+                    setPolicy((prev) => ({
+                      ...prev,
+                      days: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  placeholder="Enter number of days"
+                  name="days"
+                  min={0}
                 />
+                <small>
+                  Number of days documents in this category should be retained
+                </small>
+              </div>
+
+              <div className="policy__form__field">
+                <label htmlFor="policy-frequency">Retention Frequency</label>
+                <Select
+                  label=""
+                  value={policy.frequency}
+                  onChange={(e) =>
+                    setPolicy((prev) => ({
+                      ...prev,
+                      frequency: e.target.value as DocumentPolicy["frequency"],
+                    }))
+                  }
+                  defaultValue=""
+                  defaultText="Select frequency"
+                  name="frequency"
+                  valueKey="value"
+                  labelKey="label"
+                  options={[
+                    { value: "days", label: "Days" },
+                    { value: "weeks", label: "Weeks" },
+                    { value: "months", label: "Months" },
+                    { value: "years", label: "Years" },
+                  ]}
+                />
+                <small>Time unit for the retention period</small>
               </div>
             </div>
           </div>
+        </div>
 
-          <div
-            className="configuration__settings__activities__display mt-5"
-            style={{ display: showPostProcessingForm ? "none" : "block" }}
-          >
-            {postProcessingActivities.length > 0 ? (
-              <>
-                <div className="activities__scroll__container">
-                  <div className="activities__grid">
-                    {postProcessingActivities.map((activity, index) => {
-                      // Find corresponding data from useMemo dependencies
-                      const workflowStage = workflowStages.find(
-                        (stage) => stage.id === activity.workflow_stage_id
-                      );
-                      const department = departments.find(
-                        (dept) => dept.id === activity.department_id
-                      );
-                      const group = groups.find(
-                        (grp) => grp.id === activity.group_id
-                      );
-                      const user = users.find(
-                        (usr) => usr.id === activity.user_id
-                      );
-                      const triggerAction = documentActions.find(
-                        (action) => action.id === activity.trigger_action_id
-                      );
-                      // const workflow = workflows.find(
-                      //   (wf) => wf.id === activity.trigger_action_id
-                      // );
+        <div className="configuration__body__item">
+          <div className="configuration__body__section__header">
+            <h5>
+              <i className="ri-user-settings-line"></i>
+              Signatories Configuration
+            </h5>
+          </div>
 
-                      return (
+          <div className="configuration__body__item__content">
+            {/* Department Configuration */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-department">Department</label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(
+                    departments,
+                    "id",
+                    "name",
+                    true,
+                    false,
+                    "Originating Department"
+                  ),
+                  policy.department_id
+                    ? formatOptions(
+                        departments,
+                        "id",
+                        "name",
+                        true,
+                        false,
+                        "Originating Department"
+                      ).find((d) => d.value === policy.department_id) || null
+                    : { value: 0, label: "Originating Department" },
+                  handlePolicyFieldChange("department_id"),
+                  "Select department",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+
+              <div className="policy__form__field">
+                <label htmlFor="policy-destination-department">
+                  Destination Department
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(
+                    departments,
+                    "id",
+                    "name",
+                    true,
+                    false,
+                    "Approving Department"
+                  ),
+                  policy.destination_department_id
+                    ? formatOptions(
+                        departments,
+                        "id",
+                        "name",
+                        true,
+                        false,
+                        "Approving Department"
+                      ).find(
+                        (d) => d.value === policy.destination_department_id
+                      ) || null
+                    : { value: 0, label: "Approving Department" },
+                  handlePolicyFieldChange("destination_department_id"),
+                  "Select destination department",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+            </div>
+
+            {/* Group Configuration */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-initiator-group">Initiator Group</label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(groups, "id", "name"),
+                  policy.initiator_group_id
+                    ? formatOptions(groups, "id", "name").find(
+                        (g) => g.value === policy.initiator_group_id
+                      ) || null
+                    : null,
+                  handlePolicyFieldChange("initiator_group_id"),
+                  "Select initiator group",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+
+              <div className="policy__form__field">
+                <label htmlFor="policy-approval-group">Approval Group</label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(groups, "id", "name"),
+                  policy.approval_group_id
+                    ? formatOptions(groups, "id", "name").find(
+                        (g) => g.value === policy.approval_group_id
+                      ) || null
+                    : null,
+                  handlePolicyFieldChange("approval_group_id"),
+                  "Select approval group",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+            </div>
+
+            {/* Through Group Configuration */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-must-pass-through">
+                  Must Pass Through
+                </label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-must-pass-through"
+                    checked={policy.mustPassThrough || false}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        mustPassThrough: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-must-pass-through"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Enforce through resolution
+                    </span>
+                    <small className="policy__checkbox__description">
+                      When enabled, documents must pass through even if
+                      initiator and approver are in the same department
+                    </small>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {policy.mustPassThrough && (
+              <div className="policy__form__row">
+                <div className="policy__form__field">
+                  <label htmlFor="policy-through-group">Through Group</label>
+                  {renderMultiSelect(
+                    "",
+                    formatOptions(groups, "id", "name"),
+                    policy.through_group_id
+                      ? formatOptions(groups, "id", "name").find(
+                          (g) => g.value === policy.through_group_id
+                        ) || null
+                      : null,
+                    handlePolicyFieldChange("through_group_id"),
+                    "Select through group",
+                    false,
+                    12,
+                    false
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Workflow Stage Configuration */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-initiator-workflow-stage">
+                  Initiator Workflow Stage
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(workflowStages, "id", "name"),
+                  policy.initiator_workflow_stage_id
+                    ? formatOptions(workflowStages, "id", "name").find(
+                        (ws) => ws.value === policy.initiator_workflow_stage_id
+                      ) || null
+                    : null,
+                  handlePolicyFieldChange("initiator_workflow_stage_id"),
+                  "Select initiator workflow stage",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+
+              <div className="policy__form__field">
+                <label htmlFor="policy-approval-workflow-stage">
+                  Approval Workflow Stage
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(workflowStages, "id", "name"),
+                  policy.approval_workflow_stage_id
+                    ? formatOptions(workflowStages, "id", "name").find(
+                        (ws) => ws.value === policy.approval_workflow_stage_id
+                      ) || null
+                    : null,
+                  handlePolicyFieldChange("approval_workflow_stage_id"),
+                  "Select approval workflow stage",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+            </div>
+
+            {policy.mustPassThrough && (
+              <div className="policy__form__row">
+                <div className="policy__form__field">
+                  <label htmlFor="policy-through-workflow-stage">
+                    Through Workflow Stage
+                  </label>
+                  {renderMultiSelect(
+                    "",
+                    formatOptions(workflowStages, "id", "name"),
+                    policy.through_workflow_stage_id
+                      ? formatOptions(workflowStages, "id", "name").find(
+                          (ws) => ws.value === policy.through_workflow_stage_id
+                        ) || null
+                      : null,
+                    handlePolicyFieldChange("through_workflow_stage_id"),
+                    "Select through workflow stage",
+                    false,
+                    12,
+                    false
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Signing Control */}
+            <div className="policy__form__row">
+              <div className="policy__form__field">
+                <label htmlFor="policy-initiator-should-sign">
+                  Initiator Should Sign
+                </label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-initiator-should-sign"
+                    checked={policy.initiator_should_sign !== false}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        initiator_should_sign: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-initiator-should-sign"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Require initiator signature
+                    </span>
+                    <small className="policy__checkbox__description">
+                      When enabled, the initiator must sign documents in this
+                      category
+                    </small>
+                  </label>
+                </div>
+              </div>
+
+              <div className="policy__form__field">
+                <label htmlFor="policy-through-should-sign">
+                  Through Should Sign
+                </label>
+                <div className="policy__checkbox__group">
+                  <input
+                    type="checkbox"
+                    id="policy-through-should-sign"
+                    checked={policy.through_should_sign !== false}
+                    onChange={(e) =>
+                      setPolicy((prev) => ({
+                        ...prev,
+                        through_should_sign: e.target.checked,
+                      }))
+                    }
+                  />
+                  <label
+                    htmlFor="policy-through-should-sign"
+                    className="policy__checkbox__label"
+                  >
+                    <span className="policy__checkbox__text">
+                      Require through signature
+                    </span>
+                    <small className="policy__checkbox__description">
+                      When enabled, the through user must sign documents in this
+                      category
+                    </small>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Fixed User IDs (Override Resolution) */}
+            <div className="policy__form__row">
+              <div className="policy__form__field" style={{ flex: 1 }}>
+                <label htmlFor="policy-initiator-user">
+                  Initiator User (Fixed)
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(users, "id", "name", true, false, "Initiator"),
+                  policy.initiator_user_id
+                    ? formatOptions(users, "id", "name").find(
+                        (u) => u.value === policy.initiator_user_id
+                      ) || null
+                    : { value: 0, label: "Initiator" },
+                  handlePolicyFieldChange("initiator_user_id"),
+                  "Select fixed initiator user",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+
+              <div className="policy__form__field" style={{ flex: 1 }}>
+                <label htmlFor="policy-through-user">
+                  Through User (Fixed)
+                </label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(users, "id", "name", true, false, "Authoriser"),
+                  policy.through_user_id
+                    ? formatOptions(
+                        users,
+                        "id",
+                        "name",
+                        true,
+                        false,
+                        "Authoriser"
+                      ).find((u) => u.value === policy.through_user_id) || null
+                    : { value: 0, label: "Authoriser" },
+                  handlePolicyFieldChange("through_user_id"),
+                  "Select fixed through user",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+
+              <div className="policy__form__field" style={{ flex: 1 }}>
+                <label htmlFor="policy-to-user">Approver User (Fixed)</label>
+                {renderMultiSelect(
+                  "",
+                  formatOptions(users, "id", "name", true, false, "Approver"),
+                  policy.to_user_id
+                    ? formatOptions(
+                        users,
+                        "id",
+                        "name",
+                        true,
+                        false,
+                        "Approver"
+                      ).find((u) => u.value === policy.to_user_id) || null
+                    : { value: 0, label: "Approver" },
+                  handlePolicyFieldChange("to_user_id"),
+                  "Select fixed approver user",
+                  false,
+                  12,
+                  false
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="configuration__body__item">
+          <div className="configuration__body__section__header">
+            <h5>
+              <i className="ri-notification-line"></i>
+              Notifications Configuration
+            </h5>
+          </div>
+
+          <div className="configuration__body__item__content">
+            <div className="watchers__container">
+              {/* Search Input */}
+              <div className="watchers__search__section">
+                <TextInput
+                  label="Search Users & Groups"
+                  name="recipient-search"
+                  type="text"
+                  value={recipientSearchQuery}
+                  onChange={(e) => setRecipientSearchQuery(e.target.value)}
+                  placeholder="Type to search users and groups..."
+                  size="xl"
+                  width={100}
+                />
+              </div>
+
+              {/* Selected Recipients */}
+              {selectedRecipients &&
+                Array.isArray(selectedRecipients) &&
+                selectedRecipients.length > 0 && (
+                  <div className="watchers__selected__section">
+                    <h4 className="watchers__selected__title">
+                      Selected Recipients
+                    </h4>
+                    <div className="watchers__selected__list">
+                      {selectedRecipients.map((recipient) => (
                         <div
-                          key={activity.id || index}
-                          className={`activity__card ${
-                            expandedCard === activity.id ? "expanded" : ""
-                          }`}
-                          onClick={() => handleCardClick(activity.id)}
+                          key={`${recipient.type}-${recipient.id}`}
+                          className="watcher__card"
                         >
-                          {/* Expand indicator */}
-                          <div className="expand__indicator">
+                          <div className="watcher__card__avatar">
                             <i
-                              className={
-                                expandedCard === activity.id
-                                  ? "ri-subtract-line"
-                                  : "ri-add-line"
-                              }
+                              className={`ri-${
+                                recipient.type === "user"
+                                  ? "user-line"
+                                  : "group-line"
+                              }`}
                             ></i>
                           </div>
-
-                          <div className="activity__card__header">
-                            <div className="activity__card__title">
-                              <i className="ri-settings-4-line"></i>
-                              <span>{activity.title}</span>
+                          <div className="watcher__card__info">
+                            <div className="watcher__card__name">
+                              {recipient.name}
                             </div>
-                            <div className="activity__card__category">
-                              <span
-                                className={`category__badge category__${activity.category}`}
-                              >
-                                {toTitleCase(activity.category)}
-                              </span>
+                            <div className="watcher__card__type">
+                              {recipient.type === "user" ? "Staff" : "Group"}
                             </div>
+                            {recipient.type === "user" && recipient.email && (
+                              <div className="watcher__card__email">
+                                {recipient.email}
+                              </div>
+                            )}
+                            {recipient.type === "group" &&
+                              recipient.description && (
+                                <div className="watcher__card__description">
+                                  {recipient.description}
+                                </div>
+                              )}
                           </div>
-
-                          <div className="activity__card__content">
-                            <div className="activity__card__row">
-                              <span className="activity__card__label">
-                                Desk:
-                              </span>
-                              <span className="activity__card__value">
-                                {workflowStage?.name || "N/A"}
-                              </span>
-                            </div>
-
-                            {activity.department_id > 0 && (
-                              <div className="activity__card__row">
-                                <span className="activity__card__label">
-                                  Department:
-                                </span>
-                                <span className="activity__card__value">
-                                  {department?.abv || department?.name || "N/A"}
-                                </span>
-                              </div>
-                            )}
-
-                            {activity.group_id > 0 && (
-                              <div className="activity__card__row">
-                                <span className="activity__card__label">
-                                  Group:
-                                </span>
-                                <span className="activity__card__value">
-                                  {group?.name || "N/A"}
-                                </span>
-                              </div>
-                            )}
-
-                            {activity.user_id > 0 && (
-                              <div className="activity__card__row">
-                                <span className="activity__card__label">
-                                  Staff:
-                                </span>
-                                <span className="activity__card__value">
-                                  {user?.name || "N/A"}
-                                </span>
-                              </div>
-                            )}
-
-                            {activity.action_label && (
-                              <div className="activity__card__row">
-                                <span className="activity__card__label">
-                                  Event:
-                                </span>
-                                <span className="activity__card__value">
-                                  {toTitleCase(activity.action_label)}
-                                </span>
-                              </div>
-                            )}
-
-                            {activity.trigger_action_id > 0 && (
-                              <div className="activity__card__row">
-                                <span className="activity__card__label">
-                                  Trigger:
-                                </span>
-                                <span className="activity__card__value">
-                                  {triggerAction?.name || "N/A"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="activity__card__actions">
-                            <button
-                              className="activity__card__action__btn edit"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent card expansion
-                                // TODO: Implement edit functionality
-                                // Edit activity
-                              }}
-                              title="Edit Activity"
-                            >
-                              <i className="ri-edit-line"></i>
-                            </button>
-                            <button
-                              className="activity__card__action__btn delete"
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent card expansion
-                                setPostProcessingActivities((prev) =>
-                                  prev.filter((a) => a.id !== activity.id)
-                                );
-                              }}
-                              title="Delete Activity"
-                            >
-                              <i className="ri-delete-bin-line"></i>
-                            </button>
-                          </div>
+                          <button
+                            className="watcher__card__remove"
+                            onClick={() => removeRecipient(recipient)}
+                            title="Remove recipient"
+                          >
+                            <i className="ri-close-line"></i>
+                          </button>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          </div>
+        </div>
+
+        <div className="configuration__body__item">
+          <div className="configuration__body__section__header">
+            <h5>
+              <i className="ri-settings-3-line"></i>
+              Actions Configuration
+            </h5>
+          </div>
+
+          <div className="configuration__body__item__content">
+            {/* Initiator Channel */}
+            {policy.initiator_group_id &&
+              policy.initiator_group_id > 0 &&
+              policy.initiator_workflow_stage_id &&
+              policy.initiator_workflow_stage_id > 0 && (
+                <div className="policy__form__row">
+                  <div
+                    className="policy__form__field"
+                    style={{ width: "100%" }}
+                  >
+                    <div className="actions__channel__header">
+                      <h6>
+                        <i className="ri-user-line"></i>
+                        Initiator Channel
+                      </h6>
+                    </div>
+                    <div className="actions__channel__info">
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Department:
+                        </span>
+                        <span className="actions__channel__value">
+                          {resolveDepartmentName(policy.department_id)}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Group:</span>
+                        <span className="actions__channel__value">
+                          {resolveGroupName(policy.initiator_group_id) || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Desk:</span>
+                        <span className="actions__channel__value">
+                          {resolveWorkflowStage(
+                            policy.initiator_workflow_stage_id
+                          ).name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Signing Required:
+                        </span>
+                        <span className="actions__channel__value">
+                          {policy.initiator_should_sign === false
+                            ? "No"
+                            : "Yes"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="actions__channel__actions">
+                      <label className="actions__channel__actions__label">
+                        Available Actions:
+                      </label>
+                      <div className="actions__channel__actions__list">
+                        {resolveWorkflowStage(
+                          policy.initiator_workflow_stage_id
+                        ).actions.length > 0 ? (
+                          resolveWorkflowStage(
+                            policy.initiator_workflow_stage_id
+                          ).actions.map((action) => (
+                            <div
+                              key={`initiator-action-${action.id}`}
+                              className="policy__checkbox__group"
+                            >
+                              <input
+                                type="checkbox"
+                                id={`initiator-action-${action.id}`}
+                                checked={
+                                  policy.allowedActions?.from.includes(
+                                    action.id
+                                  ) || false
+                                }
+                                onChange={(e) =>
+                                  handleChannelActionChange(
+                                    "from",
+                                    action.id,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              <label
+                                htmlFor={`initiator-action-${action.id}`}
+                                className="policy__checkbox__label"
+                              >
+                                <span className="policy__checkbox__text">
+                                  {action.name ||
+                                    action.label ||
+                                    `Action ${action.id}`}
+                                </span>
+                                {action.action_status && (
+                                  <small className="policy__checkbox__description">
+                                    {action.action_status}
+                                  </small>
+                                )}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="actions__channel__no__actions">
+                            No actions available for this workflow stage
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                {/* Beautiful stacked cards - no more slider needed! */}
-              </>
+            {/* Approval Channel */}
+            {policy.approval_group_id &&
+              policy.approval_group_id > 0 &&
+              policy.approval_workflow_stage_id &&
+              policy.approval_workflow_stage_id > 0 && (
+                <div className="policy__form__row">
+                  <div
+                    className="policy__form__field"
+                    style={{ width: "100%" }}
+                  >
+                    <div className="actions__channel__header">
+                      <h6>
+                        <i className="ri-checkbox-circle-line"></i>
+                        Approval Channel
+                      </h6>
+                    </div>
+                    <div className="actions__channel__info">
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Department:
+                        </span>
+                        <span className="actions__channel__value">
+                          {resolveDepartmentName(
+                            policy.destination_department_id
+                          )}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Group:</span>
+                        <span className="actions__channel__value">
+                          {resolveGroupName(policy.approval_group_id) || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Desk:</span>
+                        <span className="actions__channel__value">
+                          {resolveWorkflowStage(
+                            policy.approval_workflow_stage_id
+                          ).name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Signing Required:
+                        </span>
+                        <span className="actions__channel__value">Yes</span>
+                      </div>
+                    </div>
+                    <div className="actions__channel__actions">
+                      <label className="actions__channel__actions__label">
+                        Available Actions:
+                      </label>
+                      <div className="actions__channel__actions__list">
+                        {resolveWorkflowStage(policy.approval_workflow_stage_id)
+                          .actions.length > 0 ? (
+                          resolveWorkflowStage(
+                            policy.approval_workflow_stage_id
+                          ).actions.map((action) => (
+                            <div
+                              key={`approval-action-${action.id}`}
+                              className="policy__checkbox__group"
+                            >
+                              <input
+                                type="checkbox"
+                                id={`approval-action-${action.id}`}
+                                checked={
+                                  policy.allowedActions?.to.includes(
+                                    action.id
+                                  ) || false
+                                }
+                                onChange={(e) =>
+                                  handleChannelActionChange(
+                                    "to",
+                                    action.id,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              <label
+                                htmlFor={`approval-action-${action.id}`}
+                                className="policy__checkbox__label"
+                              >
+                                <span className="policy__checkbox__text">
+                                  {action.name ||
+                                    action.label ||
+                                    `Action ${action.id}`}
+                                </span>
+                                {action.action_status && (
+                                  <small className="policy__checkbox__description">
+                                    {action.action_status}
+                                  </small>
+                                )}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="actions__channel__no__actions">
+                            No actions available for this workflow stage
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {/* Verification Channel */}
+            <div className="policy__form__row">
+              <div className="policy__form__field" style={{ width: "100%" }}>
+                <div className="actions__channel__header">
+                  <h6>
+                    <i className="ri-shield-check-line"></i>
+                    Verification Channel
+                  </h6>
+                </div>
+
+                {policy.mustPassThrough && (
+                  <div className="actions__channel__alert">
+                    <i className="ri-error-warning-line"></i>
+                    This document category should go through an authoriser, but
+                    this might not always be the case!
+                  </div>
+                )}
+
+                {(policy.through_group_id ||
+                  policy.through_workflow_stage_id ||
+                  policy.through_user_id) && (
+                  <>
+                    <div className="actions__channel__info">
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Department:
+                        </span>
+                        <span className="actions__channel__value">
+                          {policy.through_user_id
+                            ? resolveDepartmentName(
+                                resolveUserById(policy.through_user_id)
+                                  ?.department_id
+                              )
+                            : resolveDepartmentName(policy.department_id)}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Group:</span>
+                        <span className="actions__channel__value">
+                          {resolveGroupName(policy.through_group_id) || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">Desk:</span>
+                        <span className="actions__channel__value">
+                          {resolveWorkflowStage(
+                            policy.through_workflow_stage_id
+                          ).name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">
+                          Signing Required:
+                        </span>
+                        <span className="actions__channel__value">
+                          {policy.through_should_sign === false ? "No" : "Yes"}
+                        </span>
+                      </div>
+                      <div className="actions__channel__info__item">
+                        <span className="actions__channel__label">User:</span>
+                        <span className="actions__channel__value">
+                          {resolveUserName(policy.through_user_id)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="actions__channel__actions">
+                      <label className="actions__channel__actions__label">
+                        Available Actions:
+                      </label>
+                      <div className="actions__channel__actions__list">
+                        {resolveWorkflowStage(policy.through_workflow_stage_id)
+                          .actions.length > 0 ? (
+                          resolveWorkflowStage(
+                            policy.through_workflow_stage_id
+                          ).actions.map((action) => (
+                            <div
+                              key={`through-action-${action.id}`}
+                              className="policy__checkbox__group"
+                            >
+                              <input
+                                type="checkbox"
+                                id={`through-action-${action.id}`}
+                                checked={
+                                  policy.allowedActions?.through.includes(
+                                    action.id
+                                  ) || false
+                                }
+                                onChange={(e) =>
+                                  handleChannelActionChange(
+                                    "through",
+                                    action.id,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              <label
+                                htmlFor={`through-action-${action.id}`}
+                                className="policy__checkbox__label"
+                              >
+                                <span className="policy__checkbox__text">
+                                  {action.name ||
+                                    action.label ||
+                                    `Action ${action.id}`}
+                                </span>
+                                {action.description && (
+                                  <small className="policy__checkbox__description">
+                                    {action.description}
+                                  </small>
+                                )}
+                              </label>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="actions__channel__no__actions">
+                            No actions available for this workflow stage
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {!policy.through_group_id &&
+                  !policy.through_workflow_stage_id &&
+                  !policy.through_user_id && (
+                    <div className="actions__channel__info">
+                      <p className="actions__channel__placeholder">
+                        Verification channel configuration has not been set up
+                        yet.
+                      </p>
+                    </div>
+                  )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="configuration__body__item">
+          <div className="configuration__body__section__header">
+            <h5>
+              <i className="ri-file-text-line"></i>
+              Post Processing Configuration
+            </h5>
+          </div>
+          <div className="configuration__body__item__content">
+            <div className="post-processing__toolbar">
+              <div className="post-processing__summary">
+                <h6>Post Processing Activities</h6>
+                <p>
+                  Compose the downstream automations and trackers that run after
+                  this document completes its approvals.
+                </p>
+              </div>
+              <Button
+                label="Add Activity"
+                icon="ri-add-line"
+                variant="success"
+                size="md"
+                handleClick={() => handleOpenPostProcessingForm()}
+              />
+            </div>
+
+            {postProcessingActivities.length > 0 ? (
+              <div className="post-processing__cards">
+                {postProcessingActivities.map((activity, index) => (
+                  <div
+                    key={activity.id ?? `post-processing-activity-${index}`}
+                    className="post-processing__card"
+                  >
+                    <div className="post-processing__card__header">
+                      <div className="post-processing__card__title">
+                        <span
+                          className={`post-processing__badge post-processing__badge--${activity.category}`}
+                        >
+                          {toTitleCase(activity.category.replace(/_/g, " "))}
+                        </span>
+                        <h6>{activity.title || `Activity ${index + 1}`}</h6>
+                      </div>
+                      <div className="post-processing__card__actions">
+                        <button
+                          type="button"
+                          className="post-processing__card__action"
+                          onClick={() =>
+                            handleOpenPostProcessingForm(activity, index)
+                          }
+                          title="Edit activity"
+                        >
+                          <i className="ri-pencil-line"></i>
+                        </button>
+                        <button
+                          type="button"
+                          className="post-processing__card__action danger"
+                          onClick={() => handleDeleteActivity(index)}
+                          title="Remove activity"
+                        >
+                          <i className="ri-delete-bin-line"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="post-processing__card__body">
+                      <div className="post-processing__info post-processing__info--full">
+                        <span className="post-processing__info__label">
+                          Desk
+                        </span>
+                        <span className="post-processing__info__value">
+                          {resolveWorkflowStage(activity.workflow_stage_id)
+                            .name || "Not specified"}
+                        </span>
+                      </div>
+                      <div className="post-processing__card__meta">
+                        <div className="post-processing__info">
+                          <span className="post-processing__info__label">
+                            Department
+                          </span>
+                          <span className="post-processing__info__value">
+                            {resolveDepartmentName(activity.department_id)}
+                          </span>
+                        </div>
+                        <div className="post-processing__info">
+                          <span className="post-processing__info__label">
+                            Group
+                          </span>
+                          <span className="post-processing__info__value">
+                            {resolveGroupName(activity.group_id) ||
+                              "Not specified"}
+                          </span>
+                        </div>
+                        <div className="post-processing__info">
+                          <span className="post-processing__info__label">
+                            Fixed User
+                          </span>
+                          <span className="post-processing__info__value">
+                            {resolveUserName(activity.user_id)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="post-processing__card__status">
+                        <div className="post-processing__info">
+                          <span className="post-processing__info__label">
+                            Action Status
+                          </span>
+                          <span className="post-processing__info__value">
+                            {activity.document_action_status
+                              ? toTitleCase(
+                                  activity.document_action_status.replace(
+                                    /_/g,
+                                    " "
+                                  )
+                                )
+                              : "Not specified"}
+                          </span>
+                        </div>
+                        <div className="post-processing__info">
+                          <span className="post-processing__info__label">
+                            Trigger Action
+                          </span>
+                          <span className="post-processing__info__value">
+                            {resolveDocumentActionName(
+                              activity.trigger_action_id
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div className="activities__empty__state">
-                <i className="ri-inbox-line"></i>
-                <p>No post-processing activities configured yet</p>
-                <span>
-                  Click &quot;Add Activity&quot; to add your first activity
-                </span>
+              <div className="post-processing__empty">
+                <i className="ri-magic-line"></i>
+                <h6>No post-processing activities yet</h6>
+                <p>
+                  Define trackers, mailers, and notification rules that should
+                  fire after this document is approved.
+                </p>
               </div>
             )}
           </div>
         </div>
-        <div className="configuration__settings__item">
-          <div className="configuration__settings__icon">
-            <i className="ri-shield-check-line"></i>
-          </div>
-          <h3>
-            <i className="ri-shield-check-line"></i>
-            Policy
-          </h3>
-          <div className="configuration__settings__policy mt-5">
-            <div className="row">
-              {/* Boolean Properties - Checkboxes */}
-              <div className="col-md-12 mb-3">
-                <div className="policy__checkbox__group">
-                  <label className="policy__checkbox__label">
-                    <input
-                      type="checkbox"
-                      checked={policy.strict}
-                      onChange={(e) =>
-                        setPolicy((prev) => ({
-                          ...prev,
-                          strict: e.target.checked,
-                        }))
-                      }
-                      className="policy__checkbox"
-                    />
-                    <span className="policy__checkbox__text">
-                      Strict Policy
-                    </span>
-                  </label>
-                  <small className="policy__checkbox__description">
-                    Enforce strict compliance rules
-                  </small>
-                </div>
-              </div>
-
-              <div className="col-md-12 mb-3">
-                <div className="policy__checkbox__group">
-                  <label className="policy__checkbox__label">
-                    <input
-                      type="checkbox"
-                      checked={policy.can_override}
-                      onChange={(e) =>
-                        setPolicy((prev) => ({
-                          ...prev,
-                          can_override: e.target.checked,
-                        }))
-                      }
-                      className="policy__checkbox"
-                    />
-                    <span className="policy__checkbox__text">
-                      Allow Override
-                    </span>
-                  </label>
-                  <small className="policy__checkbox__description">
-                    Permit policy exceptions
-                  </small>
-                </div>
-              </div>
-
-              <div className="col-md-12 mb-3">
-                <div className="policy__checkbox__group">
-                  <label className="policy__checkbox__label">
-                    <input
-                      type="checkbox"
-                      checked={policy.for_signed}
-                      onChange={(e) =>
-                        setPolicy((prev) => ({
-                          ...prev,
-                          for_signed: e.target.checked,
-                        }))
-                      }
-                      className="policy__checkbox"
-                    />
-                    <span className="policy__checkbox__text">
-                      For Signed Documents
-                    </span>
-                  </label>
-                  <small className="policy__checkbox__description">
-                    Apply to signed documents only
-                  </small>
-                </div>
-              </div>
-
-              {/* Scope Selection */}
-              <div className="col-md-12 mb-4">
-                <div className="policy__radio__group">
-                  <label className="policy__radio__label">
-                    <span className="policy__radio__text">Scope</span>
-                  </label>
-                  <div className="policy__radio__options">
-                    <label className="policy__radio__option">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="public"
-                        checked={policy.scope === "public"}
-                        onChange={(e) =>
-                          setPolicy((prev) => ({
-                            ...prev,
-                            scope: e.target.value as
-                              | "public"
-                              | "private"
-                              | "confidential"
-                              | "restricted",
-                          }))
-                        }
-                        className="policy__radio"
-                      />
-                      <span className="policy__radio__text">Public</span>
-                    </label>
-                    <label className="policy__radio__option">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="private"
-                        checked={policy.scope === "private"}
-                        onChange={(e) =>
-                          setPolicy((prev) => ({
-                            ...prev,
-                            scope: e.target.value as
-                              | "public"
-                              | "private"
-                              | "confidential"
-                              | "restricted",
-                          }))
-                        }
-                        className="policy__radio"
-                      />
-                      <span className="policy__radio__text">Private</span>
-                    </label>
-                    <label className="policy__radio__option">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="confidential"
-                        checked={policy.scope === "confidential"}
-                        onChange={(e) =>
-                          setPolicy((prev) => ({
-                            ...prev,
-                            scope: e.target.value as
-                              | "public"
-                              | "private"
-                              | "confidential"
-                              | "restricted",
-                          }))
-                        }
-                        className="policy__radio"
-                      />
-                      <span className="policy__radio__text">Confidential</span>
-                    </label>
-                    <label className="policy__radio__option">
-                      <input
-                        type="radio"
-                        name="scope"
-                        value="restricted"
-                        checked={policy.scope === "restricted"}
-                        onChange={(e) =>
-                          setPolicy((prev) => ({
-                            ...prev,
-                            scope: e.target.value as
-                              | "public"
-                              | "private"
-                              | "confidential"
-                              | "restricted",
-                          }))
-                        }
-                        className="policy__radio"
-                      />
-                      <span className="policy__radio__text">Restricted</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* MultiSelect for Groups */}
-              {renderMultiSelect(
-                "Clearance Level",
-                formatOptions(groups, "id", "name", true),
-                policy.clearance_level,
-                (newValue) => {
-                  if (Array.isArray(newValue)) {
-                    setPolicy((prev) => ({
-                      ...prev,
-                      clearance_level: newValue[0] || null,
-                    }));
-                  } else {
-                    setPolicy((prev) => ({
-                      ...prev,
-                      clearance_level: newValue as DataOptionsProps,
-                    }));
-                  }
-                },
-                "Select clearance level",
-                false,
-                12
-              )}
-
-              {renderMultiSelect(
-                "Fallback Approver",
-                formatOptions(groups, "id", "name"),
-                policy.fallback_approver,
-                (newValue) => {
-                  if (Array.isArray(newValue)) {
-                    setPolicy((prev) => ({
-                      ...prev,
-                      fallback_approver: newValue[0] || null,
-                    }));
-                  } else {
-                    setPolicy((prev) => ({
-                      ...prev,
-                      fallback_approver: newValue as DataOptionsProps,
-                    }));
-                  }
-                },
-                "Select fallback approver",
-                false,
-                12
-              )}
-
-              {/* Days and Frequency */}
-              <div className="col-md-6 mb-3">
-                <Select
-                  label="Days"
-                  options={Array.from({ length: 12 }, (_, i) => ({
-                    label: `${i + 1} day${i === 0 ? "" : "s"}`,
-                    value: i + 1,
-                  }))}
-                  onChange={(e) =>
-                    setPolicy((prev) => ({
-                      ...prev,
-                      days: parseInt(e.target.value),
-                    }))
-                  }
-                  defaultValue=""
-                  valueKey="value"
-                  labelKey="label"
-                  defaultCheckDisabled
-                  size="xl"
-                />
-              </div>
-
-              <div className="col-md-6 mb-3">
-                <Select
-                  label="Frequency"
-                  options={[
-                    { label: "Days", value: "days" },
-                    { label: "Weeks", value: "weeks" },
-                    { label: "Months", value: "months" },
-                    { label: "Years", value: "years" },
-                  ]}
-                  onChange={(e) =>
-                    setPolicy((prev) => ({
-                      ...prev,
-                      frequency: e.target.value as
-                        | "days"
-                        | "weeks"
-                        | "months"
-                        | "years",
-                    }))
-                  }
-                  defaultValue=""
-                  valueKey="value"
-                  labelKey="label"
-                  defaultCheckDisabled
-                  size="xl"
-                />
-              </div>
-
-              {/* Access Token (Optional) */}
-              <div className="col-md-12 mb-3">
-                <TextInput
-                  label="Access Token (Optional)"
-                  name="access_token"
-                  onChange={(e) =>
-                    setPolicy((prev) => ({
-                      ...prev,
-                      access_token: e.target.value,
-                    }))
-                  }
-                  value={policy.access_token || ""}
-                  placeholder="Enter access token if required"
-                  size="lg"
-                />
-              </div>
-
-              {/* Policy Summary Display */}
-              <div className="col-md-12 mt-4">
-                <div className="policy__summary">
-                  <h6>Policy Summary</h6>
-                  <div className="policy__summary__content">
-                    <div className="policy__summary__row">
-                      <span className="policy__summary__label">Mode:</span>
-                      <span
-                        className={`policy__summary__value ${
-                          policy.strict ? "strict" : "flexible"
-                        }`}
-                      >
-                        {policy.strict ? "Strict" : "Flexible"}
-                      </span>
-                    </div>
-                    <div className="policy__summary__row">
-                      <span className="policy__summary__label">Scope:</span>
-                      <span
-                        className={`policy__summary__value ${policy.scope}`}
-                      >
-                        {toTitleCase(policy.scope)}
-                      </span>
-                    </div>
-                    <div className="policy__summary__row">
-                      <span className="policy__summary__label">Override:</span>
-                      <span
-                        className={`policy__summary__value ${
-                          policy.can_override ? "allowed" : "denied"
-                        }`}
-                      >
-                        {policy.can_override ? "Allowed" : "Denied"}
-                      </span>
-                    </div>
-                    {policy.days > 0 && (
-                      <div className="policy__summary__row">
-                        <span className="policy__summary__label">
-                          Duration:
-                        </span>
-                        <span className="policy__summary__value">
-                          {policy.days} {policy.frequency}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="configuration__settings__item">
-          <div className="configuration__settings__icon">
-            <i className="ri-notification-4-line"></i>
-          </div>
-          <h3>
-            <i className="ri-notification-4-line"></i>
-            Notifications
-          </h3>
-          <div className="configuration__settings__notifications mt-5">
-            {/* Form Input Section */}
-            <div className="configuration__settings__notifications__form mb-4">
-              {renderMultiSelect(
-                "Recipients",
-                formatOptions(users, "id", "name"),
-                selectedUsers,
-                (newValue) => {
-                  setSelectedUsers(newValue as DataOptionsProps[]);
-                },
-                "Staff",
-                false,
-                12,
-                true
-              )}
-            </div>
-
-            {/* User Cards Display Section */}
-            <div className="configuration__settings__notifications__display">
-              {/* <h6 className="mb-3">Selected Staff</h6> */}
-              {selectedUsers && selectedUsers.length > 0 ? (
-                <div className="notifications__users__grid">
-                  {selectedUsers.map((userOption) => {
-                    const user = users.find((u) => u.id === userOption.value);
-                    if (!user) return null;
-
-                    const initials = user.name
-                      ? user.name
-                          .split(" ")
-                          .map((n) => n.charAt(0))
-                          .join("")
-                          .toUpperCase()
-                          .slice(0, 2)
-                      : "U";
-
-                    return (
-                      <div key={user.id} className="notification__user__card">
-                        <div className="notification__user__avatar">
-                          <span className="notification__user__initials">
-                            {initials}
-                          </span>
-                        </div>
-                        <div className="notification__user__info">
-                          <div className="notification__user__name">
-                            {user.name}
-                          </div>
-                          <div className="notification__user__email">
-                            {user.email || "No email"}
-                          </div>
-                        </div>
-                        <button
-                          className="notification__user__remove"
-                          onClick={() => {
-                            setSelectedUsers((prev) =>
-                              prev.filter((u) => u.value !== user.id)
-                            );
-                          }}
-                          title="Remove user"
-                        >
-                          <i className="ri-close-line"></i>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="notifications__empty__state">
-                  <i className="ri-user-line"></i>
-                  <p>No users selected for notifications</p>
-                  <span>Use the form above to add notification recipients</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Portal Dropdown - Rendered at document body level */}
+      {recipientSearchQuery &&
+        dropdownPosition &&
+        createPortal(
+          <div
+            className="watchers__suggestions__dropdown--portal"
+            style={{
+              position: "fixed",
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              zIndex: 999999,
+            }}
+          >
+            {filteredRecipients.length > 0 ? (
+              <div className="watchers__suggestions__list">
+                {filteredRecipients.map((item, index) => (
+                  <div
+                    key={`${item.type}-${item.id}`}
+                    className={`watcher__suggestion__item ${
+                      selectedSuggestionIndex === index ? "selected" : ""
+                    }`}
+                    onClick={() => selectRecipient(item)}
+                    onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                  >
+                    <div className="watcher__suggestion__avatar">
+                      <i
+                        className={`ri-${
+                          item.type === "user" ? "user-line" : "group-line"
+                        }`}
+                      ></i>
+                    </div>
+                    <div className="watcher__suggestion__info">
+                      <div className="watcher__suggestion__name">
+                        {item.name}
+                      </div>
+                      <div className="watcher__suggestion__type">
+                        {item.type === "user" ? "Staff" : "Group"}
+                      </div>
+                      {item.type === "user" && item.email && (
+                        <div className="watcher__suggestion__email">
+                          {item.email}
+                        </div>
+                      )}
+                      {item.type === "group" && item.description && (
+                        <div className="watcher__suggestion__description">
+                          {item.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="watchers__no__results">
+                <i className="ri-search-line"></i>
+                <p>No users or groups found</p>
+              </div>
+            )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };

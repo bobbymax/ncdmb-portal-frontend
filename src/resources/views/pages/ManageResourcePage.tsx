@@ -93,6 +93,97 @@ const ManageResourcePage = ({
             size="sm"
           />
         </div>
+        {/* Validation Errors Display */}
+        {errors && errors.length > 0 && (
+          <div className="row mb-4">
+            <div className="col-md-12">
+              <div
+                style={{
+                  padding: "16px 20px",
+                  backgroundColor: "#fef2f2",
+                  borderRadius: "12px",
+                  border: "2px solid #fecaca",
+                  boxShadow: "0 4px 6px rgba(220, 38, 38, 0.1)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "50%",
+                      backgroundColor: "#dc2626",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      boxShadow: "0 2px 4px rgba(220, 38, 38, 0.2)",
+                    }}
+                  >
+                    <i
+                      className="ri-error-warning-fill"
+                      style={{ color: "white", fontSize: "20px" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p
+                      style={{
+                        margin: "0 0 12px",
+                        color: "#dc2626",
+                        fontWeight: 600,
+                        fontSize: "15px",
+                        letterSpacing: "0.3px",
+                      }}
+                    >
+                      Please fix the following errors before submitting:
+                    </p>
+                    <ul
+                      style={{
+                        margin: 0,
+                        paddingLeft: "20px",
+                        listStyle: "none",
+                      }}
+                    >
+                      {errors.map((error, index) => (
+                        <li
+                          key={index}
+                          style={{
+                            color: "#991b1b",
+                            fontSize: "14px",
+                            marginBottom: "8px",
+                            lineHeight: "1.6",
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "8px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: "#dc2626",
+                              fontSize: "12px",
+                              marginTop: "4px",
+                              flexShrink: 0,
+                            }}
+                          >
+                            •
+                          </span>
+                          <span>{error}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form
           onSubmit={view.mode === "update" ? update : create}
           encType="multipart/form-data"
